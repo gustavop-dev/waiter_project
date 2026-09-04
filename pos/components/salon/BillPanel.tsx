@@ -6,11 +6,11 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Money } from '@/components/ui/Money'
 import { formatCop } from '@/lib/domain/money'
-import type { DraftLine } from '@/lib/domain/order'
 import { elapsedMinutes, formatElapsed } from '@/lib/domain/tableState'
 import type { TableView } from '@/lib/domain/tableState'
 
-interface BillPanelProps { view: TableView | null; lines: DraftLine[]; onCharge: () => void; onOpenOrder: () => void; now: number }
+export interface BillLine { uuid: string; name: string; qty: number; unitPrice: number; note: string }
+interface BillPanelProps { view: TableView | null; lines: BillLine[]; onCharge: () => void; onOpenOrder: () => void; now: number }
 
 export function BillPanel({ view, lines, onCharge, onOpenOrder, now }: BillPanelProps) {
   const t = useTranslations('pos.salon')
@@ -18,8 +18,9 @@ export function BillPanel({ view, lines, onCharge, onOpenOrder, now }: BillPanel
     return <aside className="w-panel shrink-0 border-l border-border bg-surface grid place-items-center text-soft text-[15px] p-6 text-center">{t('emptyPanel')}</aside>
   }
   const subtotal = lines.reduce((a, l) => a + l.unitPrice * l.qty, 0)
-  const service = Math.round(subtotal * 0.1)
   const total = view.total || subtotal
+  const tax = view.total ? view.tax : 0
+  const tip = Math.round(subtotal * 0.1)
   const hasBill = lines.length > 0 || view.orderId !== null
   const meta = view.startedAt
     ? t('meta', { pax: view.table.seats, waiter: view.waiter ?? '', elapsed: formatElapsed(elapsedMinutes(view.startedAt, now)) })
@@ -36,18 +37,23 @@ export function BillPanel({ view, lines, onCharge, onOpenOrder, now }: BillPanel
       </button>
       <div className="flex-1 min-h-0 px-5 py-1.5 overflow-auto">
         {lines.map((l) => (
-          <div key={l.uuid} className="grid grid-cols-[26px_1fr_auto] gap-3 py-3.5 text-[17px] border-b border-muted">
-            <span className="font-mono text-ink-3">{l.qty}</span><span>{l.name}</span><Money amount={l.unitPrice * l.qty} />
+          <div key={l.uuid} className="py-3.5 border-b border-muted flex flex-col gap-1.5">
+            <div className="grid grid-cols-[26px_1fr_auto] gap-3 text-[17px]">
+              <span className="font-mono text-ink-3">{l.qty}</span><span>{l.name}</span><Money amount={l.unitPrice * l.qty} />
+            </div>
+            {l.note && <span className="pl-9 text-sm text-soft">{l.note}</span>}
           </div>
         ))}
       </div>
       {hasBill ? (
         <div className="p-4.5 border-t border-muted bg-canvas">
+          {/* El total de Odoo ya incluye IVA: la suma cuadra. La propina es sugerida, no se suma. */}
           <div className="flex justify-between text-[15px] text-soft py-0.5"><span>{t('subtotal')}</span><Money amount={subtotal} /></div>
-          <div className="flex justify-between text-[15px] text-soft py-0.5"><span>{t('service')}</span><Money amount={service} /></div>
+          <div className="flex justify-between text-[15px] text-soft py-0.5"><span>{t('tax')}</span><Money amount={tax} /></div>
           <div className="flex justify-between items-baseline pt-3 mt-2 border-t border-border">
             <span className="text-xl font-bold">{t('total')}</span><Money amount={total} withSymbol className="text-4xl" />
           </div>
+          <div className="flex justify-between text-[13px] text-ink-3 pt-2"><span>{t('tip')}</span><Money amount={tip} /></div>
           <div className="grid grid-cols-2 gap-2.5 mt-4">
             <Button disabled>{t('split')}</Button>
             <Button disabled>{t('print')}</Button>

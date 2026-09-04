@@ -44,3 +44,13 @@ it('save surfaces the Odoo message and releases busy', async () => {
   await act(() => useOrderStore.getState().save())
   expect(useOrderStore.getState()).toMatchObject({ busy: false, error: 'Invalid preset' })
 })
+
+// Falla si un pedido hecho en otro dispositivo no se puede cobrar desde el salón (bloquea el cobro de pedidos del comensal).
+it('chargeExisting pays and closes an order by id without a local draft', async () => {
+  mPay.mockResolvedValue({ ...saved, paid: 87822 }); mClose.mockResolvedValue({ ...saved, state: 'paid', paid: 87822 })
+  useOrderStore.setState({ flags: { 6: { sentToKitchen: true } } })
+  await act(() => useOrderStore.getState().chargeExisting(13, 6, 87822, 1))
+  expect(mPay).toHaveBeenCalledWith(13, 1, 87822)
+  expect(mClose).toHaveBeenCalledWith(13)
+  expect(useOrderStore.getState().flags[6]).toEqual({})
+})

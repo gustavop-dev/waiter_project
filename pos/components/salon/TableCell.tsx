@@ -33,7 +33,7 @@ export function TableCell({ view, selected, onSelect, now }: Props) {
       type="button"
       onClick={() => onSelect(table.id)}
       aria-pressed={selected}
-      className={cn('relative h-table-cell rounded-2xl p-3.5 flex flex-col justify-between text-left shadow-[inset_0_-3px_0_rgba(0,0,0,0.2)]',
+      className={cn('relative h-table-cell rounded-2xl py-3 px-3 flex flex-col justify-between text-left shadow-[inset_0_-3px_0_rgba(0,0,0,0.2)]',
         SURFACE[state], selected && state !== 'billing' && 'ring-4 ring-brand-300')}
     >
       {CHAIR[state] && CHAIRS.map((pos) => <span key={pos} aria-hidden className={cn('absolute w-[9px] h-[30px] rounded-[3px] opacity-60', CHAIR[state], pos)} />)}
@@ -42,8 +42,8 @@ export function TableCell({ view, selected, onSelect, now }: Props) {
         <span className="font-mono text-[13px] opacity-80">{minutes === null ? t('pax', { count: table.seats }) : formatElapsed(minutes)}</span>
       </div>
       <div className="flex items-baseline justify-between gap-2">
-        <span className={cn('text-[15px] font-medium whitespace-nowrap', state === 'billing' && 'text-brand-600 font-semibold')}>{t(`legend.${state}`)}</span>
-        {showAmount && <Money amount={total} className="text-base" />}
+        <span className={cn('text-[14px] font-medium whitespace-nowrap', state === 'billing' && 'text-brand-600 font-semibold')}>{t(`legend.${state}`)}</span>
+        {showAmount && <Money amount={total} className="text-[14px]" />}
       </div>
       {minutes === null ? (
         <div className="h-[9px] rounded-full border border-dashed border-white/45" />

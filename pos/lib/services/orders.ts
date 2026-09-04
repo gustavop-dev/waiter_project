@@ -3,11 +3,13 @@ import type { DraftOrder } from '@/lib/domain/order'
 import { callKw } from '@/lib/services/odoo'
 
 export interface SavedOrder { id: number; reference: string; state: 'draft' | 'paid'; total: number; tax: number; paid: number }
-export interface OpenOrder { id: number; tableId: number; total: number; state: 'draft' | 'paid'; lineCount: number; startedAt: string; waiter: string }
+export interface OpenOrder { id: number; tableId: number; total: number; tax: number; state: 'draft' | 'paid'; lineCount: number; startedAt: string; waiter: string }
+export interface OrderLineView { uuid: string; name: string; qty: number; unitPrice: number; note: string }
 export interface ShiftSummary { sales: number; orders: number; waiters: number }
 
 interface RawOrder { id: number; pos_reference: string; state: SavedOrder['state']; amount_total: number; amount_tax: number; amount_paid: number }
-interface RawOpen { id: number; table_id: [number, string] | false; amount_total: number; state: SavedOrder['state']; lines: number[]; date_order: string; user_id: [number, string] | false }
+interface RawOpen { id: number; table_id: [number, string] | false; amount_total: number; amount_tax: number; state: SavedOrder['state']; lines: number[]; date_order: string; user_id: [number, string] | false }
+interface RawLine { uuid: string; full_product_name: string; qty: number; price_unit: number; customer_note: string | false }
 interface RawPaid { amount_total: number; user_id: [number, string] | false }
 
 const READ_FIELDS = ['pos_reference', 'state', 'amount_total', 'amount_tax', 'amount_paid']
@@ -37,11 +39,18 @@ export async function closeOrder(orderId: number): Promise<SavedOrder> {
 
 export async function listOpenOrders(sessionId: number): Promise<OpenOrder[]> {
   const rows = await callKw<RawOpen[]>('pos.order', 'search_read',
-    [[['session_id', '=', sessionId], ['state', '=', 'draft']], ['table_id', 'amount_total', 'state', 'lines', 'date_order', 'user_id']])
+    [[['session_id', '=', sessionId], ['state', '=', 'draft']], ['table_id', 'amount_total', 'amount_tax', 'state', 'lines', 'date_order', 'user_id']])
   return rows
     .filter((r) => r.table_id !== false)
-    .map((r) => ({ id: r.id, tableId: (r.table_id as [number, string])[0], total: r.amount_total, state: r.state, lineCount: r.lines.length,
+    .map((r) => ({ id: r.id, tableId: (r.table_id as [number, string])[0], total: r.amount_total, tax: r.amount_tax, state: r.state, lineCount: r.lines.length,
       startedAt: r.date_order, waiter: r.user_id ? r.user_id[1] : '' }))
+}
+
+// Líneas de un pedido que vive en Odoo pero no se compuso en este dispositivo (otra tablet, el comensal).
+export async function getOrderLines(orderId: number): Promise<OrderLineView[]> {
+  const rows = await callKw<RawLine[]>('pos.order.line', 'search_read',
+    [[['order_id', '=', orderId]], ['uuid', 'full_product_name', 'qty', 'price_unit', 'customer_note']])
+  return rows.map((r) => ({ uuid: r.uuid, name: r.full_product_name, qty: r.qty, unitPrice: r.price_unit, note: r.customer_note || '' }))
 }
 
 // Ventas del turno: lo pagado en la sesión, cuántos pedidos y cuántos meseros distintos.

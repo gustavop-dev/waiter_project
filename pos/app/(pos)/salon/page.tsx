@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { formatCop } from '@/lib/domain/money'
 import { countByState, deriveTableViews } from '@/lib/domain/tableState'
+import { getOrderLines } from '@/lib/services/orders'
+import type { OrderLineView } from '@/lib/services/orders'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
 import { useFloorStore } from '@/lib/stores/floorStore'
@@ -26,7 +28,8 @@ export default function SalonPage() {
   const session = useAuthStore((s) => s.session)
   const catalog = useCatalogStore((s) => s.catalog)
   const { activeFloorId, selectedTableId, setFloor, selectTable } = useFloorStore()
-  const { openOrders, flags, draft, refreshOpenOrders, refreshShift, charge, busy } = useOrderStore()
+  const { openOrders, flags, draft, refreshOpenOrders, refreshShift, charge, chargeExisting, busy } = useOrderStore()
+  const [remote, setRemote] = useState<{ orderId: number; lines: OrderLineView[] } | null>(null)
   const [confirming, setConfirming] = useState(false)
   const [now, setNow] = useState(() => Date.now())
 
@@ -43,10 +46,21 @@ export default function SalonPage() {
   }, [catalog, activeFloorId, openOrders, flags])
   const selected = views.find((v) => v.table.id === selectedTableId) ?? null
   const cash = catalog?.paymentMethods.find((m) => m.type === 'cash')
+  const isLocal = draft !== null && draft.tableId === selectedTableId
+  const remoteOrderId = !isLocal ? (selected?.orderId ?? null) : null
+  // Las líneas remotas solo valen para el pedido que las pidió: lo obsoleto se descarta al leer, sin resetear estado en el efecto.
+  const lines = isLocal ? draft.lines : remote?.orderId === remoteOrderId ? remote.lines : []
+
+  // Pedido que existe en Odoo pero no se compuso aquí (otra tablet, el comensal): sus líneas se leen del servidor.
+  useEffect(() => {
+    if (remoteOrderId === null) return
+    void getOrderLines(remoteOrderId).then((l) => setRemote({ orderId: remoteOrderId, lines: l }))
+  }, [remoteOrderId])
 
   async function onConfirmCharge() {
-    if (!cash) return
-    await charge(cash.id)
+    if (!cash || !selected) return
+    if (isLocal) await charge(cash.id)
+    else if (selected.orderId) await chargeExisting(selected.orderId, selected.table.id, selected.total, cash.id)
     setConfirming(false)
     if (session) { await refreshOpenOrders(session.id); await refreshShift(session.id) }
     selectTable(null)
@@ -67,7 +81,7 @@ export default function SalonPage() {
           </div>
           {views.length === 0 ? <p className="text-soft text-base">{t('salon.emptyFloor')}</p> : <TableGrid views={views} selectedId={selectedTableId} onSelect={selectTable} now={now} />}
         </section>
-        <BillPanel view={selected} lines={draft?.tableId === selectedTableId ? draft.lines : []} onCharge={() => setConfirming(true)} onOpenOrder={() => selected && router.push(`/mesas/${selected.table.id}`)} now={now} />
+        <BillPanel view={selected} lines={lines} onCharge={() => setConfirming(true)} onOpenOrder={() => selected && router.push(`/mesas/${selected.table.id}`)} now={now} />
       </div>
       <ConfirmDialog open={confirming && !!selected} title={t('salon.confirmTitle', { number: selected?.table.number ?? 0 })}
         body={t('salon.confirmBody', { amount: `$ ${formatCop(selected?.total ?? 0)}`, method: cash?.name ?? '' })}

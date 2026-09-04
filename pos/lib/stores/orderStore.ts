@@ -26,6 +26,7 @@ interface OrderState {
   sendToKitchen: () => Promise<void>
   requestBill: () => Promise<void>
   charge: (paymentMethodId: number) => Promise<void>
+  chargeExisting: (orderId: number, tableId: number, total: number, paymentMethodId: number) => Promise<void>
   refreshOpenOrders: (sessionId: number) => Promise<void>
   refreshShift: (sessionId: number) => Promise<void>
 }
@@ -79,6 +80,17 @@ export const useOrderStore = create<OrderState>((set, get) => {
         await closeOrder(saved.id)
         const tableId = get().draft!.tableId
         set((s) => ({ draft: null, saved: null, busy: false, flags: { ...s.flags, [tableId]: {} } }))
+      } catch (e) {
+        set({ busy: false, error: message(e) })
+      }
+    },
+    // Pedido creado en otro dispositivo (o por el comensal): se cobra por su id, sin borrador local.
+    chargeExisting: async (orderId, tableId, total, paymentMethodId) => {
+      set({ busy: true, error: null })
+      try {
+        await payOrder(orderId, paymentMethodId, total)
+        await closeOrder(orderId)
+        set((s) => ({ busy: false, flags: { ...s.flags, [tableId]: {} } }))
       } catch (e) {
         set({ busy: false, error: message(e) })
       }

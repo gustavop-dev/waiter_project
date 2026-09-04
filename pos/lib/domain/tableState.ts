@@ -3,7 +3,7 @@ import type { Table } from '@/lib/types'
 
 export type TableState = 'free' | 'occupied' | 'kitchen' | 'billing' | 'paid' | 'ordering' | 'served' | 'assist' | 'closed'
 export interface LocalFlags { sentToKitchen?: boolean; billing?: boolean; served?: boolean; assist?: boolean; closed?: boolean; ordering?: boolean }
-export interface TableView { table: Table; state: TableState; total: number; orderId: number | null; startedAt: string | null; waiter: string | null }
+export interface TableView { table: Table; state: TableState; total: number; tax: number; orderId: number | null; startedAt: string | null; waiter: string | null }
 
 const STATES: TableState[] = ['free', 'occupied', 'kitchen', 'billing', 'paid', 'ordering', 'served', 'assist', 'closed']
 
@@ -22,7 +22,7 @@ function stateFor(order: OpenOrder | undefined, flags: LocalFlags): TableState {
 export function deriveTableViews(tables: Table[], orders: OpenOrder[], flags: Record<number, LocalFlags>): TableView[] {
   return tables.map((table) => {
     const order = orders.find((o) => o.tableId === table.id)
-    return { table, state: stateFor(order, flags[table.id] ?? {}), total: order?.total ?? 0, orderId: order?.id ?? null,
+    return { table, state: stateFor(order, flags[table.id] ?? {}), total: order?.total ?? 0, tax: order?.tax ?? 0, orderId: order?.id ?? null,
       startedAt: order?.startedAt ?? null, waiter: order?.waiter ?? null }
   })
 }

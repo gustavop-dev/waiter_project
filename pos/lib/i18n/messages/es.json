@@ -49,7 +49,6 @@
       "table": "Mesa {number}",
       "emptyPanel": "Toca una mesa para ver su cuenta",
       "subtotal": "Subtotal",
-      "service": "Servicio (10%)",
       "total": "Total",
       "split": "Dividir",
       "print": "Imprimir",
@@ -60,7 +59,9 @@
       "confirmNo": "Mejor no",
       "emptyFloor": "Ni un alma todavía. Buen momento para revisar el inventario.",
       "openOrder": "Abrir pedido",
-      "meta": "{pax} pax · {waiter} · {elapsed} h"
+      "meta": "{pax} pax · {waiter} · {elapsed} h",
+      "tax": "IVA",
+      "tip": "Propina sugerida (10%)"
     },
     "order": {
       "back": "Salón",

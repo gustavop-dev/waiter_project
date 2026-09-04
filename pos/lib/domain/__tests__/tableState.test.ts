@@ -1,12 +1,12 @@
 import { barFill, barTone, countByState, deriveTableViews, elapsedMinutes, formatElapsed } from '@/lib/domain/tableState'
 
 const tables = [{ id: 1, number: 1, floorId: 1, seats: 4 }, { id: 2, number: 2, floorId: 1, seats: 2 }, { id: 3, number: 3, floorId: 1, seats: 2 }]
-const order = { id: 9, tableId: 2, total: 74200, state: 'draft' as const, lineCount: 2, startedAt: '2026-09-04 20:00:00', waiter: 'Alejandra' }
+const order = { id: 9, tableId: 2, total: 74200, tax: 11851, state: 'draft' as const, lineCount: 2, startedAt: '2026-09-04 20:00:00', waiter: 'Alejandra' }
 
 // Falla si una mesa sin pedido abierto deja de mostrarse libre.
 it('marks tables without an open order as free with zero total', () => {
   const [t1] = deriveTableViews(tables, [order], {})
-  expect(t1).toEqual({ table: tables[0], state: 'free', total: 0, orderId: null, startedAt: null, waiter: null })
+  expect(t1).toEqual({ table: tables[0], state: 'free', total: 0, tax: 0, orderId: null, startedAt: null, waiter: null })
 })
 
 // Falla si el monto, el mesero o la hora de inicio del pedido no llegan a la celda de la mesa.
