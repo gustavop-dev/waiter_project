@@ -1,0 +1,36 @@
+@import 'tailwindcss';
+
+@font-face { font-family: 'Instrument Sans'; font-weight: 400 700; font-display: swap;
+  src: url('/fonts/instrument-sans-400-normal-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Instrument Serif'; font-weight: 400; font-display: swap;
+  src: url('/fonts/instrument-serif-400-normal-latin.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Mono'; font-weight: 400; font-display: swap;
+  src: url('/fonts/ibm-plex-mono-400-normal-latin.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Mono'; font-weight: 500; font-display: swap;
+  src: url('/fonts/ibm-plex-mono-500-normal-latin.woff2') format('woff2'); }
+
+@theme {
+  --color-brand-50: #FDF6EA;  --color-brand-100: #F6E4C4; --color-brand-300: #E4B879;
+  --color-brand-500: #C1873A; --color-brand-600: #A06E2C; --color-brand-700: #6F4A1C;
+  --color-surface: #FFFFFF;   --color-canvas: #FAF8F5;    --color-muted: #F2EEE8;
+  --color-border: #E4DED4;    --color-ink: #1A1815;       --color-soft: #6B6259;
+  --color-ink-3: #9A8F7E;
+  --color-free: #2F7A4F;      --color-free-soft: #E6F1EA;   --color-free-ink: #216239;
+  --color-busy: #B4342F;      --color-busy-soft: #FBEAE8;   --color-busy-ink: #96241F;
+  --color-kitchen: #5B4BC4;   --color-kitchen-soft: #ECEAFB;--color-kitchen-ink: #40339B;
+  --color-pending: #C9820C;   --color-pending-soft: #FDF2DC;--color-pending-ink: #8A5A05;
+  --color-assist: #4A5568;    --color-assist-soft: #EEF0F3;
+  --color-sidebar: #1A1815;   --color-sidebar-raised: #221E1B; --color-sidebar-hover: #262220;
+  --color-sidebar-ink: #F5F1EA; --color-sidebar-soft: #C4BCB2; --color-sidebar-dim: #7C736A;
+  --font-ui: 'Instrument Sans', system-ui, sans-serif;
+  --font-display: 'Instrument Serif', Georgia, serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --spacing-tap-min: 48px; --spacing-tap: 56px; --spacing-tap-money: 64px;
+  --spacing-sidebar: 248px; --spacing-rail: 88px; --spacing-panel: 372px; --spacing-panel-lg: 400px;
+  --spacing-table-cell: 138px;
+  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px;
+}
+
+body { background: var(--color-canvas); color: var(--color-ink); font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased; }
+.tabular { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
