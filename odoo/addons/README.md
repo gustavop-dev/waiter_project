@@ -17,10 +17,23 @@ menú de aplicaciones no vienen de un módulo opcional, sino del armazón web.
 La única vía es ocultarlos. Se hace por CSS, con selectores de **clase** y nunca
 de `aria-label`, porque las etiquetas están traducidas y cambian con el idioma.
 
+## Qué interfaz ve cada quién
+
+Odoo tiene **dos interfaces distintas**, y conviene no confundirlas:
+
+| Público | Interfaz | Estado |
+|---|---|---|
+| Comensal | Nuestra PWA (bloque 3) | Por construir. **Nunca ve Odoo.** |
+| Mesero / cajero | Interfaz POS de Odoo (`/pos/ui`) | Ya existe. Pantalla completa y táctil, sin nada del backoffice. No hay que reconstruirla. |
+| Administrador | Backoffice de Odoo | Ya reducido a dos menús. Es lo que limpia este módulo. |
+| Cocina | Comanda impresa (`pos.printer`) o KDS propio | **Pendiente de decidir.** El KDS de Odoo es Enterprise. |
+
+Este módulo solo afecta al **backoffice**. La interfaz POS ya viene limpia:
+verificado que en `/pos/ui` no existen ni `.o_main_navbar`, ni el menú de
+aplicaciones, ni Discuss.
+
 ## Advertencia
 
-Esto es una solución de transición. La respuesta de fondo está en la
-[arquitectura](../../docs/arquitectura/2026-09-04-arquitectura-modular.md):
-**Odoo es infraestructura interna y el personal no debería verlo nunca.** Cada
-versión nueva de Odoo puede mover o renombrar estas clases, así que cuanto antes
-el personal use nuestra propia interfaz, antes se puede tirar este módulo.
+Es una solución de transición. Cada versión nueva de Odoo puede mover o
+renombrar estas clases de CSS, así que el módulo hay que revisarlo en cada
+actualización.

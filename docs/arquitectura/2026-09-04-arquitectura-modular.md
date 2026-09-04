@@ -56,7 +56,17 @@ inventario, pedidos, cocina.
 **Qué es:** Odoo Community, una base de datos por restaurante.
 
 **Qué NO hace:** no sabe que existen URLs públicas, ni NFC, ni Mesero IA, ni el
-registro central. Es un sistema operativo interno del restaurante.
+registro central.
+
+**Quién lo ve.** El comensal, nunca. El personal, sí: la **interfaz POS de Odoo**
+(`/pos/ui`) es una aplicación a pantalla completa y táctil, sin nada del
+backoffice, y sirve tal cual para meseros y cajeros. El backoffice lo usa el
+administrador para productos, precios y mesas.
+
+**La cocina es el hueco pendiente.** El KDS de Odoo (`pos_preparation_display`)
+es Enterprise. Quedan dos caminos por decidir: comanda impresa con `pos.printer`
+—que sí está en Community y enruta categorías a impresoras distintas— o una
+pantalla KDS propia.
 
 **Contrato:** su API externa JSON-RPC (`/web/dataset/call_kw`), consumida con un
 usuario de servicio por inquilino. **No hace falta escribir ningún addon de Odoo
