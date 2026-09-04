@@ -130,12 +130,24 @@ OCULTAR = [
     'utm.menu_link_tracker_root',  # Rastreador de enlaces
     'base.menu_tests',             # Pruebas
     'base.menu_management',        # Aplicaciones
+    'account.menu_finance',        # Facturación
+    'stock.menu_stock_root',       # Inventario
 ]
 for xml_id in OCULTAR:
     env.ref(xml_id).active = False
 ```
 
-Quedan visibles cuatro: **Punto de venta, Facturación, Inventario y Ajustes.**
+Quedan visibles **dos: Punto de venta y Ajustes.** Dentro de Punto de venta:
+Tablero, Órdenes, Productos, Reportes y Configuración.
+
+**Odoo se usa solo como motor de POS.** Contabilidad, inventario, CRM y demás no
+forman parte del producto; si más adelante hacen falta, se desarrollan o se
+habilitan entonces.
+
+Ocultar no es desinstalar: **la maquinaria de abajo sigue operando.** Verificado
+tras ocultar los menús — 384 cuentas contables, 58 impuestos y 7 diarios siguen
+vivos, de modo que cada pedido del POS calcula impuestos y genera sus asientos y
+movimientos de inventario con normalidad. Simplemente no se ven.
 
 Ocultar `base.menu_management` **elimina la instalación de módulos desde la
 interfaz**. Es deliberado: en un SaaS el restaurante no debe instalar nada y el
@@ -147,7 +159,7 @@ shell.
 | | Antes | Después |
 |---|---|---|
 | Módulos instalados | 69 | **45** |
-| Menús raíz visibles | 9 | **4** |
+| Menús raíz visibles | 9 | **2** |
 | Cuentas contables | — | 384 |
 | Datos de demostración | ninguno | ninguno |
 
