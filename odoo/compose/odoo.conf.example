@@ -5,6 +5,11 @@
 ; Sin ella, Odoo usa una por defecto y cualquiera puede borrar un inquilino.
 admin_passwd = CAMBIAR_POR_UNA_CLAVE_LARGA_Y_ALEATORIA
 
+; Rutas de módulos. Montar un odoo.conf propio reemplaza la configuración
+; del contenedor, así que hay que declarar el addons_path explícitamente o
+; los módulos propios quedan "installed" pero sin cargar.
+addons_path = /usr/lib/python3/dist-packages/odoo/addons,/mnt/extra-addons
+
 ; Credenciales de Postgres.
 db_host = db
 db_user = odoo
