@@ -118,12 +118,36 @@ proceso en marcha no ve el idioma nuevo, lo que hace fallar los pedidos con
 País Colombia, plan contable `co`, moneda COP, idioma `es_CO` en la compañía y
 en el usuario administrador.
 
+### 5. Ocultar los menús que no aportan
+
+Los módulos estructurales no se pueden desinstalar, pero sus menús sí se
+ocultan. Se desactivan estos `ir.ui.menu` raíz:
+
+```python
+OCULTAR = [
+    'mail.menu_root_discuss',      # Conversaciones
+    'contacts.menu_contacts',      # Contactos
+    'utm.menu_link_tracker_root',  # Rastreador de enlaces
+    'base.menu_tests',             # Pruebas
+    'base.menu_management',        # Aplicaciones
+]
+for xml_id in OCULTAR:
+    env.ref(xml_id).active = False
+```
+
+Quedan visibles cuatro: **Punto de venta, Facturación, Inventario y Ajustes.**
+
+Ocultar `base.menu_management` **elimina la instalación de módulos desde la
+interfaz**. Es deliberado: en un SaaS el restaurante no debe instalar nada y el
+aprovisionamiento va por script. Es reversible poniendo `active = True` desde el
+shell.
+
 ### Resultado verificado
 
 | | Antes | Después |
 |---|---|---|
 | Módulos instalados | 69 | **45** |
-| Apps en el menú | 6 | 6 |
+| Menús raíz visibles | 9 | **4** |
 | Cuentas contables | — | 384 |
 | Datos de demostración | ninguno | ninguno |
 
