@@ -11,13 +11,18 @@ La descripción completa del producto está en
 
 ## Estado
 
-Repositorio recién inicializado. La visión de producto está definida; las
-decisiones técnicas no. En curso: evaluación de **Odoo Community** como motor
-operativo (POS, inventario, mesas, cocina) sobre el cual construir los módulos
-propios.
+- **Odoo Community 19** evaluado y adoptado como motor operativo *headless*
+  (POS, catálogo, impuestos, contabilidad). Una base por restaurante. Nadie
+  usa su interfaz.
+- **`pos/`**: app Next.js del operador. Plano de salón y toma de pedido
+  funcionan de punta a punta contra Odoo real (login, catálogo, pedido en
+  mesa, envío a cocina, cobro), con contratos y E2E verdes.
+- Diseño y decisiones en `docs/`; plan ejecutado en
+  `docs/planes/2026-09-04-plan-A-pos-operador.md`.
 
 ## Próximos pasos
 
-1. Spike: evaluar alcance y versatilidad de Odoo Community (en curso)
-2. Decidir arquitectura y modelo multi-tenant
-3. Escribir el spec de diseño del MVP en `docs/`
+1. Plan B: KDS de cocina (necesita cronómetros y estados de cocina propios)
+2. Plan C: dashboard de ROI y operación en vivo (necesitan eventos del
+   bloque 3 y del registro central)
+3. Registro central y bloque 3 (experiencia del comensal)
