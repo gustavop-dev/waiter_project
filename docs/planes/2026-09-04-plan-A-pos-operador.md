@@ -2946,3 +2946,16 @@ save/sendToKitchen/requestBill/charge/refreshOpenOrders` (T8) y T12 usa esos
 nombres.
 
 **Placeholders:** ninguno; cada paso de código lleva el código.
+
+---
+
+### Tarea 14 (añadida tras revisión visual): fidelidad al diseño y cobro de pedidos ajenos
+
+Ejecutada después de comparar capturas de la app contra `docs/diseno/waiter-pantallas.dc.html`.
+Registro en commits, no en pasos: `debd2b7` (uuid sin `crypto.randomUUID`: la pantalla de pedido
+crasheaba en `http://192.168.56.10`, contexto no seguro; el E2E corría en localhost y no lo vio),
+`6ef4d89` (nombre del restaurante, tarjeta de turno, usuario, sillas, cronómetro y barra 12/18,
+mesero en la cuenta, favorito, agotado solo para almacenables, "Abrir pedido" en mesa libre) y
+`0f68d14` (líneas del servidor y cobro por id para pedidos hechos en otro dispositivo o por el
+comensal; Subtotal / IVA / Total con propina sugerida no sumada; celda sin recorte). El E2E corre
+ahora sobre `PLAYWRIGHT_BASE_URL=http://192.168.56.10:3000`, el origen real del restaurante.
