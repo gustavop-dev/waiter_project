@@ -10,6 +10,7 @@
         # Los assets del módulo se cargan después de los del core, así que
         # ganan a igualdad de especificidad.
         "point_of_sale._assets_pos": [
+            "projectapp_pos_design/static/src/css/00_fonts.css",
             "projectapp_pos_design/static/src/css/01_tokens.css",
             "projectapp_pos_design/static/src/css/02_base.css",
             "projectapp_pos_design/static/src/css/03_pos.css",

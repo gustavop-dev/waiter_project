@@ -3,11 +3,11 @@
  * Tipografía, superficie y reglas transversales del sistema.
  * ============================================================ */
 
-/* Las fuentes se cargan de Google Fonts durante el desarrollo.
-   PENDIENTE: auto-hospedarlas antes de producción — el POS debe
-   funcionar con la red caída, y una tablet sin fuentes cae a
-   Georgia y system-ui, que rompen la escala vertical. */
-@import url("https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&display=swap");
+/* Las fuentes se declaran con @font-face desde archivos propios.
+   NUNCA con @import: Odoo sube los @import al inicio del bundle y corta la
+   sentencia en el primer ';'. La URL de Google Fonts lleva ';' entre pesos,
+   así que el bundle quedaba con un @import sin cerrar en el byte 0 y el
+   navegador descartaba TODA la hoja de estilos. */
 
 .pos {
   font-family: var(--w-font-ui);
