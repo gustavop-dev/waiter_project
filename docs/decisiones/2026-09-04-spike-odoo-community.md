@@ -177,10 +177,17 @@ sesión (`odoo-spike/`): `docker-compose.yml`, `audit_addons.py`, `setup.py`,
 
 ```bash
 docker compose up -d
-# UI en http://localhost:8069  (usuario admin / clave admin, datos demo)
-docker compose down -v          # destruir todo
+# UI en http://192.168.56.10:8069  (usuario admin / clave admin, datos demo)
+docker compose down -v            # destruir todo
 ```
 
-Los puertos están atados a **loopback** (`127.0.0.1:8069`, `127.0.0.1:8072`), no
-a `0.0.0.0`: la instancia no es alcanzable desde la red local. Postgres no tiene
-mapeo al host en absoluto.
+**Red.** El desarrollo ocurre en una VM de VirtualBox sin entorno gráfico; el
+navegador corre en la máquina anfitriona. Los puertos están atados a la interfaz
+**host-only** (`enp0s8`, `192.168.56.10`), no a `0.0.0.0` ni a `127.0.0.1`:
+
+- `192.168.56.10:8069` → alcanzable desde la anfitriona ✅
+- `10.0.2.15:8069` (NAT) → cerrado
+- `127.0.0.1:8069` (loopback) → cerrado
+
+La red host-only no está enrutada hacia la LAN, así que la instancia no es
+visible para terceros. Postgres no tiene mapeo al host en absoluto.
