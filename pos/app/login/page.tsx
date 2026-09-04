@@ -24,7 +24,7 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen grid place-items-center bg-canvas p-6">
       <form onSubmit={onSubmit} className="w-full max-w-sm bg-surface border border-border rounded-lg p-8 flex flex-col gap-5">
-        <h1 className="font-display text-4xl">{t('title')}</h1>
+        <h1 className="font-bold text-[34px] tracking-[-0.03em]">{t('title')}</h1>
         <label className="flex flex-col gap-2 text-[15px] font-medium">{t('user')}
           <input value={user} onChange={(e) => setUser(e.target.value)} className="h-tap-min rounded-sm border border-border px-3 text-base" autoComplete="username" />
         </label>

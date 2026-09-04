@@ -38,11 +38,11 @@ export function TableCell({ view, selected, onSelect, now }: Props) {
     >
       {CHAIR[state] && CHAIRS.map((pos) => <span key={pos} aria-hidden className={cn('absolute w-[9px] h-[30px] rounded-[3px] opacity-60', CHAIR[state], pos)} />)}
       <div className="flex items-baseline justify-between gap-2">
-        <span className="text-[34px] font-bold leading-none">{table.number}</span>
+        <span className="text-[34px] font-bold leading-none tracking-[-0.03em]">{table.number}</span>
         <span className="font-mono text-[13px] opacity-80">{minutes === null ? t('pax', { count: table.seats }) : formatElapsed(minutes)}</span>
       </div>
       <div className="flex items-baseline justify-between gap-2">
-        <span className={cn('text-[14px] font-medium whitespace-nowrap', state === 'billing' && 'text-brand-600 font-semibold')}>{t(`legend.${state}`)}</span>
+        <span className={cn('text-[14px] font-medium whitespace-nowrap', state === 'billing' && 'text-brand-600 font-bold')}>{t(`legend.${state}`)}</span>
         {showAmount && <Money amount={total} className="text-[14px]" />}
       </div>
       {minutes === null ? (

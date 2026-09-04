@@ -14,11 +14,11 @@ export function ProductCard({ product, onAdd }: { product: Product; onAdd: (p: P
         product.favorite ? 'border-2 border-brand-500 ring-4 ring-brand-50' : 'border border-border', product.soldOut && 'opacity-55')}>
       <div className="relative flex-1 bg-muted grid place-items-center text-xs tracking-[0.08em] uppercase text-ink-3">
         {t('photo')}
-        {product.favorite && !product.soldOut && <span className="absolute top-2.5 left-2.5 h-7 px-2.5 rounded-sm bg-brand-500 text-white text-[13px] font-semibold grid place-items-center normal-case tracking-normal">{t('favorite')}</span>}
-        {product.soldOut && <span className="absolute top-2.5 left-2.5 h-7 px-2.5 rounded-sm bg-busy text-white text-[13px] font-semibold grid place-items-center normal-case tracking-normal">{t('soldOut')}</span>}
+        {product.favorite && !product.soldOut && <span className="absolute top-2.5 left-2.5 h-7 px-2.5 rounded-sm bg-brand-500 text-white text-[13px] font-bold grid place-items-center normal-case tracking-normal">{t('favorite')}</span>}
+        {product.soldOut && <span className="absolute top-2.5 left-2.5 h-7 px-2.5 rounded-sm bg-busy text-white text-[13px] font-bold grid place-items-center normal-case tracking-normal">{t('soldOut')}</span>}
       </div>
       <div className="px-3.5 py-3 flex flex-col gap-1.5">
-        <span className="text-[17px] font-semibold leading-tight">{product.name}</span>
+        <span className="text-[17px] font-bold leading-tight">{product.name}</span>
         <Money amount={product.price} className="text-[17px]" />
       </div>
     </button>

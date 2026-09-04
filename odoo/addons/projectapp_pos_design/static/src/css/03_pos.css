@@ -24,7 +24,7 @@
 .pos .btn {
   border-radius: var(--w-radius-md);
   font-family: var(--w-font-ui);
-  font-weight: var(--w-weight-semibold);
+  font-weight: var(--w-weight-bold);
   font-size: var(--w-text-body);
   min-height: var(--w-tap);
   padding-inline: var(--w-space-lg);

@@ -15,7 +15,7 @@ export function OrderLineRow({ line, selected, onSelect, onQty, onNote, onRemove
   const chips = line.note.split(' · ').filter(Boolean)
   return (
     <div className={cn('py-3.5 border-b border-muted flex flex-col gap-1.5', selected && 'bg-brand-50 -mx-5 px-5')}>
-      <button type="button" onClick={onSelect} className={cn('grid grid-cols-[26px_1fr_auto] gap-2.5 text-[17px] text-left w-full', selected && 'font-semibold')}>
+      <button type="button" onClick={onSelect} className={cn('grid grid-cols-[26px_1fr_auto] gap-2.5 text-[17px] text-left w-full', selected && 'font-bold')}>
         <span className={cn('font-mono', selected ? 'text-brand-600' : 'text-ink-3')}>{line.qty}</span>
         <span>{line.name}</span>
         <Money amount={line.unitPrice * line.qty} />

@@ -1,9 +1,17 @@
 @import 'tailwindcss';
 
-@font-face { font-family: 'Instrument Sans'; font-weight: 400 700; font-display: swap;
-  src: url('/fonts/instrument-sans-400-normal-latin.woff2') format('woff2'); }
-@font-face { font-family: 'Instrument Serif'; font-weight: 400; font-display: swap;
-  src: url('/fonts/instrument-serif-400-normal-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Ubuntu'; font-weight: 400; font-display: swap;
+  src: url('/fonts/ubuntu-400-normal-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Ubuntu'; font-weight: 500; font-display: swap;
+  src: url('/fonts/ubuntu-500-normal-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Ubuntu'; font-weight: 700; font-display: swap;
+  src: url('/fonts/ubuntu-700-normal-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Ubuntu'; font-weight: 400; font-display: swap;
+  src: url('/fonts/ubuntu-400-normal-latin-ext.woff2') format('woff2'); }
+@font-face { font-family: 'Ubuntu'; font-weight: 500; font-display: swap;
+  src: url('/fonts/ubuntu-500-normal-latin-ext.woff2') format('woff2'); }
+@font-face { font-family: 'Ubuntu'; font-weight: 700; font-display: swap;
+  src: url('/fonts/ubuntu-700-normal-latin-ext.woff2') format('woff2'); }
 @font-face { font-family: 'IBM Plex Mono'; font-weight: 400; font-display: swap;
   src: url('/fonts/ibm-plex-mono-400-normal-latin.woff2') format('woff2'); }
 @font-face { font-family: 'IBM Plex Mono'; font-weight: 500; font-display: swap;
@@ -22,8 +30,10 @@
   --color-assist: #4A5568;    --color-assist-soft: #EEF0F3;
   --color-sidebar: #1A1815;   --color-sidebar-raised: #221E1B; --color-sidebar-hover: #262220;
   --color-sidebar-ink: #F5F1EA; --color-sidebar-soft: #C4BCB2; --color-sidebar-dim: #7C736A;
-  --font-ui: 'Instrument Sans', system-ui, sans-serif;
-  --font-display: 'Instrument Serif', Georgia, serif;
+  /* Waiter v1.1: Ubuntu para todo lo nuestro (400 texto · 500 etiquetas · 700 títulos y acciones).
+     La serif ya no es nuestra: la aporta el restaurante en el lado del comensal. */
+  --font-ui: 'Ubuntu', system-ui, sans-serif;
+  --tracking-wordmark: -0.035em; --tracking-monogram: -0.05em; --tracking-title: -0.03em;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --spacing-tap-min: 48px; --spacing-tap: 56px; --spacing-tap-money: 64px;
   --spacing-sidebar: 248px; --spacing-rail: 88px; --spacing-panel: 372px; --spacing-panel-lg: 400px;

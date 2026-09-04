@@ -18,7 +18,7 @@ const SIZE = { default: 'h-tap px-5 text-base', money: 'h-tap-money px-6 text-lg
 export function Button({ variant = 'secondary', size = 'default', className, ...rest }: ButtonProps) {
   return (
     <button
-      className={cn('inline-flex items-center justify-center gap-2 rounded-md font-semibold', 'disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-brand-500', VARIANT[variant], SIZE[size], className)}
+      className={cn('inline-flex items-center justify-center gap-2 rounded-md font-bold', 'disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-brand-500', VARIANT[variant], SIZE[size], className)}
       {...rest}
     />
   )

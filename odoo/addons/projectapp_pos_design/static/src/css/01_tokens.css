@@ -1,5 +1,5 @@
 /* ============================================================
- * Waiter · sistema de diseño v1.0 — TOKENS
+ * Waiter · sistema de diseño v1.1 — TOKENS
  *
  * Transcripción fiel de «Waiter Design System.dc.html».
  * Este archivo no contiene ni una sola regla de estilo: solo tokens.
@@ -57,10 +57,14 @@
   --w-kds-ink:     #F5F1EA;
 
   /* ---------- Tipografía ----------------------------------- */
-  /* Serif para la hospitalidad, sans para el trabajo,
-     mono para el dinero.                                       */
-  --w-font-display: "Instrument Serif", Georgia, "Times New Roman", serif;
-  --w-font-ui:      "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* v1.1: Ubuntu para todo lo nuestro (es la tipografía de
+     ProjectApp); mono para el dinero. La serif no es nuestra: la
+     aporta el restaurante en el lado del comensal.             */
+  --w-font-ui:      "Ubuntu", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --w-font-display: var(--w-font-ui);
+  --w-tracking-wordmark: -0.035em;  /* "Waiter."  */
+  --w-tracking-monogram: -0.05em;   /* "Wt."      */
+  --w-tracking-title:    -0.03em;   /* ≥ 34px     */
   --w-font-mono:    "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
   /* Escala táctil. Piso de 15px en operación: nada de 12px en
@@ -73,10 +77,10 @@
   --w-text-label:   15px;  /* etiquetas, celdas, chips          */
   --w-text-eyebrow: 13px;  /* mayúsculas, SOLO desktop          */
 
-  /* Cuatro pesos, ninguno más. */
+  /* Tres pesos: 400 texto, 500 etiquetas, 700 títulos y acciones.
+     Nada de 300 ni de 600.                                     */
   --w-weight-regular:  400;
   --w-weight-medium:   500;
-  --w-weight-semibold: 600;
   --w-weight-bold:     700;
 
   /* ---------- Espacio · rejilla de 4px ---------------------- */
@@ -112,11 +116,8 @@
 }
 
 /* ---------- Densidad ---------------------------------------- */
-/* Del sistema de diseño: Compacta 44/12 · Equilibrada 52/16 ·
-   Amplia 56/20. Por defecto, Amplia.
-   NOTA: «Compacta» usa 44px, por debajo del piso de 48px que
-   fija la sección de tacto. Es una tensión del propio sistema;
-   se implementa tal cual y queda señalada.                     */
-.pos[data-w-density="compacta"]    { --w-tap: 44px; --w-pad: 12px; }
+/* v1.1: Compacta 48/12 · Equilibrada 52/16 · Amplia 56/20.
+   48 es el mínimo absoluto, también en Compacta.               */
+.pos[data-w-density="compacta"]    { --w-tap: 48px; --w-pad: 12px; }
 .pos[data-w-density="equilibrada"] { --w-tap: 52px; --w-pad: 16px; }
 .pos[data-w-density="amplia"]      { --w-tap: 56px; --w-pad: 20px; }

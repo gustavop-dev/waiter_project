@@ -9,5 +9,5 @@ const TONE = {
 }
 
 export function Badge({ tone, children, className }: { tone: keyof typeof TONE; children: ReactNode; className?: string }) {
-  return <span className={cn('inline-flex items-center gap-2 h-8 px-3 rounded-full text-sm font-semibold', TONE[tone], className)}>{children}</span>
+  return <span className={cn('inline-flex items-center gap-2 h-8 px-3 rounded-full text-sm font-medium', TONE[tone], className)}>{children}</span>
 }
