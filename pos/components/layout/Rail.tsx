@@ -1,0 +1,22 @@
+'use client'
+
+import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+
+import { cn } from '@/lib/utils'
+
+export function Rail({ active }: { active: 'tables' | 'orders' | 'kitchen' | 'payments' }) {
+  const t = useTranslations('pos.rail')
+  const items = [['tables', '/salon'], ['orders', null], ['kitchen', null], ['payments', null]] as const
+  return (
+    <aside className="w-rail shrink-0 bg-sidebar p-3 flex flex-col items-center gap-3">
+      <span className="h-[30px] px-2 rounded-sm bg-brand-500 grid place-items-center font-display text-[17px] text-ink">Wt.</span>
+      <nav className="w-full flex flex-col gap-1.5 mt-2">
+        {items.map(([key, href]) => {
+          const cls = cn('h-16 rounded-md grid place-items-center text-[13px] text-center leading-tight', key === active ? 'bg-brand-500 text-ink font-bold' : 'text-sidebar-soft')
+          return href ? <Link key={key} href={href} className={cls}>{t(key)}</Link> : <span key={key} className={cn(cls, 'opacity-60')}>{t(key)}</span>
+        })}
+      </nav>
+    </aside>
+  )
+}
