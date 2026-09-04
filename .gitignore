@@ -89,3 +89,6 @@ Thumbs.db
 
 # Rotated logs (RotatingFileHandler: django.log.1, .2, ...)
 *.log.[0-9]*
+
+# Configuración de Odoo con secretos (las plantillas .example sí se versionan)
+/odoo/compose/odoo.conf

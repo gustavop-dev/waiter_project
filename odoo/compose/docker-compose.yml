@@ -5,10 +5,9 @@
 services:
   db:
     image: postgres:16
+    env_file: .env
     environment:
       POSTGRES_DB: postgres
-      POSTGRES_USER: odoo
-      POSTGRES_PASSWORD: odoo
     volumes:
       - db-data:/var/lib/postgresql/data
 
@@ -19,13 +18,10 @@ services:
     ports:
       - "192.168.56.10:8069:8069"
       - "192.168.56.10:8072:8072"
-    environment:
-      HOST: db
-      USER: odoo
-      PASSWORD: odoo
     volumes:
       - odoo-data:/var/lib/odoo
       - ../addons:/mnt/extra-addons:ro
+      - ./odoo.conf:/etc/odoo/odoo.conf:ro
 
 volumes:
   db-data:
