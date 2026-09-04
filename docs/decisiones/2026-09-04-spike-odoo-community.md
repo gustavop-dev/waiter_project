@@ -180,3 +180,7 @@ docker compose up -d
 # UI en http://localhost:8069  (usuario admin / clave admin, datos demo)
 docker compose down -v          # destruir todo
 ```
+
+Los puertos están atados a **loopback** (`127.0.0.1:8069`, `127.0.0.1:8072`), no
+a `0.0.0.0`: la instancia no es alcanzable desde la red local. Postgres no tiene
+mapeo al host en absoluto.
