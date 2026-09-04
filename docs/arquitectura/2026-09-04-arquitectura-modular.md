@@ -33,12 +33,20 @@ bloque solo conoce a otro a través de un contrato explícito.
                             │
           ┌─────────────────┴──────────────────┐
           ▼                                    ▼
-  ┌───────────────────┐   pago ok →  ┌────────────────────┐
-  │ BLOQUE 1 — POS    │─────────────▶│ BLOQUE 2 —         │
+  ┌───────────────────┐              ┌────────────────────┐
+  │ BLOQUE 1 — POS    │              │ BLOQUE 2 —         │
   │ Odoo Community    │              │ Facturación DIAN   │
   │ 1 base/restaurante│              │                    │
   └───────────────────┘              └────────────────────┘
+          ▲                                    ▲
+          └──────────── ambos los invoca ──────┘
+                        el bloque 3
 ```
+
+**Quién dispara a quién.** El bloque 3 es el único que orquesta: cuando la
+pasarela confirma el pago, él registra el pago en Odoo (bloque 1) y emite el
+evento `pago aprobado` que consume facturación (bloque 2). Los bloques 1 y 2
+nunca se llaman entre sí; ninguno de los dos sabe que el otro existe.
 
 ### Bloque 1 — Operación (POS)
 
@@ -84,6 +92,10 @@ antes de poder consultar ninguna base de Odoo.
 **Qué guarda:** restaurantes, sedes, mesas, tokens públicos, credenciales de
 servicio por inquilino, suscripciones del SaaS y métricas de ROI agregadas (que
 por definición cruzan inquilinos y no caben en la base de ninguno).
+
+Guarda credenciales de todos los inquilinos, así que es el activo más sensible
+del sistema: cifrado en reposo y rotación de credenciales son requisitos, no
+mejoras.
 
 ## Reglas de dependencia
 
@@ -136,9 +148,10 @@ nuestro, se puede revocar, rotar y limitar en tasa sin depender de Odoo.
 3. Bloque 3 pide la carta        -> adaptador -> Odoo del inquilino
 4. Comensal pide (menú o IA)     -> carrito en el bloque 3
 5. Confirma                      -> adaptador -> pedido en Odoo -> cocina
-6. Paga                          -> pasarela -> evento "pago aprobado"
-7. Facturación                   -> bloque 2 -> DIAN -> CUFE
-8. Métricas                      -> registro central -> dashboard de ROI
+6. Paga                          -> pasarela -> confirma al bloque 3
+7. Bloque 3 registra el pago     -> adaptador -> Odoo
+8. Bloque 3 emite "pago aprobado"-> bloque 2 -> DIAN -> CUFE
+9. Métricas                      -> registro central -> dashboard de ROI
 ```
 
 ## Estructura del repositorio
