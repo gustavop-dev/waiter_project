@@ -74,20 +74,78 @@ cientos, no en decenas de miles.
 
 ## Base de referencia del inquilino
 
-La base limpia que sirve de plantilla se crea así:
+### 1. Crear con el mínimo
 
 ```bash
 odoo -d <tenant> --db_host db -r odoo -w odoo \
-  -i point_of_sale,pos_restaurant,pos_self_order,\
-pos_online_payment,pos_online_payment_self_order,l10n_co,l10n_co_pos \
+  -i point_of_sale,pos_restaurant,l10n_co,l10n_co_pos \
   --without-demo=all --load-language=es_CO --stop-after-init
 ```
 
-Y después, por código: país Colombia, plan contable `co`, moneda COP, idioma
-`es_CO` en la compañía y en el usuario administrador.
+Solo cuatro módulos semilla. `pos_self_order` y las pasarelas de pago **no se
+piden**: el bloque 3 habla con Odoo por su API externa y emite sus propios
+tokens de mesa.
 
-Resultado verificado: **69 módulos, 6 apps, 384 cuentas contables, cero datos de
-demostración.**
+### 2. Limpiar el ruido auto-instalado
+
+Odoo instala solo todos los módulos con `auto_install=True` cuyas dependencias
+estén satisfechas. Son 24 que no aportan nada al producto y ensucian la interfaz:
+
+```text
+snailmail, snailmail_account, sms, stock_sms, google_gmail, microsoft_outlook,
+web_unsplash, mail_bot, spreadsheet, spreadsheet_dashboard,
+spreadsheet_account, spreadsheet_dashboard_account,
+spreadsheet_dashboard_stock_account, privacy_lookup, auth_passkey,
+auth_passkey_portal, auth_totp, auth_totp_mail, auth_totp_portal,
+account_add_gln, account_edi_ubl_cii, base_install_request, resource_mail,
+api_doc
+```
+
+**Dos que NUNCA se desinstalan**, pese a llegar por la misma vía:
+
+- **`rpc`** — provee `/xmlrpc` y `/jsonrpc`. Es la API externa de la que depende
+  todo el bloque 3. Quitarlo mata la integración.
+- **`base_import`** — importación de CSV, necesaria para cargar la carta.
+
+### 3. Reiniciar el worker
+
+Obligatorio tras cargar el idioma: `env.lang` es un `cached_property` y el
+proceso en marcha no ve el idioma nuevo, lo que hace fallar los pedidos con
+`Invalid language code`.
+
+### 4. Configurar la compañía
+
+País Colombia, plan contable `co`, moneda COP, idioma `es_CO` en la compañía y
+en el usuario administrador.
+
+### Resultado verificado
+
+| | Antes | Después |
+|---|---|---|
+| Módulos instalados | 69 | **45** |
+| Apps en el menú | 6 | 6 |
+| Cuentas contables | — | 384 |
+| Datos de demostración | ninguno | ninguno |
+
+### Lo que no se puede quitar
+
+Las 6 apps del menú son irreducibles en Community:
+
+| App | Por qué se queda |
+|---|---|
+| Punto de Venta, Restaurante | Son el núcleo del producto |
+| Facturación (`account`) | `point_of_sale` depende de `stock_account` |
+| Inventario (`stock`) | Misma cadena |
+| Conversaciones (`mail`) | Odoo entero está acoplado a `mail` |
+| Contactos | Lo exige `l10n_latam_base`, que exige `l10n_co` |
+
+Siete módulos vuelven solos por `auto_install` aunque no se pidan
+(`pos_self_order`, `account_payment`, `payment`, `utm`, `link_tracker`,
+`pos_online_payment`, `pos_online_payment_self_order`). **No aparecen en el menú
+y no estorban**; pelearse con el `auto_install` de Odoo no compensa.
+
+Si en el futuro hiciera falta reducir más lo que ve el personal, la herramienta
+correcta son los grupos de acceso —ocultar menús—, no desinstalar módulos.
 
 ## Pendiente
 
