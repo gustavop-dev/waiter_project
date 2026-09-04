@@ -108,34 +108,67 @@ def _get_open_order(self, order):
 El bloque 3 genera un `uuid` por confirmación y lo reutiliza en los reintentos.
 Odoo actualiza el pedido existente en vez de duplicarlo.
 
-## Dependencia operativa: la sesión de caja
+## La sesión de caja: se abre por código, no la abre el restaurante
 
-**Verificado en la instancia real.** Odoo exige una sesión de caja abierta para
-aceptar pedidos:
+El pedido llega a Odoo **cuando la pasarela ya confirmó el pago**. No hay dinero
+que contar ni caja que cuadrar en el momento de entrar el pedido.
+
+Aun así Odoo exige una `pos.session` abierta. Conviene entender exactamente de
+qué tipo de exigencia se trata:
+
+- En la base, `pos_order.session_id` **es nullable** y el campo no lleva
+  `required=True`. No es una restricción del modelo de datos.
+- El rechazo viene del **controlador de self-order** de Odoo:
 
 ```python
 # pos_self_order/controllers/orders.py:189
 def _verify_config_constraint(self, pos_config_sudo, check_active_session=True):
-    return (not pos_config_sudo
-            or (mode != 'mobile' and mode != 'kiosk')
-            or (check_active_session and not pos_config_sudo.has_active_session))
+    return (... or (check_active_session and not pos_config_sudo.has_active_session))
     # -> raise Unauthorized("Invalid access token")
 ```
 
-Comportamiento comprobado con un POS sin sesión abierta:
+Como el bloque 3 habla con Odoo por su **API externa** y no por ese controlador,
+esa guarda no nos aplica.
 
-| Operación | Resultado |
-|---|---|
-| Cargar la carta | ✅ funciona (17 productos) |
-| Crear pedido | ❌ `401 Unauthorized: Invalid access token` |
+**Aun así se abre la sesión**, y no por obligación sino por conveniencia: la
+sesión es la unidad contable de Odoo. Los reportes, los asientos y los
+movimientos de inventario cuelgan de ella. Un pedido sin sesión queda fuera de
+todo eso.
 
-**El mensaje de error es engañoso**: dice que el token es inválido cuando el
-problema real es que el restaurante no abrió la caja. El bloque 3 debe
-distinguir ambos casos y decirle al comensal algo cierto —"el restaurante aún no
-ha abierto"— en vez de propagar un error de autenticación.
+La abre el sistema, no el restaurante. Verificado:
 
-Es además una alerta operativa: si la caja está cerrada en horario de servicio,
-el restaurante está perdiendo pedidos sin enterarse.
+```python
+s = env['pos.session'].create({'config_id': cfg.id, 'user_id': uid})
+s.action_pos_session_open()
+# -> state='opening_control', has_active_session=True
+```
+
+El aprovisionamiento abre la sesión del canal de autoservicio y la rota
+periódicamente. **El personal del restaurante nunca tiene que abrir nada** para
+que el autoservicio funcione, que es justamente el punto del producto.
+
+### Trampa: activar un idioma exige reiniciar el worker
+
+Verificado. Tras activar `es_CO`, los pedidos fallaban con:
+
+```text
+UserError: Invalid language code: es_CO
+```
+
+aunque el idioma estuviera activo en la base. La causa es una caché de proceso:
+
+```python
+# odoo/orm/environments.py:296
+@functools.cached_property
+def lang(self) -> str | None:
+    lang = self.context.get('lang')
+    if lang and lang != 'en_US' and not self['res.lang']._get_data(code=lang):
+        raise UserError(f'Invalid language code: {lang}')
+```
+
+El worker que ya estaba corriendo no ve el idioma nuevo. **El script de
+aprovisionamiento debe reiniciar Odoo tras activar el idioma**, o el canal de
+autoservicio queda roto con un error que no señala la causa.
 
 ## Contrato de la API
 
@@ -171,7 +204,7 @@ Si se cambia de POS, se reescribe esa carpeta y nada más.
 | Situación | Respuesta al comensal |
 |---|---|
 | Token de mesa inválido o revocado | "Esta mesa no está disponible" |
-| Sin sesión de caja abierta | "El restaurante aún no ha abierto" |
+| Sin sesión de caja abierta | El sistema la abre; se alerta a operaciones |
 | Producto agotado al confirmar | Se señala la línea y se deja ajustar el carrito |
 | Odoo caído o sin responder | Se conserva el carrito y se reintenta; nunca se pierde |
 | Confirmación duplicada | Se devuelve el mismo pedido (idempotencia por `uuid`) |
