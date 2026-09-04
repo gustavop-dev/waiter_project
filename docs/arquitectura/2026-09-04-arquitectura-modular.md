@@ -111,40 +111,52 @@ de arquitectura, no un atajo.
 
 Dos entradas, ambas resueltas por el registro central:
 
+### Resolución jerárquica del token: restaurante → sede → mesa
+
+El token de mesa **no se busca globalmente**. Se resuelve por jerarquía: primero
+el restaurante, luego la sede, y dentro de ella la mesa. La URL lleva ese
+contexto:
+
 ```text
-Domicilio (general)   restaurant.projectapp.co/r/burger-house-poblado
-Mesa (NFC / QR)       restaurant.projectapp.co/t/K7M2QX8A
+Domicilio (general)   restaurant.projectapp.co/burger-house/poblado
+Mesa (NFC / QR)       restaurant.projectapp.co/burger-house/poblado/t/8H2KQ7
 ```
 
-### El token público lo emite el registro, no Odoo
+Esto importa porque `restaurant.table.identifier` de Odoo es `uuid4().hex[:8]`
+—32 bits— y **no tiene ninguna restricción de unicidad en la base**: solo
+existen la clave primaria y cinco claves foráneas. Con una base por restaurante,
+los identificadores se generan aislados y nadie los coordina entre inquilinos.
 
-`restaurant.table.identifier` de Odoo es `uuid4().hex[:8]` — 32 bits — y
-**no tiene ninguna restricción de unicidad en la base**: solo existen la clave
-primaria y cinco claves foráneas. Con una base por restaurante, los
-identificadores se generan aislados y nadie los coordina. Por la paradoja del
-cumpleaños:
+El alcance de la búsqueda es lo que determina el riesgo:
 
-| Escala | Mesas totales | Probabilidad de colisión |
+| Alcance | Mesas en el dominio | Probabilidad de colisión |
 |---|---|---|
-| 500 restaurantes × 30 mesas | 15.000 | 2,6 % |
-| 2.000 restaurantes × 30 mesas | 60.000 | 34 % |
+| Global | 60.000 | 34 % |
+| Por restaurante (cadena de 10 sedes) | 500 | 0,003 % |
+| Por restaurante + sede | 50 | 0,00003 % |
 
-Una colisión haría que un `/t/<token>` apunte a dos mesas de restaurantes
-distintos, y **las placas NFC son físicas**: no se reimprimen cuando aparece el
-conflicto.
+**Acotar por restaurante es lo que resuelve el problema** (cinco órdenes de
+magnitud). Acotar además por sede añade otros dos, pero es refinamiento sobre
+algo ya resuelto.
 
-Por eso el token público lo emite el registro central, con unicidad global
-garantizada por una constraint real. El `identifier` de Odoo queda como detalle
-interno.
+### Y una constraint, para que deje de ser probabilístico
 
-Esto cierra además el hueco de seguridad detectado en el spike: como el token es
-nuestro, se puede revocar, rotar y limitar en tasa sin depender de Odoo.
+El alcance jerárquico reduce el riesgo; no lo elimina. Mientras no exista una
+restricción de unicidad, la colisión es improbable pero posible, y **las placas
+NFC son físicas: no se reimprimen cuando aparece el conflicto**.
+
+Por eso el registro central mantiene su propia tabla de tokens con una
+constraint `UNIQUE (sede, token)`. La emisión del token pasa por ahí, de modo que
+la colisión deja de ser un cálculo de probabilidad y pasa a ser imposible.
+
+Como el token es nuestro y no de Odoo, además se puede revocar, rotar y limitar
+en tasa — lo que cierra el hueco de seguridad detectado en el spike.
 
 ## Flujo principal
 
 ```text
-1. Comensal toca el NFC          -> /t/K7M2QX8A
-2. Bloque 3 pregunta al registro -> (restaurante, sede, mesa, credenciales)
+1. Comensal toca el NFC          -> /burger-house/poblado/t/8H2KQ7
+2. Bloque 3 resuelve en el registro -> restaurante -> sede -> mesa + credenciales
 3. Bloque 3 pide la carta        -> adaptador -> Odoo del inquilino
 4. Comensal pide (menú o IA)     -> carrito en el bloque 3
 5. Confirma                      -> adaptador -> pedido en Odoo -> cocina
