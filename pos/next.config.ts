@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
   // next-intl y su cadena de runtime (use-intl → intl-messageformat → @formatjs/*) se publican como
   // ESM puro; next/jest lee esta lista para transformarlos en los tests (el patrón manual no puede).
   transpilePackages: ['next-intl', 'use-intl', 'intl-messageformat', '@formatjs/fast-memoize', '@formatjs/icu-messageformat-parser', '@formatjs/icu-skeleton-parser', '@formatjs/intl-localematcher', '@schummar/icu-type-parser'],
+  devIndicators: false,
   images: { unoptimized: true },
   async rewrites() {
     return [{ source: '/odoo/:path*', destination: `${odooOrigin}/:path*` }]

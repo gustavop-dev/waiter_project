@@ -5,6 +5,7 @@ export interface PosSession { id: number; configId: number; state: 'opened' | 'o
 
 interface RawSession { id: number; config_id: [number, string]; state: PosSession['state'] }
 interface RawAuth { uid: number; name: string; user_companies: { current_company: number } }
+interface RawInfo { uid: number | false; name?: string; user_companies?: { current_company: number } }
 
 const DB = process.env.NEXT_PUBLIC_ODOO_DB ?? 'projectapp'
 const OPEN_STATES = ['opened', 'opening_control']
@@ -12,6 +13,13 @@ const OPEN_STATES = ['opened', 'opening_control']
 export async function login(loginName: string, password: string): Promise<AuthUser> {
   const raw = await jsonRpc<RawAuth>('/web/session/authenticate', { db: DB, login: loginName, password })
   return { uid: raw.uid, name: raw.name, companyId: raw.user_companies.current_company }
+}
+
+// Quién está logueado según la cookie (HttpOnly: solo Odoo lo sabe). null si no hay sesión.
+export async function currentUser(): Promise<AuthUser | null> {
+  const raw = await jsonRpc<RawInfo>('/web/session/get_session_info', {})
+  if (!raw.uid) return null
+  return { uid: raw.uid, name: raw.name ?? '', companyId: raw.user_companies?.current_company ?? 0 }
 }
 
 export function logout(): Promise<void> {

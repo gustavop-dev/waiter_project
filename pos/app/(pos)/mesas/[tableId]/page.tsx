@@ -49,7 +49,7 @@ export default function OrderPage() {
   if (!catalog || !table || !order.draft) return null
   return (
     <div className="h-screen flex bg-canvas">
-      <Rail active="tables" />
+      <Rail active="tables" userName={useAuthStore.getState().user?.name ?? ''} />
       <div className="flex-1 min-w-0 flex flex-col">
         <Topbar
           left={<><Button size="compact" onClick={() => router.push('/salon')}>← {t('back')}</Button><span className="text-[22px] font-bold">{t('header', { number: table.number })}</span><span className="text-[15px] text-soft">{t('meta', { pax: table.seats, ref: order.saved?.reference ?? '—' })}</span></>}
@@ -58,7 +58,7 @@ export default function OrderPage() {
         {order.error && <p role="alert" className="mx-6 mt-3 px-4 py-3 rounded-md bg-busy-soft text-busy-ink text-[15px]">{order.error}</p>}
         <div className="flex-1 min-h-0 flex">
           <section aria-label={t('menu')} className="flex-1 min-w-0 flex flex-col">
-            <CategoryChips categories={catalog.categories} counts={counts} activeId={categoryId} onChange={setCategoryId} />
+            <CategoryChips categories={catalog.categories} counts={counts} soldOut={catalog.products.filter((p) => p.soldOut).length} activeId={categoryId} onChange={setCategoryId} />
             <ProductGrid products={products} onAdd={order.add} />
           </section>
           <OrderPanel tableNumber={table.number} lines={order.draft.lines} selectedUuid={selectedLine} busy={order.busy}

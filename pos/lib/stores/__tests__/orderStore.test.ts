@@ -3,18 +3,18 @@ import { act } from '@testing-library/react'
 import { closeOrder, listOpenOrders, payOrder, saveOrder } from '@/lib/services/orders'
 import { useOrderStore } from '@/lib/stores/orderStore'
 
-jest.mock('@/lib/services/orders', () => ({ saveOrder: jest.fn(), payOrder: jest.fn(), closeOrder: jest.fn(), listOpenOrders: jest.fn() }))
+jest.mock('@/lib/services/orders', () => ({ saveOrder: jest.fn(), payOrder: jest.fn(), closeOrder: jest.fn(), listOpenOrders: jest.fn(), getShiftSummary: jest.fn() }))
 const mSave = saveOrder as jest.Mock
 const mPay = payOrder as jest.Mock
 const mClose = closeOrder as jest.Mock
 const mList = listOpenOrders as jest.Mock
-const angus = { id: 3, templateId: 2, name: 'Angus', price: 36900, categoryIds: [1], taxIds: [5] }
+const angus = { id: 3, templateId: 2, name: 'Angus', price: 36900, categoryIds: [1], taxIds: [5], favorite: false, storable: false, soldOut: false }
 const saved = { id: 13, reference: '260-1-000009', state: 'draft' as const, total: 87822, tax: 14022, paid: 0 }
 
 beforeEach(() => {
   jest.clearAllMocks()
   mList.mockResolvedValue([])
-  useOrderStore.setState({ draft: null, saved: null, openOrders: [], flags: {}, busy: false, error: null })
+  useOrderStore.setState({ draft: null, saved: null, openOrders: [], shift: null, flags: {}, busy: false, error: null })
 })
 
 // Falla si enviar a cocina no deja la mesa marcada "en cocina" (el salón no cambiaría de color).

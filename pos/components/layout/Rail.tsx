@@ -3,9 +3,10 @@
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 
+import { initials } from '@/components/layout/Sidebar'
 import { cn } from '@/lib/utils'
 
-export function Rail({ active }: { active: 'tables' | 'orders' | 'kitchen' | 'payments' }) {
+export function Rail({ active, userName = '' }: { active: 'tables' | 'orders' | 'kitchen' | 'payments'; userName?: string }) {
   const t = useTranslations('pos.rail')
   const items = [['tables', '/salon'], ['orders', null], ['kitchen', null], ['payments', null]] as const
   return (
@@ -17,6 +18,7 @@ export function Rail({ active }: { active: 'tables' | 'orders' | 'kitchen' | 'pa
           return href ? <Link key={key} href={href} className={cls}>{t(key)}</Link> : <span key={key} className={cn(cls, 'opacity-60')}>{t(key)}</span>
         })}
       </nav>
+      {userName && <span className="mt-auto w-10 h-10 rounded-full bg-[#3A342E] text-sidebar-ink grid place-items-center text-sm font-semibold">{initials(userName)}</span>}
     </aside>
   )
 }

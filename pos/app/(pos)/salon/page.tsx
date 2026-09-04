@@ -26,10 +26,14 @@ export default function SalonPage() {
   const session = useAuthStore((s) => s.session)
   const catalog = useCatalogStore((s) => s.catalog)
   const { activeFloorId, selectedTableId, setFloor, selectTable } = useFloorStore()
-  const { openOrders, flags, draft, refreshOpenOrders, charge, busy } = useOrderStore()
+  const { openOrders, flags, draft, refreshOpenOrders, refreshShift, charge, busy } = useOrderStore()
   const [confirming, setConfirming] = useState(false)
+  const [now, setNow] = useState(() => Date.now())
 
-  useEffect(() => { if (session) void refreshOpenOrders(session.id) }, [session, refreshOpenOrders])
+  // Los tiempos de mesa y la barra de 22 min avanzan solos.
+  useEffect(() => { const id = setInterval(() => setNow(Date.now()), 30_000); return () => clearInterval(id) }, [])
+
+  useEffect(() => { if (session) { void refreshOpenOrders(session.id); void refreshShift(session.id) } }, [session, refreshOpenOrders, refreshShift])
   useEffect(() => { if (catalog && activeFloorId === null && catalog.floors[0]) setFloor(catalog.floors[0].id) }, [catalog, activeFloorId, setFloor])
 
   const views = useMemo(() => {
@@ -44,7 +48,7 @@ export default function SalonPage() {
     if (!cash) return
     await charge(cash.id)
     setConfirming(false)
-    if (session) await refreshOpenOrders(session.id)
+    if (session) { await refreshOpenOrders(session.id); await refreshShift(session.id) }
     selectTable(null)
   }
 
@@ -52,7 +56,7 @@ export default function SalonPage() {
   return (
     <Shell mode="sidebar">
       <Topbar
-        left={<><span className="text-[15px] text-soft">{new Date().toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short' })}</span><Badge tone="free"><span className="w-[7px] h-[7px] rounded-full bg-free" />{t('topbar.operational')}</Badge></>}
+        left={<><span className="text-[15px] text-soft">{new Date(now).toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short' })} · {new Date(now).toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' })}</span><Badge tone="free"><span className="w-[7px] h-[7px] rounded-full bg-free" />{t('topbar.operational')}</Badge></>}
         right={<><Button variant="secondary" disabled>{t('topbar.search')}</Button><Button variant="primary" disabled>{t('topbar.newTable')}</Button></>}
       />
       <div className="flex-1 min-h-0 flex">
@@ -61,9 +65,9 @@ export default function SalonPage() {
             <FloorTabs floors={catalog.floors} activeId={activeFloorId} onChange={setFloor} />
             <StateLegend counts={countByState(views)} />
           </div>
-          {views.length === 0 ? <p className="text-soft text-base">{t('salon.emptyFloor')}</p> : <TableGrid views={views} selectedId={selectedTableId} onSelect={selectTable} />}
+          {views.length === 0 ? <p className="text-soft text-base">{t('salon.emptyFloor')}</p> : <TableGrid views={views} selectedId={selectedTableId} onSelect={selectTable} now={now} />}
         </section>
-        <BillPanel view={selected} lines={draft?.tableId === selectedTableId ? draft.lines : []} onCharge={() => setConfirming(true)} onOpenOrder={() => selected && router.push(`/mesas/${selected.table.id}`)} />
+        <BillPanel view={selected} lines={draft?.tableId === selectedTableId ? draft.lines : []} onCharge={() => setConfirming(true)} onOpenOrder={() => selected && router.push(`/mesas/${selected.table.id}`)} now={now} />
       </div>
       <ConfirmDialog open={confirming && !!selected} title={t('salon.confirmTitle', { number: selected?.table.number ?? 0 })}
         body={t('salon.confirmBody', { amount: `$ ${formatCop(selected?.total ?? 0)}`, method: cash?.name ?? '' })}

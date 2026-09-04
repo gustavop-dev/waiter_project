@@ -10,7 +10,10 @@
       "automation": "Automatización",
       "billing": "Facturación",
       "settings": "Configuración",
-      "soon": "Próximamente"
+      "soon": "Próximamente",
+      "shift": "Turno de hoy",
+      "shiftMeta": "{orders} pedidos · {waiters} meseros",
+      "role": "Mesero"
     },
     "rail": {
       "tables": "Mesas",
@@ -55,7 +58,9 @@
       "confirmBody": "Total {amount} en {method}.",
       "confirmYes": "Sí, cobrar",
       "confirmNo": "Mejor no",
-      "emptyFloor": "Ni un alma todavía. Buen momento para revisar el inventario."
+      "emptyFloor": "Ni un alma todavía. Buen momento para revisar el inventario.",
+      "openOrder": "Abrir pedido",
+      "meta": "{pax} pax · {waiter} · {elapsed} h"
     },
     "order": {
       "back": "Salón",
@@ -75,7 +80,9 @@
       "sent": "Pedido enviado. La cocina ya lo tiene.",
       "soldOut": "Agotado",
       "photo": "Foto 4:3",
-      "menu": "Carta"
+      "menu": "Carta",
+      "favorite": "El favorito",
+      "soldOutChip": "Agotados {count}"
     }
   }
 }

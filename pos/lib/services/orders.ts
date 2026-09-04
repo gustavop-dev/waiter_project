@@ -3,10 +3,12 @@ import type { DraftOrder } from '@/lib/domain/order'
 import { callKw } from '@/lib/services/odoo'
 
 export interface SavedOrder { id: number; reference: string; state: 'draft' | 'paid'; total: number; tax: number; paid: number }
-export interface OpenOrder { id: number; tableId: number; total: number; state: 'draft' | 'paid'; lineCount: number }
+export interface OpenOrder { id: number; tableId: number; total: number; state: 'draft' | 'paid'; lineCount: number; startedAt: string; waiter: string }
+export interface ShiftSummary { sales: number; orders: number; waiters: number }
 
 interface RawOrder { id: number; pos_reference: string; state: SavedOrder['state']; amount_total: number; amount_tax: number; amount_paid: number }
-interface RawOpen { id: number; table_id: [number, string] | false; amount_total: number; state: SavedOrder['state']; lines: number[] }
+interface RawOpen { id: number; table_id: [number, string] | false; amount_total: number; state: SavedOrder['state']; lines: number[]; date_order: string; user_id: [number, string] | false }
+interface RawPaid { amount_total: number; user_id: [number, string] | false }
 
 const READ_FIELDS = ['pos_reference', 'state', 'amount_total', 'amount_tax', 'amount_paid']
 
@@ -35,8 +37,17 @@ export async function closeOrder(orderId: number): Promise<SavedOrder> {
 
 export async function listOpenOrders(sessionId: number): Promise<OpenOrder[]> {
   const rows = await callKw<RawOpen[]>('pos.order', 'search_read',
-    [[['session_id', '=', sessionId], ['state', '=', 'draft']], ['table_id', 'amount_total', 'state', 'lines']])
+    [[['session_id', '=', sessionId], ['state', '=', 'draft']], ['table_id', 'amount_total', 'state', 'lines', 'date_order', 'user_id']])
   return rows
     .filter((r) => r.table_id !== false)
-    .map((r) => ({ id: r.id, tableId: (r.table_id as [number, string])[0], total: r.amount_total, state: r.state, lineCount: r.lines.length }))
+    .map((r) => ({ id: r.id, tableId: (r.table_id as [number, string])[0], total: r.amount_total, state: r.state, lineCount: r.lines.length,
+      startedAt: r.date_order, waiter: r.user_id ? r.user_id[1] : '' }))
+}
+
+// Ventas del turno: lo pagado en la sesión, cuántos pedidos y cuántos meseros distintos.
+export async function getShiftSummary(sessionId: number): Promise<ShiftSummary> {
+  const rows = await callKw<RawPaid[]>('pos.order', 'search_read',
+    [[['session_id', '=', sessionId], ['state', 'in', ['paid', 'done', 'invoiced']]], ['amount_total', 'user_id']])
+  const waiters = new Set(rows.map((r) => (r.user_id ? r.user_id[0] : 0)))
+  return { sales: rows.reduce((a, r) => a + r.amount_total, 0), orders: rows.length, waiters: waiters.size }
 }

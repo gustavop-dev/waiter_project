@@ -2,7 +2,7 @@
 
 import { create } from 'zustand'
 
-import { getOpenSession, login as loginRequest, logout as logoutRequest } from '@/lib/services/session'
+import { currentUser, getOpenSession, login as loginRequest, logout as logoutRequest } from '@/lib/services/session'
 import type { AuthUser, PosSession } from '@/lib/services/session'
 
 interface AuthState {
@@ -26,8 +26,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   // La cookie de Odoo es HttpOnly: la única forma de saber si hay sesión es preguntar.
   hydrate: async () => {
     try {
-      const session = await getOpenSession()
-      set({ session, user: session ? { uid: 0, name: '', companyId: 0 } : null, hydrated: true })
+      const user = await currentUser()
+      const session = user ? await getOpenSession() : null
+      set({ session, user, hydrated: true })
     } catch {
       set({ user: null, session: null, hydrated: true })
     }

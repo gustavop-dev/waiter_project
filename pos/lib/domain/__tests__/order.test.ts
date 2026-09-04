@@ -1,7 +1,7 @@
 import { addProduct, createDraft, removeLine, setQty, subtotal, toSyncPayload } from '@/lib/domain/order'
 import type { Product } from '@/lib/types'
 
-const angus: Product = { id: 3, templateId: 2, name: 'Hamburguesa Angus', price: 36900, categoryIds: [1], taxIds: [5] }
+const angus: Product = { id: 3, templateId: 2, name: 'Hamburguesa Angus', price: 36900, categoryIds: [1], taxIds: [5], favorite: false, storable: false, soldOut: false }
 const draft = () => createDraft({ sessionId: 1, tableId: 6, guests: 2 })
 
 // Falla si agregar el mismo producto dos veces crea dos líneas en vez de subir la cantidad.

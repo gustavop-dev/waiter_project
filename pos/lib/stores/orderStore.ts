@@ -5,14 +5,15 @@ import { create } from 'zustand'
 import { addProduct, createDraft, removeLine, setNote, setQty } from '@/lib/domain/order'
 import type { DraftOrder } from '@/lib/domain/order'
 import type { LocalFlags } from '@/lib/domain/tableState'
-import { closeOrder, listOpenOrders, payOrder, saveOrder } from '@/lib/services/orders'
-import type { OpenOrder, SavedOrder } from '@/lib/services/orders'
+import { closeOrder, getShiftSummary, listOpenOrders, payOrder, saveOrder } from '@/lib/services/orders'
+import type { OpenOrder, SavedOrder, ShiftSummary } from '@/lib/services/orders'
 import type { Product } from '@/lib/types'
 
 interface OrderState {
   draft: DraftOrder | null
   saved: SavedOrder | null
   openOrders: OpenOrder[]
+  shift: ShiftSummary | null
   flags: Record<number, LocalFlags>
   busy: boolean
   error: string | null
@@ -26,6 +27,7 @@ interface OrderState {
   requestBill: () => Promise<void>
   charge: (paymentMethodId: number) => Promise<void>
   refreshOpenOrders: (sessionId: number) => Promise<void>
+  refreshShift: (sessionId: number) => Promise<void>
 }
 
 // El mensaje de Odoo ya viene en el idioma del usuario; no se traduce aquí ni se inventa copy.
@@ -53,7 +55,7 @@ export const useOrderStore = create<OrderState>((set, get) => {
     set((s) => ({ flags: { ...s.flags, [tableId]: { ...s.flags[tableId], ...patch } } }))
 
   return {
-    draft: null, saved: null, openOrders: [], flags: {}, busy: false, error: null,
+    draft: null, saved: null, openOrders: [], shift: null, flags: {}, busy: false, error: null,
     start: (sessionId, tableId, guests) => set({ draft: createDraft({ sessionId, tableId, guests }), saved: null, error: null }),
     add: (p) => update((d) => addProduct(d, p)),
     changeQty: (u, q) => update((d) => setQty(d, u, q)),
@@ -82,5 +84,6 @@ export const useOrderStore = create<OrderState>((set, get) => {
       }
     },
     refreshOpenOrders: async (sessionId) => set({ openOrders: await listOpenOrders(sessionId) }),
+    refreshShift: async (sessionId) => set({ shift: await getShiftSummary(sessionId) }),
   }
 })
