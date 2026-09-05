@@ -14,7 +14,7 @@ test('the waiter searches a dish, adds a general kitchen note and the KDS shows 
   await carta.getByRole('button', { name: /Limonada/ }).click()
   await page.getByRole('button', { name: /Nota a cocina/ }).click()
   await page.getByRole('dialog').getByLabel('Nota general a cocina').fill('sin hielo, alergia')
-  await page.getByRole('button', { name: 'Guardar' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Guardar' }).click()
   await page.getByRole('button', { name: 'Enviar a cocina' }).click()
   await page.waitForURL('**/salon')
   await page.goto('/kds')
