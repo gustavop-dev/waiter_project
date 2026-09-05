@@ -45,7 +45,7 @@ it('averages preparation time over completed courses', () => {
 // Falla si el salón muestra "servido" con una comanda todavía en cocina.
 it('derives the kitchen phase of an order from its courses', () => {
   expect(kitchenPhase([])).toBe('none')
-  expect(kitchenPhase([{ orderId: 1, readyAt: at(1), servedAt: null }, { orderId: 1, readyAt: null, servedAt: null }])).toBe('cooking')
-  expect(kitchenPhase([{ orderId: 1, readyAt: at(1), servedAt: null }])).toBe('ready')
-  expect(kitchenPhase([{ orderId: 1, readyAt: at(2), servedAt: at(1) }])).toBe('served')
+  expect(kitchenPhase([{ orderId: 1, firedAt: at(5), readyAt: at(1), servedAt: null }, { orderId: 1, firedAt: at(5), readyAt: null, servedAt: null }])).toBe('cooking')
+  expect(kitchenPhase([{ orderId: 1, firedAt: at(5), readyAt: at(1), servedAt: null }])).toBe('ready')
+  expect(kitchenPhase([{ orderId: 1, firedAt: at(5), readyAt: at(2), servedAt: at(1) }])).toBe('served')
 })

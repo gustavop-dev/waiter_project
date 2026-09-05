@@ -4,7 +4,7 @@ import { callKw } from '@/lib/services/odoo'
 // que conoce los métodos del addon projectapp_kitchen.
 export interface KitchenLine { id: number; name: string; qty: number; note: string; station: string | null }
 export interface KitchenTicket { id: number; orderId: number; tableId: number; tracking: string; waiter: string; firedAt: string; readyAt: string | null; lines: KitchenLine[] }
-export interface CourseSummary { orderId: number; readyAt: string | null; servedAt: string | null }
+export interface CourseSummary { orderId: number; firedAt: string; readyAt: string | null; servedAt: string | null }
 export interface CompletedCourse { firedAt: string; readyAt: string }
 
 interface RawCourse { id: number; order_id: [number, string]; fired_date: string; ready_date: string | false; served_date: string | false }
@@ -53,8 +53,8 @@ export async function listCompletedCourses(sessionId: number): Promise<Completed
 
 // Para el salón: en qué fase de cocina está cada pedido abierto.
 export async function listCourseSummaries(sessionId: number): Promise<CourseSummary[]> {
-  const rows = await callKw<RawCourse[]>(COURSE, 'search_read', [[['fired', '=', true], ...inSession(sessionId)], ['order_id', 'ready_date', 'served_date']])
-  return rows.map((r) => ({ orderId: r.order_id[0], readyAt: r.ready_date || null, servedAt: r.served_date || null }))
+  const rows = await callKw<RawCourse[]>(COURSE, 'search_read', [[['fired', '=', true], ...inSession(sessionId)], ['order_id', 'fired_date', 'ready_date', 'served_date']])
+  return rows.map((r) => ({ orderId: r.order_id[0], firedAt: r.fired_date, readyAt: r.ready_date || null, servedAt: r.served_date || null }))
 }
 
 export async function markReady(courseId: number): Promise<void> {

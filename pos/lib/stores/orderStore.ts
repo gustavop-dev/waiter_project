@@ -7,6 +7,7 @@ import type { DraftOrder } from '@/lib/domain/order'
 import type { LocalFlags } from '@/lib/domain/tableState'
 import { play } from '@/lib/audio/sounds'
 import { fireUnsentLines } from '@/lib/services/kitchen'
+import { useOpsStore } from '@/lib/stores/opsStore'
 import { closeOrder, getShiftSummary, listOpenOrders, payOrder, saveOrder } from '@/lib/services/orders'
 import type { OpenOrder, SavedOrder, ShiftSummary } from '@/lib/services/orders'
 import type { Product } from '@/lib/types'
@@ -75,7 +76,7 @@ export const useOrderStore = create<OrderState>((set, get) => {
     },
     requestBill: async () => {
       const saved = await persist()
-      if (saved) flag(get().draft!.tableId, { billing: true })
+      if (saved) { flag(get().draft!.tableId, { billing: true }); useOpsStore.getState().markBilling(get().draft!.tableId, Date.now()) }
     },
     charge: async (paymentMethodId) => {
       const saved = await persist()

@@ -138,6 +138,72 @@
       "yes": "Sí",
       "no": "No",
       "export": "Exportar"
+    },
+    "ops": {
+      "title": "Operación en vivo",
+      "attention": "{n, plural, =0 {Todo tranquilo} one {# cosa pide tu atención} other {# cosas piden tu atención}}",
+      "filters": {
+        "all": "Todo",
+        "tables": "Mesas",
+        "kitchen": "Cocina",
+        "payments": "Pagos"
+      },
+      "goSalon": "Ir al salón",
+      "kpi": {
+        "activeTables": "Mesas activas",
+        "cooking": "En cocina",
+        "late": "Demorados",
+        "toCharge": "Por cobrar",
+        "sales": "Ventas del turno"
+      },
+      "orders": "Pedidos del turno",
+      "ordersMeta": "{total} hoy · {autonomous} autónomos",
+      "cols": {
+        "order": "Pedido",
+        "table": "Mesa / mesero",
+        "origin": "Origen",
+        "total": "Total",
+        "state": "Estado"
+      },
+      "origin": {
+        "waiter": "Mesero",
+        "diner": "Autónomo",
+        "ai": "Autónomo"
+      },
+      "delivery": "Domicilio",
+      "status": {
+        "late": "Demorado {n} min",
+        "pending": "Pendiente",
+        "cooking": "En cocina",
+        "ready": "Listo",
+        "served": "Servido",
+        "paid": "Pagado"
+      },
+      "alerts": "Alertas",
+      "alertsMeta": "solo excepciones",
+      "quiet": "Nada está mal. La pantalla está tranquila.",
+      "alert": {
+        "kitchen": "Pedido demorado",
+        "payment": "Cuenta sin cobrar",
+        "table": "Mesa pide mesero"
+      },
+      "alertBody": {
+        "kitchen": "{ref} de mesa {table} pasó los {late} minutos. La cocina tiene {queue} en cola.",
+        "payment": "Mesa {table} pidió la cuenta hace {minutes} min y nadie la ha cobrado."
+      },
+      "actions": {
+        "seeKitchen": "Ver en cocina",
+        "courtesy": "Ofrecer cortesía",
+        "charge": "Ir a cobrar",
+        "done": "Atendida"
+      },
+      "resolved": "Resueltas hoy",
+      "resolvedNone": "Nada resuelto todavía",
+      "resolvedItem": "{text} ({time})",
+      "courtesy": "Cortesía ofrecida en mesa {table}",
+      "chargedLabel": "Cuenta de mesa {table} atendida",
+      "thresholds": "Umbrales de alerta",
+      "configure": "Configurar"
     }
   }
 }
