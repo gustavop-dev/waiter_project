@@ -1,3 +1,8 @@
-from django.urls import path  # noqa: F401
+from django.urls import path
 
-urlpatterns = []
+from registry_app.views.resolve import resolve
+
+urlpatterns = [
+    path("internal/v1/resolve/<slug:restaurant>/<slug:venue>/", resolve, name="resolve-venue"),
+    path("internal/v1/resolve/<slug:restaurant>/<slug:venue>/t/<str:token>/", resolve, name="resolve-table"),
+]

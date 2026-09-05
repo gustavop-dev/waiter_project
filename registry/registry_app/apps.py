@@ -2,5 +2,5 @@ from django.apps import AppConfig
 
 
 class Registry_appConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'registry_app'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "registry_app"
