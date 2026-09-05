@@ -84,6 +84,38 @@
       "menu": "Carta",
       "favorite": "El favorito",
       "soldOutChip": "Agotados {count}"
+    },
+    "kds": {
+      "title": "Cocina caliente",
+      "table": "Mesa {n}",
+      "tabs": {
+        "all": "Todas",
+        "late": "Demorados"
+      },
+      "avg": "Tiempo medio",
+      "avgNone": "—",
+      "grid": "Comandas en preparación",
+      "empty": "Sin comandas en preparación",
+      "ready": "Listos por entregar",
+      "readyEmpty": "Nada listo todavía",
+      "readyBtn": "Listo",
+      "serve": "Entregado",
+      "dishes": "{n, plural, one {# plato} other {# platos}}",
+      "minutes": "min",
+      "mood": {
+        "late": "Demorado",
+        "attention": "Atención",
+        "fresh": "Recién entra"
+      },
+      "legend": {
+        "ok": "menos de 12 min",
+        "warn": "12 a 18 min",
+        "late": "más de 18 min",
+        "suffix": "en preparación"
+      },
+      "history": "Historial del turno",
+      "mute": "Silenciar avisos",
+      "unmute": "Activar avisos"
     }
   }
 }
