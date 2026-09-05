@@ -4,17 +4,18 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Fragment, useMemo } from 'react'
 
-import { AddButton, MenuEmpty, ReferenceNote, SearchField, SoldOutBadge, barPosition } from '@/components/templates/families/D/parts'
+import { AddButton, MenuEmpty, ReferenceNote, SearchField, SoldOutBadge } from '@/components/templates/families/D/parts'
 import { CategoryTabs, tabId, useMenuDishes } from '@/components/templates/generic/menuParts'
 import type { MenuLayoutProps } from '@/components/templates/types'
 import { formatCop, itemCount } from '@/lib/domain/cart'
 import type { Dish } from '@/lib/types'
 
-// D1 · Pizarra de café (docs/diseno/plantillas/D1). Pizarra oscura: cabecera con la marca en serif y, a la derecha, la mesa en
-// versalitas (la ventana horaria de la sede no existe en los datos: se usa la mesa; sin mesa, «Domicilio»); lista de barra por
-// categoría con guía de puntos entre nombre y precio mono; botón crema «Pedir en la barra» al pie (barra de pedido del marco).
-// Sin fotos ni descripciones (spec.fotos = ninguna). La nota rotativa («Grano de la semana») se omite: la sede no la manda.
-// Búsqueda y pestañas de Waiter van bajo la cabecera con el mismo trazo translúcido; el ＋ es un aro fino junto al precio.
+// D1 · Pizarra de café (docs/diseno/plantillas/D1). Pizarra oscura: cabecera del marco con la marca en serif (o su logo) y, a la
+// derecha, la mesa en versalitas (la ventana horaria de la sede no existe en los datos: se usa la mesa; sin mesa, «Domicilio»);
+// lista de barra por categoría con guía de puntos entre nombre y precio mono; botón crema «Pedir en la barra» pegado al pie (es
+// la barra de pedido del marco: la página no pinta la suya sobre este layout). Sin fotos ni descripciones (spec.fotos = ninguna).
+// La nota rotativa («Grano de la semana») se omite: la sede no la manda. Búsqueda y pestañas de Waiter van bajo la cabecera con
+// el mismo trazo translúcido; el ＋ es un aro fino junto al precio.
 export function D1Menu({ entry, query, setQuery, category, setCategory, onOpen, onAdd, cart, orderBarHref }: MenuLayoutProps) {
   const t = useTranslations('diner')
   const td = useTranslations('diner.templates.D1')
@@ -30,12 +31,16 @@ export function D1Menu({ entry, query, setQuery, category, setCategory, onOpen, 
       .filter((c) => c.productos.length > 0)
   }, [categories, category, dishes])
   const count = itemCount(cart)
+  const brand = entry.contexto.marca
   const table = entry.contexto.mesa?.numero ?? null
   const field = 'h-11 w-full rounded-t-boton bg-t-superficie border border-t-borde px-4 text-[15px] text-t-tinta placeholder:text-t-tinta-terciaria'
   return (
     <div className="flex flex-col text-t-tinta">
       <header className="px-5 py-5 border-b border-t-borde flex items-baseline justify-between gap-3">
-        <h1 className="t-title text-[25px] leading-tight truncate">{entry.contexto.marca.nombre}</h1>
+        {brand.logo
+          // eslint-disable-next-line @next/next/no-img-element
+          ? <img src={brand.logo} alt={brand.nombre} className="h-9 w-auto object-contain self-center" />
+          : <h1 className="t-title text-[25px] leading-tight truncate">{brand.nombre}</h1>}
         <span className="shrink-0 text-[12px] tracking-[0.14em] uppercase opacity-[0.62]">{table !== null ? t('common.table', { n: table }) : t('common.delivery')}</span>
       </header>
       <div className="px-5 pt-4 flex flex-col gap-3">
@@ -53,7 +58,7 @@ export function D1Menu({ entry, query, setQuery, category, setCategory, onOpen, 
             </Fragment>
           ))}
       </section>
-      <footer className={`px-5 py-4 border-t border-t-borde bg-t-fondo ${barPosition(cart)}`}>
+      <footer className="sticky bottom-0 z-30 px-5 py-4 border-t border-t-borde bg-t-fondo">
         <Link href={orderBarHref} className="h-[54px] rounded-t-boton bg-t-acento text-t-acento-tinta grid place-items-center text-[16px] font-bold">
           {count > 0 ? td('orderAtBarWith', { amount: formatCop(cart?.total ?? 0) }) : td('orderAtBar')}
         </Link>

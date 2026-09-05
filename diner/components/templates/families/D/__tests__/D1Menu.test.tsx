@@ -45,11 +45,20 @@ it('keeps Waiter search and tabs and tells the truth when a category is empty', 
   expect(p.setCategory).toHaveBeenCalledWith(null)
 })
 
-// Falla si el botón crema del pie no lleva al pedido o no muestra el total cuando ya hay algo pedido.
-it('sends the cream button to the order bar and shows the total once there are items', () => {
+// Falla si el botón crema del pie no lleva al pedido, no muestra el total cuando ya hay algo pedido, o deja de pegarse abajo con
+// ítems (es la barra de pedido del marco: la página ya no pinta la suya sobre este layout).
+it('sends the cream button to the order bar, shows the total once there are items and stays stuck to the bottom', () => {
   const first = wrap(<D1Menu {...menuProps()} />)
   expect(screen.getByRole('link', { name: 'Pedir en la barra' })).toHaveAttribute('href', '/tinto/centro/t/Z2XUVG/pedido')
   first.unmount()
   wrap(<D1Menu {...menuProps({ cart: cartOf([line()]) })} />)
-  expect(screen.getByRole('link', { name: 'Pedir en la barra · $ 18.000' })).toBeInTheDocument()
+  const cta = screen.getByRole('link', { name: 'Pedir en la barra · $ 18.000' })
+  expect(cta.parentElement).toHaveClass('sticky', 'bottom-0')
+})
+
+// Falla si una marca con logo pierde el logo en la cabecera de la pizarra (la página ya no pinta su BrandHeader aquí).
+it('paints the brand logo in the board header when the brand has one', () => {
+  wrap(<D1Menu {...menuProps({ entry: entryOf(undefined, { marca: { ...entryOf().contexto.marca, logo: '/logo.png' } }) })} />)
+  expect(screen.getByRole('img', { name: 'Tinto y Nube' })).toHaveAttribute('src', '/logo.png')
+  expect(screen.queryByRole('heading', { level: 1 })).toBeNull()
 })

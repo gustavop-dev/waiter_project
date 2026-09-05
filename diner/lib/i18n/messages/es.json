@@ -467,8 +467,6 @@
       "familiaD": {
         "fullMenu": "Toda la carta",
         "edit": "Editar",
-        "done": "Listo",
-        "total": "Total",
         "pct": "{pct}%",
         "discountChip": "−{pct}% aplicado",
         "discountUsed": "{pct}% ya usado en tu 1ª visita",
@@ -495,12 +493,13 @@
         "size": "Tamaño",
         "add": "Añadir",
         "openDish": "Ver ficha completa →",
-        "builder": "Arma tu pedido"
+        "builder": "Arma tu pedido",
+        "sizeNote": "Tamaño: {size}"
       },
       "D3": {
         "title": "Salió del horno",
         "count": "{n, plural, one {# pieza} other {# piezas}}",
-        "inventory": "El POS marca al instante lo que se agota: si lo ves, lo hay."
+        "inventory": "El inventario del POS actualiza estas cantidades cada minuto."
       },
       "D4": {
         "greeting": "Hola de nuevo, {name}",

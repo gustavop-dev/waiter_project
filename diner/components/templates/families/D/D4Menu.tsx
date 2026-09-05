@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
-import { AddButton, MenuEmpty, ReferenceNote, SearchField, SoldOutBadge, useDinerAccount, useDishIndex } from '@/components/templates/families/D/parts'
+import { AddButton, DarkOrderBar, MenuEmpty, ReferenceNote, SearchField, SoldOutBadge, useDinerAccount, useDishIndex } from '@/components/templates/families/D/parts'
 import { CategoryTabs, tabId, unique, useMenuDishes } from '@/components/templates/generic/menuParts'
 import type { MenuLayoutProps } from '@/components/templates/types'
 import { formatCop, recommended } from '@/lib/domain/cart'
@@ -38,9 +38,10 @@ export function usualOrder(orders: AccountOrder[], now = new Date()): UsualOrder
 // «Pedir igual» → onAdd de cada línea); sección «O cambia algo» con dos sugerencias de la carta (favoritos: cuenta.variantes no
 // existe) y «Ver toda la carta →» que despliega el listado estándar (búsqueda, pestañas, filas nombre + precio + ＋). Un comensal
 // sin cuenta o sin historial cae directo en ese listado, con la marca y su bienvenida en la cabecera. El pie de sellos de
-// fidelidad se omite: no hay programa de sellos en los datos. La cuenta se lee del store (la carta no la recibe por props).
-// Sin barra de pedido propia: la pinta la página.
-export function D4Menu({ entry, query, setQuery, category, setCategory, onOpen, onAdd }: MenuLayoutProps) {
+// fidelidad se omite: no hay programa de sellos en los datos. La cuenta se lee del store (la carta no la recibe por props; ver
+// useDinerAccount: una sola consulta silenciosa por carga). Sin barra de pedido propia: al pie va la barra oscura de Waiter,
+// solo cuando hay algo pedido.
+export function D4Menu({ entry, query, setQuery, category, setCategory, onOpen, onAdd, cart, orderBarHref }: MenuLayoutProps) {
   const t = useTranslations('diner')
   const td = useTranslations('diner.templates.D4')
   const tf = useTranslations('diner.templates.familiaD')
@@ -121,6 +122,7 @@ export function D4Menu({ entry, query, setQuery, category, setCategory, onOpen, 
           </section>
         </div>
       )}
+      <DarkOrderBar cart={cart} href={orderBarHref} hideWhenEmpty />
     </div>
   )
 }
