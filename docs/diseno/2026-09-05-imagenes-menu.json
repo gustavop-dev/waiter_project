@@ -1,0 +1,574 @@
+{
+  "meta": {
+    "documento": "Especificación de imágenes para las 30 plantillas de menú",
+    "producto": "Waiter by ProjectApp",
+    "fecha": "2026-09-05",
+    "principio": "La foto es dato, no decoración: si no ayuda a decidir, no va. Una foto mala vende menos que ninguna foto.",
+    "regla_de_oro": "Sin fotografía consistente, el restaurante debe usar una plantilla sin imagen (A1, A2, A3, A5, B4, B5, C1, C4, D1, E1, E3, E5, F3, F4)."
+  },
+  "especificacion_tecnica": {
+    "formato_entrega": [
+      "JPG calidad 85",
+      "WebP si el CDN lo soporta"
+    ],
+    "espacio_color": "sRGB",
+    "peso_maximo_kb": 180,
+    "resolucion_minima_lado_largo_px": 1600,
+    "fondo": "Un solo fondo para toda la carta: madera oscura mate o piedra clara. Nunca mezclar fondos entre platos del mismo menú.",
+    "luz": "Lateral suave, una sola fuente, sin flash directo ni sombra dura. Misma dirección en todas las fotos.",
+    "angulo": "45° para platos con altura (hamburguesas, bowls); 90° cenital para platos planos (pizzas, tablas, bandejas).",
+    "encuadre": "Plato completo con 8% de aire alrededor. Nada de manos, cubiertos de utilería, servilletas dobladas ni humo falso.",
+    "estilo_prohibido": [
+      "filtros de saturación alta",
+      "viñeteado",
+      "fondos degradados",
+      "props que no se sirven",
+      "bokeh extremo que oculte el plato"
+    ],
+    "porcion_real": "La foto debe mostrar la porción que llega a la mesa. Es requisito legal y la principal fuente de queja del comensal.",
+    "nomenclatura": "{sku}_{recorte}.jpg — ej. HAMB-ANGUS_4x3.jpg, HAMB-ANGUS_3x4.jpg",
+    "fuente_de_verdad": "Se cargan en la ficha de product.template de Odoo; el menú las consume desde ahí, nunca desde una carpeta suelta."
+  },
+  "recortes": [
+    {
+      "id": "4x3",
+      "uso": "Rejilla de dos columnas y tarjeta de producto del POS",
+      "px": "1200×900",
+      "notas": "El recorte más usado. Debe funcionar reducido a 160×120."
+    },
+    {
+      "id": "1x1",
+      "uso": "Miniatura de lista y ranking",
+      "px": "600×600",
+      "notas": "Plato centrado; se ve a 52–58px, sin detalles finos."
+    },
+    {
+      "id": "3x4",
+      "uso": "Foto a sangre vertical (C2) y portada del menú",
+      "px": "1200×1600",
+      "notas": "Dejar el tercio inferior sin elementos clave: encima va texto."
+    },
+    {
+      "id": "3x2",
+      "uso": "Cabecera de ficha de plato (A4)",
+      "px": "1500×1000",
+      "notas": "Horizontal, plato ligeramente descentrado a la izquierda."
+    },
+    {
+      "id": "16x9",
+      "uso": "Portada de local y pantalla de entrada",
+      "px": "1920×1080",
+      "notas": "Ambiente del salón, no plato. Con espacio para el degradado superior."
+    }
+  ],
+  "por_plantilla": [
+    {
+      "id": "A1",
+      "nombre": "Carta editorial",
+      "categoria": "Alta cocina",
+      "imagenes": 0,
+      "detalle": []
+    },
+    {
+      "id": "A2",
+      "nombre": "Menú degustación por pasos",
+      "categoria": "Alta cocina",
+      "imagenes": 0,
+      "detalle": []
+    },
+    {
+      "id": "A3",
+      "nombre": "Carta de vinos indexada",
+      "categoria": "Alta cocina",
+      "imagenes": 0,
+      "detalle": [
+        {
+          "slot": "etiqueta_botella",
+          "recorte": "1x1",
+          "obligatoria": false,
+          "nota": "Opcional y solo si están las 82 referencias; a medias se ve incompleto."
+        }
+      ]
+    },
+    {
+      "id": "A4",
+      "nombre": "Plato con relato",
+      "categoria": "Alta cocina",
+      "imagenes": 1,
+      "detalle": [
+        {
+          "slot": "cabecera_plato",
+          "recorte": "3x2",
+          "obligatoria": true,
+          "nota": "Una por plato de la carta. Es la pantalla a la que llevan todas las demás."
+        }
+      ]
+    },
+    {
+      "id": "A5",
+      "nombre": "Índice de dos columnas",
+      "categoria": "Alta cocina",
+      "imagenes": 0,
+      "detalle": [
+        {
+          "slot": "fondo_seccion",
+          "recorte": "1x1",
+          "obligatoria": false,
+          "nota": "Si se usa, textura oscura al 20% de opacidad, nunca plato."
+        }
+      ]
+    },
+    {
+      "id": "B1",
+      "nombre": "Rejilla con foto",
+      "categoria": "Casual",
+      "imagenes": "todas",
+      "detalle": [
+        {
+          "slot": "tarjeta_plato",
+          "recorte": "4x3",
+          "obligatoria": true,
+          "nota": "Requiere foto de TODO plato visible. Un hueco rompe la rejilla."
+        }
+      ]
+    },
+    {
+      "id": "B2",
+      "nombre": "Los favoritos primero",
+      "categoria": "Casual",
+      "imagenes": 5,
+      "detalle": [
+        {
+          "slot": "miniatura_ranking",
+          "recorte": "1x1",
+          "obligatoria": true,
+          "nota": "Solo los 5 del top. Se recalculan con el POS, así que fotografía los 10 más pedidos."
+        }
+      ]
+    },
+    {
+      "id": "B3",
+      "nombre": "Para compartir",
+      "categoria": "Casual",
+      "imagenes": 3,
+      "detalle": [
+        {
+          "slot": "bandeja",
+          "recorte": "4x3",
+          "obligatoria": true,
+          "nota": "Cenital 90°, la bandeja completa para el número de personas que anuncia."
+        }
+      ]
+    },
+    {
+      "id": "B4",
+      "nombre": "Menú del día",
+      "categoria": "Casual",
+      "imagenes": 0,
+      "detalle": []
+    },
+    {
+      "id": "B5",
+      "nombre": "Carta con secciones plegables",
+      "categoria": "Casual",
+      "imagenes": 0,
+      "detalle": []
+    },
+    {
+      "id": "C1",
+      "nombre": "Combos numerados",
+      "categoria": "Rápida",
+      "imagenes": 0,
+      "detalle": []
+    },
+    {
+      "id": "C2",
+      "nombre": "Foto a sangre",
+      "categoria": "Rápida",
+      "imagenes": "1 por producto",
+      "detalle": [
+        {
+          "slot": "hero_vertical",
+          "recorte": "3x4",
+          "obligatoria": true,
+          "nota": "La foto ES la plantilla. Máxima calidad; tercio inferior limpio."
+        }
+      ]
+    },
+    {
+      "id": "C3",
+      "nombre": "Ármalo tú",
+      "categoria": "Rápida",
+      "imagenes": 0,
+      "detalle": [
+        {
+          "slot": "ingrediente",
+          "recorte": "1x1",
+          "obligatoria": false,
+          "nota": "Opcional: ingrediente crudo sobre fondo neutro, no el plato final."
+        }
+      ]
+    },
+    {
+      "id": "C4",
+      "nombre": "Pizarra de camión",
+      "categoria": "Rápida",
+      "imagenes": 0,
+      "detalle": []
+    },
+    {
+      "id": "C5",
+      "nombre": "Kiosco de autoservicio",
+      "categoria": "Rápida",
+      "imagenes": 4,
+      "detalle": [
+        {
+          "slot": "upsell_previo_pago",
+          "recorte": "1x1",
+          "obligatoria": true,
+          "nota": "Solo los 3–4 productos de venta cruzada: postre, salsa, bebida grande."
+        }
+      ]
+    },
+    {
+      "id": "D1",
+      "nombre": "Pizarra de café",
+      "categoria": "Café",
+      "imagenes": 0,
+      "detalle": []
+    },
+    {
+      "id": "D2",
+      "nombre": "Constructor de bebida",
+      "categoria": "Café",
+      "imagenes": 0,
+      "detalle": []
+    },
+    {
+      "id": "D3",
+      "nombre": "Vitrina de panadería",
+      "categoria": "Café",
+      "imagenes": "todas",
+      "detalle": [
+        {
+          "slot": "pieza",
+          "recorte": "4x3",
+          "obligatoria": true,
+          "nota": "Pieza suelta sobre papel de horno, 45°. Mismo fondo en las 12–20 piezas."
+        }
+      ]
+    },
+    {
+      "id": "D4",
+      "nombre": "Lo de siempre",
+      "categoria": "Café",
+      "imagenes": 0,
+      "detalle": []
+    },
+    {
+      "id": "D5",
+      "nombre": "Desayuno con horario",
+      "categoria": "Café",
+      "imagenes": "todas",
+      "detalle": [
+        {
+          "slot": "miniatura_plato",
+          "recorte": "1x1",
+          "obligatoria": true,
+          "nota": "Una por plato de cada franja: desayuno, almuerzo y tarde."
+        }
+      ]
+    },
+    {
+      "id": "E1",
+      "nombre": "Índice de grifos",
+      "categoria": "Bar",
+      "imagenes": 0,
+      "detalle": [
+        {
+          "slot": "color_barril",
+          "recorte": "n/a",
+          "obligatoria": false,
+          "nota": "No es foto: es un color hex por estilo de cerveza. Definirlos en la ficha del producto."
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "nombre": "Coctelería en fichas",
+      "categoria": "Bar",
+      "imagenes": 0,
+      "detalle": [
+        {
+          "slot": "copa",
+          "recorte": "1x1",
+          "obligatoria": false,
+          "nota": "Si se usa: fondo oscuro, misma copa, luz lateral. En bar con luz baja la foto suele estorbar."
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "nombre": "Happy hour con reloj",
+      "categoria": "Bar",
+      "imagenes": 0,
+      "detalle": []
+    },
+    {
+      "id": "E4",
+      "nombre": "Cuenta compartida",
+      "categoria": "Bar",
+      "imagenes": 0,
+      "detalle": []
+    },
+    {
+      "id": "E5",
+      "nombre": "Flight de degustación",
+      "categoria": "Bar",
+      "imagenes": 0,
+      "detalle": []
+    },
+    {
+      "id": "F1",
+      "nombre": "Rollos con conteo de piezas",
+      "categoria": "Sushi",
+      "imagenes": "todas",
+      "detalle": [
+        {
+          "slot": "miniatura_rollo",
+          "recorte": "1x1",
+          "obligatoria": true,
+          "nota": "Cenital, el rollo cortado mostrando exactamente las piezas que declara."
+        }
+      ]
+    },
+    {
+      "id": "F2",
+      "nombre": "Bento en cuadrícula",
+      "categoria": "Sushi",
+      "imagenes": 0,
+      "detalle": [
+        {
+          "slot": "compartimento",
+          "recorte": "1x1",
+          "obligatoria": false,
+          "nota": "Opcional; la cuadrícula ya representa la caja."
+        }
+      ]
+    },
+    {
+      "id": "F3",
+      "nombre": "Omakase por tiempos",
+      "categoria": "Sushi",
+      "imagenes": 0,
+      "detalle": []
+    },
+    {
+      "id": "F4",
+      "nombre": "Nivel de picante y alérgenos",
+      "categoria": "Sushi",
+      "imagenes": 0,
+      "detalle": []
+    },
+    {
+      "id": "F5",
+      "nombre": "Sets para compartir",
+      "categoria": "Sushi",
+      "imagenes": 3,
+      "detalle": [
+        {
+          "slot": "tabla_set",
+          "recorte": "4x3",
+          "obligatoria": true,
+          "nota": "Cenital de la tabla completa; deben contarse las piezas anunciadas."
+        }
+      ]
+    }
+  ],
+  "minimo_viable": {
+    "descripcion": "Lo que hay que fotografiar para que el catálogo funcione con las plantillas más usadas (B1, B2, C2, D3, F1).",
+    "tomas": 24,
+    "reparto": [
+      {
+        "que": "Los 10 platos más vendidos",
+        "recortes": [
+          "4x3",
+          "1x1"
+        ],
+        "por_que": "Cubren rejilla, ranking y POS."
+      },
+      {
+        "que": "3 bandejas o sets para compartir",
+        "recortes": [
+          "4x3"
+        ],
+        "por_que": "Son el mayor ticket promedio."
+      },
+      {
+        "que": "4 productos de venta cruzada",
+        "recortes": [
+          "1x1"
+        ],
+        "por_que": "Postre, salsa, bebida grande, adición."
+      },
+      {
+        "que": "5 piezas de panadería o entradas",
+        "recortes": [
+          "4x3"
+        ],
+        "por_que": "Vitrina y entradas."
+      },
+      {
+        "que": "2 ambientes del salón",
+        "recortes": [
+          "16x9",
+          "3x4"
+        ],
+        "por_que": "Portada del menú y pantalla de entrada."
+      }
+    ],
+    "tiempo_estimado_sesion_horas": 4,
+    "orden_de_produccion": [
+      "ambientes con luz natural",
+      "platos fríos",
+      "platos calientes de a uno saliendo de cocina",
+      "bebidas al final"
+    ]
+  },
+  "no_necesitas": [
+    "Ilustraciones o iconos dibujados de platos",
+    "Fotos de personal posando",
+    "Imágenes de stock de comida que no se sirve en el local",
+    "Fondos con degradado o texturas generadas",
+    "Fotos de la fachada dentro del menú",
+    "Video en el menú del comensal: pesa, distrae y no mejora la conversión"
+  ],
+  "estados_sin_foto": {
+    "placeholder": "Bloque #F2EEE8 con la proporción escrita en 11px mayúsculas, color #9A8F7E. Nunca un icono de cámara roto.",
+    "regla": "Si a un plato le falta foto en una plantilla con imagen, se muestra el placeholder; si faltan más del 20% de los platos, el sistema recomienda cambiar a una plantilla sin foto.",
+    "agotado": "La foto se muestra al 55% de opacidad con la insignia Agotado encima; no se oculta el plato."
+  },
+  "generacion_con_ia": {
+    "cuando_si": [
+      "Maquetas, demos comerciales y pantallas de venta de ProjectApp",
+      "Placeholders mientras el restaurante consigue su sesión de fotos",
+      "Bebidas y productos genéricos que no son la firma del local (gaseosa, cerveza en copa, jugo, café negro)",
+      "Ambientes y texturas de fondo (16x9, portada)"
+    ],
+    "cuando_no": [
+      "Platos de firma del restaurante: la porción y el emplatado reales son el argumento de venta y una foto inventada genera queja",
+      "Cualquier plato con alérgenos visibles o composición declarada (el comensal cuenta las piezas)",
+      "Sushi y tablas donde se anuncia número de piezas: la IA no cuenta bien",
+      "Menús que ya están en operación con clientes reales"
+    ],
+    "modelo_recomendado": {
+      "modelo": "gpt-image-1",
+      "calidad": "low para placeholders, medium para demos comerciales",
+      "por_que": "No hace falta el nivel más alto: la foto se ve a 160×120 px en la rejilla. La calidad alta multiplica el costo sin diferencia visible a ese tamaño.",
+      "alternativa": "dall-e-3 en calidad standard si ya tienes ese endpoint integrado",
+      "costo_orden_de_magnitud": "centavos de dólar por imagen en calidad baja o media; confirma el pricing vigente antes de generar el lote completo"
+    },
+    "endpoint": {
+      "url": "https://api.openai.com/v1/images/generations",
+      "metodo": "POST",
+      "cuerpo": {
+        "model": "gpt-image-1",
+        "prompt": "{bloque_de_estilo} + {descripcion_del_plato} + {bloque_de_encuadre}",
+        "size": "1536x1024",
+        "quality": "low",
+        "n": 1
+      },
+      "respuesta": "base64 en data[0].b64_json — se guarda como PNG y se convierte a JPG 85 en el postproceso"
+    },
+    "tamanos_disponibles_y_recortes": [
+      {
+        "recorte_waiter": "1x1",
+        "size_api": "1024x1024",
+        "postproceso": "ninguno, se usa directo"
+      },
+      {
+        "recorte_waiter": "4x3",
+        "size_api": "1536x1024",
+        "postproceso": "recortar a 4:3 desde el centro y escalar a 1200×900"
+      },
+      {
+        "recorte_waiter": "3x2",
+        "size_api": "1536x1024",
+        "postproceso": "escalar a 1500×1000, sin recorte"
+      },
+      {
+        "recorte_waiter": "3x4",
+        "size_api": "1024x1536",
+        "postproceso": "escalar a 1200×1600; pedir en el prompt que el tercio inferior quede vacío"
+      },
+      {
+        "recorte_waiter": "16x9",
+        "size_api": "1536x1024",
+        "postproceso": "recortar a 16:9 y escalar a 1920×1080"
+      }
+    ],
+    "bloque_de_estilo": "Fotografía de comida realista, luz lateral suave de una sola fuente desde la izquierda, sombras suaves, sobre mesa de madera oscura mate, fondo desenfocado muy leve, colores naturales sin saturar, aspecto de cámara réflex con lente 50mm, sin texto, sin manos, sin personas, sin utilería decorativa, sin humo artificial.",
+    "bloque_de_encuadre": {
+      "45_grados": "Vista en ángulo de 45 grados, el plato completo centrado con espacio alrededor.",
+      "cenital": "Vista cenital perfecta a 90 grados, plato completo centrado, fondo visible en los bordes.",
+      "vertical_hero": "Encuadre vertical, plato en el tercio superior, el tercio inferior de la imagen vacío y uniforme para poner texto encima."
+    },
+    "plantilla_de_prompt": "{bloque_de_estilo} {bloque_de_encuadre} Plato: {nombre}. {descripcion_visual_concreta}. Servido en {vajilla}.",
+    "consistencia": {
+      "problema": "La IA cambia fondo, luz y vajilla entre llamadas, y una carta con fondos distintos se ve peor que una carta sin fotos.",
+      "reglas": [
+        "El bloque_de_estilo se copia palabra por palabra en las 24 llamadas, sin reescribirlo por plato",
+        "Fija una sola vajilla y una sola superficie para todo el lote y nómbralas en cada prompt",
+        "Genera todo el lote en la misma corrida: si vuelves en otra sesión, repite el lote completo, no solo el plato nuevo",
+        "Genera 3 variantes por plato y elige a mano: sale más barato que reintentar prompts",
+        "Revisa a 160×120 px, no a tamaño completo: es como se va a ver"
+      ]
+    },
+    "prohibiciones_en_el_prompt": [
+      "No pedir texto, letreros ni menús dentro de la imagen: la IA escribe mal y arruina la foto",
+      "No pedir manos, meseros ni comensales",
+      "No pedir conteos exactos de piezas: pide el plato, no la cantidad",
+      "No pedir logos ni marcas de bebidas",
+      "No pedir estilos de fotografía publicitaria con humo, salpicaduras o gotas voladoras"
+    ],
+    "postproceso_obligatorio": [
+      "Recortar al recorte de destino y escalar a la resolución de la tabla de recortes",
+      "Convertir a JPG calidad 85 y verificar que quede bajo 180 KB",
+      "Renombrar con la nomenclatura {sku}_{recorte}.jpg",
+      "Cargar en product.template de Odoo, no en una carpeta suelta",
+      "Marcar el campo interno origen_imagen = ia para poder reemplazarlas cuando lleguen las fotos reales"
+    ],
+    "trazabilidad": {
+      "campo": "origen_imagen",
+      "valores": [
+        "foto_real",
+        "ia",
+        "placeholder"
+      ],
+      "por_que": "Permite listar en un solo filtro qué platos siguen con imagen generada y priorizar la sesión de fotos real."
+    },
+    "limites_legales": {
+      "porcion": "Una imagen generada no representa la porción servida. En Colombia esto es exposición a reclamo por publicidad engañosa: úsala solo en demos o marca el menú con la nota correspondiente.",
+      "recomendacion": "En un local en producción, la carta debe declarar 'imágenes de referencia' o usar foto real. Waiter puede mostrar ese aviso automáticamente cuando origen_imagen = ia."
+    },
+    "lote_minimo_sugerido": {
+      "imagenes": 24,
+      "variantes_por_imagen": 3,
+      "llamadas_totales": 72,
+      "calidad": "low",
+      "tiempo_estimado_minutos": 15,
+      "nota": "Con 72 llamadas en calidad baja el costo sigue siendo del orden de un almuerzo. Es el camino correcto para demos; para el local real, sesión de fotos."
+    }
+  },
+  "temporal_para_demos": {
+    "aviso": "Solo para maquetas internas. No usar en un local real: la porción no corresponde y la licencia obliga a atribución en Unsplash.",
+    "busquedas_unsplash": [
+      "burger dark wood table",
+      "colombian breakfast arepa",
+      "sushi platter overhead",
+      "craft beer taps bar",
+      "bakery croissant tray",
+      "restaurant interior warm light evening"
+    ]
+  }
+}
