@@ -32,7 +32,7 @@ export function Dish({ entry, rest, venue, token, id }: { entry: Entry; rest: st
     return (
       <section className="px-[18px] pt-[22px] flex flex-col items-start gap-4">
         <p className="text-base text-soft">{t('common.unavailable')}</p>
-        <button type="button" onClick={() => router.push(menuPath)} className="h-tap-min px-[18px] rounded-r bg-surface border border-border text-base font-medium">{t('common.back')}</button>
+        <button type="button" onClick={() => router.push(menuPath)} className="h-tap-min px-[18px] rounded-rest bg-surface border border-border text-base font-medium">{t('common.back')}</button>
       </section>
     )
   }
@@ -47,7 +47,7 @@ export function Dish({ entry, rest, venue, token, id }: { entry: Entry; rest: st
   return (
     <div className="flex flex-col gap-4 pt-3">
       <Link href={menuPath} className="mx-[18px] self-start inline-flex items-center h-tap-min text-[15px] font-medium">← {t('common.back')}</Link>
-      <div className="mx-[18px] aspect-[4/3] rounded-r bg-muted overflow-hidden grid place-items-center text-[11px] tracking-[0.08em] uppercase text-ink-3">
+      <div className="mx-[18px] aspect-[4/3] rounded-rest bg-muted overflow-hidden grid place-items-center text-[11px] tracking-[0.08em] uppercase text-ink-3">
         {dish.foto ? <img src={dish.foto} alt={dish.nombre} className="w-full h-full object-cover" /> : t('home.photo')}
       </div>
       <section className="px-[18px] flex flex-col gap-2">
@@ -58,14 +58,14 @@ export function Dish({ entry, rest, venue, token, id }: { entry: Entry; rest: st
       <section className="px-[18px] flex flex-col gap-3">
         <div role="group" aria-label={t('dish.qty')} className="flex items-center justify-between">
           <span className="text-[15px] font-medium">{t('dish.qty')}</span>
-          <div className="inline-flex items-center rounded-r bg-surface border border-border overflow-hidden">
+          <div className="inline-flex items-center rounded-rest bg-surface border border-border overflow-hidden">
             <button type="button" aria-label={t('dish.fewer')} disabled={qty <= 1} onClick={() => setQty((q) => Math.max(1, q - 1))} className="w-tap-min h-tap-min grid place-items-center text-xl disabled:text-ink-3">−</button>
             <span aria-live="polite" className="font-mono tabular min-w-[40px] text-center text-lg">{qty}</span>
             <button type="button" aria-label={t('dish.more')} onClick={() => setQty((q) => q + 1)} className="w-tap-min h-tap-min grid place-items-center text-xl">+</button>
           </div>
         </div>
-        <textarea aria-label={t('dish.note')} placeholder={t('dish.note')} value={note} onChange={(e) => setNote(e.target.value)} rows={3} maxLength={200} className="w-full rounded-r bg-surface border border-border px-4 py-3 text-base placeholder:text-ink-3" />
-        <button type="button" disabled={dish.agotado || busy || added} onClick={() => void submit()} className="h-tap-money rounded-r bg-brand text-brand-ink text-lg font-medium disabled:opacity-60">
+        <textarea aria-label={t('dish.note')} placeholder={t('dish.note')} value={note} onChange={(e) => setNote(e.target.value)} rows={3} maxLength={200} className="w-full rounded-rest bg-surface border border-border px-4 py-3 text-base placeholder:text-ink-3" />
+        <button type="button" disabled={dish.agotado || busy || added} onClick={() => void submit()} className="h-tap-money rounded-rest bg-brand text-brand-ink text-lg font-medium disabled:opacity-60">
           {dish.agotado ? t('common.soldOut') : <>{before}<span className="font-mono tabular">{amount}</span>{after}</>}
         </button>
         <p role="status" className="min-h-6 text-center text-[15px] font-medium text-free-ink">{added ? t('dish.added') : null}</p>

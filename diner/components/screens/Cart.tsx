@@ -29,9 +29,9 @@ export function Cart({ rest, venue, token }: { entry: Entry; rest: string; venue
   // Idempotente en el servidor. Si el restaurante no responde, el carrito sigue aquí y la página pinta el error.
   const onConfirm = async () => { const id = await confirm(); if (id) router.push(pathFor(rest, venue, token, 'estado', id)) }
   const menuButton = (primary: boolean) => (
-    <button type="button" onClick={goMenu} className={`h-tap px-6 rounded-r text-base font-medium ${primary ? 'bg-brand text-brand-ink' : 'bg-surface border border-border'}`}>{t('cart.goMenu')}</button>
+    <button type="button" onClick={goMenu} className={`h-tap px-6 rounded-rest text-base font-medium ${primary ? 'bg-brand text-brand-ink' : 'bg-surface border border-border'}`}>{t('cart.goMenu')}</button>
   )
-  const tabClass = (k: 'mine' | 'table') => `h-tap-min rounded-r text-[15px] font-medium ${tab === k ? 'bg-ink text-canvas' : 'text-soft'}`
+  const tabClass = (k: 'mine' | 'table') => `h-tap-min rounded-rest text-[15px] font-medium ${tab === k ? 'bg-ink text-canvas' : 'text-soft'}`
 
   return (
     <div className="px-[18px] pt-[22px] pb-[18px] flex flex-col gap-4">
@@ -44,7 +44,7 @@ export function Cart({ rest, venue, token }: { entry: Entry; rest: string; venue
         </section>
       ) : (
         <>
-          <div role="tablist" className="grid grid-cols-2 gap-1 p-1 rounded-r bg-muted">
+          <div role="tablist" className="grid grid-cols-2 gap-1 p-1 rounded-rest bg-muted">
             <button type="button" role="tab" aria-selected={tab === 'mine'} onClick={() => setTab('mine')} className={tabClass('mine')}>{t('cart.mine')}</button>
             <button type="button" role="tab" aria-selected={tab === 'table'} onClick={() => setTab('table')} className={tabClass('table')}>{t('cart.table')}</button>
           </div>
@@ -54,7 +54,7 @@ export function Cart({ rest, venue, token }: { entry: Entry; rest: string; venue
                 {own.map((l) => (
                   <Line key={l.id} line={l} noteLabel={t('cart.note')}>
                     <div className="flex items-center justify-between">
-                      <div role="group" aria-label={l.nombre} className="inline-flex items-center rounded-r border border-border bg-surface overflow-hidden">
+                      <div role="group" aria-label={l.nombre} className="inline-flex items-center rounded-rest border border-border bg-surface overflow-hidden">
                         <button type="button" aria-label={t('dish.fewer')} disabled={busy} onClick={() => step(l, -1)} className="w-tap-min h-tap-min text-xl leading-none disabled:opacity-50">−</button>
                         <span className="min-w-9 text-center font-mono tabular text-[15px]">{l.cantidad}</span>
                         <button type="button" aria-label={t('dish.more')} disabled={busy} onClick={() => step(l, 1)} className="w-tap-min h-tap-min text-xl leading-none disabled:opacity-50">＋</button>
@@ -81,7 +81,7 @@ export function Cart({ rest, venue, token }: { entry: Entry; rest: string; venue
             <div className="flex items-baseline justify-between"><dt className="text-[15px] text-soft">{t('cart.subtotalMine')}</dt><dd className="font-mono tabular text-[15px]">$ {formatCop(cart.mio)}</dd></div>
             <div className="flex items-baseline justify-between"><dt className="text-lg font-medium">{t('cart.subtotalTable')}</dt><dd className="font-mono tabular text-[24px]">$ {formatCop(total)}</dd></div>
           </dl>
-          <button type="button" disabled={busy} onClick={() => void onConfirm()} className="h-tap-money rounded-r bg-brand text-brand-ink text-[17px] font-medium disabled:opacity-60">
+          <button type="button" disabled={busy} onClick={() => void onConfirm()} className="h-tap-money rounded-rest bg-brand text-brand-ink text-[17px] font-medium disabled:opacity-60">
             {busy ? t('cart.confirming') : t('cart.confirm', { amount: formatCop(total) })}
           </button>
           {error && <p role="status" className="text-center text-[13px] text-busy-ink">{t('common.offline')}</p>}

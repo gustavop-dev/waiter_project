@@ -36,7 +36,7 @@ export default function DinerPage() {
   return (
     <main style={style} className="min-h-screen bg-canvas pb-28">
       <BrandHeader brand={entry.contexto.marca} table={entry.contexto.mesa?.numero ?? null} />
-      {error && <p role="alert" className="mx-[18px] mt-3 px-3.5 py-2.5 rounded-r bg-busy-soft text-busy-ink text-[15px]">{error}</p>}
+      {error && <p role="alert" className="mx-[18px] mt-3 px-3.5 py-2.5 rounded-rest bg-busy-soft text-busy-ink text-[15px]">{error}</p>}
       <Screen entry={entry} rest={keys.rest} venue={keys.venue} token={keys.token} id={route.id} />
       <Seal />
       {route.screen !== 'pedido' && route.screen !== 'cuenta' && <OrderBar cart={cart} href={pathFor(keys.rest, keys.venue, keys.token, 'pedido')} />}

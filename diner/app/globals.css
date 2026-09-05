@@ -18,7 +18,7 @@
 @theme inline {
   --color-brand: var(--r-brand); --color-brand-ink: var(--r-brand-ink); --color-brand-soft: var(--r-brand-soft);
   --font-display: var(--r-display), 'Instrument Serif', Georgia, serif;
-  --radius-r: var(--r-radius);
+  --radius-rest: var(--r-radius);
 }
 
 :root { --r-brand: #C1873A; --r-brand-ink: #FFFFFF; --r-brand-soft: #FDF6EA; --r-display: 'Instrument Serif'; --r-radius: 14px; }

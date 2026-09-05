@@ -28,12 +28,12 @@ export function Menu({ entry, rest, venue, token }: { entry: Entry; rest: string
     return needle ? pool.filter((d) => fold(d.nombre).includes(needle)) : pool
   }, [categories, category, query])
   // El chip activo lleva el color del restaurante; el estado también va en aria-pressed, no solo en el color.
-  const chip = (active: boolean) => `shrink-0 h-tap-min px-4 rounded-r text-[15px] font-medium whitespace-nowrap ${active ? 'bg-brand text-brand-ink' : 'bg-surface border border-border text-ink'}`
+  const chip = (active: boolean) => `shrink-0 h-tap-min px-4 rounded-rest text-[15px] font-medium whitespace-nowrap ${active ? 'bg-brand text-brand-ink' : 'bg-surface border border-border text-ink'}`
   return (
     <div className="flex flex-col gap-4 pt-[22px]">
       <section className="px-[18px] flex flex-col gap-3">
         <h1 className="font-display text-[32px] leading-tight">{t('title')}</h1>
-        <input type="search" aria-label={t('search')} placeholder={t('search')} value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" className="h-tap-min w-full rounded-r bg-surface border border-border px-4 text-base placeholder:text-ink-3" />
+        <input type="search" aria-label={t('search')} placeholder={t('search')} value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" className="h-tap-min w-full rounded-rest bg-surface border border-border px-4 text-base placeholder:text-ink-3" />
       </section>
       <div className="flex gap-2 overflow-x-auto px-[18px] pb-1 [scrollbar-width:none]">
         <button type="button" aria-pressed={category === null} onClick={() => setCategory(null)} className={chip(category === null)}>{t('all')}</button>

@@ -9,7 +9,7 @@ import type { Dish } from '@/lib/types'
 export function DishCard({ dish, onOpen, onAdd }: { dish: Dish; onOpen: (d: Dish) => void; onAdd: (d: Dish) => void }) {
   const t = useTranslations('diner')
   return (
-    <article className="border border-[#EFE9E0] rounded-r bg-surface overflow-hidden flex flex-col">
+    <article className="border border-[#EFE9E0] rounded-rest bg-surface overflow-hidden flex flex-col">
       <button type="button" onClick={() => onOpen(dish)} className="text-left flex-1 flex flex-col">
         <div className="h-[88px] bg-muted grid place-items-center text-[11px] tracking-[0.08em] uppercase text-ink-3 overflow-hidden">
           {dish.foto ? <img src={dish.foto} alt="" className="w-full h-full object-cover" /> : t('home.photo')}

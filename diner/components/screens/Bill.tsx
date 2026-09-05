@@ -33,7 +33,7 @@ export function Bill({ rest, venue, token }: { entry: Entry; rest: string; venue
   }, [askBill])
 
   const back = () => router.push(order ? pathFor(rest, venue, token, 'estado', order.id) : pathFor(rest, venue, token, 'pedido'))
-  const backLink = <button type="button" onClick={back} className="h-tap-min rounded-r text-[15px] font-medium text-brand">{t('back')}</button>
+  const backLink = <button type="button" onClick={back} className="h-tap-min rounded-rest text-[15px] font-medium text-brand">{t('back')}</button>
 
   if (!bill) return <div className="p-[18px] flex flex-col gap-3"><p className="text-soft">{tc('loading')}</p>{backLink}</div>
   if (bill.total === 0) return <div className="px-[18px] pt-[22px] flex flex-col gap-3"><p className="text-base text-soft">{t('nothing')}</p>{backLink}</div>
@@ -44,12 +44,12 @@ export function Bill({ rest, venue, token }: { entry: Entry; rest: string; venue
   return (
     <div className="px-[18px] pt-[22px] pb-[18px] flex flex-col gap-4">
       <h1 className="font-display text-[32px] leading-tight">{t('title')}</h1>
-      <div role="tablist" aria-label={t('title')} className="grid grid-cols-3 gap-1 p-1 rounded-r bg-muted">
+      <div role="tablist" aria-label={t('title')} className="grid grid-cols-3 gap-1 p-1 rounded-rest bg-muted">
         {MODES.map((m) => (
-          <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => setMode(m)} className={`h-tap-min rounded-r text-[15px] font-medium ${mode === m ? 'bg-brand-soft text-ink' : 'text-soft'}`}>{t(m)}</button>
+          <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => setMode(m)} className={`h-tap-min rounded-rest text-[15px] font-medium ${mode === m ? 'bg-brand-soft text-ink' : 'text-soft'}`}>{t(m)}</button>
         ))}
       </div>
-      <section role="tabpanel" className="rounded-r bg-surface border border-border p-[18px] flex flex-col gap-3">
+      <section role="tabpanel" className="rounded-rest bg-surface border border-border p-[18px] flex flex-col gap-3">
         <span className="text-[13px] tracking-[0.08em] uppercase text-ink-3">{t(mode)}</span>
         <span className="font-mono tabular text-[34px] leading-none">$ {formatCop(amount)}</span>
         {mode === 'split' && (
@@ -63,9 +63,9 @@ export function Bill({ rest, venue, token }: { entry: Entry; rest: string; venue
           </div>
         )}
       </section>
-      {bill.ok && <p role="status" className="px-3.5 py-2.5 rounded-r bg-free-soft text-free-ink text-[15px]">{t('requested')}</p>}
+      {bill.ok && <p role="status" className="px-3.5 py-2.5 rounded-rest bg-free-soft text-free-ink text-[15px]">{t('requested')}</p>}
       {/* Placeholder de la pasarela (decisión pendiente): la acción principal existe pero aún no cobra. */}
-      <button type="button" disabled className="h-tap rounded-r bg-brand text-brand-ink text-base font-medium disabled:opacity-50">{`${t('payPhone')} · ${t('soon')}`}</button>
+      <button type="button" disabled className="h-tap rounded-rest bg-brand text-brand-ink text-base font-medium disabled:opacity-50">{`${t('payPhone')} · ${t('soon')}`}</button>
       {backLink}
     </div>
   )

@@ -26,11 +26,11 @@ export function Home({ entry, rest, venue, token }: { entry: Entry; rest: string
       <section className="px-[18px] pt-[22px] pb-[18px] flex flex-col gap-2.5">
         <h1 className="font-display text-[32px] leading-tight">{greetingFor(new Date().getHours(), brand.saludo)}</h1>
         {brand.bienvenida && <p className="text-base text-soft">{waiterLine}</p>}
-        <button type="button" onClick={() => router.push(pathFor(rest, venue, token, 'carta'))} className="mt-2 h-14 rounded-r bg-surface border border-border flex items-center justify-between px-[18px] text-base font-medium">
+        <button type="button" onClick={() => router.push(pathFor(rest, venue, token, 'carta'))} className="mt-2 h-14 rounded-rest bg-surface border border-border flex items-center justify-between px-[18px] text-base font-medium">
           <span>{t('seeMenu')}</span><span className="text-ink-3">→</span>
         </button>
         {entry.contexto.mesa && (
-          <button type="button" onClick={async () => { if (await call()) setCalled(true) }} className="h-tap-min rounded-r text-[15px] font-medium text-brand">{called ? t('called') : t('callWaiter')}</button>
+          <button type="button" onClick={async () => { if (await call()) setCalled(true) }} className="h-tap-min rounded-rest text-[15px] font-medium text-brand">{called ? t('called') : t('callWaiter')}</button>
         )}
       </section>
       {picks.length > 0 && (

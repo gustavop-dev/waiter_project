@@ -61,13 +61,13 @@ export function Status({ entry, rest, venue, token, id }: { entry: Entry; rest: 
       )}
       <div className="flex flex-col gap-2.5 pt-2">
         {failed
-          ? <button type="button" onClick={() => go('pedido')} className="h-tap rounded-r bg-brand text-brand-ink text-base font-medium">{tc('retry')}</button>
-          : <button type="button" onClick={() => go('carta')} className="h-tap rounded-r bg-brand text-brand-ink text-base font-medium">{t('orderMore')}</button>}
+          ? <button type="button" onClick={() => go('pedido')} className="h-tap rounded-rest bg-brand text-brand-ink text-base font-medium">{tc('retry')}</button>
+          : <button type="button" onClick={() => go('carta')} className="h-tap rounded-rest bg-brand text-brand-ink text-base font-medium">{t('orderMore')}</button>}
         {atTable && (
-          <button type="button" onClick={async () => { if (await call()) setCalled(true) }} className="h-tap-min rounded-r bg-surface border border-border text-[15px] font-medium">{t('callWaiter')}</button>
+          <button type="button" onClick={async () => { if (await call()) setCalled(true) }} className="h-tap-min rounded-rest bg-surface border border-border text-[15px] font-medium">{t('callWaiter')}</button>
         )}
         {atTable && !failed && estado !== 'pagado' && (
-          <button type="button" onClick={() => go('cuenta')} className="h-tap-min rounded-r bg-surface border border-border text-[15px] font-medium">{t('askBill')}</button>
+          <button type="button" onClick={() => go('cuenta')} className="h-tap-min rounded-rest bg-surface border border-border text-[15px] font-medium">{t('askBill')}</button>
         )}
         {called && <p role="status" className="text-center text-[15px] text-free-ink">{th('called')}</p>}
       </div>
