@@ -208,6 +208,47 @@
       "chargedLabel": "Cuenta de mesa {table} atendida",
       "thresholds": "Umbrales de alerta",
       "configure": "Configurar"
+    },
+    "roi": {
+      "title": "Retorno de inversión",
+      "subtitle": "{period} · comparado con {previous}",
+      "baseline": "antes de ProjectApp",
+      "periods": {
+        "week": "Semana",
+        "month": "Mes",
+        "year": "Año"
+      },
+      "export": "Exportar",
+      "hero": "Retorno del periodo",
+      "months": "{n, plural, =0 {Primer mes de uso} one {# mes de uso} other {# meses de uso}}",
+      "perHundred": "Por cada $100.000 pagados",
+      "value": "$ {amount} de valor",
+      "labor": "Ahorro laboral estimado",
+      "laborHint": "{hours} horas de atención que ya no se pagan",
+      "aiSales": "Ventas incrementales IA",
+      "aiSalesHint": "Sin datos del Mesero IA todavía",
+      "aiSalesHintReal": "Upsell aceptado en {n} pedidos autónomos",
+      "north": "Horas de atención por 100 pedidos",
+      "northTag": "métrica norte",
+      "cost": "Coste ProjectApp",
+      "costHint": "Licencia + voz + facturación, prorrateado al periodo",
+      "net": "Valor neto del periodo",
+      "netHint": "Ahorro + ventas IA − coste",
+      "sources": "De dónde sale el valor",
+      "sourcesHint": "{period}, en pesos",
+      "source": {
+        "autonomous": "Pedidos autónomos",
+        "hours": "Menos horas de atención",
+        "upsell": "Upsell aceptado",
+        "errors": "Menos errores de pedido"
+      },
+      "unmeasured": "sin medir",
+      "ai": {
+        "title": "Analítica del mesero IA",
+        "body": "Aparecerá cuando el Mesero IA atienda su primer pedido. Hoy los pedidos autónomos vienen del comensal en su móvil.",
+        "configTitle": "Configurar mesero IA",
+        "configBody": "El Mesero IA no está activado en este restaurante. Cuando exista, aquí se configura su voz, su tono y qué puede ofrecer."
+      }
     }
   }
 }
