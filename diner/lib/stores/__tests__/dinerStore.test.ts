@@ -1,6 +1,8 @@
 /** @jest-environment jsdom */
-import { useDinerStore } from '@/lib/stores/dinerStore'
+import { DEFAULT_TEMPLATE, encodePreview } from '@/lib/domain/template'
 import { ApiError } from '@/lib/services/api'
+import { AUTHORIZING_MS, payableTotal, useDinerStore } from '@/lib/stores/dinerStore'
+import type { Entry, Template, TemplateSpec } from '@/lib/types'
 
 jest.mock('@/lib/services/api', () => {
   class ApiError extends Error { constructor(message: string, readonly status: number) { super(message) } }
@@ -10,11 +12,20 @@ jest.mock('@/lib/services/api', () => {
     openSession: jest.fn(),
     getCart: jest.fn(),
     getOrder: jest.fn(), getEntry: jest.fn(), addLine: jest.fn(), updateLine: jest.fn(), removeLine: jest.fn(), callWaiter: jest.fn(), requestBill: jest.fn(),
+    getTemplates: jest.fn(), registerAccount: jest.fn(), verifyAccount: jest.fn(), getAccount: jest.fn(), logoutAccount: jest.fn(), simulatePayment: jest.fn(),
   }
 })
 
 const api = jest.requireMock('@/lib/services/api')
 const keys = { rest: 'la-provincia', venue: 'centro', token: 'Z2XUVG' }
+const initial = useDinerStore.getInitialState()
+const brand = { nombre: 'La Provincia', lema: '', logo: null, saludo: '', mesero: '', bienvenida: '', color: '#7A2E2A', colorTexto: '#FFFFFF', colorSuave: '#F6EBEA', fuente: 'Instrument Serif', radio: 14 }
+const venueTemplate: Template = { ...DEFAULT_TEMPLATE, codigo: 'C2', familia: 'C', tokens: { ...DEFAULT_TEMPLATE.tokens, acento: '#111111' } }
+const entryOf = (plantilla?: Template): Entry => ({ contexto: { restaurante: { slug: 'la-provincia', nombre: 'La Provincia' }, sede: { slug: 'centro', nombre: 'Centro' }, mesa: null, marca: brand, plantilla }, carta: { restaurante: 'la-provincia', categorias: [] } })
+const a1Spec: TemplateSpec = { codigo: 'A1', nombre: 'Carta editorial', familia: 'A', fotos: { requiere: 'ninguna', recorte: 'ninguno' }, tokens: { ...DEFAULT_TEMPLATE.tokens, acento: '#7A2E2A' }, pantallas: { menu: { layout: 'A1' }, carrito: { layout: 'familia-A' }, pago: { layout: 'familia-A' }, registro: { patron: 'portada' }, codigo: { patron: 'revisaCorreo' }, historial: { patron: 'tablaCufe' } } }
+
+beforeEach(() => { jest.clearAllMocks(); useDinerStore.setState(initial, true) })
+afterEach(() => { jest.useRealTimers() })
 
 // Falla si, cuando el salón ya cobró la cuenta (409), el comensal se queda pegado a la sesión vieja en vez de
 // empezar una visita limpia.
@@ -41,4 +52,114 @@ test('other errors do not touch the session', async () => {
   await useDinerStore.getState().confirm()
   expect(useDinerStore.getState().session?.id).toBe('old')
   expect(api.openSession).not.toHaveBeenCalled()
+})
+
+// Falla si la plantilla del contexto no manda sobre la B1 embebida, o si una experience/ sin `plantilla` deja el motor sin tokens.
+test('the template comes from the context and falls back to the embedded B1', async () => {
+  api.getEntry.mockResolvedValue(entryOf(venueTemplate))
+  await useDinerStore.getState().load(keys)
+  expect(useDinerStore.getState().template.codigo).toBe('C2')
+  api.getEntry.mockResolvedValue(entryOf(undefined))
+  await useDinerStore.getState().load({ ...keys, token: null })
+  expect(useDinerStore.getState().template).toBe(DEFAULT_TEMPLATE)
+})
+
+// Falla si la vista previa no parte de los tokens del catálogo (previsualizaría la paleta de la sede), si no manda sobre el contexto,
+// si sin catálogo no cae a la plantilla actual, o si quitar el parámetro no vuelve a lo guardado.
+test('the preview param overrides the template from the catalog and clears when removed', async () => {
+  api.getEntry.mockResolvedValue(entryOf(venueTemplate))
+  api.getTemplates.mockResolvedValue({ familias: {}, plantillas: [a1Spec] })
+  await useDinerStore.getState().load(keys)
+  await useDinerStore.getState().applyPreviewParam(encodePreview({ plantilla: 'A1', paleta: { acento: '#00FF00' } }))
+  let s = useDinerStore.getState()
+  expect(s.preview?.codigo).toBe('A1')
+  expect(s.template.codigo).toBe('A1')
+  expect(s.template.tokens.acento).toBe('#00FF00')
+  expect(s.template.layouts.registro).toBe('portada')
+  // La entrada se recarga después (la página carga en paralelo): la vista previa sigue mandando.
+  await useDinerStore.getState().load({ ...keys, token: null })
+  expect(useDinerStore.getState().template.codigo).toBe('A1')
+
+  api.getTemplates.mockRejectedValue(new ApiError('Error 503', 503))
+  await useDinerStore.getState().applyPreviewParam(encodePreview({ plantilla: 'A1', tipografia: { display: 'Fraunces' } }))
+  s = useDinerStore.getState()
+  expect(s.template.codigo).toBe('C2')
+  expect(s.template.tokens.displayFont).toBe('Fraunces')
+  expect(s.error).toBeNull()
+
+  await useDinerStore.getState().applyPreviewParam(null)
+  s = useDinerStore.getState()
+  expect(s.preview).toBeNull()
+  expect(s.template.codigo).toBe('C2')
+})
+
+// Falla si el registro no guarda el id pendiente, si verificar no liga la cuenta y la carga, o si un código con registro pendiente
+// ausente intenta verificar algo.
+test('register keeps the pending account and verify links it and loads the profile', async () => {
+  const form = { nombre: 'Camila Ruiz', correo: 'camila@correo.com', celular: '3105554821', aceptaDatos: true, novedades: false }
+  expect(await useDinerStore.getState().verify('123456')).toBe(false)
+  expect(api.verifyAccount).not.toHaveBeenCalled()
+  api.registerAccount.mockResolvedValue({ id: 'acc-1', codigoDemo: true })
+  expect(await useDinerStore.getState().register(form)).toBe('acc-1')
+  expect(api.registerAccount).toHaveBeenCalledWith(form)
+  expect(useDinerStore.getState().pendingAccount).toEqual({ id: 'acc-1', form })
+
+  api.verifyAccount.mockResolvedValue({ ok: true })
+  api.getAccount.mockResolvedValue({ cuenta: { id: 'acc-1', nombre: 'Camila Ruiz', correo: 'camila@correo.com', verificada: true }, pedidos: [{ id: 'o1' }] })
+  expect(await useDinerStore.getState().verify('123456')).toBe(true)
+  expect(api.verifyAccount).toHaveBeenCalledWith('acc-1', '123456')
+  const s = useDinerStore.getState()
+  expect(s.account?.verificada).toBe(true)
+  expect(s.accountOrders).toEqual([{ id: 'o1' }])
+  expect(s.pendingAccount).toBeNull()
+
+  api.logoutAccount.mockResolvedValue(undefined)
+  await useDinerStore.getState().logout()
+  expect(useDinerStore.getState().account).toBeNull()
+})
+
+// Falla si no tener cuenta (401/404) se muestra como error, o si un fallo real sí se calla.
+test('loading the account treats 401/404 as "no account" and other failures as errors', async () => {
+  useDinerStore.setState({ account: { id: 'a', nombre: 'x', correo: 'x@x.co', verificada: true } })
+  api.getAccount.mockRejectedValue(new ApiError('Error 404', 404))
+  await useDinerStore.getState().loadAccount()
+  expect(useDinerStore.getState().account).toBeNull()
+  expect(useDinerStore.getState().error).toBeNull()
+  api.getAccount.mockRejectedValue(new ApiError('Error 500', 500))
+  await useDinerStore.getState().loadAccount()
+  expect(useDinerStore.getState().error).toBe('Error 500')
+})
+
+// Falla si el pago simulado no pasa por «Autorizando» al menos AUTHORIZING_MS, si no manda método y monto al endpoint, si aprobado no
+// termina en 'paid' (y rechazado en 'declined'), o si un fallo de red deja al comensal en «Autorizando».
+test('simulatePay authorizes for a while, then lands on paid or declined, never on card data', async () => {
+  jest.useFakeTimers()
+  useDinerStore.setState({ keys, session: { id: 's1', estado: 'abierta', mesa: 14 }, cart: { sesion: 's1', lineas: [], total: 97812, mio: 97812, por_comensal: [] } })
+  expect(payableTotal(useDinerStore.getState())).toBe(97812)
+  api.simulatePayment.mockResolvedValue({ estado: 'aprobado', referencia: 'DEMO-1', demo: true })
+  const pending = useDinerStore.getState().simulatePay('tarjeta')
+  await Promise.resolve()
+  expect(useDinerStore.getState().payState).toBe('authorizing')
+  expect(api.simulatePayment).toHaveBeenCalledWith('s1', 'tarjeta', 97812)
+  await jest.advanceTimersByTimeAsync(AUTHORIZING_MS - 100)
+  expect(useDinerStore.getState().payState).toBe('authorizing')
+  await jest.advanceTimersByTimeAsync(200)
+  expect((await pending)?.estado).toBe('aprobado')
+  expect(useDinerStore.getState().payState).toBe('paid')
+  expect(useDinerStore.getState().payResult).toEqual({ estado: 'aprobado', referencia: 'DEMO-1', demo: true, metodo: 'tarjeta', monto: 97812 })
+
+  useDinerStore.getState().resetPay()
+  expect(useDinerStore.getState().payState).toBe('idle')
+  api.simulatePayment.mockResolvedValue({ estado: 'rechazado', referencia: 'DEMO-2', demo: true })
+  const declined = useDinerStore.getState().simulatePay('pse')
+  await jest.advanceTimersByTimeAsync(AUTHORIZING_MS + 10)
+  await declined
+  expect(useDinerStore.getState().payState).toBe('declined')
+
+  api.simulatePayment.mockRejectedValue(new ApiError('Sin conexión', 0))
+  const failed = useDinerStore.getState().simulatePay('nequi')
+  await jest.advanceTimersByTimeAsync(AUTHORIZING_MS + 10)
+  expect(await failed).toBeNull()
+  expect(useDinerStore.getState().payState).toBe('declined')
+  expect(useDinerStore.getState().error).toBe('Sin conexión')
 })

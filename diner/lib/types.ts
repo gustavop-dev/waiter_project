@@ -1,16 +1,69 @@
 // Contrato con experience/ (bloque 3). Nada aquí sabe de Odoo ni del registro.
 export interface Brand { nombre: string; lema: string; logo: string | null; saludo: string; mesero: string; bienvenida: string; color: string; colorTexto: string; colorSuave: string; fuente: string; radio: number }
-export interface Context { restaurante: { slug: string; nombre: string }; sede: { slug: string; nombre: string }; mesa: { numero: number; token: string } | null; marca: Brand }
+
+// ---- Plantillas (Plan H, contratos 1 y 3) ----------------------------------------------------------------------
+export type TemplateFamily = 'A' | 'B' | 'C' | 'D' | 'E' | 'F'
+export type SignupPattern = 'banner5' | 'portada' | 'beneficios'
+export type CodePattern = 'casillas' | 'revisaCorreo' | 'canal'
+export type HistoryPattern = 'porMes' | 'tarjetas' | 'tablaCufe'
+export type PhotoRequirement = 'ninguna' | 'algunas' | 'todas' | 'hero'
+export type PhotoCrop = '4x3' | '1x1' | '3x4' | '3x2' | 'ninguno'
+// Tokens de una plantilla: los colores son hex exactos del marco; las fuentes van por nombre de Google Fonts; los radios en px.
+export interface TemplateTokens {
+  modo: 'claro' | 'oscuro'
+  fondo: string; superficie: string; tinta: string; tintaSuave: string; tintaTerciaria: string
+  borde: string; acento: string; acentoTinta: string; acentoSuave: string
+  displayFont: string; displayPeso: number; displayTracking: string; displayTransform: 'none' | 'uppercase'
+  cuerpoFont: string; monoFont: string
+  radioTarjeta: number; radioBoton: number; radioChip: number
+  densidad: 'compacta' | 'media' | 'amplia'
+}
+// Qué componente pinta cada pantalla: el menú por código ("B1"), carrito y pago por familia ("familia-B"), la cuenta por patrón.
+export interface TemplateLayouts { menu: string; carrito: string; pago: string; registro: SignupPattern; codigo: CodePattern; historial: HistoryPattern }
+export interface TemplatePhotos { requiere: PhotoRequirement; recorte: PhotoCrop }
+export interface TemplateDiscount { porcentaje: number; activo: boolean }
+// `contexto.plantilla`: la plantilla resuelta (catálogo + paleta y tipografía de la sede + marca). Es lo único que el motor necesita.
+export interface Template { codigo: string; nombre: string; familia: TemplateFamily; tokens: TemplateTokens; layouts: TemplateLayouts; fotos: TemplatePhotos; fuentesGoogle: string[]; descuento: TemplateDiscount }
+// Una entrada del catálogo público (GET /api/v1/plantillas/): el spec.json sin resúmenes, con miniatura.
+export interface TemplateSpec {
+  codigo: string; nombre: string; familia: TemplateFamily; familiaNombre?: string; descripcion?: string
+  fotos: TemplatePhotos; tokens: TemplateTokens
+  personalizable?: { colores: string[]; tipografiaDisplay: boolean; logo: boolean }
+  pantallas: { menu: { layout: string }; carrito: { layout: string; descuento5?: string }; pago: { layout: string }; registro: { patron: SignupPattern }; codigo: { patron: CodePattern }; historial: { patron: HistoryPattern } }
+  fuentesGoogle?: string[]
+  miniatura?: string
+}
+export interface TemplateCatalog { familias: Record<string, string>; plantillas: TemplateSpec[] }
+// Vista previa sin guardar (?vista_previa=<base64url JSON>): la usa el POS por iframe. Todo es opcional.
+export interface PreviewPayload { plantilla?: string; paleta?: Record<string, string>; tipografia?: { display?: string } }
+
+export interface Context { restaurante: { slug: string; nombre: string }; sede: { slug: string; nombre: string }; mesa: { numero: number; token: string } | null; marca: Brand; plantilla?: Template }
 // Origen de la foto: 'ia' pide la nota «Imágenes de referencia» (límite legal); null = la plantilla no está marcada.
 export type PhotoOrigin = 'real' | 'ia' | 'placeholder'
-export interface Dish { id: number; nombre: string; precio: number; agotado: boolean; categorias: number[]; descripcion?: string; foto?: string | null; favorito?: boolean; fotoOrigen?: PhotoOrigin | null }
+// Atributos opcionales por producto (contrato 2): una plantilla los pinta si existen y los omite si no; nunca los inventa.
+export interface DishAttributes { piezas?: number; picante?: 0 | 1 | 2 | 3; etiquetas?: string[]; alergenos?: string[]; abv?: number; ibu?: number; tamanos?: { nombre: string; precio: number }[]; soloHoy?: boolean }
+export interface Dish { id: number; nombre: string; precio: number; agotado: boolean; categorias: number[]; descripcion?: string; foto?: string | null; favorito?: boolean; fotoOrigen?: PhotoOrigin | null; atributos?: DishAttributes }
 export interface Category { id: number; nombre: string; productos: Dish[] }
 // imagenesDeReferencia: algún plato con foto la tiene generada con IA. Opcional: una experience/ anterior no lo manda y la carta sigue igual, sin la nota.
 export interface Menu { restaurante: string; categorias: Category[]; imagenesDeReferencia?: boolean }
 export interface Entry { contexto: Context; carta: Menu }
 export interface Session { id: string; estado: string; mesa: number | null }
 export interface CartLine { id: number; comensal: string; mio: boolean; producto_id: number; nombre: string; precio: number; cantidad: number; nota: string; subtotal: number }
-export interface Cart { sesion: string; lineas: CartLine[]; total: number; mio: number; por_comensal: { comensal: string; total: number }[] }
+// Descuento de primera compra (5 % por defecto): aplicable = la cuenta verificada aún no lo usó; aplicado = ya va en las líneas.
+export interface Discount { porcentaje: number; monto: number; aplicable: boolean; aplicado: boolean }
+export interface Cart { sesion: string; lineas: CartLine[]; total: number; mio: number; por_comensal: { comensal: string; total: number }[]; descuento?: Discount }
 export type OrderState = 'enviado' | 'en_cocina' | 'listo' | 'servido' | 'pagado' | 'fallido'
 export interface OrderStatus { id: string; sesion: string; estado: OrderState; total: number; impuestos: number; intentos: number; detalle?: string }
-export interface Bill { ok: boolean; total: number; mio: number; porComensal: { comensal: string; total: number }[]; partes: number; porParte: number }
+export interface Bill { ok: boolean; total: number; mio: number; porComensal: { comensal: string; total: number }[]; partes: number; porParte: number; descuento?: Discount }
+
+// ---- Cuenta del comensal (maquetada con datos reales; contrato 3) ---------------------------------------------
+export interface Account { id: string; nombre: string; correo: string; celular?: string; verificada: boolean }
+export interface RegisterForm { nombre: string; correo: string; celular: string; aceptaDatos: boolean; novedades: boolean }
+export interface AccountOrderLine { producto_id: number; nombre: string; cantidad: number; precio: number }
+export interface AccountOrder { id: string; fecha: string; local: string; mesa: number | null; items: number; total: number; estado: OrderState; descuento: number; lineas?: AccountOrderLine[] }
+export interface AccountSummary { cuenta: Account | null; pedidos: AccountOrder[] }
+
+// ---- Pago (maquetado detrás de un endpoint con la forma final; contrato 3) ------------------------------------
+export type PayMethod = 'tarjeta' | 'pse' | 'nequi' | 'efectivo'
+export type PayState = 'idle' | 'authorizing' | 'paid' | 'declined'
+export interface PayResult { estado: 'aprobado' | 'rechazado'; referencia: string; demo: boolean; metodo?: PayMethod; monto?: number }

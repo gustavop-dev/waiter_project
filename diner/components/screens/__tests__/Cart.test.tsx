@@ -23,14 +23,14 @@ beforeEach(() => { jest.clearAllMocks(); mockStore.busy = false; mockStore.error
 it('renders my lines editable, the others read-only under La mesa, and both subtotals', () => {
   mockStore.cart = cartOf([line({ nota: 'sin cebolla' }), line({ id: 2, comensal: 'other', mio: false, producto_id: 4, nombre: 'Burrata italiana', precio: 32900, cantidad: 1, subtotal: 32900 })])
   render(tree())
-  expect(screen.getByRole('heading', { name: 'Tu pedido' })).toHaveClass('font-display')
-  expect(screen.getByText(/sin cebolla/)).toHaveClass('text-soft')
+  expect(screen.getByRole('heading', { name: 'Tu pedido' })).toHaveClass('t-title')
+  expect(screen.getByText(/sin cebolla/)).toHaveClass('text-t-tinta-suave')
   expect(screen.queryByText('Burrata italiana')).toBeNull()
   fireEvent.click(screen.getByRole('tab', { name: 'La mesa' }))
   expect(screen.getByText('Pedido por otros en la mesa').closest('section')).toHaveTextContent('Burrata italiana')
   expect(screen.getAllByRole('button', { name: 'Más' })).toHaveLength(1)
-  expect(screen.getByText('$ 77.800')).toHaveClass('font-mono')
-  expect(screen.getByText('$ 110.700')).toHaveClass('font-mono')
+  expect(screen.getByText('$ 77.800')).toHaveClass('font-t-mono')
+  expect(screen.getByText('$ 110.700')).toHaveClass('font-t-mono')
 })
 
 // Falla si "Enviar a cocina" no lleva al estado del pedido devuelto, si se puede tocar dos veces mientras envía, o si el montaje relee el carrito además de la página.
@@ -95,13 +95,32 @@ it('tells the truth when the cart could not be loaded and offers a retry', () =>
   expect(mockStore.refreshCart).toHaveBeenCalledTimes(1)
 })
 
-// Falla si la acción de dinero baja de los 64 px, pierde el color del restaurante, deja de estar pegada abajo o su cifra sale sin mono.
+// Falla si la acción de dinero baja de los 64 px, pierde el acento de la plantilla, deja de estar pegada abajo o su cifra sale sin mono.
 it('keeps the money action tall, branded, sticky and with a mono amount', () => {
   mockStore.cart = cartOf([line({})])
   render(tree())
-  expect(sendButton()).toHaveClass('h-tap-money', 'bg-brand', 'text-brand-ink')
+  expect(sendButton()).toHaveClass('h-tap-money', 'bg-t-acento', 'text-t-acento-tinta')
   expect(sendButton().parentElement).toHaveClass('sticky', 'bottom-0')
-  expect(within(sendButton()).getByText('77.800')).toHaveClass('font-mono', 'tabular')
+  expect(within(sendButton()).getByText('77.800')).toHaveClass('font-t-mono', 'tabular')
+})
+
+// Falla si el carrito calla el descuento aplicado, si «Ir a pagar» no lleva al pago, o si «pagar en la mesa» no enlaza con pedir la cuenta.
+it('shows the discount line, goes to pay and links paying at the table', () => {
+  mockStore.cart = { ...cartOf([line({})]), descuento: { porcentaje: 5, monto: 3890, aplicable: true, aplicado: true } }
+  render(tree())
+  expect(screen.getByText('Descuento primera compra 5%')).toBeInTheDocument()
+  expect(screen.getByText('−3.890')).toHaveClass('font-t-mono')
+  fireEvent.click(screen.getByRole('button', { name: 'Ir a pagar' }))
+  expect(mockPush).toHaveBeenCalledWith('/la-provincia/centro/t/8H2KQ7/pago')
+  expect(screen.getByRole('link', { name: 'o pagar en la mesa con el mesero' })).toHaveAttribute('href', '/la-provincia/centro/t/8H2KQ7/la-cuenta')
+})
+
+// Falla si un descuento aún no aplicado (sin cuenta) no invita a registrarse, o si la invitación no enlaza con el registro.
+it('invites to sign up when the discount is available but not applied yet', () => {
+  mockStore.cart = { ...cartOf([line({})]), descuento: { porcentaje: 5, monto: 0, aplicable: true, aplicado: false } }
+  render(tree())
+  expect(screen.queryByText('Descuento primera compra 5%')).toBeNull()
+  expect(screen.getByRole('link', { name: /Regístrate y ahorra 5%/ })).toHaveAttribute('href', '/la-provincia/centro/t/8H2KQ7/cuenta/registro')
 })
 
 // Falla si "La mesa" sin pedidos ajenos calla, si las flechas no cambian de pestaña, si "Quitar" no dice qué quita, o si no hay cómo seguir pidiendo.
