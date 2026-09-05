@@ -14,9 +14,10 @@ const SHARING = /compart|bandeja|picada|tabla|grupo|familiar/i
 
 // B3 · Para compartir (docs/diseno/plantillas/B3): selector «¿Cuántos son?» (2 / 4 / 6 / 8+, activo en acento), tarjeta destacada con
 // borde de 2 px, foto de 96 px, nombre, precio, descripción y «N por persona» en mono verde; tarjetas secundarias sin foto; CTA dorado
-// «Añadir bandeja · precio» (dorado fijo de la familia, no el acento). Los atributos personas/ahorro no existen en la carta: el tamaño
-// del grupo es estado del layout, «por persona» es precio ÷ grupo (solo en categorías para compartir) y «ahorras» se omite.
-// El marco muestra una sola categoría: aquí se pintan todas (píldoras de categoría; en «Todo», las de compartir van primero).
+// «Añadir bandeja · precio» (dorado fijo de la familia con tinta oscura, no el acento). Los atributos personas/ahorro no existen en la
+// carta: el tamaño del grupo es estado del layout, «por persona» es precio ÷ grupo (solo en categorías para compartir) y «ahorras» se
+// omite. El marco muestra una sola categoría: aquí se pintan todas (píldoras de categoría; en «Todo», las de compartir van primero).
+// Fuera de una categoría para compartir el CTA no habla de bandejas: dice «Añadir {plato} · precio» del destacado visible.
 export function B3Menu({ entry, query, category, setCategory, onOpen, onAdd }: MenuLayoutProps) {
   const t = useTranslations('diner')
   const tb = useTranslations('diner.templates.B3')
@@ -30,6 +31,7 @@ export function B3Menu({ entry, query, category, setCategory, onOpen, onAdd }: M
   }, [ordered, category, query])
   const dishes = useMenuDishes(categories, query, category)
   const featured = visible[0] ? recommended(visible[0].productos, 1)[0] ?? visible[0].productos[0] : undefined
+  const featuredSharing = visible[0] ? SHARING.test(visible[0].nombre) : false
   const emptyText = query ? t('menu.empty') : category === null ? t('menu.emptyMenu') : t('menu.emptyCategory')
   return (
     <div className="flex flex-col min-h-[60vh]">
@@ -50,7 +52,11 @@ export function B3Menu({ entry, query, category, setCategory, onOpen, onAdd }: M
       </section>
       <div className="sticky bottom-0 z-30 px-[18px] py-3.5 bg-t-fondo border-t border-t-borde">
         {featured && !featured.agotado
-          ? <button type="button" aria-label={tb('addTrayNamed', { name: featured.nombre })} onClick={() => onAdd(featured)} className={`w-full h-[56px] rounded-t-boton text-[16px] font-bold ${GOLD_BG}`}>{tb('addTray', { amount: formatCop(featured.precio) })}</button>
+          ? (
+            <button type="button" aria-label={featuredSharing ? tb('addTrayNamed', { name: featured.nombre }) : tb('addDishNamed', { name: featured.nombre })} onClick={() => onAdd(featured)} className={`w-full h-[56px] px-4 rounded-t-boton text-[16px] font-bold truncate ${GOLD_BG}`}>
+              {featuredSharing ? tb('addTray', { amount: formatCop(featured.precio) }) : tb('addDish', { name: featured.nombre, amount: formatCop(featured.precio) })}
+            </button>
+          )
           : <p role="status" className="text-center text-[15px] text-t-tinta-suave">{t('menu.emptyMenu')}</p>}
       </div>
     </div>

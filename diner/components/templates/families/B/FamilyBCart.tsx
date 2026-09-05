@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
-import { usePhotoIndex } from '@/components/templates/families/B/parts'
+import { BAND_FIGURE, BAND_TEXT, usePhotoIndex } from '@/components/templates/families/B/parts'
 import type { CartLayoutProps } from '@/components/templates/types'
 import { formatCop, itemCount, mine, others } from '@/lib/domain/cart'
 import { useDinerStore } from '@/lib/stores/dinerStore'
@@ -118,8 +118,8 @@ export function FamilyBCart({ cart, template, busy, error, setQty, remove, confi
     <div className="flex flex-col text-t-tinta">
       {head}
       {showBanner && (discount.aplicado
-        ? <div className="px-[18px] py-[13px] bg-t-acento-suave border-b border-t-borde flex items-center gap-2.5"><span className="text-[22px] font-bold tracking-[-0.02em] text-[#A06E2C]">{pct}%</span><span className="text-[14px] leading-[1.35] text-[#6B4A05]">{tb('discountBanner')}</span></div>
-        : <Link href={hrefs.signup} className="px-[18px] py-[13px] bg-t-acento-suave border-b border-t-borde flex items-center gap-2.5"><span className="text-[22px] font-bold tracking-[-0.02em] text-[#A06E2C]">{pct}%</span><span className="text-[14px] leading-[1.35] text-[#6B4A05]">{tb('discountBannerPending', { pct })}</span></Link>)}
+        ? <div className="px-[18px] py-[13px] bg-t-acento-suave border-b border-t-borde flex items-center gap-2.5"><span className={`text-[22px] font-bold tracking-[-0.02em] ${BAND_FIGURE}`}>{pct}%</span><span className={`text-[14px] leading-[1.35] ${BAND_TEXT}`}>{tb('discountBanner')}</span></div>
+        : <Link href={hrefs.signup} className="px-[18px] py-[13px] bg-t-acento-suave border-b border-t-borde flex items-center gap-2.5"><span className={`text-[22px] font-bold tracking-[-0.02em] ${BAND_FIGURE}`}>{pct}%</span><span className={`text-[14px] leading-[1.35] ${BAND_TEXT}`}>{tb('discountBannerPending', { pct })}</span></Link>)}
       <ul className="flex flex-col">{own.map(line)}</ul>
       {own.length === 0 && <p className="px-[18px] py-4 text-[15px] text-t-tinta-suave">{t('cart.empty')}</p>}
       {theirs.length > 0 && (
@@ -158,13 +158,14 @@ export function FamilyBCart({ cart, template, busy, error, setQty, remove, confi
 function Row({ label, value, className = 'text-t-tinta-suave' }: { label: string; value: string; className?: string }) {
   return <div className={`flex justify-between text-[15px] py-[3px] ${className}`}><dt>{label}</dt><dd className="font-t-mono tabular whitespace-nowrap">{value}</dd></div>
 }
+// Chips grises del marco B5 (#F2EEE8 = su acentoSuave): tokens, no un gris fijo.
 function Chip({ children }: { children: React.ReactNode }) {
-  return <span className="inline-flex items-center h-[26px] px-[9px] rounded-[6px] bg-muted text-t-tinta-suave text-[12px]">{children}</span>
+  return <span className="inline-flex items-center h-[26px] px-[9px] rounded-[6px] bg-t-acento-suave text-t-tinta-suave text-[12px]">{children}</span>
 }
-// Miniatura de 54 px del marco B1: foto del producto (por id, desde la carta) o el placeholder de la familia.
+// Miniatura de 54 px del marco B1: foto del producto (por id, desde la carta) o el hueco sobre el borde de la plantilla (#E8E1D5 en el marco).
 function Thumb({ src }: { src?: string }) {
   return (
-    <span className="w-[54px] h-[54px] shrink-0 rounded-[10px] bg-muted overflow-hidden grid place-items-center">
+    <span className="w-[54px] h-[54px] shrink-0 rounded-[10px] bg-t-borde overflow-hidden grid place-items-center">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {src && <img src={src} alt="" className="w-full h-full object-cover" />}
     </span>

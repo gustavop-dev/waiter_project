@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { useMemo, useState } from 'react'
 
-import { AddButton, DishMeta, Photo, Pills } from '@/components/templates/families/B/parts'
+import { AddButton, DishMeta, GOLD_INK, Photo, Pills, SEARCH_FIELD, SEARCH_SURFACE } from '@/components/templates/families/B/parts'
 import { tabId, unique, useMenuDishes } from '@/components/templates/generic/menuParts'
 import type { MenuLayoutProps } from '@/components/templates/types'
 import { formatCop, recommended } from '@/lib/domain/cart'
@@ -15,7 +15,8 @@ const TOP = 5
 // cuadrada de 52 px, nombre y precio; fila «Ver la carta completa · N platos» y CTA «Pedir el más pedido». El ranking real
 // («312 pedidos este mes», atributo pedidos30d) no existe todavía: se ordena por favorito del POS y, en su lugar, la fila dice
 // «Favorito de la casa» o la categoría (datos reales; nada inventado). La carta completa se despliega debajo del ranking
-// (buscador + píldoras + filas con ＋) para que ninguna plantilla esconda platos.
+// (buscador + píldoras + filas con ＋) para que ninguna plantilla esconda platos. El antetítulo va en la tinta ámbar de la familia
+// (el #A06E2C del marco sobre la crema da 4,1:1 a 11 px: no llega a AA). El marco no dibuja cabecera de marca: no se pinta.
 export function B2Menu({ entry, query, setQuery, category, setCategory, onOpen, onAdd }: MenuLayoutProps) {
   const t = useTranslations('diner')
   const tb = useTranslations('diner.templates.B2')
@@ -32,7 +33,7 @@ export function B2Menu({ entry, query, setQuery, category, setCategory, onOpen, 
   return (
     <div className="flex flex-col min-h-[60vh]">
       <header className="px-[18px] py-[18px] bg-t-acento-suave border-b border-t-borde">
-        <p className="text-[11px] tracking-[0.16em] uppercase font-medium text-[#A06E2C]">{tb('kicker')}</p>
+        <p className={`text-[11px] tracking-[0.16em] uppercase font-medium ${GOLD_INK}`}>{tb('kicker')}</p>
         <h1 className="t-title text-[20px] leading-tight mt-1 text-t-tinta">{tb('title')}</h1>
       </header>
       <ol aria-label={tb('rankingLabel')} className="flex flex-col">
@@ -57,7 +58,7 @@ export function B2Menu({ entry, query, setQuery, category, setCategory, onOpen, 
       {open && (
         <section id="b2-full-menu" aria-label={tb('fullMenu')} className="flex flex-col gap-3 pt-3 pb-4">
           <div className="px-[18px] flex flex-col gap-3">
-            <input type="search" aria-label={tf('search')} placeholder={tf('search')} value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" className="h-[44px] w-full rounded-[10px] bg-muted px-3.5 text-[15px] text-t-tinta placeholder:text-t-tinta-terciaria" />
+            <input type="search" aria-label={tf('search')} placeholder={tf('search')} value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" className={`${SEARCH_FIELD} ${SEARCH_SURFACE}`} />
             <Pills categories={categories} category={category} setCategory={setCategory} />
           </div>
           {entry.carta.imagenesDeReferencia && <p className="px-[18px] text-[13px] text-t-tinta-suave">{t('menu.referenceImages')}</p>}

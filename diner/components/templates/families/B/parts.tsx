@@ -12,9 +12,17 @@ import type { Cart, Category, Dish, Entry } from '@/lib/types'
 // atributos opcionales (solo si existen), ＋ de 44 px y la barra oscura de pedido de los marcos B1/B5. Todo con tokens --t-*.
 
 // Dorado fijo de la familia (#C1873A): los specs de B3/B5 lo marcan como color del diseño, no como el token acento
-// (en B5 el acento es la tinta y sobre la barra oscura sería invisible). Solo se usa donde el spec lo fija.
+// (en B5 el acento es la tinta y sobre la barra oscura sería invisible). Solo se usa donde el spec lo fija, y con la regla que
+// la familia ya aplica en B1/B2: el blanco del marco sobre el dorado da 3,09:1, así que como fondo lleva tinta oscura (5,73:1) y
+// como texto solo va sobre la barra oscura (5,73:1). Para texto pequeño sobre claro (B5 «N · cerrar», antetítulo B2) se usa la
+// tinta ámbar de Waiter (pending-ink, 5,9:1 sobre blanco), del mismo tono que el dorado y AA.
 export const GOLD_TEXT = 'text-[#C1873A]'
-export const GOLD_BG = 'bg-[#C1873A] text-white'
+export const GOLD_BG = 'bg-[#C1873A] text-dark'
+export const GOLD_INK = 'text-pending-ink'
+// Tintas fijas de la banda «5% · Primera compra» (marco B2 sobre la crema acentoSuave, que no es personalizable): la cifra de 22 px
+// en negrita es texto grande (4,1:1 ≥ 3:1) y el texto pequeño va en el marrón del marco (7,5:1).
+export const BAND_FIGURE = 'text-[#A06E2C]'
+export const BAND_TEXT = 'text-[#6B4A05]'
 
 // Recortes del spec (fotos.recorte) → proporción CSS. 'ninguno' no pinta foto.
 export const CROP: Record<string, string> = { '4x3': 'aspect-[4/3]', '1x1': 'aspect-square', '3x4': 'aspect-[3/4]', '3x2': 'aspect-[3/2]' }
@@ -46,11 +54,12 @@ export function Pills({ categories, category, setCategory, className = '' }: { c
   )
 }
 
-// Foto del plato con el recorte del spec: sin foto, placeholder «Foto del plato» sobre #F2EEE8 (bg-muted); agotado al 55 % con insignia.
+// Foto del plato con el recorte del spec: sin foto, placeholder «Foto del plato» sobre el borde de la plantilla (el marco dibuja
+// #E8E1D5 en claro; en B4 el token oscuro evita un gris ajeno a la pizarra); agotado al 55 % (solo la foto) con insignia legible.
 export function Photo({ dish, className = '', placeholder }: { dish: Dish; className?: string; placeholder?: string }) {
   const t = useTranslations('diner')
   return (
-    <div className={`relative bg-muted grid place-items-center text-[10px] tracking-[0.08em] uppercase text-t-tinta-terciaria overflow-hidden ${className}`}>
+    <div className={`relative bg-t-borde grid place-items-center text-[10px] tracking-[0.08em] uppercase text-t-tinta-terciaria overflow-hidden ${className}`}>
       {/* La foto viene de experience por URL; next.config la sirve sin optimizar (images.unoptimized). */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {dish.foto ? <img src={dish.foto} alt="" className={`w-full h-full object-cover ${dish.agotado ? 'opacity-55' : ''}`} /> : <span>{placeholder ?? t('templates.photo')}</span>}
@@ -93,7 +102,8 @@ export function AddButton({ dish, onAdd, size = 32, className = '' }: { dish: Di
 }
 
 // Barra oscura de pedido de los marcos B1/B5: «N ítems · total» y «Ver pedido →» en dorado. Pegada abajo del layout; siempre visible,
-// con el carrito vacío dice la verdad en vez de «0 ítems». (La página pinta además su OrderBar flotante; ver nota en el layout.)
+// con el carrito vacío dice la verdad en vez de «0 ítems». Es la única barra de pedido de la carta: la página no pinta la suya
+// sobre un layout registrado (ownsChrome en el registro).
 export function FrameOrderBar({ cart, href }: { cart: Cart | null; href: string }) {
   const t = useTranslations('diner.templates.familiaB')
   const count = itemCount(cart)
@@ -106,6 +116,11 @@ export function FrameOrderBar({ cart, href }: { cart: Cart | null; href: string 
     </div>
   )
 }
+
+// Campo de búsqueda de Waiter en la familia: 44 px, radio 10, sobre superficie con borde (B1/B2, sin marco) o sobre acentoSuave
+// (B5: el marco dibuja #F2EEE8, que es exactamente su acentoSuave).
+export const SEARCH_FIELD = 'h-[44px] w-full rounded-[10px] px-3.5 text-[15px] text-t-tinta placeholder:text-t-tinta-terciaria'
+export const SEARCH_SURFACE = 'bg-t-superficie border border-t-borde'
 
 // Foto por producto para el carrito (las líneas no traen foto): mapa id → foto a partir de la carta.
 export function usePhotoIndex(entry: Entry | null | undefined): Map<number, string> {

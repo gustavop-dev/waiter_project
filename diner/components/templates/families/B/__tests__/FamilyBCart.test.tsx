@@ -99,8 +99,8 @@ it('B4 numbers the lines and squares the CTA; B5 shows the chips', () => {
   expect(screen.getByText('Hamburguesa Clásica')).toHaveClass('t-title')
   unmount()
   wrap(<FamilyBCart {...props('B5')} />)
-  expect(screen.getByText('2 · una sin cebolla')).toHaveClass('bg-muted')
-  expect(screen.getByText('Impuestos incluidos')).toHaveClass('bg-muted')
+  expect(screen.getByText('2 · una sin cebolla')).toHaveClass('bg-t-acento-suave')
+  expect(screen.getByText('Impuestos incluidos')).toHaveClass('bg-t-acento-suave')
   expect(send()).toHaveClass('rounded-t-boton')
 })
 

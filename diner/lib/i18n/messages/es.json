@@ -358,6 +358,8 @@
         "perPerson": "{amount} por persona",
         "addTray": "Añadir bandeja · {amount}",
         "addTrayNamed": "Añadir bandeja: {name}",
+        "addDish": "Añadir {name} · {amount}",
+        "addDishNamed": "Añadir: {name}",
         "featured": "Recomendada para {n}",
         "photo": "Foto de la bandeja"
       },
@@ -367,8 +369,7 @@
         "pickOne": "Elige una opción por paso",
         "build": "Armar mi menú",
         "buildCount": "Armar mi menú · {n, plural, one {# elección} other {# elecciones}}",
-        "seeDish": "Ver plato →",
-        "selected": "Elegido"
+        "seeDish": "Ver plato →"
       },
       "B5": {
         "sectionState": "{n} · {state}"

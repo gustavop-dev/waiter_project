@@ -12,10 +12,13 @@ import type { Category, Dish } from '@/lib/types'
 export const weekday = (date = new Date()) => new Intl.DateTimeFormat('es-CO', { weekday: 'long', timeZone: 'America/Bogota' }).format(date)
 
 // B4 · Menú del día (docs/diseno/plantillas/B4): pizarra verde oscura (tokens en modo oscuro), «Hoy, martes», título grande y pasos
-// (una categoría = un paso) con las opciones separadas por « · »; CTA crema «Armar mi menú». No hay menú del día con precio único en
-// la carta (menuDelDia.nombre/precio ni atributos.recargo): el título es fijo, el precio único se omite y cada opción muestra su precio
-// en mono pequeño donde el marco pone el recargo. Elegir una opción por paso es estado del layout (aria-pressed); el CTA agrega las
-// elegidas (onAdd por cada una); «Ver plato →» bajo la elección abre el plato (onOpen). Toda la carta se pinta como pasos.
+// (una categoría = un paso) escritos como UNA línea de 17 px con las opciones separadas por « · », como el marco («Ajiaco · Crema de
+// auyama»); CTA crema «Armar mi menú». No hay menú del día con precio único en la carta (menuDelDia.nombre/precio ni atributos.recargo):
+// el título es fijo, el precio único se omite y cada opción lleva su precio en mono de 14 px donde el marco pone el recargo. Elegir una
+// opción por paso es estado del layout: cada opción es un botón en línea (aria-pressed; el relleno vertical le da 44 px de toque sin
+// engordar la línea), la elegida va en negrita subrayada en acento, y el separador viaja pegado a la opción anterior para que nunca
+// abra una línea. «Ver plato →» (onOpen de la elegida) va en la fila del rótulo del paso, no en una línea extra. El CTA agrega las
+// elegidas (onAdd por cada una). El marco no dibuja cabecera de marca ni barra de pedido: la página tampoco (ownsChrome).
 export function B4Menu({ entry, query, category, onOpen, onAdd }: MenuLayoutProps) {
   const t = useTranslations('diner')
   const tb = useTranslations('diner.templates.B4')
@@ -44,26 +47,22 @@ export function B4Menu({ entry, query, category, onOpen, onAdd }: MenuLayoutProp
           const sel = c.productos.find((d) => d.id === picked[c.id])
           return (
             <div key={c.id} role="group" aria-label={c.nombre}>
-              <h2 className="text-[11px] tracking-[0.16em] uppercase opacity-60">{c.nombre}</h2>
-              <p className="mt-0.5 -ml-1.5 text-[17px] leading-none flex flex-wrap items-center gap-x-1">
-                {c.productos.map((d, i) => {
-                  const active = sel?.id === d.id
-                  return (
-                    <span key={d.id} className="inline-flex items-center gap-x-1">
-                      {i > 0 && <span aria-hidden="true" className="opacity-60">·</span>}
-                      <button type="button" aria-pressed={active} disabled={d.agotado} onClick={() => toggle(c, d)} className={`inline-flex items-center gap-1.5 h-[40px] px-1.5 rounded-t-chip ${active ? 'bg-t-acento text-t-acento-tinta font-medium' : ''} ${d.agotado ? 'opacity-55' : ''}`}>
-                        <span>{d.nombre}</span>
-                        <span className="font-t-mono tabular text-[14px] opacity-75">{d.agotado ? t('common.soldOut') : formatCop(d.precio)}</span>
-                      </button>
+              <div className="flex items-baseline justify-between gap-3">
+                <h2 className="text-[11px] tracking-[0.16em] uppercase opacity-60">{c.nombre}</h2>
+                {sel && <button type="button" onClick={() => onOpen(sel)} aria-label={`${tb('seeDish')}: ${sel.nombre}`} className="shrink-0 inline-flex items-center min-h-[44px] -my-3 text-[12px] opacity-80 underline underline-offset-4">{tb('seeDish')}</button>}
+              </div>
+              <p className="mt-[5px] text-[17px] leading-[1.55]">
+                {c.productos.map((d, i) => (
+                  <span key={d.id}>
+                    <span className="whitespace-nowrap">
+                      <Option dish={d} active={sel?.id === d.id} onToggle={() => toggle(c, d)} />
+                      {i < c.productos.length - 1 && <span aria-hidden="true" className="opacity-60"> ·</span>}
                     </span>
-                  )
-                })}
+                    {/* El único punto de corte de la línea es este espacio, fuera del trozo no partible. */}
+                    {i < c.productos.length - 1 && ' '}
+                  </span>
+                ))}
               </p>
-              {sel && (
-                <button type="button" onClick={() => onOpen(sel)} className="mt-0.5 inline-flex items-center min-h-[44px] text-[13px] opacity-80 underline underline-offset-4">
-                  {tb('selected')}: {sel.nombre}{sel.descripcion ? ` · ${sel.descripcion}` : ''} · {tb('seeDish')}
-                </button>
-              )}
             </div>
           )
         })}
@@ -74,5 +73,21 @@ export function B4Menu({ entry, query, category, onOpen, onAdd }: MenuLayoutProp
         </button>
       </div>
     </div>
+  )
+}
+
+// Una opción del paso: botón en línea (Chromium lo pinta inline-block: el relleno vertical amplía el toque a 44 px y el margen negativo
+// lo descuenta para no engordar la línea de 17 px), precio en mono
+// de 14 px; agotado → nombre al 55 % una sola vez e insignia legible sobre acentoSuave, no elegible.
+function Option({ dish, active, onToggle }: { dish: Dish; active: boolean; onToggle: () => void }) {
+  const t = useTranslations('diner.common')
+  return (
+    <button type="button" aria-pressed={active} disabled={dish.agotado} onClick={onToggle} className={`inline-block align-baseline py-[9px] -my-[9px] rounded-sm ${active ? 'font-bold underline decoration-2 underline-offset-[5px] decoration-t-acento' : ''}`}>
+      <span className={dish.agotado ? 'opacity-55' : ''}>{dish.nombre}</span>
+      {' '}
+      {dish.agotado
+        ? <span className="inline-flex items-center h-[20px] px-1.5 rounded-t-chip bg-t-acento-suave text-t-tinta text-[11px] font-medium align-middle">{t('soldOut')}</span>
+        : <span className="font-t-mono tabular text-[14px] opacity-75">{formatCop(dish.precio)}</span>}
+    </button>
   )
 }
