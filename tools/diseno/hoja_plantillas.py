@@ -7,7 +7,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-RAIZ = Path(__file__).resolve().parents[1]
+RAIZ = Path(__file__).resolve().parents[2]
 CAPTURAS = RAIZ / 'diner' / 'public' / 'plantillas-capturas'
 DISENO = RAIZ / 'docs' / 'diseno' / 'plantillas'
 salida = Path(sys.argv[1]) if len(sys.argv) > 1 else RAIZ / 'docs' / 'diseno' / 'plantillas' / 'hoja-30.png'
@@ -32,6 +32,9 @@ for i, code in enumerate(codes):
     x = PAD + c * (2 * W + 3 * PAD); y = PAD + r * (H + 3 * PAD + 20)
     d.text((x, y), f'{code} · diseño | comensal ({pantalla})', fill='#1A1815')
     hoja.paste(fit(DISENO / code / 'menu.png'), (x, y + 20))
-    hoja.paste(fit(CAPTURAS / f'{code}-{pantalla}.png'), (x + W + PAD, y + 20))
+    # Las familias nombraron la carta como -carta o -menu: se acepta cualquiera de las dos.
+    alias = {'carta': ['carta', 'menu'], 'pedido': ['pedido', 'carrito']}.get(pantalla, [pantalla])
+    cap = next((CAPTURAS / f'{code}-{a}.png' for a in alias if (CAPTURAS / f'{code}-{a}.png').exists()), CAPTURAS / f'{code}-{pantalla}.png')
+    hoja.paste(fit(cap), (x + W + PAD, y + 20))
 hoja.save(salida, 'PNG', optimize=True)
 print(salida, hoja.size)

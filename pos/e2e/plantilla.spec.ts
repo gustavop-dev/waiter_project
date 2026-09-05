@@ -26,7 +26,7 @@ test('the admin picks a menu template and the diner entry resolves it', async ({
     await page.getByRole('button', { name: /Carta editorial/ }).click()
     await expect(page.getByRole('button', { name: /Carta editorial/ })).toHaveAttribute('aria-pressed', 'true')
     await expect(page.getByLabel('Hex · Color de acción')).toHaveValue('#1A1815')
-    await expect(page.getByTitle('Vista previa del menú')).toHaveAttribute('src', /\/burger-house\/poblado\/\?vista_previa=/)
+    await expect(page.getByTitle('Vista previa del menú')).toHaveAttribute('src', /\/burger-house\/poblado\/carta\/\?vista_previa=/)
     await page.getByRole('button', { name: 'Guardar' }).click()
     await expect(page.getByRole('status')).toHaveText(/Guardado/)
     // experience invalida su caché al guardar; el poll cubre el reenvío Odoo → experience.

@@ -155,9 +155,9 @@ al controller del addon (misma sesión de Odoo). Servicio `pos/lib/services/menu
 3. [x] **POS**: sección Plantilla del menú con galería, personalización y vista previa.
 4. [x] **Motor del comensal**: tokens, registro de layouts, rutas y store de pago/cuenta,
    pantallas base (carrito/pago/cuenta genéricos), modo vista previa.
-5. [ ] **Layouts por familia** (6 agentes): 5 menús + carrito + pago + patrones de cuenta
+5. [x] **Layouts por familia** (6 agentes): 5 menús + carrito + pago + patrones de cuenta
    de la familia, fieles a los marcos; tests; captura propia con `next dev` en puerto propio.
-6. [ ] **Integración**: migraciones, `-u projectapp_ops`, miniaturas, E2E (admin elige →
+6. [x] **Integración**: migraciones, `-u projectapp_ops`, miniaturas, E2E (admin elige →
    comensal la ve → carrito → pago simulado → registro), capturas de las 30.
 7. [ ] **Revisión adversarial** por lentes, correcciones, docs, PR.
 
