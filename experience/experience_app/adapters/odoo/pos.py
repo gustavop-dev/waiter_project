@@ -5,7 +5,10 @@ load_data, precio y categorías en product.template), ya verificadas en pos/.
 """
 from dataclasses import dataclass, field
 
-from experience_app.adapters.odoo.client import OdooClient
+import requests
+from django.conf import settings
+
+from experience_app.adapters.odoo.client import OdooClient, OdooUnavailable
 
 OPEN_SESSION_STATES = ['opening_control', 'opened']
 
@@ -18,6 +21,10 @@ class Product:
     category_ids: list[int]
     tax_ids: list[int]
     sold_out: bool = False
+    template_id: int = 0
+    description: str = ''
+    favorite: bool = False
+    has_image: bool = False
 
 
 @dataclass(frozen=True)
@@ -73,11 +80,28 @@ def load_catalog(client: OdooClient, pos_session_id: int) -> Catalog:
     if storable:
         rows = client.call_kw('product.product', 'search_read', [[['id', 'in', storable]], ['qty_available']])
         sold_out = {r['id'] for r in rows if r['qty_available'] <= 0}
+    # description_sale e image_128 llegan como False cuando están vacíos (no como '' ni None).
     products = [Product(id=pid, name=t['name'], price=t['list_price'], category_ids=t['pos_categ_ids'], tax_ids=t['taxes_id'],
-                        sold_out=pid in sold_out) for pid, t in base.items()]
+                        sold_out=pid in sold_out, template_id=t['id'], description=t.get('description_sale') or '',
+                        favorite=bool(t.get('is_favorite')), has_image=bool(t.get('image_128'))) for pid, t in base.items()]
     categories = [Category(c['id'], c['name'], c['sequence']) for c in raw['pos.category']]
     company = raw['res.company'][0]['name'] if raw.get('res.company') else ''
     return Catalog(company_name=company, products=products, categories=categories)
+
+
+def fetch_product_image(client: OdooClient, template_id: int, size: str = 'image_512') -> bytes | None:
+    """Bytes de la foto de la plantilla vía /web/image, con la sesión del cliente. None si Odoo no da una imagen."""
+    if client.uid is None:
+        client.authenticate()
+    try:
+        response = client.http.get(f'{client.creds.url}/web/image/product.template/{template_id}/{size}',
+                                   timeout=settings.ODOO_TIMEOUT_SECONDS)
+    except (requests.ConnectionError, requests.Timeout) as exc:
+        raise OdooUnavailable(f'Odoo no responde: {exc}') from exc
+    # Sin sesión válida Odoo responde 200 con el HTML del login: el content-type es la única señal fiable.
+    if response.status_code != 200 or not response.headers.get('Content-Type', '').startswith('image/'):
+        return None
+    return response.content
 
 
 def ensure_open_session(client: OdooClient, config_id: int) -> int:

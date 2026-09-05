@@ -1,4 +1,5 @@
 """Las dos entradas públicas: domicilio y mesa. Una sola maquinaria."""
+from django.urls import reverse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -16,4 +17,5 @@ def _context(tenant):
 @api_view(['GET'])
 def entry(request, restaurant, venue, token=None):
     tenant = resolve(restaurant, venue, token)
-    return Response({'contexto': _context(tenant), 'carta': catalog.menu_view(catalog.get_catalog(tenant))})
+    menu = catalog.menu_view(catalog.get_catalog(tenant), photo_url=lambda pid: reverse('product-photo', args=[restaurant, venue, pid]))
+    return Response({'contexto': _context(tenant), 'carta': menu})

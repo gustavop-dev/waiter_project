@@ -1,4 +1,6 @@
 """La carta por sede, desde caché. Odoo no está en el camino caliente del comensal."""
+from collections.abc import Callable
+
 from django.conf import settings
 from django.core.cache import cache
 
@@ -34,10 +36,15 @@ def find_product(tenant: Tenant, product_id: int) -> pos.Product:
     return product
 
 
-def menu_view(catalog: pos.Catalog) -> dict:
-    """Carta normalizada para el comensal: categorías con sus productos, en el orden del POS."""
+def menu_view(catalog: pos.Catalog, photo_url: Callable[[int], str]) -> dict:
+    """Carta normalizada para el comensal: categorías con sus productos, en el orden del POS.
+
+    `photo_url(product_id)` construye la URL pública de la foto: la carta nunca lleva la URL de Odoo.
+    """
     categories = sorted(catalog.categories, key=lambda c: (c.sequence, c.id))
-    items = [{'id': p.id, 'nombre': p.name, 'precio': p.price, 'agotado': p.sold_out, 'categorias': p.category_ids} for p in catalog.products]
+    items = [{'id': p.id, 'nombre': p.name, 'precio': p.price, 'agotado': p.sold_out, 'categorias': p.category_ids,
+              'descripcion': p.description, 'favorito': p.favorite, 'foto': photo_url(p.id) if p.has_image else None}
+             for p in catalog.products]
     return {
         'restaurante': catalog.company_name,
         'categorias': [{'id': c.id, 'nombre': c.name, 'productos': [i for i in items if c.id in i['categorias']]} for c in categories],
