@@ -1,22 +1,26 @@
 import type { OpenOrder } from '@/lib/services/orders'
+import type { KitchenPhase } from '@/lib/domain/kitchen'
 import type { Table } from '@/lib/types'
 
 export type TableState = 'free' | 'occupied' | 'kitchen' | 'billing' | 'paid' | 'ordering' | 'served' | 'assist' | 'closed'
-export interface LocalFlags { sentToKitchen?: boolean; billing?: boolean; served?: boolean; assist?: boolean; closed?: boolean; ordering?: boolean }
+export interface LocalFlags { billing?: boolean; assist?: boolean; closed?: boolean; ordering?: boolean }
 export interface TableView { table: Table; state: TableState; total: number; tax: number; orderId: number | null; startedAt: string | null; waiter: string | null }
 
 const STATES: TableState[] = ['free', 'occupied', 'kitchen', 'billing', 'paid', 'ordering', 'served', 'assist', 'closed']
 
-// Odoo solo sabe libre / con pedido / pagado. Lo demás es estado local de la app (o del registro
-// central más adelante). Prioridad cuando coinciden: closed > assist > billing > served > kitchen.
+// Odoo sabe libre / con pedido / pagado y, por los cursos, en cocina / servido (ADR 2026-09-05).
+// Lo demás es estado local (o del registro central más adelante).
+// Prioridad cuando coinciden: closed > assist > billing > served > kitchen.
 function stateFor(order: OpenOrder | undefined, flags: LocalFlags): TableState {
   if (flags.closed) return 'closed'
   if (flags.assist) return 'assist'
   if (!order) return flags.ordering ? 'ordering' : 'free'
   if (flags.billing) return 'billing'
-  if (flags.served) return 'served'
-  if (flags.sentToKitchen) return 'kitchen'
-  return 'occupied'
+  return phaseState(order.kitchen)
+}
+function phaseState(phase: KitchenPhase): TableState {
+  if (phase === 'served') return 'served'
+  return phase === 'none' ? 'occupied' : 'kitchen'
 }
 
 export function deriveTableViews(tables: Table[], orders: OpenOrder[], flags: Record<number, LocalFlags>): TableView[] {

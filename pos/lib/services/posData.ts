@@ -5,7 +5,7 @@ import type { Catalog, Category, Floor, PaymentMethod, Product, Table } from '@/
 // como enteros pelados, y precio/categorías/impuestos viven en product.template.
 interface RawProduct { id: number; product_tmpl_id: number; display_name: string; lst_price: number }
 interface RawTemplate { id: number; name: string; list_price: number; pos_categ_ids: number[]; taxes_id: number[]; available_in_pos: boolean; active: boolean; is_favorite: boolean; is_storable: boolean }
-interface RawCategory { id: number; name: string; sequence: number }
+interface RawCategory { id: number; name: string; sequence: number; kitchen_station: string | false }
 interface RawFloor { id: number; name: string; table_ids: number[] }
 interface RawTable { id: number; table_number: number; floor_id: number; seats: number; active: boolean }
 interface RawMethod { id: number; name: string; type: PaymentMethod['type'] }
@@ -36,7 +36,7 @@ export async function loadPosData(sessionId: number): Promise<Catalog> {
   })
   const out = await soldOutIds(base)
   const products = base.map((p) => ({ ...p, soldOut: out.has(p.id) }))
-  const categories: Category[] = raw['pos.category'].map(({ id, name, sequence }) => ({ id, name, sequence }))
+  const categories: Category[] = raw['pos.category'].map(({ id, name, sequence, kitchen_station }) => ({ id, name, sequence, station: kitchen_station || null }))
   const floors: Floor[] = raw['restaurant.floor'].map(({ id, name, table_ids }) => ({ id, name, tableIds: table_ids }))
   const tables: Table[] = raw['restaurant.table'].filter((t) => t.active)
     .map((t) => ({ id: t.id, number: t.table_number, floorId: t.floor_id, seats: t.seats }))

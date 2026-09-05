@@ -1,0 +1,66 @@
+import { callKw } from '@/lib/services/odoo'
+
+// La comanda es un restaurant.order.course de Odoo (ADR 2026-09-05). Este archivo es el único
+// que conoce los métodos del addon projectapp_kitchen.
+export interface KitchenLine { id: number; name: string; qty: number; note: string; station: string | null }
+export interface KitchenTicket { id: number; orderId: number; tableId: number; tracking: string; waiter: string; firedAt: string; readyAt: string | null; lines: KitchenLine[] }
+export interface CourseSummary { orderId: number; readyAt: string | null; servedAt: string | null }
+export interface CompletedCourse { firedAt: string; readyAt: string }
+
+interface RawCourse { id: number; order_id: [number, string]; fired_date: string; ready_date: string | false; served_date: string | false }
+interface RawKitchenLine { id: number; course_id: [number, string] | false; full_product_name: string; qty: number; customer_note: string | false; product_id: [number, string] }
+interface RawKitchenOrder { id: number; table_id: [number, string] | false; user_id: [number, string] | false; tracking_number: string | false }
+
+const COURSE = 'restaurant.order.course'
+const inSession = (sessionId: number) => [['order_id.session_id', '=', sessionId], ['order_id.state', '=', 'draft']]
+
+// Envía a cocina lo que aún no tiene curso. Devuelve el id del curso o null si no había nada nuevo.
+export async function fireUnsentLines(orderId: number): Promise<number | null> {
+  const lines = await callKw<{ id: number }[]>('pos.order.line', 'search_read', [[['order_id', '=', orderId], ['course_id', '=', false]], ['id']])
+  if (lines.length === 0) return null
+  const id = await callKw<number | false>(COURSE, 'kitchen_fire', [orderId, lines.map((l) => l.id)])
+  return id || null
+}
+
+// Comandas disparadas y aún no entregadas, con sus líneas y quién las pidió. Tres llamadas por sondeo.
+export async function listKitchenTickets(sessionId: number, stationOf: (productId: number) => string | null): Promise<KitchenTicket[]> {
+  const courses = await callKw<RawCourse[]>(COURSE, 'search_read',
+    [[['fired', '=', true], ['served_date', '=', false], ...inSession(sessionId)], ['order_id', 'fired_date', 'ready_date', 'served_date']])
+  if (courses.length === 0) return []
+  const orderIds = [...new Set(courses.map((c) => c.order_id[0]))]
+  const [lines, orders] = await Promise.all([
+    callKw<RawKitchenLine[]>('pos.order.line', 'search_read', [[['course_id', 'in', courses.map((c) => c.id)]], ['course_id', 'full_product_name', 'qty', 'customer_note', 'product_id']]),
+    callKw<RawKitchenOrder[]>('pos.order', 'read', [orderIds, ['table_id', 'user_id', 'tracking_number']]),
+  ])
+  return courses.map((c) => {
+    const order = orders.find((o) => o.id === c.order_id[0])!
+    return {
+      id: c.id, orderId: c.order_id[0], tableId: order.table_id ? order.table_id[0] : 0,
+      tracking: order.tracking_number || String(order.id), waiter: order.user_id ? order.user_id[1] : '',
+      firedAt: c.fired_date, readyAt: c.ready_date || null,
+      lines: lines.filter((l) => l.course_id && l.course_id[0] === c.id)
+        .map((l) => ({ id: l.id, name: l.full_product_name, qty: l.qty, note: l.customer_note || '', station: stationOf(l.product_id[0]) })),
+    }
+  })
+}
+
+// Para el tiempo medio del turno: cursos ya listos de la sesión (entregados o no).
+export async function listCompletedCourses(sessionId: number): Promise<CompletedCourse[]> {
+  const rows = await callKw<RawCourse[]>(COURSE, 'search_read',
+    [[['fired', '=', true], ['ready_date', '!=', false], ['order_id.session_id', '=', sessionId]], ['fired_date', 'ready_date']])
+  return rows.map((r) => ({ firedAt: r.fired_date, readyAt: r.ready_date as string }))
+}
+
+// Para el salón: en qué fase de cocina está cada pedido abierto.
+export async function listCourseSummaries(sessionId: number): Promise<CourseSummary[]> {
+  const rows = await callKw<RawCourse[]>(COURSE, 'search_read', [[['fired', '=', true], ...inSession(sessionId)], ['order_id', 'ready_date', 'served_date']])
+  return rows.map((r) => ({ orderId: r.order_id[0], readyAt: r.ready_date || null, servedAt: r.served_date || null }))
+}
+
+export async function markReady(courseId: number): Promise<void> {
+  await callKw(COURSE, 'action_kitchen_ready', [[courseId]])
+}
+
+export async function markServed(courseId: number): Promise<void> {
+  await callKw(COURSE, 'action_kitchen_served', [[courseId]])
+}

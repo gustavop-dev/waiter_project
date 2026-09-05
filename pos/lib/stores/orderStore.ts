@@ -5,6 +5,7 @@ import { create } from 'zustand'
 import { addProduct, createDraft, removeLine, setNote, setQty } from '@/lib/domain/order'
 import type { DraftOrder } from '@/lib/domain/order'
 import type { LocalFlags } from '@/lib/domain/tableState'
+import { fireUnsentLines } from '@/lib/services/kitchen'
 import { closeOrder, getShiftSummary, listOpenOrders, payOrder, saveOrder } from '@/lib/services/orders'
 import type { OpenOrder, SavedOrder, ShiftSummary } from '@/lib/services/orders'
 import type { Product } from '@/lib/types'
@@ -63,9 +64,12 @@ export const useOrderStore = create<OrderState>((set, get) => {
     note: (u, n) => update((d) => setNote(d, u, n)),
     remove: (u) => update((d) => removeLine(d, u)),
     save: async () => { await persist() },
+    // La comanda vive en Odoo (un curso disparado); el salón la verá al refrescar. Nada local.
     sendToKitchen: async () => {
       const saved = await persist()
-      if (saved) flag(get().draft!.tableId, { sentToKitchen: true })
+      if (!saved) return
+      set({ busy: true })
+      try { await fireUnsentLines(saved.id) } catch (e) { set({ error: message(e) }) } finally { set({ busy: false }) }
     },
     requestBill: async () => {
       const saved = await persist()

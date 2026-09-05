@@ -34,7 +34,11 @@ export default function SalonPage() {
   const [now, setNow] = useState(() => Date.now())
 
   // Los tiempos de mesa y la barra de 22 min avanzan solos.
-  useEffect(() => { const id = setInterval(() => setNow(Date.now()), 30_000); return () => clearInterval(id) }, [])
+  // Cada 30 s: reloj de las celdas y estado de cocina (lo marca otra pantalla, vive en Odoo).
+  useEffect(() => {
+    const id = setInterval(() => { setNow(Date.now()); if (session) void refreshOpenOrders(session.id) }, 30_000)
+    return () => clearInterval(id)
+  }, [session, refreshOpenOrders])
 
   useEffect(() => { if (session) { void refreshOpenOrders(session.id); void refreshShift(session.id) } }, [session, refreshOpenOrders, refreshShift])
   useEffect(() => { if (catalog && activeFloorId === null && catalog.floors[0]) setFloor(catalog.floors[0].id) }, [catalog, activeFloorId, setFloor])
