@@ -93,3 +93,14 @@ def test_a_paid_bill_ends_the_visit_and_the_next_tap_opens_a_new_session(read, a
     assert TableSession.objects.get(id=cart).state == TableSession.PAID
     again = api_client.post(reverse('open-session'), PAYLOAD, format='json').json()
     assert again['sesion']['id'] != cart
+
+
+# Falla si el siguiente comensal de la mesa hereda la sesión (y el carrito) de una cuenta que el salón ya cobró.
+@pytest.mark.django_db
+@patch('experience_app.services.sessions.pos.read_order_state', return_value='paid')
+def test_the_next_tap_after_the_floor_charged_the_bill_starts_a_clean_session(read, api_client, cart, odoo):
+    api_client.post(reverse('confirm', args=[cart]), format='json')
+    again = api_client.post(reverse('open-session'), PAYLOAD, format='json').json()
+    assert again['sesion']['id'] != cart
+    assert TableSession.objects.get(id=cart).state == TableSession.PAID
+    assert api_client.get(reverse('cart', args=[again['sesion']['id']])).json()['lineas'] == []

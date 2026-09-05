@@ -63,7 +63,7 @@ def menu_view(catalog: pos.Catalog, photo_url: Callable[[int, str], str]) -> dic
     versión (write_date de la plantilla) cambia la URL cuando cambia la foto para que la caché pública no la retenga.
     """
     categories = sorted(catalog.categories, key=lambda c: (c.sequence, c.id))
-    items = [{'id': p.id, 'nombre': p.name, 'precio': p.price, 'agotado': p.sold_out, 'categorias': p.category_ids,
+    items = [{'id': p.id, 'nombre': p.name, 'precio': p.final_price, 'agotado': p.sold_out, 'categorias': p.category_ids,
               'descripcion': p.description, 'favorito': p.favorite,
               'foto': photo_url(p.id, p.image_version) if p.has_image else None}
              for p in catalog.products]

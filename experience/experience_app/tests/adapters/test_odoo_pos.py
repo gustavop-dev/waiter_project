@@ -4,6 +4,7 @@ import pytest
 
 from experience_app.adapters.odoo import pos
 from experience_app.adapters.odoo.client import OdooClient, OdooCredentials, OdooUnavailable
+from experience_app.adapters.odoo.pos import price_with_taxes
 from experience_app.tests.helpers import AUTH, FakeResponse, FakeSession, params
 
 CREDS = OdooCredentials(url='http://odoo', db='bh', login='svc', password='x', pos_config_id=1)
@@ -76,9 +77,12 @@ def test_connection_error_becomes_unavailable():
 
 def test_load_catalog_reads_template_id_description_favorite_photo_flag_and_version():
     """Atrapa una descripción False, un favorito perdido, "tiene foto" con image_128 en False o una foto sin versión."""
-    catalog = pos.load_catalog(OdooClient(CREDS, FakeSession([AUTH, LOAD_DATA])), 4)
+    taxes = FakeResponse([{'id': 55, 'amount': 19.0, 'amount_type': 'percent', 'price_include': False}])
+    catalog = pos.load_catalog(OdooClient(CREDS, FakeSession([AUTH, LOAD_DATA, taxes])), 4)
     angus, limonada = catalog.products
     assert (angus.id, angus.template_id) == (3, 21)
+    # El precio de lista viaja a Odoo; el final (con el 19% que Odoo suma encima) es el que ve el comensal.
+    assert (angus.price, angus.final_price) == (36900, 43911.0)
     assert (angus.description, angus.favorite, angus.has_image) == ('Carne 200 g', True, True)
     assert (limonada.description, limonada.favorite, limonada.has_image) == ('', False, False)
     assert angus.image_version == '20260905010203'
@@ -132,3 +136,16 @@ def test_fetch_product_image_wraps_a_down_odoo_as_unavailable():
     client.uid = 2  # ya autenticado: la caída ocurre al leer la foto, no al entrar
     with pytest.raises(OdooUnavailable):
         pos.fetch_product_image(client, 21)
+
+
+
+
+# Falla si la carta muestra la base gravable en vez de lo que el comensal paga (Odoo suma el IVA/INC encima).
+def test_final_price_adds_the_taxes_odoo_charges_on_top():
+    iva = {'amount': 19.0, 'amount_type': 'percent', 'price_include': False}
+    included = {'amount': 8.0, 'amount_type': 'percent', 'price_include': True}
+    fixed = {'amount': 500.0, 'amount_type': 'fixed', 'price_include': False}
+    assert price_with_taxes(36900.0, [iva]) == 43911.0
+    assert price_with_taxes(36900.0, [included]) == 36900.0
+    assert price_with_taxes(36900.0, [iva, fixed]) == 44411.0
+    assert price_with_taxes(36900.0, []) == 36900.0

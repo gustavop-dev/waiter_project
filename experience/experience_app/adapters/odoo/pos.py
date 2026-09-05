@@ -32,6 +32,13 @@ class Product:
     has_image: bool = False
     # write_date de la plantilla, compactado: cambia con la foto y versiona su URL pública.
     image_version: str = ''
+    # Lo que el comensal ve y paga: precio de lista más los impuestos que Odoo suma encima (IVA/INC excluidos del
+    # precio). `price` sigue siendo el de lista porque es el que se envía a Odoo, que calcula el impuesto por su lado.
+    final_price: float | None = None
+
+    def __post_init__(self):
+        if self.final_price is None:
+            object.__setattr__(self, 'final_price', self.price)
 
 
 @dataclass(frozen=True)
@@ -75,6 +82,30 @@ class OrderStatus:
     kitchen: str  # none | cooking | ready | served
 
 
+def price_with_taxes(price: float, taxes: list[dict]) -> float:
+    """Precio final como lo cobra Odoo: suma los impuestos no incluidos en el precio (porcentaje, fijo o división)."""
+    total = price
+    for tax in taxes:
+        if tax.get('price_include'):
+            continue
+        kind, amount = tax.get('amount_type'), tax.get('amount') or 0
+        if kind == 'percent':
+            total += price * amount / 100
+        elif kind == 'fixed':
+            total += amount
+        elif kind == 'division' and amount < 100:
+            total += price / (1 - amount / 100) - price
+    return round(total, 2)
+
+
+def _taxes_by_id(client: OdooClient, tax_ids: set[int]) -> dict[int, dict]:
+    if not tax_ids:
+        return {}
+    rows = client.call_kw('account.tax', 'search_read',
+                          [[['id', 'in', sorted(tax_ids)]], ['amount', 'amount_type', 'price_include']])
+    return {r['id']: r for r in rows}
+
+
 def load_catalog(client: OdooClient, pos_session_id: int) -> Catalog:
     # Todos los modelos: una lista parcial rompe con KeyError dentro de Odoo.
     raw = client.call_kw('pos.session', 'load_data', [[pos_session_id], []])
@@ -88,10 +119,13 @@ def load_catalog(client: OdooClient, pos_session_id: int) -> Catalog:
         rows = client.call_kw('product.product', 'search_read', [[['id', 'in', storable]], ['qty_available']])
         sold_out = {r['id'] for r in rows if r['qty_available'] <= 0}
     # description_sale e image_128 llegan como False cuando están vacíos (no como '' ni None).
+    taxes = _taxes_by_id(client, {tid for t in base.values() for tid in t['taxes_id']})
     products = [Product(id=pid, name=t['name'], price=t['list_price'], category_ids=t['pos_categ_ids'], tax_ids=t['taxes_id'],
                         sold_out=pid in sold_out, template_id=t['id'], description=t.get('description_sale') or '',
                         favorite=bool(t.get('is_favorite')), has_image=bool(t.get('image_128')),
-                        image_version=_version(t.get('write_date'))) for pid, t in base.items()]
+                        image_version=_version(t.get('write_date')),
+                        final_price=price_with_taxes(t['list_price'], [taxes[i] for i in t['taxes_id'] if i in taxes]))
+                for pid, t in base.items()]
     categories = [Category(c['id'], c['name'], c['sequence']) for c in raw['pos.category']]
     company = raw['res.company'][0]['name'] if raw.get('res.company') else ''
     return Catalog(company_name=company, products=products, categories=categories)
@@ -177,6 +211,11 @@ def fire_course(client: OdooClient, order_id: int) -> int | None:
         return None
     course_id = client.call_kw('restaurant.order.course', 'kitchen_fire', [order_id, [line['id'] for line in lines]])
     return course_id or None
+
+
+def read_order_state(client: OdooClient, order_id: int) -> str:
+    """Solo el estado del pos.order (draft|paid|done|invoiced|cancel): para saber si el salón ya cobró."""
+    return _read_order(client, order_id).state
 
 
 def read_order_status(client: OdooClient, order_id: int) -> OrderStatus:

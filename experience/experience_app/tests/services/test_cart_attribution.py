@@ -12,9 +12,10 @@ def test_cart_totals_cover_all_three_payment_modes(two_diners):
     add_line(session, ana, ANGUS, qty=2)
     add_line(session, beto, LIMONADA, qty=1)
     view = cart_view(session, ana)
-    assert view['total'] == 83700.0
-    assert view['mio'] == 73800.0
-    assert view['por_comensal'] == [{'comensal': str(ana.id), 'total': 73800.0}, {'comensal': str(beto.id), 'total': 9900.0}]
+    # Totales con impuestos (Angus 43.911 final × 2 + Limonada 9.900): lo que se paga, no la base gravable.
+    assert view['total'] == 97722.0
+    assert view['mio'] == 87822.0
+    assert view['por_comensal'] == [{'comensal': str(ana.id), 'total': 87822.0}, {'comensal': str(beto.id), 'total': 9900.0}]
     assert [line['mio'] for line in view['lineas']] == [True, False]
 
 

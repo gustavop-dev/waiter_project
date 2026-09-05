@@ -71,6 +71,7 @@ export function Bill({ entry, rest, venue, token }: { entry: Entry; rest: string
       <section className="rounded-rest bg-surface border border-border p-[18px] flex flex-col gap-3">
         <span className="text-[13px] tracking-[0.08em] uppercase text-soft">{t(mode)}</span>
         <span className="font-mono tabular text-[34px] leading-none">$ {formatCop(amount)}</span>
+        <span className="text-[13px] text-soft">{t('taxesIncluded')}</span>
         {mode === 'split' && (
           <div className="flex items-center justify-between gap-3 pt-1">
             <span className="text-[15px] text-soft">{partsBefore}<span className="font-mono tabular text-ink">$ {perPartText}</span>{partsAfter}</span>

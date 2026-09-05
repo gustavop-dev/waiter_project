@@ -14,7 +14,8 @@ class CartLine(models.Model):
     diner = models.ForeignKey('experience_app.Diner', on_delete=models.CASCADE, related_name='lines')
     product_id = models.PositiveIntegerField()
     name = models.CharField(max_length=200)
-    unit_price = models.DecimalField(max_digits=12, decimal_places=2)
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2)  # precio de lista: es el que se envía a Odoo
+    final_unit_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)  # con impuestos: el que se muestra
     qty = models.PositiveIntegerField(default=1)
     note = models.CharField(max_length=200, blank=True)
     tax_ids = models.JSONField(default=list)
@@ -23,5 +24,10 @@ class CartLine(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     @property
+    def shown_unit_price(self):
+        return self.final_unit_price if self.final_unit_price is not None else self.unit_price
+
+    @property
     def subtotal(self):
-        return self.unit_price * self.qty
+        """Lo que el comensal paga por la línea (impuestos incluidos), no la base gravable."""
+        return self.shown_unit_price * self.qty

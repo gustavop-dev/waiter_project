@@ -14,11 +14,10 @@ from experience_app.adapters.odoo import pos
 from experience_app.adapters.odoo.client import OdooClient, OdooError
 from experience_app.adapters.registry.client import resolve
 from experience_app.models import CartLine, Order, TableSession
-from experience_app.services.sessions import open_lines
+from experience_app.services.sessions import PAID_STATES, close_paid, open_lines
 from experience_app.utils.errors import NothingToConfirm, SessionAlreadyPaid
 
 STATUS_BY_KITCHEN = {'none': 'enviado', 'cooking': 'en_cocina', 'ready': 'listo', 'served': 'servido'}
-PAID_STATES = {'paid', 'done', 'invoiced'}
 
 
 def _line_uuid(order: Order, line: CartLine) -> str:
@@ -43,7 +42,7 @@ def confirm(session: TableSession) -> tuple[Order, bool]:
     client = OdooClient(tenant.odoo)
     # Si el salón ya cobró el pedido de esta visita, la visita terminó: no se le agregan líneas a un pedido pagado.
     if order is not None and order.state == Order.SENT and order.odoo_order_id and pos.read_order_status(client, order.odoo_order_id).state in PAID_STATES:
-        _close_paid(session)
+        close_paid(session)
         raise SessionAlreadyPaid()
     order = order or Order.objects.create(session=session)
     all_lines = list(session.lines.filter(status=CartLine.CONFIRMED).order_by('created_at')) + new_lines
@@ -69,13 +68,6 @@ def confirm(session: TableSession) -> tuple[Order, bool]:
     return order, True
 
 
-def _close_paid(session: TableSession) -> None:
-    if session.state != TableSession.PAID:
-        session.state = TableSession.PAID
-        session.closed_at = timezone.now()
-        session.save(update_fields=['state', 'closed_at'])
-
-
 def status_view(order: Order) -> dict:
     base = {'id': str(order.id), 'sesion': str(order.session_id), 'total': float(order.total or 0), 'impuestos': float(order.tax or 0), 'intentos': order.attempts}
     if order.state != Order.SENT:
@@ -84,6 +76,6 @@ def status_view(order: Order) -> dict:
     tenant = resolve(session.restaurant_slug, session.venue_slug, session.table_token)
     status = pos.read_order_status(OdooClient(tenant.odoo), order.odoo_order_id)
     if status.state in PAID_STATES:
-        _close_paid(session)  # la siguiente sesión de la mesa empieza limpia
+        close_paid(session)  # la siguiente sesión de la mesa empieza limpia
         return {**base, 'estado': 'pagado'}
     return {**base, 'estado': STATUS_BY_KITCHEN[status.kitchen]}
