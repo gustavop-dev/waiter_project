@@ -17,7 +17,7 @@
     "tintaTerciaria": "#9A8F7E",
     "borde": "#EFE9E0",
     "acento": "#C1873A",
-    "acentoTinta": "#FFFFFF",
+    "acentoTinta": "#1A1815",
     "acentoSuave": "#FDF6EA",
     "displayFont": "Ubuntu",
     "displayPeso": 700,
@@ -43,7 +43,7 @@
   "pantallas": {
     "menu": {
       "layout": "B2",
-      "resumen": "Cabecera sobre acentoSuave («Lo que más piden» / «Los cinco de siempre»), lista numerada de los más pedidos con miniatura cuadrada 52 px, nombre, conteo de pedidos y precio; fila «Ver la carta completa · N platos» y CTA «Pedir el más pedido».",
+      "resumen": "Cabecera sobre acentoSuave («Lo que más piden» / «Los cinco de siempre»), lista numerada de los más pedidos con miniatura cuadrada 52 px, nombre, conteo de pedidos y precio; fila «Ver la carta completa · N platos» y CTA «Pedir el más pedido». acentoTinta = #1A1815 porque el blanco del marco sobre #C1873A da 3.09:1 (el motor pinta la tinta oscura sobre el acento, 5.73:1); los «color: #FFFFFF» de los botones en la estructura documentan el marco tal cual.",
       "datosOpcionales": [
         "pedidos30d"
       ],
