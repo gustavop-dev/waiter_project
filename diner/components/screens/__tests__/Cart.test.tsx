@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 
 import { Cart } from '@/components/screens/Cart'
@@ -7,14 +7,15 @@ import type { Cart as CartData, CartLine, Entry } from '@/lib/types'
 
 const mockPush = jest.fn()
 jest.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush }) }))
-const mockStore = { cart: null as CartData | null, busy: false, error: null as string | null, setQty: jest.fn(), remove: jest.fn(), confirm: jest.fn(), refreshCart: jest.fn() }
-jest.mock('../../../lib/stores/dinerStore', () => ({ useDinerStore: () => mockStore }))
+const mockStore = { cart: null as CartData | null, busy: false, error: null as string | null, setQty: jest.fn(), remove: jest.fn(), confirm: jest.fn(), refreshCart: jest.fn(), ensureSession: jest.fn() }
+jest.mock('@/lib/stores/dinerStore', () => ({ useDinerStore: () => mockStore }))
 
 const brand = { nombre: 'La Provincia', lema: '', logo: null, saludo: '', mesero: 'Alex', bienvenida: '', color: '#7A2E2A', colorTexto: '#FFFFFF', colorSuave: '#F6EBEA', fuente: 'Instrument Serif', radio: 14 }
 const entry: Entry = { contexto: { restaurante: { slug: 'la-provincia', nombre: 'La Provincia' }, sede: { slug: 'centro', nombre: 'Centro' }, mesa: { numero: 14, token: '8H2KQ7' }, marca: brand }, carta: { restaurante: 'la-provincia', categorias: [] } }
 const line = (over: Partial<CartLine>): CartLine => ({ id: 1, comensal: 'me', mio: true, producto_id: 3, nombre: 'Lomo a la parrilla', precio: 38900, cantidad: 2, nota: '', subtotal: 77800, ...over })
 const cartOf = (lineas: CartLine[]): CartData => ({ sesion: 's', lineas, total: lineas.reduce((a, l) => a + l.subtotal, 0), mio: lineas.filter((l) => l.mio).reduce((a, l) => a + l.subtotal, 0), por_comensal: [] })
 const tree = () => <NextIntlClientProvider locale="es" messages={messages}><Cart entry={entry} rest="la-provincia" venue="centro" token="8H2KQ7" id={null} /></NextIntlClientProvider>
+const sendButton = () => screen.getByRole('button', { name: /Enviar a cocina · \$ 77\.800/ })
 
 beforeEach(() => { jest.clearAllMocks(); mockStore.busy = false; mockStore.error = null })
 
@@ -32,17 +33,28 @@ it('renders my lines editable, the others read-only under La mesa, and both subt
   expect(screen.getByText('$ 110.700')).toHaveClass('font-mono')
 })
 
-// Falla si "Enviar a cocina" no lleva al estado del pedido devuelto, si no se relee el carrito al entrar, o si se puede tocar dos veces mientras envía.
+// Falla si "Enviar a cocina" no lleva al estado del pedido devuelto, si se puede tocar dos veces mientras envía, o si el montaje relee el carrito además de la página.
 it('confirms and navigates to the order status with the returned id', async () => {
   mockStore.cart = cartOf([line({})])
-  mockStore.confirm.mockResolvedValue('ord-9')
-  const { rerender } = render(tree())
-  expect(mockStore.refreshCart).toHaveBeenCalledTimes(1)
-  fireEvent.click(screen.getByRole('button', { name: /Enviar a cocina · \$ 77\.800/ }))
+  let finish!: (id: string) => void
+  mockStore.confirm.mockReturnValue(new Promise<string>((resolve) => { finish = resolve }))
+  render(tree())
+  expect(mockStore.ensureSession).toHaveBeenCalledTimes(1)
+  expect(mockStore.refreshCart).not.toHaveBeenCalled()
+  fireEvent.click(sendButton())
+  expect(await screen.findByRole('button', { name: 'Enviando…' })).toBeDisabled()
+  finish('ord-9')
   await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/la-provincia/centro/t/8H2KQ7/estado/ord-9'))
+})
+
+// Falla si el botón dice "Enviando…" cuando el store está ocupado por otra cosa (cambiar una cantidad, releer el carrito) y no por el envío.
+it('keeps the money label while the store is busy with something other than sending', () => {
+  mockStore.cart = cartOf([line({})])
   mockStore.busy = true
-  rerender(tree())
-  expect(screen.getByRole('button', { name: 'Enviando…' })).toBeDisabled()
+  render(tree())
+  expect(sendButton()).toBeDisabled()
+  expect(screen.queryByRole('button', { name: 'Enviando…' })).toBeNull()
+  expect(screen.getByRole('button', { name: 'Más' })).toBeDisabled()
 })
 
 // Falla si el stepper no cambia la cantidad de mi línea, o si bajar de 1 deja cantidad 0 en vez de quitar la línea.
@@ -56,7 +68,7 @@ it('steps quantity and removes the line when it would drop below one', () => {
   fireEvent.click(screen.getAllByRole('button', { name: 'Menos' })[1])
   expect(mockStore.remove).toHaveBeenCalledWith(5)
   expect(mockStore.setQty).not.toHaveBeenCalledWith(5, 0)
-  fireEvent.click(screen.getAllByRole('button', { name: 'Quitar' })[0])
+  fireEvent.click(screen.getByRole('button', { name: 'Quitar: Lomo a la parrilla' }))
   expect(mockStore.remove).toHaveBeenCalledWith(1)
 })
 
@@ -69,4 +81,38 @@ it('shows the empty state with a way back to the menu when nothing was added', (
   fireEvent.click(screen.getByRole('button', { name: 'Ver la carta' }))
   expect(mockPush).toHaveBeenCalledWith('/la-provincia/centro/t/8H2KQ7/carta')
   expect(screen.getByRole('link', { name: /Volver/ })).toHaveAttribute('href', '/la-provincia/centro/t/8H2KQ7')
+})
+
+// Falla si un carrito que no cargó se presenta como vacío, o si no ofrece reintentar la carga.
+it('tells the truth when the cart could not be loaded and offers a retry', () => {
+  mockStore.cart = null
+  mockStore.error = 'Error 503'
+  render(tree())
+  expect(screen.getByText('No pudimos cargar tu pedido.')).toBeInTheDocument()
+  expect(screen.queryByText('Todavía no has agregado nada.')).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Ver la carta' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: 'Intentar de nuevo' }))
+  expect(mockStore.refreshCart).toHaveBeenCalledTimes(1)
+})
+
+// Falla si la acción de dinero baja de los 64 px, pierde el color del restaurante, deja de estar pegada abajo o su cifra sale sin mono.
+it('keeps the money action tall, branded, sticky and with a mono amount', () => {
+  mockStore.cart = cartOf([line({})])
+  render(tree())
+  expect(sendButton()).toHaveClass('h-tap-money', 'bg-brand', 'text-brand-ink')
+  expect(sendButton().parentElement).toHaveClass('sticky', 'bottom-0')
+  expect(within(sendButton()).getByText('77.800')).toHaveClass('font-mono', 'tabular')
+})
+
+// Falla si "La mesa" sin pedidos ajenos calla, si las flechas no cambian de pestaña, si "Quitar" no dice qué quita, o si no hay cómo seguir pidiendo.
+it('names the others-empty state, switches tabs with the arrows and offers to add more', () => {
+  mockStore.cart = cartOf([line({})])
+  render(tree())
+  fireEvent.click(screen.getByRole('tab', { name: 'La mesa' }))
+  expect(screen.getByText('Nadie más ha pedido todavía.')).toBeInTheDocument()
+  expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', 'tab-table')
+  fireEvent.keyDown(screen.getByRole('tab', { name: 'La mesa' }), { key: 'ArrowLeft' })
+  expect(screen.getByRole('tab', { name: 'Lo mío' })).toHaveAttribute('aria-selected', 'true')
+  expect(screen.getByRole('button', { name: 'Quitar: Lomo a la parrilla' })).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'Agregar algo más' })).toHaveAttribute('href', '/la-provincia/centro/t/8H2KQ7/carta')
 })
