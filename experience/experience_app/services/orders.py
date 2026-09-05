@@ -93,7 +93,10 @@ def confirm(session: TableSession, diner: Diner | None = None) -> tuple[Order, b
 
 
 def status_view(order: Order) -> dict:
-    base = {'id': str(order.id), 'sesion': str(order.session_id), 'total': float(order.total or 0), 'impuestos': float(order.tax or 0), 'intentos': order.attempts}
+    saved = sum((line.discount_amount for line in order.lines.all()), 0)
+    pct = max((line.discount for line in order.lines.all()), default=0)
+    base = {'id': str(order.id), 'sesion': str(order.session_id), 'total': float(order.total or 0), 'impuestos': float(order.tax or 0), 'intentos': order.attempts,
+            'descuento': {'porcentaje': float(pct), 'monto': float(saved), 'aplicado': bool(saved)}}
     if order.state != Order.SENT:
         return {**base, 'estado': 'fallido', 'detalle': order.last_error}
     session = order.session

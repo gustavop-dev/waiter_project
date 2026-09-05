@@ -17,7 +17,7 @@
     "tintaTerciaria": "#9A8F7E",
     "borde": "#E4DED4",
     "acento": "#C1873A",
-    "acentoTinta": "#FFFFFF",
+    "acentoTinta": "#1A1815",
     "acentoSuave": "#FDF6EA",
     "displayFont": "Ubuntu",
     "displayPeso": 700,
@@ -43,7 +43,7 @@
   "pantallas": {
     "menu": {
       "layout": "C3",
-      "resumen": "Marco blanco. Cabecera con barra de progreso (un segmento por categoría/paso, los hechos en acento), «Paso {i} de {n}» 13 px terciario y el título «Elige {categoría}» 21/700; lista de opciones (productos de la categoría) como filas de borde 1 px radio 12 con nombre 16 px y precio mono 14 px a la derecha («incluido» o «+{precio}»); la elegida con borde 2 px de acento y fondo acento suave; el agotado con opacidad 0,6 y «agotado» en rojo. Pie con «Va en {total acumulado}» en mono 18 y CTA «Siguiente» (último paso: «Añadir»). Cada categoría es un paso; los pasos son las categorías de la carta en orden.",
+      "resumen": "Marco blanco. Cabecera con barra de progreso (un segmento por categoría/paso, los hechos en acento), «Paso {i} de {n}» 13 px terciario y el título «Elige {categoría}» 21/700; lista de opciones (productos de la categoría) como filas de borde 1 px radio 12 con nombre 16 px y precio mono 14 px a la derecha («incluido» o «+{precio}»); la elegida con borde 2 px de acento y fondo acento suave; el agotado con opacidad 0,6 y «agotado» en rojo. Pie con «Va en {total acumulado}» en mono 18 y CTA «Siguiente» (último paso: «Añadir»). Cada categoría es un paso; los pasos son las categorías de la carta en orden. El marco pinta blanco sobre el acento (#FFFFFF / #C1873A = 3.09:1); acentoTinta se fija en la tinta oscura del marco #1A1815 (5.73:1) y así deben pintarse los CTAs, la banda de total y los botones sobre acento.",
       "datosOpcionales": [
         "incluido",
         "precioBase"

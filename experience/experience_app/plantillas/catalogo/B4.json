@@ -40,7 +40,7 @@
   "pantallas": {
     "menu": {
       "layout": "B4",
-      "resumen": "Pizarra verde oscura: cabecera con «Hoy, martes», título grande «Corrientazo» y precio único en mono; cuatro pasos (Sopa / Principio / Proteína / Jugo) con las opciones separadas por « · » y recargos «+4.000» en mono; CTA crema «Armar mi corrientazo».",
+      "resumen": "Pizarra verde oscura: cabecera con «Hoy, martes», título grande «Corrientazo» y precio único en mono; cuatro pasos (Sopa / Principio / Proteína / Jugo) con las opciones separadas por « · » y recargos «+4.000» en mono; CTA crema «Armar mi corrientazo». borde (#506E54) y tintaTerciaria (#A7B3A1) son compuestos del marco sobre #2F5233: rgba(255,255,255,0.16) y la crema #F1EFE4 con opacity 0.62 (rótulos de paso); acentoSuave (#465A34) es rgba(193,135,58,0.16) del banner de registro.",
       "datosOpcionales": [
         "menuDelDia",
         "paso",

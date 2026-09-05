@@ -9,7 +9,7 @@ export const DEFAULT_TEMPLATE: Template = {
   tokens: {
     modo: 'claro',
     fondo: '#FFFFFF', superficie: '#FAF8F5', tinta: '#1A1815', tintaSuave: '#7A7166', tintaTerciaria: '#9A8F7E',
-    borde: '#EFE9E0', acento: '#C1873A', acentoTinta: '#FFFFFF', acentoSuave: '#FDF6EA',
+    borde: '#EFE9E0', acento: '#C1873A', acentoTinta: '#1A1815', acentoSuave: '#FDF6EA',
     displayFont: 'Ubuntu', displayPeso: 700, displayTracking: '-0.02em', displayTransform: 'none',
     cuerpoFont: 'Ubuntu', monoFont: 'IBM Plex Mono',
     radioTarjeta: 14, radioBoton: 12, radioChip: 999, densidad: 'media',

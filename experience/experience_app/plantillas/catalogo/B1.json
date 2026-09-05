@@ -17,7 +17,7 @@
     "tintaTerciaria": "#9A8F7E",
     "borde": "#EFE9E0",
     "acento": "#C1873A",
-    "acentoTinta": "#FFFFFF",
+    "acentoTinta": "#1A1815",
     "acentoSuave": "#FDF6EA",
     "displayFont": "Ubuntu",
     "displayPeso": 700,
@@ -43,7 +43,7 @@
   "pantallas": {
     "menu": {
       "layout": "B1",
-      "resumen": "Píldoras de categoría arriba (activa en acento), rejilla de 2 columnas con foto de 82 px de alto, nombre, precio en mono y ＋ redondo en acento; barra oscura de pedido abajo.",
+      "resumen": "Píldoras de categoría arriba (activa en acento), rejilla de 2 columnas con foto de 82 px de alto, nombre, precio en mono y ＋ redondo en acento; barra oscura de pedido abajo. acentoTinta = #1A1815 porque el blanco del marco sobre #C1873A da 3.09:1 (el motor pinta la tinta oscura sobre el acento, 5.73:1); los «color: #FFFFFF» de los botones en la estructura documentan el marco tal cual.",
       "datosOpcionales": [],
       "estructura": [
         {

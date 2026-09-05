@@ -5,6 +5,7 @@ ni cambia la sesión: el POS sigue cobrando en la mesa. Cuando llegue la pasarel
 endpoint se reemplaza por el adaptador real en experience_app/payments/ y la respuesta pierde `demo`.
 """
 import logging
+import math
 import uuid
 
 from django.shortcuts import get_object_or_404
@@ -27,6 +28,8 @@ def simulated(request, session_id):
         return Response({'detail': f"Método de pago inválido; usa {', '.join(METHODS)}"}, status=400)
     try:
         amount = round(float(request.data.get('monto')), 2)
+        if not math.isfinite(amount):
+            raise ValueError('monto no finito')
     except (TypeError, ValueError):
         amount = -1
     if amount < 0:

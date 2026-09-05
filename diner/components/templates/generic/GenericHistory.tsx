@@ -41,7 +41,7 @@ export function GenericHistory({ orders, onReorder }: HistoryProps) {
                 <span className="text-[13px] text-t-tinta-suave">{o.mesa !== null ? t('line', { date: dayLabel(o.fecha), table: o.mesa, items: o.items }) : t('lineNoTable', { date: dayLabel(o.fecha), items: o.items })}</span>
                 <div className="flex flex-wrap items-center gap-1.5">
                   {o.estado === 'pagado' ? <span className={`${chip} bg-free-soft text-free-ink`}>{t('paid')}</span> : <span className={`${chip} bg-pending-soft text-pending-ink`}>{t('pending')}</span>}
-                  {o.descuento > 0 && <span className={`${chip} bg-t-acento-suave text-[#6B4A05]`}>{t('discount', { pct: o.descuento })}</span>}
+                  {o.descuento > 0 && <span className={`${chip} bg-t-acento-suave text-[#6B4A05]`}>{t('discount', { amount: formatCop(o.descuento) })}</span>}
                   {o.lineas && o.lineas.length > 0 && <button type="button" onClick={() => onReorder(o)} className="ml-auto h-tap-min px-3 rounded-t-boton bg-t-acento text-t-acento-tinta text-[13px] font-medium">{t('reorder')}</button>}
                 </div>
               </li>

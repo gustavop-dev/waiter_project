@@ -17,7 +17,7 @@
     "tintaTerciaria": "#8B8175",
     "borde": "#E4DED4",
     "acento": "#C1873A",
-    "acentoTinta": "#FFFFFF",
+    "acentoTinta": "#1A1815",
     "acentoSuave": "#FDF6EA",
     "displayFont": "Ubuntu",
     "displayPeso": 700,
@@ -43,7 +43,7 @@
   "pantallas": {
     "menu": {
       "layout": "C2",
-      "resumen": "Marco blanco. Arriba la foto del producto a sangre (176 px de alto en el marco; foto vertical) con chip rojo «Solo hoy» abajo a la izquierda si atributos.soloHoy; debajo nombre 24/700 y precio mono 20 en la misma línea, descripción 15 px, selector de tamaño segmentado (atributos.tamanos; el activo en tinta con texto blanco), fila de upsell en acento suave con ＋ redondo; pie con stepper de cantidad y CTA «Añadir {precio}». Un producto por pantalla, se pasa al siguiente deslizando; categorías y búsqueda quedan fuera del marco (las pinta el motor).",
+      "resumen": "Marco blanco. Arriba la foto del producto a sangre (176 px de alto en el marco; foto vertical) con chip rojo «Solo hoy» abajo a la izquierda si atributos.soloHoy; debajo nombre 24/700 y precio mono 20 en la misma línea, descripción 15 px, selector de tamaño segmentado (atributos.tamanos; el activo en tinta con texto blanco), fila de upsell en acento suave con ＋ redondo; pie con stepper de cantidad y CTA «Añadir {precio}». Un producto por pantalla, se pasa al siguiente deslizando; categorías y búsqueda quedan fuera del marco (las pinta el motor). El marco pinta blanco sobre el acento (#FFFFFF / #C1873A = 3.09:1); acentoTinta se fija en la tinta oscura del marco #1A1815 (5.73:1) y así deben pintarse los CTAs, la banda de total y los botones sobre acento.",
       "datosOpcionales": [
         "complemento"
       ],

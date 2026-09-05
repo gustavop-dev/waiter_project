@@ -27,7 +27,7 @@
     "monoFont": "IBM Plex Mono",
     "radioTarjeta": 12,
     "radioBoton": 12,
-    "radioChip": 8,
+    "radioChip": 6,
     "densidad": "media"
   },
   "personalizable": {

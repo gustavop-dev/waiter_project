@@ -48,7 +48,7 @@ def test_accent_ink_and_soft_are_recomputed_only_when_the_accent_changes(b1):
     """Atrapa texto blanco sobre un acento claro (ilegible) o un acentoSuave que no siga al acento; y atrapa que se
     recalculen cuando el acento es el del diseño (perdería la tinta exacta que eligió el diseñador)."""
     designed = services.final_tokens(b1.spec, NO_BRAND, {}, {})
-    assert (designed['acentoTinta'], designed['acentoSuave']) == ('#FFFFFF', '#FDF6EA')
+    assert (designed['acentoTinta'], designed['acentoSuave']) == ('#1A1815', '#FDF6EA')  # B1: tinta oscura sobre el dorado (5.73:1)
     light = services.final_tokens(b1.spec, {'color': '#F2C94C', 'fuente': '', 'radio': None}, {}, {})
     assert light['acentoTinta'] == '#1A1815'
     assert light['acentoSuave'] == '#FEFAED'  # = utils/brand.soft_for sobre el fondo blanco de B1

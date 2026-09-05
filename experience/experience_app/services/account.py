@@ -83,16 +83,23 @@ def history(account: DinerAccount) -> list[dict]:
     orders = (Order.objects.filter(state=Order.SENT, session__diners__account=account)
               .distinct().select_related('session').order_by('-created_at'))
     diner_ids = set(account.diners.values_list('id', flat=True))
-    lines = CartLine.objects.filter(order__in=orders, diner_id__in=diner_ids)
+    lines = CartLine.objects.filter(order__in=orders, diner_id__in=diner_ids).order_by('created_at')
     mine_by_order: dict = {}
+    lines_by_order: dict = {}
     for line in lines:
         mine, saved = mine_by_order.get(line.order_id, (0, 0))
         mine_by_order[line.order_id] = (mine + line.net_subtotal, saved + line.discount_amount)
+        lines_by_order.setdefault(line.order_id, []).append(
+            {'producto_id': line.product_id, 'nombre': line.name, 'cantidad': line.qty, 'precio': float(line.shown_unit_price)})
     out = []
     for order in orders:
         mine, saved = mine_by_order.get(order.id, (0, 0))
+        mine_lines = lines_by_order.get(order.id, [])
+        # `local` es el nombre legible del restaurante; la sesión solo guarda slugs (el nombre real llega con el contexto).
         out.append({'id': str(order.id), 'fecha': order.created_at.isoformat(), 'total': float(order.total or 0),
                     'mio': float(mine), 'descuento': float(saved), 'mesa': order.session.table_number,
                     'estado': 'pagado' if order.session.state == TableSession.PAID else 'enviado',
-                    'restaurante': order.session.restaurant_slug, 'sede': order.session.venue_slug})
+                    'restaurante': order.session.restaurant_slug, 'sede': order.session.venue_slug,
+                    'local': order.session.restaurant_slug.replace('-', ' ').title(),
+                    'items': sum(line['cantidad'] for line in mine_lines), 'lineas': mine_lines})
     return out

@@ -178,7 +178,7 @@
         "lineNoTable": "{date} · {items, plural, one {# ítem} other {# ítems}}",
         "paid": "Pagado",
         "pending": "Pendiente",
-        "discount": "−{pct}%",
+        "discount": "Ahorraste $ {amount}",
         "reorder": "Volver a pedir",
         "emptyTitle": "Todavía nada por aquí",
         "emptyBody": "Cuando pidas por primera vez, tu pedido y tu factura quedan guardados acá.",

@@ -5,6 +5,8 @@ POST /api/v1/cuenta/verificar/  {id, codigo}  → demo: cualquier código de sei
 GET  /api/v1/cuenta/            perfil + historial (pedidos de las sesiones donde participó esta cuenta)
 POST /api/v1/cuenta/salir/      desliga la cuenta de esta cookie
 """
+import uuid
+
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -35,7 +37,12 @@ def register(request):
 @api_view(['POST'])
 def verify(request):
     diner = _diner(request)
-    account = get_object_or_404(DinerAccount, id=str(request.data.get('id') or ''))
+    raw_id = str(request.data.get('id') or '')
+    try:
+        account_id = uuid.UUID(raw_id)
+    except ValueError:
+        return Response({'detail': 'La cuenta indicada no existe'}, status=404)
+    account = get_object_or_404(DinerAccount, id=account_id)
     try:
         accounts.verify(account, diner, request.data.get('codigo'))
     except accounts.InvalidCode:
@@ -48,7 +55,8 @@ def profile(request):
     diner = _diner(request)
     if diner.account is None or not diner.account.verified:
         return Response(NO_ACCOUNT, status=404)
-    return Response({'cuenta': accounts.profile_view(diner.account), 'historial': accounts.history(diner.account)})
+    # `pedidos` es la clave que consume el comensal (Contrato 3 / diner AccountSummary).
+    return Response({'cuenta': accounts.profile_view(diner.account), 'pedidos': accounts.history(diner.account)})
 
 
 @api_view(['POST'])

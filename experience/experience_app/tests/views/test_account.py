@@ -39,7 +39,7 @@ def test_register_verify_and_read_the_profile(api_client, diner):
     assert Diner.objects.get(id=diner['comensal']['id']).account_id == account.id
     profile = api_client.get(PROFILE).json()
     assert (profile['cuenta']['nombre'], profile['cuenta']['celular'], profile['cuenta']['descuentoDisponible']) == ('Camila Rojas', '+57 310 555 4821', True)
-    assert profile['historial'] == []
+    assert profile['pedidos'] == []
 
 
 @pytest.mark.django_db
@@ -115,14 +115,14 @@ def test_history_lists_the_orders_of_every_session_the_account_took_part_in(api_
             patch('experience_app.services.orders.pos.create_order', return_value=SENT), \
             patch('experience_app.services.orders.pos.fire_course', return_value=21), patch('experience_app.services.orders.pos.set_table_call'):
         order_id = api_client.post(reverse('confirm', args=[sid]), format='json').json()['pedido']
-    history = api_client.get(PROFILE).json()['historial']
+    history = api_client.get(PROFILE).json()['pedidos']
     assert len(history) == 1
     entry = history[0]
     assert (entry['id'], entry['total'], entry['mesa'], entry['estado'], entry['sede']) == (order_id, 87822.0, 8, 'enviado', 'poblado')
     assert (entry['mio'], entry['descuento']) == (83430.9, 4391.1)  # 5 % sobre mis 87.822
     TableSession.objects.filter(id=sid).update(state=TableSession.PAID)
-    assert api_client.get(PROFILE).json()['historial'][0]['estado'] == 'pagado'
+    assert api_client.get(PROFILE).json()['pedidos'][0]['estado'] == 'pagado'
     stranger = api_client.__class__()
     stranger.post(reverse('open-session'), PAYLOAD, format='json')
     signup(stranger, correo='otro@correo.com')
-    assert stranger.get(PROFILE).json()['historial'] == []  # misma mesa, otra cuenta: sin líneas suyas no es su pedido
+    assert stranger.get(PROFILE).json()['pedidos'] == []  # misma mesa, otra cuenta: sin líneas suyas no es su pedido

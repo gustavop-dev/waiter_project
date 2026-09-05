@@ -111,3 +111,9 @@ Thumbs.db
 
 # Worktrees de agentes de la sesión
 .claude/worktrees/
+
+# Los venv y node_modules también como symlink (los worktrees de agentes los enlazan al repo principal)
+/experience/venv
+/registry/venv
+/pos/node_modules
+/diner/node_modules
