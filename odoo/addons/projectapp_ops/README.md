@@ -2,8 +2,10 @@
 
 Addon **sin interfaz** para el backoffice propio (`pos/`): `pos.order.waiter_origin`
 (mesero / comensal / IA), umbrales de alerta y supuestos del ROI en `pos.config`
-(llegan al cliente por `load_data`), marca del restaurante en `res.company` y origen de
-la imagen en `product.template`. Instalación: `-i projectapp_ops`.
+(llegan al cliente por `load_data`), marca del restaurante en `res.company`, origen de
+la imagen y atributos para el comensal en `product.template`, descuento de primera compra en
+`pos.config` y la pasarela `/waiter/admin/menu_settings` hacia `experience/`. Instalación:
+`-i projectapp_ops`.
 
 ## Roles (`res.users.waiter_role`)
 
@@ -54,6 +56,67 @@ junto a los demás campos de `product.template`, así que lo ven el POS y `exper
 - Límite legal: una imagen generada no representa la porción servida. Marcar el origen no es
   opcional cuando la foto es generada.
 - Actualizar en un Odoo ya instalado: `-u projectapp_ops` (agrega la columna; no hay datos ni vistas).
+
+## Descuento de primera compra (`pos.config.signup_discount_percent`)
+
+Plan H. `Float`, por defecto `5.0`; `0` lo apaga. Viaja en `pos.session.load_data` (añadido en
+`_load_pos_data_fields`, `models/config.py`), así que `experience/` lo lee con la carta y lo aplica
+**de verdad** al confirmar: las líneas del comensal con cuenta verificada llegan a Odoo con
+`pos.order.line.discount = <porcentaje>`, una sola vez por cuenta (`DinerAccount.discount_used_at`).
+Si el campo no existe aún (`-u projectapp_ops` pendiente) `experience/` asume el 5 % del diseño.
+
+## Atributos por plato (`product.template.diner_attributes`)
+
+Plan H, Contrato 2. `Text` con un objeto JSON, sin vistas, editable por RPC (el POS lo editará en
+Catálogo en un plan posterior):
+
+```json
+{"piezas": 8, "picante": 2, "etiquetas": ["popular"], "alergenos": ["maní"], "abv": 5.2, "ibu": 40,
+ "tamanos": [{"nombre": "Copa", "precio": 18000}], "soloHoy": true}
+```
+
+Viaja en `load_data` junto a `image_origin`; `experience/` lo parsea con tolerancia (lo que no sea un
+objeto JSON válido sale como `{}`) y lo expone en cada plato como `atributos`. Una plantilla del
+comensal pinta el atributo si existe y lo omite si no; nunca inventa datos.
+
+## Pasarela de la plantilla del menú (`/waiter/admin/menu_settings`)
+
+Plan H. Controller JSON-RPC (`controllers/admin.py`), `auth='user'`, solo
+`point_of_sale.group_pos_manager` (los demás reciben `AccessError`). Reenvía a
+`GET/PUT /internal/v1/<rest>/<sede>/menu/` de `experience/` con `X-Internal-Key`, `requests` y
+10 s de espera; los errores de red y los rechazos de `experience/` llegan al POS como `UserError`
+en español. Así el navegador nunca conoce la clave interna.
+
+| Acción | Cuerpo (`params`) | Respuesta |
+|---|---|---|
+| `get` | — | `{restaurante, sede, experienceUrl, dinerUrl, ajustes: {plantilla, paleta, tipografia, actualizado, porDefecto}}` |
+| `set` | `{plantilla: "B1", paleta: {acento: "#…"}, tipografia: {display: "Fraunces"}}` | `{plantilla: <la resuelta que verá el comensal>}` |
+
+Parámetros del sistema (`ir.config_parameter`) que debe sembrar el onboarding:
+
+| Clave | Valor |
+|---|---|
+| `projectapp.experience_url` | URL base de `experience/` (dev: `http://192.168.56.10:8001`) |
+| `projectapp.experience_internal_key` | el `EXPERIENCE_INTERNAL_KEY` de `experience/.env` |
+| `projectapp.restaurant_slug` | slug del restaurante en el registro (demo: `burger-house`) |
+| `projectapp.venue_slug` | slug de la sede (demo: `poblado`) |
+| `projectapp.diner_url` | URL pública de la app del comensal (dev: `http://192.168.56.10:3001`), para la vista previa por iframe |
+
+En dev: `EXPERIENCE_INTERNAL_KEY=… odoo/provisioning/seed-menu-params.sh` (usa `odoo shell` en el
+compose). A mano, desde `odoo shell -d projectapp`:
+
+```python
+icp = env['ir.config_parameter'].sudo()
+icp.set_param('projectapp.experience_url', 'http://192.168.56.10:8001')
+icp.set_param('projectapp.experience_internal_key', '<EXPERIENCE_INTERNAL_KEY>')
+icp.set_param('projectapp.restaurant_slug', 'burger-house')
+icp.set_param('projectapp.venue_slug', 'poblado')
+icp.set_param('projectapp.diner_url', 'http://192.168.56.10:3001')
+env.cr.commit()
+```
+
+- Actualizar en un Odoo ya instalado: `-u projectapp_ops` (agrega las dos columnas; no hay datos ni vistas).
+- Tests del addon (`tests/test_menu_settings.py`): `-u projectapp_ops --test-enable` en una base de prueba.
 
 ## Invitaciones y códigos
 
