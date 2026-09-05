@@ -53,6 +53,28 @@ mesero" de operación en vivo. Cobrar la mesa o atender la alerta lo limpia.
 - La E2E `pos/e2e/comensal-salon.spec.ts` prueba de punta a punta que
   "llamar al mesero" desde el celular llega al salón (*Asistencia*) y a
   operación en vivo, y que "Voy yo" lo limpia.
+- Las pantallas 3 a 5 salieron de dos workflows ultracode (12 agentes para
+  construir y verificar por dos lentes; 8 para corregir y recomprobar). Los
+  hallazgos que se aplicaron: el token `rounded-r` chocaba con la utilidad
+  de Tailwind (ahora `rounded-rest`, con test guardián); un SVG servido como
+  foto permitía XSS (las fotos son solo ráster, con `nosniff` y CSP
+  `sandbox`); la pantalla de estado sondeaba sin parar tras un pedido
+  fallido; y el árbol de `diner/node_modules` se había colado en un commit
+  (la rama se reescribió limpia y `.gitignore` lo cubre).
+- Precios: Odoo guarda el precio de lista y suma los impuestos encima
+  (IVA 19 % en la demo). El comensal ve siempre el **precio final**
+  (`Product.final_price`, `CartLine.final_unit_price`): carta, carrito,
+  botón de enviar, estado y cuenta muestran la misma cifra que cobra el POS.
+  A Odoo sigue viajando el precio de lista.
+- Una visita termina cuando el salón cobra: al confirmar sobre un pedido
+  pagado la API responde 409 y cierra la sesión; abrir sesión o consultar el
+  estado sobre un pedido pagado también la cierra. El siguiente toque al NFC
+  arranca limpio. La app del comensal reabre sesión sola ante el 409.
+- Recargar la página del comensal conservaba la sesión (cookie) pero no traía
+  el carrito: la barra de pedido desaparecía. Ahora se trae al cargar.
+- Pendiente de decisión del usuario: quién edita la marca del restaurante
+  (hoy la fija ProjectApp en el registro al hacer el onboarding; la
+  alternativa es un panel en Configuración del POS guardando en Odoo).
 
 ## Tareas
 
@@ -64,15 +86,15 @@ mesero" de operación en vivo. Cobrar la mesa o atender la alerta lo limpia.
 2. ✅ `diner/`: andamiaje (proxy a `experience`, tokens `--w-*` fijos + `--r-*`
    por restaurante, i18n es, PWA), cliente de API, stores, componentes base
    (`Header`, `OrderBar`, `DishCard`, sello Waiter) y **Portada**.
-3. **Carta** (categorías, búsqueda, tarjetas) y **Plato** (detalle, nota,
+3. ✅ **Carta** (categorías, búsqueda, tarjetas) y **Plato** (detalle, nota,
    cantidad, agregar).
-4. **Pedido** (carrito compartido: la mesa / lo mío, editar, quitar,
+4. ✅ **Pedido** (carrito compartido: la mesa / lo mío, editar, quitar,
    confirmar con manejo de "el restaurante no responde") y **Estado**
    (enviado → en cocina → listo → servido, sondeo; "pedir más").
-5. **Llamar al mesero** y **Pedir la cuenta** (resumen todo / lo mío /
+5. ✅ **Llamar al mesero** y **Pedir la cuenta** (resumen todo / lo mío /
    dividir; "Pagar desde el celular · pronto"); estados en el POS de punta a
    punta.
-6. Revisión adversarial por pantalla, E2E comensal ↔ POS, docs, PR.
+6. ✅ Revisión adversarial por pantalla, E2E comensal ↔ POS, docs, PR.
 
 Fuera: pasarela (decisión pendiente), Mesero IA (la línea del mesero es texto
 del restaurante), modo offline, notificaciones push, varios idiomas.
