@@ -1,9 +1,10 @@
 'use client'
 
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 
 import { tabId } from '@/components/templates/generic/menuParts'
-import { itemCount } from '@/lib/domain/cart'
+import { formatCop, itemCount } from '@/lib/domain/cart'
 import { useDinerStore } from '@/lib/stores/dinerStore'
 import type { Cart, Category, Dish, Menu } from '@/lib/types'
 
@@ -100,10 +101,11 @@ export function DishPhoto({ dish, className = '', badge = true }: { dish: Dish; 
   )
 }
 
-// ＋ con área de toque de 44 px; el círculo dibujado lo decide el marco. Agotado: no hay ＋, se dice «Agotado».
-export function AddButton({ dish, onAdd, circle = 'w-[34px] h-[34px] rounded-full bg-t-acento text-t-acento-tinta text-[17px]' }: { dish: Dish; onAdd: (d: Dish) => void; circle?: string }) {
+// ＋ con área de toque de 44 px; el círculo dibujado lo decide el marco. Agotado: no hay ＋ y se dice «Agotado» una sola vez:
+// si la fila ya lleva la insignia sobre la foto (DishPhoto), soldOutLabel=false evita repetirlo.
+export function AddButton({ dish, onAdd, circle = 'w-[34px] h-[34px] rounded-full bg-t-acento text-t-acento-tinta text-[17px]', soldOutLabel = true }: { dish: Dish; onAdd: (d: Dish) => void; circle?: string; soldOutLabel?: boolean }) {
   const t = useTranslations('diner.common')
-  if (dish.agotado) return <span className="text-[12px] font-medium text-busy-ink">{t('soldOut')}</span>
+  if (dish.agotado) return soldOutLabel ? <span className="text-[12px] font-medium text-busy-ink">{t('soldOut')}</span> : null
   return (
     <button type="button" aria-label={`${t('add')}: ${dish.nombre}`} onClick={() => onAdd(dish)} className="w-11 h-11 -m-[5px] shrink-0 grid place-items-center">
       <span aria-hidden="true" className={`grid place-items-center leading-none ${circle}`}>＋</span>
@@ -132,3 +134,23 @@ export function ReferenceNote({ menu }: { menu: Menu }) {
 
 // Enlace dorado sobre la barra oscura (F1): el marco lo fija en #C1873A porque el acento de F1 es negro y no contrastaría sobre #1A1815.
 export const BAR_LINK = 'text-[#C1873A]'
+
+// Barra de pedido de la familia (la del marco de F1): «18 piezas · 62.000» + «Ver pedido →» sobre la barra oscura de Waiter.
+// La página ya no pinta su OrderBar sobre los layouts registrados, así que esta barra es el único camino al pedido desde la carta
+// y la comparten los cinco menús, pegada al pie junto al pie propio de cada marco (Foot). Con el carrito vacío no se pinta.
+export function FOrderBar({ cart, menu, href }: { cart: Cart | null; menu: Menu | null | undefined; href: string }) {
+  const t = useTranslations('diner.orderBar')
+  const countLabel = useCountLabel()
+  if (itemCount(cart) === 0) return null
+  return (
+    <Link href={href} aria-label={t('yourOrder')} data-testid="f-order-bar" className="px-5 py-3 min-h-11 border-t border-t-borde bg-dark text-dark-ink flex items-center justify-between">
+      <span className="text-[14px]">{countLabel(cart, menu)} · <span className="font-t-mono tabular">{formatCop(cart?.total ?? 0)}</span></span>
+      <span className={`text-[14px] font-medium ${BAR_LINK}`}>{t('seeOrder')}</span>
+    </Link>
+  )
+}
+
+// Pie pegado abajo: la barra de pedido y, debajo, el pie que dibuja el marco (CTA, nota o botón). Una sola pieza fija por pantalla.
+export function Foot({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return <div className={`sticky bottom-0 z-30 flex flex-col bg-t-fondo ${className}`}>{children}</div>
+}

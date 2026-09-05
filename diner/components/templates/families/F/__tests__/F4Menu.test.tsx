@@ -1,7 +1,7 @@
 import { fireEvent, screen, within } from '@testing-library/react'
 
 import { F4Menu } from '@/components/templates/families/F/F4Menu'
-import { entryOf, menuProps, wrap } from '@/components/templates/families/F/__tests__/fixtures'
+import { cartOf, entryOf, line, menuProps, wrap } from '@/components/templates/families/F/__tests__/fixtures'
 
 // Falla si la escala de picante no llena tantas barras como atributos.picante (de cuatro), si se pinta sin dato, o si «Contiene:» falta o se inventa.
 it('paints the spicy scale and the allergens only when the data exists', () => {
@@ -15,6 +15,14 @@ it('paints the spicy scale and the allergens only when the data exists', () => {
   expect(within(rows[0]).queryByLabelText(/Picante/)).toBeNull()
   expect(within(rows[2]).queryByText(/Contiene/)).toBeNull()
   expect(within(rows[0]).queryByRole('presentation')).toBeNull()
+})
+
+// Falla si picante 0 pinta la escala vacía: 0 es «sin picante», se omite como cuando falta el atributo (F1 tampoco pone chip).
+it('omits the spicy scale when picante is 0', () => {
+  const mild = entryOf([{ id: 1, nombre: 'Platos', productos: [{ id: 9, nombre: 'Arroz', precio: 12000, agotado: false, categorias: [1], atributos: { picante: 0 } }] }])
+  wrap(<F4Menu {...menuProps('F4', { entry: mild })} />)
+  expect(screen.queryByText('Picante')).toBeNull()
+  expect(screen.queryByLabelText(/Picante/)).toBeNull()
 })
 
 // Falla si las píldoras no salen de los alérgenos y etiquetas de la carta, si el filtro borra el plato en vez de atenuarlo y explicar, o si la activa no va en verde.
@@ -54,5 +62,19 @@ it('opens from the row and adds from the plus, never for a sold-out dish', () =>
   fireEvent.click(screen.getByRole('button', { name: 'Agregar: Set 24 piezas' }))
   expect(props.onAdd).toHaveBeenCalledWith(expect.objectContaining({ id: 5 }))
   expect(screen.queryByRole('button', { name: 'Agregar: Anguila de río' })).toBeNull()
-  expect(screen.getByText('Anguila de río').closest('li')).toHaveClass('opacity-55')
+  // Agotado: el cuerpo se atenúa una sola vez y «Agotado» queda legible a la derecha, fuera de lo atenuado.
+  const anguila = screen.getByText('Anguila de río').closest('li')
+  expect(anguila).not.toHaveClass('opacity-55')
+  expect(screen.getByText('Anguila de río').closest('button')).toHaveClass('opacity-55')
+  expect(within(anguila as HTMLElement).getByText('Agotado')).toHaveClass('text-busy-ink')
+  expect(within(anguila as HTMLElement).getAllByText('Agotado')).toHaveLength(1)
+})
+
+// Falla si la barra de pedido de la familia no acompaña a la nota del pie cuando hay pedido (la página ya no pinta la suya).
+it('sticks the order bar above the footer note when there is an order', () => {
+  wrap(<F4Menu {...menuProps('F4', { cart: cartOf([line({})]) })} />)
+  const bar = screen.getByRole('link', { name: 'Tu pedido' })
+  expect(bar).toHaveTextContent('16 piezas · 56.000')
+  expect(bar.parentElement).toHaveClass('sticky', 'bottom-0')
+  expect(bar.parentElement).toHaveTextContent(/El filtro no borra el plato/)
 })

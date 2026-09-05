@@ -24,6 +24,22 @@ it('renders the rows with photo, pieces and the optional chips only when the dat
   expect(anguila.getByRole('presentation')).toHaveClass('opacity-55')
   expect(anguila.getByTestId('sold-out-badge')).toBeInTheDocument()
   expect(anguila.queryByRole('button', { name: /Agregar/ })).toBeNull()
+  // Una sola vez: la insignia sobre la foto; el precio sigue a la derecha sin repetir «Agotado».
+  expect(anguila.getAllByText('Agotado')).toHaveLength(1)
+  expect(anguila.getByText('42.000')).toBeInTheDocument()
+})
+
+// Falla si el chip vuelve a caer bajo el nombre (el marco lo pone a la derecha en la misma línea): la fila no envuelve y el nombre se recorta antes que el chip.
+it('keeps the chip on the same line as the name', () => {
+  wrap(<F1Menu {...menuProps('F1')} />)
+  const name = screen.getByText('Spicy tuna')
+  const chip = screen.getByText('picante 2')
+  expect(name.parentElement).toBe(chip.parentElement)
+  expect(name.parentElement).toHaveClass('flex', 'items-center')
+  expect(name.parentElement).not.toHaveClass('flex-wrap')
+  expect(name).toHaveClass('truncate')
+  expect(chip).toHaveClass('shrink-0')
+  expect(screen.queryByText('picante 0')).toBeNull()
 })
 
 // Falla si la fila no abre el plato, si el ＋ no agrega exactamente ese plato, o si las pestañas no son rectangulares con la activa en el acento.
@@ -48,6 +64,9 @@ it('shows the dark order bar with the pieces sum and hides it when the cart is e
   const bar = screen.getByRole('link', { name: 'Tu pedido' })
   expect(bar).toHaveAttribute('href', '/kaiseki/centro/t/T0K3N/pedido')
   expect(bar).toHaveClass('bg-dark')
+  // Una sola barra, pegada al pie como en el marco (la página ya no pinta la suya sobre este layout).
+  expect(screen.getAllByRole('link', { name: /pedido/i })).toHaveLength(1)
+  expect(bar.parentElement).toHaveClass('sticky', 'bottom-0')
   expect(bar).toHaveTextContent('16 piezas · 65.000')
   expect(bar).toHaveTextContent('Ver pedido →')
   expect(within(bar).getByText('65.000')).toHaveClass('font-t-mono')

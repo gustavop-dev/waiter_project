@@ -79,17 +79,38 @@ it('F3: serif centred header, dotted leaders, outline CTA and the used-discount 
   expect(screen.queryByText('Descuento primera compra 5%')).toBeNull()
 })
 
-// Falla si F5 no pinta avatares por comensal, la fila «Para la mesa» con lo ajeno, el selector de propina o «Pagar lo mío».
-it('F5: avatars per diner, the table row, the tip selector and Pagar lo mío', () => {
-  const props = base('F5', { cart: cartOf([line({}), line({ id: 3, comensal: 'x', mio: false, producto_id: 4, nombre: 'Sopa miso', precio: 9000, cantidad: 1, subtotal: 9000 })]) })
+// Falla si F5 no pinta un avatar por comensal (el mismo comensal, el mismo número; tres colores rotando), si vuelve la fila «Para la
+// mesa» sumando lo ajeno dos veces, si la propina entra en la caja de totales (es informativa: se entrega en la mesa), o si falta «Pagar lo mío».
+it('F5: avatars per diner, no duplicated table row, the tip outside the totals and Pagar lo mío', () => {
+  const others = [
+    line({ id: 3, comensal: 'x', mio: false, producto_id: 4, nombre: 'Sopa miso', precio: 9000, cantidad: 1, subtotal: 9000 }),
+    line({ id: 4, comensal: 'y', mio: false, producto_id: 3, nombre: 'Veggie tempura', precio: 26000, cantidad: 1, subtotal: 26000 }),
+    line({ id: 5, comensal: 'x', mio: false, producto_id: 3, nombre: 'Veggie tempura', precio: 26000, cantidad: 1, subtotal: 26000 }),
+    line({ id: 6, comensal: 'z', mio: false, producto_id: 3, nombre: 'Veggie tempura', precio: 26000, cantidad: 1, subtotal: 26000 }),
+    line({ id: 7, comensal: 'w', mio: false, producto_id: 3, nombre: 'Veggie tempura', precio: 26000, cantidad: 1, subtotal: 26000 }),
+  ]
+  const props = base('F5', { cart: cartOf([line({}), ...others]) })
   wrap(<FamilyFCart {...props} />)
   expect(screen.getByText('Yo')).toHaveClass('bg-t-acento')
-  expect(screen.getByText('1', { selector: 'span.rounded-full' })).toHaveClass('bg-kitchen')
-  expect(screen.getByText('Para la mesa').parentElement).toHaveTextContent('9.000')
-  expect(screen.getByRole('radio', { name: '10%', checked: true })).toHaveClass('bg-t-acento')
-  expect(screen.getByText('Propina 10% · se entrega en la mesa').nextSibling).toHaveTextContent('6.500')
-  expect(screen.getByText('$ 65.000')).toBeInTheDocument()
-  fireEvent.click(screen.getByRole('radio', { name: 'Sin propina' }))
+  const avatars = screen.getAllByRole('img', { name: /Comensal/ })
+  expect(avatars.map((a) => a.textContent)).toEqual(['1', '2', '1', '3', '4'])
+  expect(avatars[0]).toHaveClass('bg-kitchen')
+  expect(avatars[1]).toHaveClass('bg-free')
+  expect(avatars[3]).toHaveClass('bg-pending')
+  expect(avatars[4]).toHaveClass('bg-kitchen')
+  expect(screen.queryByText('Para la mesa')).toBeNull()
+  expect(screen.queryByText('113.000')).toBeNull()
+  // Propina: fuera de la <dl> de totales, con su nota; el Total y el CTA no la incluyen.
+  const totals = screen.getByText('Subtotal').closest('dl') as HTMLElement
+  expect(within(totals).queryByText(/Propina/)).toBeNull()
+  expect(within(totals).queryByRole('radio')).toBeNull()
+  const tipSection = screen.getByRole('region', { name: 'Propina' })
+  expect(within(tipSection).getByRole('radio', { name: '10%', checked: true })).toHaveClass('bg-t-acento')
+  expect(within(tipSection).getByTestId('tip-info')).toHaveTextContent('Propina 10% · se entrega en la mesa · 16.900')
+  expect(within(tipSection).getByText('La propina se entrega en la mesa: no suma al total.')).toBeInTheDocument()
+  expect(within(totals).getByText('$ 169.000')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /Enviar a cocina · \$ 169\.000/ })).toBeInTheDocument()
+  fireEvent.click(within(tipSection).getByRole('radio', { name: 'Sin propina' }))
   expect(screen.queryByText(/Propina 10%/)).toBeNull()
   expect(screen.getByText('−5% aplicado')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Pagar lo mío' }))
