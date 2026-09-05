@@ -155,11 +155,19 @@ export const useOrderStore = create<OrderState>((set, get) => {
       }
     },
     closeReceipt: () => set({ receipt: null }),
+    // Sondeos periódicos: un corte de red no debe tumbar la vista ni dejar rechazos sin capturar. Se conserva lo último
+    // conocido y se reintenta en el siguiente tick.
     refreshOpenOrders: async (sessionId) => {
-      const [openOrders, calls] = await Promise.all([listOpenOrders(sessionId), listTableCalls().catch(() => [] as TableCall[])])
-      set({ openOrders, calls })
+      try {
+        const [openOrders, calls] = await Promise.all([listOpenOrders(sessionId), listTableCalls().catch(() => [] as TableCall[])])
+        set({ openOrders, calls })
+      } catch (e) {
+        console.warn('No se pudo refrescar el salón; se muestra lo último conocido.', e)
+      }
     },
     attendCall: async (tableId) => { await clearTableCall(tableId); set((s) => ({ calls: s.calls.filter((c) => c.tableId !== tableId) })) },
-    refreshShift: async (sessionId) => set({ shift: await getShiftSummary(sessionId) }),
+    refreshShift: async (sessionId) => {
+      try { set({ shift: await getShiftSummary(sessionId) }) } catch (e) { console.warn('No se pudo refrescar el turno.', e) }
+    },
   }
 })

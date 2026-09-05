@@ -72,3 +72,15 @@ it('settle tips, records every payment and the change, closes and leaves a recei
   expect(setChange).toHaveBeenCalledWith(13, 4178)
   expect(useOrderStore.getState().receipt).toMatchObject({ total: 95822, tip: 8000, change: 4178, payments: [{ method: 'Tarjeta', amount: 50000, reference: 'A1' }, { method: 'Efectivo', amount: 45822, reference: '' }] })
 })
+
+
+// Falla si un corte de red durante el sondeo del salón deja un rechazo sin capturar o borra lo último conocido.
+test('a network error while polling keeps the last known open orders', async () => {
+  const known = [{ id: 1, uuid: 'u1', tableId: 3, lines: [], amountTotal: 0, state: 'draft' }] as never
+  useOrderStore.setState({ openOrders: known })
+  mList.mockRejectedValueOnce(new Error('Network Error'))
+  const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+  await expect(useOrderStore.getState().refreshOpenOrders(7)).resolves.toBeUndefined()
+  expect(useOrderStore.getState().openOrders).toBe(known)
+  warn.mockRestore()
+})
