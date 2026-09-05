@@ -51,16 +51,27 @@ Las del Plan A. Además: toda escritura a Odoo pasa por `call_kw` `write`/
 inventory,customers,invoices,settings}.ts`); las pantallas no conocen modelos
 de Odoo. Un sonido a la vez; solo *crítico* se repite (cada 60 s).
 
+## Estado: parcial al 2026-09-05 (rama `feat/05092026-backoffice`, PR #4)
+
+Hechas: tareas 1 a 5 (cimientos, sonidos, sidebar, **Operación en vivo**,
+**ROI**, **Ventas**, **Catálogo** con edición de productos y categorías).
+Pendientes: 6 Inventario, 7 Clientes, 8 Facturación (factura normal de Odoo),
+9 Configuración, 10 E2E de humo y docs. Sus servicios de Odoo ya están
+sondeados (formas reales en el historial de la sesión): `stock.quant` +
+`action_apply_inventory`, `res.partner` con `customer_rank`,
+`pos.order.action_pos_order_invoice`, `res.company` / `restaurant.floor` /
+`restaurant.table` / `res.users` / `pos.config`.
+
 ## Tareas
 
-1. **Cimientos**: rama, addon `projectapp_ops`, `lib/audio/sounds.ts` (ocho
+1. ✅ **Cimientos**: rama, addon `projectapp_ops`, `lib/audio/sounds.ts` (ocho
    sonidos, prioridad, volumen por estación), Sidebar navegable con badges y
    subnav + punto Brasa, `Shell` con `active`, UI compartida (`KpiCard`,
    `Segmented`, `DataTable`, `Field`, `Drawer`, `EmptyState`).
-2. **Operación en vivo** `/operacion` (1e).
-3. **Automatización** `/automatizacion` (1d) + subrutas vacías honestas.
-4. **Ventas** `/ventas`.
-5. **Catálogo** `/catalogo`.
+2. ✅ **Operación en vivo** `/operacion` (1e).
+3. ✅ **Automatización** `/automatizacion` (1d) + subrutas vacías honestas.
+4. ✅ **Ventas** `/ventas`.
+5. ✅ **Catálogo** `/catalogo`.
 6. **Inventario** `/inventario`.
 7. **Clientes** `/clientes`.
 8. **Facturación** `/facturacion`.

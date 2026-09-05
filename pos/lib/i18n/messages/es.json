@@ -249,6 +249,84 @@
         "configTitle": "Configurar mesero IA",
         "configBody": "El Mesero IA no está activado en este restaurante. Cuando exista, aquí se configura su voz, su tono y qué puede ofrecer."
       }
+    },
+    "sales": {
+      "title": "Ventas",
+      "shift": "Turno",
+      "shiftOpen": "abierto",
+      "shiftClosed": "cerrado",
+      "shiftLabel": "{name} · {date}",
+      "kpi": {
+        "sales": "Ventas",
+        "orders": "Pedidos",
+        "avg": "Ticket promedio",
+        "autonomous": "Autónomos"
+      },
+      "byMethod": "Por método de pago",
+      "byWaiter": "Por mesero",
+      "top": "Más vendidos",
+      "cols": {
+        "order": "Pedido",
+        "time": "Hora",
+        "table": "Mesa",
+        "waiter": "Mesero",
+        "origin": "Origen",
+        "total": "Total",
+        "qty": "Cant.",
+        "amount": "Monto",
+        "orders": "Pedidos"
+      },
+      "orders": "Pedidos pagados",
+      "empty": "Sin ventas en este turno todavía",
+      "delivery": "Domicilio"
+    },
+    "catalog": {
+      "title": "Catálogo",
+      "subtitle": "{products} productos · {categories} categorías",
+      "search": "Buscar plato",
+      "newProduct": "Nuevo producto",
+      "categories": "Categorías",
+      "all": "Todos",
+      "uncategorized": "Sin categoría",
+      "cols": {
+        "product": "Producto",
+        "category": "Categoría",
+        "price": "Precio",
+        "tax": "Impuesto",
+        "available": "En carta",
+        "favorite": "Favorito"
+      },
+      "yes": "Sí",
+      "no": "No",
+      "empty": "Ningún producto coincide",
+      "form": {
+        "title": "Editar producto",
+        "newTitle": "Nuevo producto",
+        "name": "Nombre",
+        "price": "Precio (COP, con impuesto incluido en carta)",
+        "tax": "Impuesto",
+        "categories": "Categorías",
+        "description": "Descripción para el comensal",
+        "available": "Visible en la carta",
+        "availableOn": "Se vende",
+        "availableOff": "Oculto",
+        "favorite": "Favorito",
+        "favoriteOn": "Destacado en la carta",
+        "favoriteOff": "Normal",
+        "storable": "Controla existencias",
+        "storableOn": "Se agota por inventario",
+        "storableOff": "Siempre disponible",
+        "save": "Guardar",
+        "saved": "Guardado. La carta del comensal se actualiza en un minuto."
+      },
+      "catForm": {
+        "title": "Categorías",
+        "name": "Nombre",
+        "station": "Estación de cocina",
+        "stationHint": "Parrilla, Fríos, Postres, Barra… Vacío: solo en «Todas» del KDS.",
+        "new": "Nueva categoría",
+        "save": "Guardar"
+      }
     }
   }
 }
