@@ -62,7 +62,7 @@ it('calls the waiter through the store, confirms it, and offers the bill', async
   expect(mockCall).toHaveBeenCalledTimes(1)
   expect(await screen.findByRole('status')).toHaveTextContent('Listo, ya viene alguien.')
   fireEvent.click(screen.getByRole('button', { name: 'Pedir la cuenta' }))
-  expect(mockPush).toHaveBeenCalledWith('/la-provincia/centro/t/8H2KQ7/cuenta')
+  expect(mockPush).toHaveBeenCalledWith('/la-provincia/centro/t/8H2KQ7/la-cuenta')
 })
 
 // Falla si un pedido fallido no explica que se conserva, pinta pasos que no existen, sigue sondeando o no ofrece reintentar desde el carrito.

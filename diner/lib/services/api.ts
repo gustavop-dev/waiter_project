@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-import type { Bill, Cart, Entry, OrderStatus, Session } from '@/lib/types'
+import type { Account, AccountSummary, Bill, Cart, Entry, OrderStatus, PayMethod, PayResult, RegisterForm, Session, TemplateCatalog } from '@/lib/types'
 
 // Único punto de I/O del comensal: la API pública del bloque 3, por el proxy same-origin (/api → experience).
 export const http = axios.create({ baseURL: '', withCredentials: true, timeout: 15_000 })
@@ -46,4 +46,26 @@ export async function callWaiter(sessionId: string): Promise<boolean> {
 }
 export async function requestBill(sessionId: string): Promise<Bill> {
   return (await http.post<Bill>(`/api/v1/sesiones/${sessionId}/cuenta/`)).data
+}
+
+// ---- Plan H: plantillas, cuenta y pago maquetado (contrato 3). Si experience aún no expone estos endpoints, fallan con ApiError. ----
+export async function getTemplates(): Promise<TemplateCatalog> {
+  return (await http.get<TemplateCatalog>('/api/v1/plantillas/')).data
+}
+export async function registerAccount(form: RegisterForm): Promise<{ id: string; codigoDemo: boolean }> {
+  return (await http.post('/api/v1/cuenta/registro/', form)).data
+}
+// En demo el backend acepta cualquier código de seis dígitos y liga la cuenta a la cookie del comensal.
+export async function verifyAccount(id: string, codigo: string): Promise<{ ok?: boolean; cuenta?: Account }> {
+  return (await http.post('/api/v1/cuenta/verificar/', { id, codigo })).data
+}
+export async function getAccount(): Promise<AccountSummary> {
+  return (await http.get<AccountSummary>('/api/v1/cuenta/')).data
+}
+export async function logoutAccount(): Promise<void> {
+  await http.post('/api/v1/cuenta/salir/')
+}
+// No toca Odoo: devuelve { estado: 'aprobado', referencia, demo: true }. El POS sigue cobrando en la mesa.
+export async function simulatePayment(sessionId: string, metodo: PayMethod, monto: number): Promise<PayResult> {
+  return (await http.post<PayResult>(`/api/v1/sesiones/${sessionId}/pago/simulado/`, { metodo, monto })).data
 }

@@ -32,7 +32,8 @@ export function Status({ entry, rest, venue, token, id }: { entry: Entry; rest: 
   const [attempted, setAttempted] = useState(false)
   const lost = !order && (!id || (attempted && error !== null))
   const atTable = entry.contexto.mesa !== null
-  const go = (screen: 'carta' | 'pedido' | 'cuenta') => router.push(pathFor(rest, venue, token, screen))
+  // 'la-cuenta' es pedir la cuenta al salón (Plan F); 'cuenta' pasó a ser Mi cuenta del comensal (Plan H).
+  const go = (screen: 'carta' | 'pedido' | 'la-cuenta') => router.push(pathFor(rest, venue, token, screen))
   const secondary = 'h-tap-min px-[18px] rounded-rest bg-surface border border-border text-[15px] font-medium disabled:opacity-50'
 
   useEffect(() => { if (id) void Promise.resolve(refreshOrder(id)).finally(() => setAttempted(true)) }, [id, refreshOrder])
@@ -88,7 +89,7 @@ export function Status({ entry, rest, venue, token, id }: { entry: Entry; rest: 
           <button type="button" onClick={async () => { if (await call()) setCalled(true) }} className={secondary}>{t('callWaiter')}</button>
         )}
         {atTable && !failed && estado !== 'pagado' && (
-          <button type="button" onClick={() => go('cuenta')} className={secondary}>{t('askBill')}</button>
+          <button type="button" onClick={() => go('la-cuenta')} className={secondary}>{t('askBill')}</button>
         )}
         {called && <p role="status" className="text-center text-[15px] text-free-ink">{th('called')}</p>}
       </div>

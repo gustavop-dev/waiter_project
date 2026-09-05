@@ -21,6 +21,36 @@
   --radius-rest: var(--r-radius);
 }
 
+/* Plantilla del menú (Plan H): tokens --t-* que pone el motor en <main> (lib/domain/template.ts → templateVars).
+   Utilidades: bg-t-fondo, bg-t-superficie, text-t-tinta, text-t-tinta-suave, text-t-tinta-terciaria, border-t-borde,
+   bg-t-acento, text-t-acento, text-t-acento-tinta, bg-t-acento-suave, font-t-display, font-t-cuerpo, font-t-mono,
+   rounded-t-tarjeta, rounded-t-boton, rounded-t-chip. Los nombres con "t-" no chocan con los lados de Tailwind
+   (rounded-t-tarjeta compila a border-radius completo; border-t-borde a border-color): lo guarda tokens.test.ts. */
+@theme inline {
+  --color-t-fondo: var(--t-fondo); --color-t-superficie: var(--t-superficie);
+  --color-t-tinta: var(--t-tinta); --color-t-tinta-suave: var(--t-tinta-suave); --color-t-tinta-terciaria: var(--t-tinta-terciaria);
+  --color-t-borde: var(--t-borde);
+  --color-t-acento: var(--t-acento); --color-t-acento-tinta: var(--t-acento-tinta); --color-t-acento-suave: var(--t-acento-suave);
+  --font-t-display: var(--t-display); --font-t-cuerpo: var(--t-cuerpo); --font-t-mono: var(--t-mono);
+  --radius-t-tarjeta: var(--t-radio-tarjeta); --radius-t-boton: var(--t-radio-boton); --radius-t-chip: var(--t-radio-chip);
+}
+
+/* Título en la voz de la plantilla: familia + peso + tracking + transform en una sola utilidad. */
+@utility t-title {
+  font-family: var(--t-display);
+  font-weight: var(--t-display-peso);
+  letter-spacing: var(--t-display-tracking);
+  text-transform: var(--t-display-transform);
+}
+
 :root { --r-brand: #C1873A; --r-brand-ink: #FFFFFF; --r-brand-soft: #FDF6EA; --r-display: 'Instrument Serif'; --r-radius: 14px; }
+/* Por defecto = B1 (docs/diseno/plantillas/B1/spec.json); DEFAULT_TEMPLATE en lib/domain/template.ts debe dar exactamente esto. */
+:root {
+  --t-fondo: #FFFFFF; --t-superficie: #FAF8F5; --t-tinta: #1A1815; --t-tinta-suave: #7A7166; --t-tinta-terciaria: #9A8F7E;
+  --t-borde: #EFE9E0; --t-acento: #C1873A; --t-acento-tinta: #FFFFFF; --t-acento-suave: #FDF6EA;
+  --t-display: 'Ubuntu', system-ui, sans-serif; --t-display-peso: 700; --t-display-tracking: -0.02em; --t-display-transform: none;
+  --t-cuerpo: 'Ubuntu', system-ui, sans-serif; --t-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --t-radio-tarjeta: 14px; --t-radio-boton: 12px; --t-radio-chip: 999px;
+}
 html { font-family: var(--font-ui); background: var(--color-canvas); color: var(--color-ink); -webkit-font-smoothing: antialiased; }
 .tabular { font-variant-numeric: tabular-nums; }
