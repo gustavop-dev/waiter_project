@@ -1,9 +1,11 @@
 import { toSyncPayload } from '@/lib/domain/order'
+import { kitchenPhase, type KitchenPhase } from '@/lib/domain/kitchen'
 import type { DraftOrder } from '@/lib/domain/order'
+import { listCourseSummaries } from '@/lib/services/kitchen'
 import { callKw } from '@/lib/services/odoo'
 
 export interface SavedOrder { id: number; reference: string; state: 'draft' | 'paid'; total: number; tax: number; paid: number }
-export interface OpenOrder { id: number; tableId: number; total: number; tax: number; state: 'draft' | 'paid'; lineCount: number; startedAt: string; waiter: string }
+export interface OpenOrder { id: number; tableId: number; total: number; tax: number; state: 'draft' | 'paid'; lineCount: number; startedAt: string; waiter: string; kitchen: KitchenPhase }
 export interface OrderLineView { uuid: string; name: string; qty: number; unitPrice: number; note: string }
 export interface ShiftSummary { sales: number; orders: number; waiters: number }
 
@@ -38,12 +40,15 @@ export async function closeOrder(orderId: number): Promise<SavedOrder> {
 }
 
 export async function listOpenOrders(sessionId: number): Promise<OpenOrder[]> {
-  const rows = await callKw<RawOpen[]>('pos.order', 'search_read',
-    [[['session_id', '=', sessionId], ['state', '=', 'draft']], ['table_id', 'amount_total', 'amount_tax', 'state', 'lines', 'date_order', 'user_id']])
+  const [rows, courses] = await Promise.all([
+    callKw<RawOpen[]>('pos.order', 'search_read',
+      [[['session_id', '=', sessionId], ['state', '=', 'draft']], ['table_id', 'amount_total', 'amount_tax', 'state', 'lines', 'date_order', 'user_id']]),
+    listCourseSummaries(sessionId),
+  ])
   return rows
     .filter((r) => r.table_id !== false)
     .map((r) => ({ id: r.id, tableId: (r.table_id as [number, string])[0], total: r.amount_total, tax: r.amount_tax, state: r.state, lineCount: r.lines.length,
-      startedAt: r.date_order, waiter: r.user_id ? r.user_id[1] : '' }))
+      startedAt: r.date_order, waiter: r.user_id ? r.user_id[1] : '', kitchen: kitchenPhase(courses.filter((c) => c.orderId === r.id)) }))
 }
 
 // Líneas de un pedido que vive en Odoo pero no se compuso en este dispositivo (otra tablet, el comensal).

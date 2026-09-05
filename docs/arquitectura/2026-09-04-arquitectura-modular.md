@@ -63,14 +63,14 @@ registro central.
 backoffice, y sirve tal cual para meseros y cajeros. El backoffice lo usa el
 administrador para productos, precios y mesas.
 
-**La cocina es el hueco pendiente.** El KDS de Odoo (`pos_preparation_display`)
-es Enterprise. Quedan dos caminos por decidir: comanda impresa con `pos.printer`
-—que sí está en Community y enruta categorías a impresoras distintas— o una
-pantalla KDS propia.
+**La cocina (resuelto 2026-09-05):** KDS propio en `pos/` sobre
+`restaurant.order.course` de Odoo, con el addon `projectapp_kitchen` para
+*listo* / *entregado* / estación. Ver
+[la decisión](../decisiones/2026-09-05-cocina-sobre-cursos-odoo.md).
 
 **Contrato:** su API externa JSON-RPC (`/web/dataset/call_kw`), consumida con un
-usuario de servicio por inquilino. **No hace falta escribir ningún addon de Odoo
-para la primera versión.**
+usuario de servicio por inquilino. Dos addons propios **sin interfaz**
+(`projectapp_pos_design`, `projectapp_kitchen`): campos y métodos, nunca vistas.
 
 ### Bloque 2 — Facturación
 
@@ -197,6 +197,15 @@ waiter_project/
 Cada servicio Django tiene su propia base de datos, sus dependencias y su
 despliegue. El repositorio es único (monorepo) para que los contratos entre
 bloques se versionen juntos.
+
+## Estado (2026-09-05)
+
+| Pieza | Estado |
+|---|---|
+| Bloque 1 · Odoo headless + `pos/` (salón, pedido, cobro, KDS) | operativo |
+| Registro central · resolución interna, tokens, credenciales | mínimo operativo (`registry/`) |
+| Bloque 3 · carta, sesiones, carrito, confirmación, estado | backend operativo (`experience/`); sin pagos ni PWA |
+| Bloque 2 · facturación DIAN | no iniciado |
 
 ## Decisiones pendientes
 

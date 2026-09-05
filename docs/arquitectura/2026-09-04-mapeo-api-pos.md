@@ -41,11 +41,25 @@ pos.session.create({config_id, user_id}) → action_pos_session_open()
 |---|---|
 | Pisos y mesas | `load_data` → `restaurant.floor`, `restaurant.table` (id, table_number, floor_id, seats, position_h/v) |
 | Pedidos abiertos por mesa | `pos.order.search_read([[state=draft, session_id=sid]], [table_id, amount_total, ...])` |
-| Estado de cada mesa | **Se deriva en el cliente**: sin pedido → libre; draft → ocupada; con `last_order_preparation_change` → en cocina; pagado → cerrar. |
+| Estado de cada mesa | **Se deriva en el cliente**: sin pedido → libre; draft → ocupada; con algún curso disparado sin `ready_date` → en cocina; todos los cursos con `served_date` → servido; pagado → cerrar. Los cursos se leen con `restaurant.order.course.search_read` filtrando por `order_id.session_id`. |
 
 **Brecha:** los 9 estados del sistema de diseño no existen en Odoo. Odoo solo
 sabe *libre / con pedido / pagado*. «Pidiendo», «servido», «asistencia» son
 estado nuestro, del registro central o del bloque 3.
+
+## Pantalla 1c · KDS de cocina (Plan B, verificado 2026-09-05)
+
+| Acción | Llamada |
+|---|---|
+| Comandas vivas | `restaurant.order.course.search_read([[fired,=,true],[served_date,=,false],[order_id.state,=,draft],[order_id.session_id,=,sid]], [order_id, fired_date, ready_date, served_date])` |
+| Líneas de esas comandas | `pos.order.line.search_read([[course_id,in,ids]], [course_id, full_product_name, qty, customer_note, product_id])` |
+| Mesa, mesero y número | `pos.order.read(ids, [table_id, user_id, tracking_number])` (`tracking_number` solo lo pone la UI de Odoo; headless llega `False` y se muestra el id) |
+| Estación de una línea | en cliente: `product → pos_categ_ids → pos.category.kitchen_station` (campo del addon, expuesto en `load_data`) |
+| Listo / Entregado | `restaurant.order.course.action_kitchen_ready([[id]])` / `action_kitchen_served([[id]])` — hora del servidor |
+| Tiempo medio del turno | cursos con `ready_date` de la sesión; media de `ready_date − fired_date` en cliente |
+
+Sondeo cada 5 s (tres llamadas). Sin bus: Odoo Community no lo expone a
+terceros sin módulo propio; queda diferido.
 
 ## Pantalla 2 · Toma de pedido
 
@@ -54,7 +68,7 @@ estado nuestro, del registro central o del bloque 3.
 | Catálogo | ya en memoria desde `load_data` (`product.product`, `pos.category`, `product.attribute`, `product.combo`) |
 | Crear / actualizar pedido | `pos.order.sync_from_ui([[orden]])` |
 | **Recalcular totales** | `pos.order.recompute_prices([[id]])` |
-| Enviar a cocina | `last_order_preparation_change` en la orden *[existe, no probado]* + `pos.printer` para comanda impresa |
+| Enviar a cocina | `restaurant.order.course.kitchen_fire(order_id, line_ids)` (addon `projectapp_kitchen`): crea un curso con `fired=True` y hora del servidor para las líneas sin curso. **Verificado**: las líneas conservan su curso tras un nuevo `sync_from_ui`. |
 
 ### Forma mínima de la orden (verificada)
 

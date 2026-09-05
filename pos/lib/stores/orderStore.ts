@@ -5,6 +5,9 @@ import { create } from 'zustand'
 import { addProduct, createDraft, removeLine, setNote, setQty } from '@/lib/domain/order'
 import type { DraftOrder } from '@/lib/domain/order'
 import type { LocalFlags } from '@/lib/domain/tableState'
+import { play } from '@/lib/audio/sounds'
+import { fireUnsentLines } from '@/lib/services/kitchen'
+import { useOpsStore } from '@/lib/stores/opsStore'
 import { closeOrder, getShiftSummary, listOpenOrders, payOrder, saveOrder } from '@/lib/services/orders'
 import type { OpenOrder, SavedOrder, ShiftSummary } from '@/lib/services/orders'
 import type { Product } from '@/lib/types'
@@ -48,6 +51,7 @@ export const useOrderStore = create<OrderState>((set, get) => {
       set({ saved, draft: { ...d, serverId: saved.id }, busy: false })
       return saved
     } catch (e) {
+      play('error')
       set({ busy: false, error: message(e) })
       return null
     }
@@ -58,18 +62,21 @@ export const useOrderStore = create<OrderState>((set, get) => {
   return {
     draft: null, saved: null, openOrders: [], shift: null, flags: {}, busy: false, error: null,
     start: (sessionId, tableId, guests) => set({ draft: createDraft({ sessionId, tableId, guests }), saved: null, error: null }),
-    add: (p) => update((d) => addProduct(d, p)),
+    add: (p) => { play('tap'); update((d) => addProduct(d, p)) },
     changeQty: (u, q) => update((d) => setQty(d, u, q)),
     note: (u, n) => update((d) => setNote(d, u, n)),
     remove: (u) => update((d) => removeLine(d, u)),
     save: async () => { await persist() },
+    // La comanda vive en Odoo (un curso disparado); el salón la verá al refrescar. Nada local.
     sendToKitchen: async () => {
       const saved = await persist()
-      if (saved) flag(get().draft!.tableId, { sentToKitchen: true })
+      if (!saved) return
+      set({ busy: true })
+      try { await fireUnsentLines(saved.id) } catch (e) { set({ error: message(e) }) } finally { set({ busy: false }) }
     },
     requestBill: async () => {
       const saved = await persist()
-      if (saved) flag(get().draft!.tableId, { billing: true })
+      if (saved) { flag(get().draft!.tableId, { billing: true }); useOpsStore.getState().markBilling(get().draft!.tableId, Date.now()) }
     },
     charge: async (paymentMethodId) => {
       const saved = await persist()
@@ -78,6 +85,7 @@ export const useOrderStore = create<OrderState>((set, get) => {
       try {
         await payOrder(saved.id, paymentMethodId, saved.total)
         await closeOrder(saved.id)
+        play('cobro')
         const tableId = get().draft!.tableId
         set((s) => ({ draft: null, saved: null, busy: false, flags: { ...s.flags, [tableId]: {} } }))
       } catch (e) {
@@ -90,6 +98,7 @@ export const useOrderStore = create<OrderState>((set, get) => {
       try {
         await payOrder(orderId, paymentMethodId, total)
         await closeOrder(orderId)
+        play('cobro')
         set((s) => ({ busy: false, flags: { ...s.flags, [tableId]: {} } }))
       } catch (e) {
         set({ busy: false, error: message(e) })

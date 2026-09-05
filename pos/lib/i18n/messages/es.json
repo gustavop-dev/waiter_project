@@ -13,7 +13,18 @@
       "soon": "Próximamente",
       "shift": "Turno de hoy",
       "shiftMeta": "{orders} pedidos · {waiters} meseros",
-      "role": "Mesero"
+      "role": "Mesero",
+      "byProjectApp": "by ProjectApp",
+      "automationSection": "Automatización",
+      "roi": "Retorno de inversión",
+      "aiAnalytics": "Analítica del mesero IA",
+      "aiConfig": "Configurar mesero IA",
+      "noHuman": "Sin intervención humana",
+      "noHumanMeta": "{autonomous} de {total} pedidos hoy",
+      "operationSection": "Operación",
+      "salon": "Salón",
+      "live": "En vivo",
+      "kitchenScreen": "Cocina (KDS)"
     },
     "rail": {
       "tables": "Mesas",
@@ -84,6 +95,238 @@
       "menu": "Carta",
       "favorite": "El favorito",
       "soldOutChip": "Agotados {count}"
+    },
+    "kds": {
+      "title": "Cocina caliente",
+      "table": "Mesa {n}",
+      "tabs": {
+        "all": "Todas",
+        "late": "Demorados"
+      },
+      "avg": "Tiempo medio",
+      "avgNone": "—",
+      "grid": "Comandas en preparación",
+      "empty": "Sin comandas en preparación",
+      "ready": "Listos por entregar",
+      "readyEmpty": "Nada listo todavía",
+      "readyBtn": "Listo",
+      "serve": "Entregado",
+      "dishes": "{n, plural, one {# plato} other {# platos}}",
+      "minutes": "min",
+      "mood": {
+        "late": "Demorado",
+        "attention": "Atención",
+        "fresh": "Recién entra"
+      },
+      "legend": {
+        "ok": "menos de 12 min",
+        "warn": "12 a 18 min",
+        "late": "más de 18 min",
+        "suffix": "en preparación"
+      },
+      "history": "Historial del turno",
+      "mute": "Silenciar avisos",
+      "unmute": "Activar avisos"
+    },
+    "ui": {
+      "empty": "Nada por aquí todavía",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "close": "Cerrar",
+      "loading": "Cargando…",
+      "error": "No se pudo completar. Intenta de nuevo.",
+      "search": "Buscar",
+      "new": "Nuevo",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "yes": "Sí",
+      "no": "No",
+      "export": "Exportar"
+    },
+    "ops": {
+      "title": "Operación en vivo",
+      "attention": "{n, plural, =0 {Todo tranquilo} one {# cosa pide tu atención} other {# cosas piden tu atención}}",
+      "filters": {
+        "all": "Todo",
+        "tables": "Mesas",
+        "kitchen": "Cocina",
+        "payments": "Pagos"
+      },
+      "goSalon": "Ir al salón",
+      "kpi": {
+        "activeTables": "Mesas activas",
+        "cooking": "En cocina",
+        "late": "Demorados",
+        "toCharge": "Por cobrar",
+        "sales": "Ventas del turno"
+      },
+      "orders": "Pedidos del turno",
+      "ordersMeta": "{total} hoy · {autonomous} autónomos",
+      "cols": {
+        "order": "Pedido",
+        "table": "Mesa / mesero",
+        "origin": "Origen",
+        "total": "Total",
+        "state": "Estado"
+      },
+      "origin": {
+        "waiter": "Mesero",
+        "diner": "Autónomo",
+        "ai": "Autónomo"
+      },
+      "delivery": "Domicilio",
+      "status": {
+        "late": "Demorado {n} min",
+        "pending": "Pendiente",
+        "cooking": "En cocina",
+        "ready": "Listo",
+        "served": "Servido",
+        "paid": "Pagado"
+      },
+      "alerts": "Alertas",
+      "alertsMeta": "solo excepciones",
+      "quiet": "Nada está mal. La pantalla está tranquila.",
+      "alert": {
+        "kitchen": "Pedido demorado",
+        "payment": "Cuenta sin cobrar",
+        "table": "Mesa pide mesero"
+      },
+      "alertBody": {
+        "kitchen": "{ref} de mesa {table} pasó los {late} minutos. La cocina tiene {queue} en cola.",
+        "payment": "Mesa {table} pidió la cuenta hace {minutes} min y nadie la ha cobrado."
+      },
+      "actions": {
+        "seeKitchen": "Ver en cocina",
+        "courtesy": "Ofrecer cortesía",
+        "charge": "Ir a cobrar",
+        "done": "Atendida"
+      },
+      "resolved": "Resueltas hoy",
+      "resolvedNone": "Nada resuelto todavía",
+      "resolvedItem": "{text} ({time})",
+      "courtesy": "Cortesía ofrecida en mesa {table}",
+      "chargedLabel": "Cuenta de mesa {table} atendida",
+      "thresholds": "Umbrales de alerta",
+      "configure": "Configurar"
+    },
+    "roi": {
+      "title": "Retorno de inversión",
+      "subtitle": "{period} · comparado con {previous}",
+      "baseline": "antes de ProjectApp",
+      "periods": {
+        "week": "Semana",
+        "month": "Mes",
+        "year": "Año"
+      },
+      "export": "Exportar",
+      "hero": "Retorno del periodo",
+      "months": "{n, plural, =0 {Primer mes de uso} one {# mes de uso} other {# meses de uso}}",
+      "perHundred": "Por cada $100.000 pagados",
+      "value": "$ {amount} de valor",
+      "labor": "Ahorro laboral estimado",
+      "laborHint": "{hours} horas de atención que ya no se pagan",
+      "aiSales": "Ventas incrementales IA",
+      "aiSalesHint": "Sin datos del Mesero IA todavía",
+      "aiSalesHintReal": "Upsell aceptado en {n} pedidos autónomos",
+      "north": "Horas de atención por 100 pedidos",
+      "northTag": "métrica norte",
+      "cost": "Coste ProjectApp",
+      "costHint": "Licencia + voz + facturación, prorrateado al periodo",
+      "net": "Valor neto del periodo",
+      "netHint": "Ahorro + ventas IA − coste",
+      "sources": "De dónde sale el valor",
+      "sourcesHint": "{period}, en pesos",
+      "source": {
+        "autonomous": "Pedidos autónomos",
+        "hours": "Menos horas de atención",
+        "upsell": "Upsell aceptado",
+        "errors": "Menos errores de pedido"
+      },
+      "unmeasured": "sin medir",
+      "ai": {
+        "title": "Analítica del mesero IA",
+        "body": "Aparecerá cuando el Mesero IA atienda su primer pedido. Hoy los pedidos autónomos vienen del comensal en su móvil.",
+        "configTitle": "Configurar mesero IA",
+        "configBody": "El Mesero IA no está activado en este restaurante. Cuando exista, aquí se configura su voz, su tono y qué puede ofrecer."
+      }
+    },
+    "sales": {
+      "title": "Ventas",
+      "shift": "Turno",
+      "shiftOpen": "abierto",
+      "shiftClosed": "cerrado",
+      "shiftLabel": "{name} · {date}",
+      "kpi": {
+        "sales": "Ventas",
+        "orders": "Pedidos",
+        "avg": "Ticket promedio",
+        "autonomous": "Autónomos"
+      },
+      "byMethod": "Por método de pago",
+      "byWaiter": "Por mesero",
+      "top": "Más vendidos",
+      "cols": {
+        "order": "Pedido",
+        "time": "Hora",
+        "table": "Mesa",
+        "waiter": "Mesero",
+        "origin": "Origen",
+        "total": "Total",
+        "qty": "Cant.",
+        "amount": "Monto",
+        "orders": "Pedidos"
+      },
+      "orders": "Pedidos pagados",
+      "empty": "Sin ventas en este turno todavía",
+      "delivery": "Domicilio"
+    },
+    "catalog": {
+      "title": "Catálogo",
+      "subtitle": "{products} productos · {categories} categorías",
+      "search": "Buscar plato",
+      "newProduct": "Nuevo producto",
+      "categories": "Categorías",
+      "all": "Todos",
+      "uncategorized": "Sin categoría",
+      "cols": {
+        "product": "Producto",
+        "category": "Categoría",
+        "price": "Precio",
+        "tax": "Impuesto",
+        "available": "En carta",
+        "favorite": "Favorito"
+      },
+      "yes": "Sí",
+      "no": "No",
+      "empty": "Ningún producto coincide",
+      "form": {
+        "title": "Editar producto",
+        "newTitle": "Nuevo producto",
+        "name": "Nombre",
+        "price": "Precio (COP, con impuesto incluido en carta)",
+        "tax": "Impuesto",
+        "categories": "Categorías",
+        "description": "Descripción para el comensal",
+        "available": "Visible en la carta",
+        "availableOn": "Se vende",
+        "availableOff": "Oculto",
+        "favorite": "Favorito",
+        "favoriteOn": "Destacado en la carta",
+        "favoriteOff": "Normal",
+        "storable": "Controla existencias",
+        "storableOn": "Se agota por inventario",
+        "storableOff": "Siempre disponible",
+        "save": "Guardar",
+        "saved": "Guardado. La carta del comensal se actualiza en un minuto."
+      },
+      "catForm": {
+        "title": "Categorías",
+        "name": "Nombre",
+        "station": "Estación de cocina",
+        "stationHint": "Parrilla, Fríos, Postres, Barra… Vacío: solo en «Todas» del KDS.",
+        "new": "Nueva categoría",
+        "save": "Guardar"
+      }
     }
   }
 }

@@ -19,7 +19,7 @@ test('an order sent from one device can be charged from another', async ({ brows
   const cashier = await browser.newContext()
   const b = await cashier.newPage()
   await loginAsAdmin(b)
-  await b.getByRole('button', { name: /^7\b.*Ocupada/ }).click()
+  await b.getByRole('button', { name: /^7\b.*En cocina/ }).click()
   await expect(b.getByText('Hamburguesa Angus')).toBeVisible()
   await b.getByRole('button', { name: /^Cobrar \$ 43\.911$/ }).click()
   await b.getByRole('button', { name: 'Sí, cobrar' }).click()

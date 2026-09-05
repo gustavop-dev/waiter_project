@@ -28,6 +28,8 @@
   --color-kitchen: #5B4BC4;   --color-kitchen-soft: #ECEAFB;--color-kitchen-ink: #40339B;
   --color-pending: #C9820C;   --color-pending-soft: #FDF2DC;--color-pending-ink: #8A5A05;
   --color-assist: #4A5568;    --color-assist-soft: #EEF0F3;
+  /* KDS: la única superficie oscura de Waiter. */
+  --color-kds-bg: #12100E;    --color-kds-surface: #1C1916; --color-kds-raised: #2C2823; --color-kds-ink: #F5F1EA;
   --color-sidebar: #1A1815;   --color-sidebar-raised: #221E1B; --color-sidebar-hover: #262220;
   --color-sidebar-ink: #F5F1EA; --color-sidebar-soft: #C4BCB2; --color-sidebar-dim: #7C736A;
   /* Waiter v1.1: Ubuntu para todo lo nuestro (400 texto · 500 etiquetas · 700 títulos y acciones).

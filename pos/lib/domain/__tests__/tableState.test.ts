@@ -1,7 +1,7 @@
 import { barFill, barTone, countByState, deriveTableViews, elapsedMinutes, formatElapsed } from '@/lib/domain/tableState'
 
 const tables = [{ id: 1, number: 1, floorId: 1, seats: 4 }, { id: 2, number: 2, floorId: 1, seats: 2 }, { id: 3, number: 3, floorId: 1, seats: 2 }]
-const order = { id: 9, tableId: 2, total: 74200, tax: 11851, state: 'draft' as const, lineCount: 2, startedAt: '2026-09-04 20:00:00', waiter: 'Alejandra' }
+const order = { id: 9, tableId: 2, total: 74200, tax: 11851, state: 'draft' as const, lineCount: 2, startedAt: '2026-09-04 20:00:00', waiter: 'Alejandra', kitchen: 'none' as const }
 
 // Falla si una mesa sin pedido abierto deja de mostrarse libre.
 it('marks tables without an open order as free with zero total', () => {
@@ -16,9 +16,16 @@ it('marks a table with an open order as occupied carrying total, waiter and star
 })
 
 // Falla si "asistencia" pierde contra "en cocina": la mesa que llama al mesero debe verse siempre.
-it('assist flag wins over kitchen flag on the same table', () => {
-  const t2 = deriveTableViews(tables, [order], { 2: { sentToKitchen: true, assist: true } })[1]
+it('assist flag wins over the kitchen phase on the same table', () => {
+  const t2 = deriveTableViews(tables, [{ ...order, kitchen: 'cooking' }], { 2: { assist: true } })[1]
   expect(t2.state).toBe('assist')
+})
+
+// Falla si el salón no pinta "en cocina" cuando Odoo tiene un curso disparado, o "servido" cuando todos se entregaron.
+it('derives kitchen and served states from the order kitchen phase', () => {
+  const cooking = deriveTableViews(tables, [{ ...order, kitchen: 'ready' }], {})[1]
+  const served = deriveTableViews(tables, [{ ...order, kitchen: 'served' }], {})[1]
+  expect([cooking.state, served.state]).toEqual(['kitchen', 'served'])
 })
 
 // Falla si la leyenda cuenta mal (la cuenta es lo que el gerente mira de reojo).

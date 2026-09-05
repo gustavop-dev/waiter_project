@@ -78,7 +78,7 @@ cientos, no en decenas de miles.
 
 ```bash
 odoo -d <tenant> --db_host db -r odoo -w odoo \
-  -i point_of_sale,pos_restaurant,l10n_co,l10n_co_pos \
+  -i point_of_sale,pos_restaurant,l10n_co,l10n_co_pos,projectapp_pos_design,projectapp_kitchen \
   --without-demo=all --load-language=es_CO --stop-after-init
 ```
 
