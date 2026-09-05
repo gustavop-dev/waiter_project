@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { Shell } from '@/components/layout/Shell'
 import { Topbar } from '@/components/layout/Topbar'
+import { useOperationSubnav } from '@/components/layout/useOperationSubnav'
 import { AlertCard } from '@/components/ops/AlertCard'
 import { ShiftTable } from '@/components/ops/ShiftTable'
 import { KpiCard } from '@/components/ui/KpiCard'
@@ -22,6 +23,7 @@ const FILTERS: Filter[] = ['all', 'tables', 'kitchen', 'payments']
 
 export default function OperacionPage() {
   const t = useTranslations('pos.ops')
+  const subnav = useOperationSubnav('live')
   const session = useAuthStore((s) => s.session)
   const catalog = useCatalogStore((s) => s.catalog)
   const { flags, shift, refreshShift } = useOrderStore()
@@ -51,7 +53,7 @@ export default function OperacionPage() {
   const time = (at: number) => new Date(at).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false })
 
   return (
-    <Shell mode="sidebar" active="operation" badges={badge} autonomy={autonomy}>
+    <Shell mode="sidebar" active="operation" badges={badge} autonomy={autonomy} subnav={subnav}>
       <Topbar
         left={<><span className="text-[22px] font-bold">{t('title')}</span>
           <span className={`inline-flex items-center gap-[7px] h-8 px-[11px] rounded-full text-sm font-medium ${alerts.length ? 'bg-busy-soft text-busy-ink' : 'bg-free-soft text-free-ink'}`}>

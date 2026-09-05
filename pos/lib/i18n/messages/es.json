@@ -20,7 +20,11 @@
       "aiAnalytics": "Analítica del mesero IA",
       "aiConfig": "Configurar mesero IA",
       "noHuman": "Sin intervención humana",
-      "noHumanMeta": "{autonomous} de {total} pedidos hoy"
+      "noHumanMeta": "{autonomous} de {total} pedidos hoy",
+      "operationSection": "Operación",
+      "salon": "Salón",
+      "live": "En vivo",
+      "kitchenScreen": "Cocina (KDS)"
     },
     "rail": {
       "tables": "Mesas",

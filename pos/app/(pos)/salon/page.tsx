@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { Shell } from '@/components/layout/Shell'
 import { Topbar } from '@/components/layout/Topbar'
+import { useOperationSubnav } from '@/components/layout/useOperationSubnav'
 import { BillPanel } from '@/components/salon/BillPanel'
 import { FloorTabs } from '@/components/salon/FloorTabs'
 import { StateLegend } from '@/components/salon/StateLegend'
@@ -25,6 +26,7 @@ import { useOrderStore } from '@/lib/stores/orderStore'
 export default function SalonPage() {
   const t = useTranslations('pos')
   const router = useRouter()
+  const subnav = useOperationSubnav('salon')
   const session = useAuthStore((s) => s.session)
   const catalog = useCatalogStore((s) => s.catalog)
   const { activeFloorId, selectedTableId, setFloor, selectTable } = useFloorStore()
@@ -72,7 +74,7 @@ export default function SalonPage() {
 
   if (!catalog) return null
   return (
-    <Shell mode="sidebar">
+    <Shell mode="sidebar" active="operation" subnav={subnav}>
       <Topbar
         left={<><span className="text-[15px] text-soft">{new Date(now).toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short' })} · {new Date(now).toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' })}</span><Badge tone="free"><span className="w-[7px] h-[7px] rounded-full bg-free" />{t('topbar.operational')}</Badge></>}
         right={<><Button variant="secondary" disabled>{t('topbar.search')}</Button><Button variant="primary" disabled>{t('topbar.newTable')}</Button></>}
