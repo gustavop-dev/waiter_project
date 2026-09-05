@@ -58,7 +58,14 @@ it('adds, opens and sends the CTA to the order with the total', () => {
   expect(screen.queryByRole('button', { name: 'Agregar: Sour de maracuyá' })).toBeNull()
   const cta = screen.getByRole('link', { name: /Ver pedido · \$ 42\.000/ })
   expect(cta).toHaveAttribute('href', '/norte/centro/t/Z2XUVG/pedido')
-  expect(cta).toHaveClass('bg-t-acento')
+  // Radio 12 del marco del menú (radioBoton 8 es solo de carrito y pago) y 56 px.
+  expect(cta).toHaveClass('bg-t-acento', 'rounded-[12px]', 'h-[56px]')
+  expect(cta).not.toHaveClass('rounded-t-boton')
+  // Agotado: contenido al 55 % una sola vez y la insignia fuera de la zona atenuada.
+  const sour = screen.getByText('Sour de maracuyá')
+  expect(sour.closest('button')).toHaveClass('opacity-55')
+  expect(sour.closest('li')).not.toHaveClass('opacity-55')
+  expect(screen.getByTestId('sold-out-badge').closest('.opacity-55')).toBeNull()
 })
 
 // Falla si con el carrito vacío el CTA no queda apagado.

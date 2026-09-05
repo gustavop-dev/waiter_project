@@ -20,16 +20,20 @@ const LONG: Record<PayMethod, 'methodTarjeta' | 'methodPse' | 'methodNequi' | 'm
 // 19, tres opciones de división como tarjetas de borde (Pagar lo mío = bill.mio, Dividir en N = bill.porParte, Pagar todo = bill.total:
 // datos reales; la activa con borde 2 px en acento sobre superficie / acento suave), el método elegido como tarjeta con insignia y check
 // (no hay tarjetas guardadas: se listan los métodos reales) y CTA «Pagar $ parte». Variantes: E2 «Pagar» en la voz serif + mono 22,
-// el método activo resaltado y «Usar otra forma de pago →» que despliega el resto, nota «Tokenizado por la pasarela» con check verde;
-// E3 cabecera en acento «Total» + monto 28, métodos como filas de 62 px con nombre largo, sin formulario, CTA de 64 px y radio 8;
-// E5 «Confirmar y pagar» + mesa, caja resumen (Productos / Descuento / Total), formulario de tarjeta en mono, nota de factura y CTA
-// de 64 px. La propina al barista (E2) y la tarjeta «•••• 4242» no existen en el servidor y no se pintan. Estados authorizing / paid /
-// declined y la insignia «Demo · sin cobro real» son comunes (parts.PayStates). onPay solo lleva el método (contrato 4).
+// el método activo resaltado y «Usar otra forma de pago →» que despliega el resto, nota «Tokenizado por la pasarela» con check verde
+// (solo en E2: los demás marcos no la tienen); E3 cabecera en acento «Total» + monto 28, métodos como filas de 62 px con nombre largo,
+// CTA de 64 px y radio 8; E5 «Confirmar y pagar» + mesa, caja resumen (Productos / Descuento / Total), formulario de tarjeta en mono
+// (el único marco de la familia con formulario; sin píldoras de método: paga con tarjeta), nota de factura y CTA de 64 px. La
+// propina al barista (E2), la tarjeta «•••• 4242» y la línea de mesa fuera de E5 no están en los marcos y no se pintan. Estados
+// authorizing / paid / declined y la insignia «Demo · sin cobro real» son comunes (parts.PayStates). onPay solo lleva el método
+// (contrato 4).
 export function FamilyEPay({ bill, template, methods, onPay, state, demo, goBack, result, order, merchant, table, account, onRetry, onPayAtTable, onSignup, goMenu }: PayLayoutProps) {
   const t = useTranslations('diner.pay')
   const tp = useTranslations('diner.templates.familiaE.pay')
   const variant = variantOf(template.codigo)
-  const [method, setMethod] = useState<PayMethod>(methods[0] ?? 'tarjeta')
+  const [chosen, setMethod] = useState<PayMethod>(methods[0] ?? 'tarjeta')
+  // E5 no elige método (sin píldoras en el marco): paga con tarjeta, la del formulario.
+  const method: PayMethod = variant === 'E5' ? (methods.includes('tarjeta') ? 'tarjeta' : methods[0] ?? 'tarjeta') : chosen
   const [more, setMore] = useState(false)
   const [split, setSplit] = useState<Split>('all')
   const [number, setNumber] = useState('')
@@ -54,7 +58,7 @@ export function FamilyEPay({ bill, template, methods, onPay, state, demo, goBack
   const splitAmount = variant === 'E1' || variant === 'E4' ? (split === 'mine' ? bill.mio : split === 'parts' ? bill.porParte : bill.total) : bill.total
   const amount = formatCop(splitAmount)
   const [before, after] = t('pay', { amount }).split(amount)
-  const cardForm = method === 'tarjeta' && variant !== 'E3' && (
+  const cardForm = variant === 'E5' && method === 'tarjeta' && (
     <form className="flex flex-col gap-3" onSubmit={(e) => e.preventDefault()} autoComplete="off">
       <label className="flex flex-col gap-1.5">
         <span className={label}>{t('cardNumber')}</span>
@@ -74,12 +78,15 @@ export function FamilyEPay({ bill, template, methods, onPay, state, demo, goBack
       {method === 'efectivo' && <p className="text-[15px] text-t-tinta-suave">{t('cashHint')}</p>}
     </>
   )
-  const tokenized = (
-    <div className="flex gap-[9px] items-center px-[13px] py-[11px] rounded-[10px] bg-t-superficie">
-      <span aria-hidden="true" className="w-[22px] h-[22px] shrink-0 rounded-md bg-free text-white grid place-items-center text-[11px] font-bold">✓</span>
-      <span className="text-[13px] leading-[1.4] text-t-tinta-suave">{variant === 'E5' ? tp('invoiceNote') : tp('tokenizedShort')}</span>
-    </div>
-  )
+  // Nota de seguridad con check verde (marco E2) y nota de factura (marco E5); los demás marcos no llevan nota.
+  const note = variant === 'E2'
+    ? (
+      <div className="flex gap-[9px] items-center px-[13px] py-[11px] rounded-[10px] bg-t-superficie">
+        <span aria-hidden="true" className="w-[22px] h-[22px] shrink-0 rounded-md bg-free text-white grid place-items-center text-[11px] font-bold">✓</span>
+        <span className="text-[13px] leading-[1.4] text-t-tinta-suave">{tp('tokenizedShort')}</span>
+      </div>
+    )
+    : variant === 'E5' ? <p className="text-[13px] leading-[1.45] text-t-tinta-suave">{tp('invoiceNote')}</p> : null
   const hook = !account && discount && discount.aplicable && !discount.aplicado && (
     <button type="button" onClick={onSignup} className="px-3.5 py-2.5 rounded-t-boton bg-t-acento-suave text-left text-[14px] font-medium text-t-tinta">{t('signupHook', { pct })}</button>
   )
@@ -123,11 +130,7 @@ export function FamilyEPay({ bill, template, methods, onPay, state, demo, goBack
       </div>
     )
     : variant === 'E5'
-      ? (
-        <div role="radiogroup" aria-label={t('methods')} className="flex gap-[7px] overflow-x-auto [scrollbar-width:none]">
-          {methods.map((m) => <button key={m} type="button" role="radio" aria-checked={method === m} onClick={() => setMethod(m)} className={`shrink-0 h-[44px] px-[13px] rounded-t-chip text-[14px] ${method === m ? 'bg-t-acento text-t-acento-tinta font-medium' : 'border border-t-borde text-t-tinta-suave'}`}>{t(`method.${m}`)}</button>)}
-        </div>
-      )
+      ? null
       : (
         <div role="radiogroup" aria-label={t('methods')} className="flex flex-col gap-2.5">
           {methods.filter((m) => more || m === method).map((m) => (
@@ -150,14 +153,13 @@ export function FamilyEPay({ bill, template, methods, onPay, state, demo, goBack
   return (
     <div className="flex flex-col text-t-tinta">
       {header}
-      {table !== null && variant !== 'E3' && variant !== 'E5' && <span className="px-[18px] pt-2 text-[14px] text-t-tinta-suave">{t('table', { n: table })}</span>}
       <div className="px-[18px] pt-4 pb-4 flex flex-col gap-3">
         {summary}
         {splitBlock}
         {methodsBlock}
         {cardForm}
         {hints}
-        {tokenized}
+        {note}
         {hook}
         {demo && <DemoBadge />}
       </div>

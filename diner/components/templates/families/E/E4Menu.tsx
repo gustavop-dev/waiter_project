@@ -4,28 +4,31 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { useMemo } from 'react'
 
-import { AddButton, Avatar, EmptyMenu, MenuSearch, payHrefFrom, useAccount, useAttrParts, useDinerLabels } from '@/components/templates/families/E/parts'
+import { AddButton, Avatar, EmptyMenu, MenuSearch, SoldOut, payHrefFrom, useAccount, useAttrParts, useBill, useDinerLabels } from '@/components/templates/families/E/parts'
 import { CategoryTabs, tabId, useMenuDishes } from '@/components/templates/generic/menuParts'
 import type { MenuLayoutProps } from '@/components/templates/types'
 import { formatCop, itemCount } from '@/lib/domain/cart'
 import type { CartLine, Dish } from '@/lib/types'
 
 // E4 · Cuenta compartida (docs/diseno/plantillas/E4, la única clara de la familia): arriba la cuenta viva de la mesa como en el marco:
-// «Mesa N · P personas» (mesa de la sesión; personas = comensales que han pedido en el carrito de la mesa), «N ítems en la mesa» y el
-// total mono 20; una fila por comensal con avatar de iniciales (acento / cocina / libre), el resumen de sus líneas «2 IPA · 1 michelada»
-// y su importe mono; nota «La cuenta se divide en N: X cada uno» cuando hay más de un comensal. La fila «Para la mesa» del marco no se
-// pinta: toda línea tiene dueño en el carrito (no hay bolsa común). Debajo va la carta completa (buscador, categorías, filas con ＋),
-// porque el marco es un resumen y no una lista de platos. Barra pegada abajo: «Pagar lo mío» y «Dividir en N» van al pago (…/pago,
-// derivado del enlace al pedido; el pago decide la división) y «Pagar todo · total» a orderBarHref. Ronda y tiempo abierta no existen.
-// La página aún superpone su OrderBar flotante cuando hay ítems (integración pendiente).
-export function E4Menu({ entry, query, setQuery, category, setCategory, onOpen, onAdd, cart, orderBarHref }: MenuLayoutProps) {
+// «Mesa N · P personas», «N ítems en la mesa» y el total mono 20; una fila por comensal con avatar de iniciales (acento para mí;
+// cocina / libre alternos para los demás), el resumen de sus líneas «2 IPA · 1 michelada» y su importe mono. Personas, «Dividir en P»
+// y la nota «X cada uno» salen de la cuenta del servidor (bill.partes / bill.porParte, la misma que usa el pago), no de un cálculo
+// local: si la cuenta no se ha pedido, no hay división que ofrecer (el pago tampoco la tendría) y las personas son los comensales con
+// líneas en la mesa. La fila «Para la mesa» del marco no se pinta: toda línea tiene dueño en el carrito (no hay bolsa común). Debajo
+// va la carta completa (buscador, categorías, filas con ＋), porque el marco es un resumen y no una lista de platos. Barra pegada
+// abajo: «Pagar lo mío» y «Dividir en N» van al pago (…/pago, derivado del enlace al pedido) y «Pagar todo · total» a orderBarHref.
+// Ronda y tiempo abierta no existen.
+export function E4Menu({ entry, template, query, setQuery, category, setCategory, onOpen, onAdd, cart, orderBarHref }: MenuLayoutProps) {
   const t = useTranslations('diner')
   const te = useTranslations('diner.templates.E4')
   const account = useAccount()
+  const bill = useBill()
   const categories = entry.carta.categorias
   const dishes = useMenuDishes(categories, query, category)
   const { of } = useDinerLabels(cart, account)
   const table = entry.contexto.mesa?.numero ?? null
+  const dark = template.tokens.modo === 'oscuro'
   const count = itemCount(cart)
   // Un grupo por comensal (id real de la línea), conservando el orden de aparición; lo mío primero.
   const groups = useMemo(() => {
@@ -33,7 +36,9 @@ export function E4Menu({ entry, query, setQuery, category, setCategory, onOpen, 
     for (const l of cart?.lineas ?? []) map.set(l.comensal, [...(map.get(l.comensal) ?? []), l])
     return Array.from(map.values()).sort((a, b) => Number(b[0].mio) - Number(a[0].mio))
   }, [cart])
-  const people = groups.length
+  // Partes y cifra por parte: las del salón (misma fuente que el pago); sin cuenta pedida no se divide.
+  const parts = bill?.partes ?? 1
+  const people = bill ? bill.partes : groups.length
   const total = cart?.total ?? 0
   const amount = formatCop(total)
   const [before, after] = te('payAll', { amount }).split(amount)
@@ -65,7 +70,7 @@ export function E4Menu({ entry, query, setQuery, category, setCategory, onOpen, 
           })}
         </ul>
       )}
-      {people > 1 && <p className="px-5 py-3.5 text-[14px] text-t-tinta-terciaria border-b border-t-borde">{te('splitNote', { n: people, amount: formatCop(total / people) })}</p>}
+      {bill && parts > 1 && <p className="px-5 py-3.5 text-[14px] text-t-tinta-terciaria border-b border-t-borde">{te('splitNote', { n: parts, amount: formatCop(bill.porParte) })}</p>}
       <div className="px-5 pt-4 flex flex-col gap-2.5">
         <h2 className="t-title text-[17px] leading-tight">{te('menuTitle')}</h2>
         <MenuSearch query={query} setQuery={setQuery} />
@@ -75,13 +80,13 @@ export function E4Menu({ entry, query, setQuery, category, setCategory, onOpen, 
       <section role="tabpanel" aria-labelledby={tabId(category)} className="flex-1 pt-2">
         {dishes.length === 0
           ? <EmptyMenu query={query} category={category} onShowAll={showAll} />
-          : <ul className="flex flex-col">{dishes.map((d) => <Row key={d.id} dish={d} onOpen={onOpen} onAdd={onAdd} />)}</ul>}
+          : <ul className="flex flex-col">{dishes.map((d) => <Row key={d.id} dish={d} dark={dark} onOpen={onOpen} onAdd={onAdd} />)}</ul>}
       </section>
       <div data-testid="frame-order-bar" className="sticky bottom-0 z-30 px-5 py-3.5 border-t border-t-borde bg-t-fondo flex flex-col gap-2">
         {count > 0 && (
           <div className="flex gap-2">
             <Link href={payHref} className={secondary}>{te('payMine')}</Link>
-            {people > 1 && <Link href={payHref} className={secondary}>{te('splitIn', { n: people })}</Link>}
+            {parts > 1 && <Link href={payHref} className={secondary}>{te('splitIn', { n: parts })}</Link>}
           </div>
         )}
         {count > 0
@@ -93,19 +98,19 @@ export function E4Menu({ entry, query, setQuery, category, setCategory, onOpen, 
 }
 
 // Fila de la carta bajo la cuenta: nombre 15, atributos si existen, precio mono y ＋ (44 px). Tocar la fila abre el plato.
-function Row({ dish, onOpen, onAdd }: { dish: Dish; onOpen: (d: Dish) => void; onAdd: (d: Dish) => void }) {
-  const t = useTranslations('diner.common')
+// Agotado: el contenido al 55 % una sola vez y «Agotado» legible en el sitio del ＋.
+function Row({ dish, dark, onOpen, onAdd }: { dish: Dish; dark: boolean; onOpen: (d: Dish) => void; onAdd: (d: Dish) => void }) {
   const parts = useAttrParts(dish)
   return (
-    <li className={`px-5 border-b border-t-borde flex items-center gap-2 ${dish.agotado ? 'opacity-55' : ''}`}>
-      <button type="button" onClick={() => onOpen(dish)} className="flex-1 min-w-0 min-h-[56px] py-2.5 flex items-center justify-between gap-3 text-left">
+    <li className="px-5 border-b border-t-borde flex items-center gap-2">
+      <button type="button" onClick={() => onOpen(dish)} className={`flex-1 min-w-0 min-h-[56px] py-2.5 flex items-center justify-between gap-3 text-left ${dish.agotado ? 'opacity-55' : ''}`}>
         <span className="flex-1 min-w-0 flex flex-col">
           <span className="text-[15px] leading-snug">{dish.nombre}</span>
-          {dish.agotado ? <span className="text-[12px] text-busy-ink">{t('soldOut')}</span> : parts.length > 0 && <span className="text-[12px] text-t-tinta-suave truncate">{parts.join(' · ')}</span>}
+          {parts.length > 0 && <span className="text-[12px] text-t-tinta-suave truncate">{parts.join(' · ')}</span>}
         </span>
         <span className="font-t-mono tabular text-[15px] whitespace-nowrap">{formatCop(dish.precio)}</span>
       </button>
-      <AddButton dish={dish} onAdd={onAdd} filled className="-mr-1.5" />
+      {dish.agotado ? <SoldOut dark={dark} /> : <AddButton dish={dish} onAdd={onAdd} filled className="-mr-1.5" />}
     </li>
   )
 }

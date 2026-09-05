@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { useMemo, useState } from 'react'
 
-import { AddButton, EmptyMenu, MenuSearch } from '@/components/templates/families/E/parts'
+import { AddButton, EmptyMenu, MenuSearch, SoldOut } from '@/components/templates/families/E/parts'
 import { CategoryTabs, tabId, useMenuDishes } from '@/components/templates/generic/menuParts'
 import type { MenuLayoutProps } from '@/components/templates/types'
 import { formatCop, itemCount } from '@/lib/domain/cart'
@@ -17,9 +17,9 @@ import type { Dish } from '@/lib/types'
 // muestra la marca y su lema. La lista es la carta completa (búsqueda y categorías de Waiter encima), con los «solo hoy» primero y
 // un filtro «Solo hoy» (aria-pressed) para verlos solos; el subtítulo de la tarjeta es el primer tamaño (atributos.tamanos) o la
 // descripción, y no hay hueco si faltan. La nota solo aparece cuando hay platos de hoy. El CTA «Aprovechar 2 × 1» del marco es aquí
-// «Ver pedido · total» (orderBarHref, en acento como pide el spec). El marco no dibuja ＋: va uno de 32 px con borde (44 px de toque).
-// La página aún superpone su OrderBar flotante cuando hay ítems (integración pendiente).
-export function E3Menu({ entry, query, setQuery, category, setCategory, onOpen, onAdd, cart, orderBarHref }: MenuLayoutProps) {
+// «Ver pedido · total» (orderBarHref, en acento como pide el spec) con el radio 12 del marco del menú (radioBoton 8 es el de carrito
+// y pago). El marco no dibuja ＋: va uno de 32 px con borde (44 px de toque).
+export function E3Menu({ entry, template, query, setQuery, category, setCategory, onOpen, onAdd, cart, orderBarHref }: MenuLayoutProps) {
   const t = useTranslations('diner')
   const te = useTranslations('diner.templates.E3')
   const [onlyToday, setOnlyToday] = useState(false)
@@ -31,6 +31,7 @@ export function E3Menu({ entry, query, setQuery, category, setCategory, onOpen, 
     return onlyToday ? today : [...today, ...all.filter((d) => !d.atributos?.soloHoy)]
   }, [all, onlyToday])
   const brand = entry.contexto.marca
+  const dark = template.tokens.modo === 'oscuro'
   const count = itemCount(cart)
   const amount = formatCop(cart?.total ?? 0)
   const [before, after] = te('cta', { amount }).split(amount)
@@ -55,37 +56,37 @@ export function E3Menu({ entry, query, setQuery, category, setCategory, onOpen, 
       <section role="tabpanel" aria-labelledby={tabId(category)} className="flex-1 px-5 py-4 flex flex-col gap-[11px]">
         {dishes.length === 0
           ? <EmptyMenu query={query} category={category} onShowAll={showAll} />
-          : <ul className="flex flex-col gap-[11px]">{dishes.map((d) => <Card key={d.id} dish={d} onOpen={onOpen} onAdd={onAdd} />)}</ul>}
+          : <ul className="flex flex-col gap-[11px]">{dishes.map((d) => <Card key={d.id} dish={d} dark={dark} onOpen={onOpen} onAdd={onAdd} />)}</ul>}
         {todayCount > 0 && <p className="mt-auto px-3.5 py-3 rounded-[10px] bg-t-superficie text-[13px] leading-[1.45] text-t-tinta-terciaria">{te('todayNote')}</p>}
       </section>
       <div data-testid="frame-order-bar" className="sticky bottom-0 z-30 px-5 py-3.5 border-t border-t-borde bg-t-fondo">
         {count > 0
-          ? <Link href={orderBarHref} className="h-[56px] rounded-t-boton bg-t-acento text-t-acento-tinta text-[16px] font-bold flex items-center justify-center gap-1">{before}<span className="font-t-mono tabular">{amount}</span>{after}</Link>
-          : <button type="button" disabled className="w-full h-[56px] rounded-t-boton bg-t-acento text-t-acento-tinta text-[16px] font-bold disabled:opacity-60">{te('ctaEmpty')}</button>}
+          ? <Link href={orderBarHref} className="h-[56px] rounded-[12px] bg-t-acento text-t-acento-tinta text-[16px] font-bold flex items-center justify-center gap-1">{before}<span className="font-t-mono tabular">{amount}</span>{after}</Link>
+          : <button type="button" disabled className="w-full h-[56px] rounded-[12px] bg-t-acento text-t-acento-tinta text-[16px] font-bold disabled:opacity-60">{te('ctaEmpty')}</button>}
       </div>
     </div>
   )
 }
 
 // Tarjeta: nombre, subtítulo (primer tamaño o descripción), chip «Solo hoy» si aplica, precio en menta (color fijo del marco) y ＋.
-function Card({ dish, onOpen, onAdd }: { dish: Dish; onOpen: (d: Dish) => void; onAdd: (d: Dish) => void }) {
-  const t = useTranslations('diner')
+// Agotado: el contenido al 55 % una sola vez y «Agotado» legible en el sitio del ＋.
+function Card({ dish, dark, onOpen, onAdd }: { dish: Dish; dark: boolean; onOpen: (d: Dish) => void; onAdd: (d: Dish) => void }) {
   const tf = useTranslations('diner.templates.familiaE')
   const size = dish.atributos?.tamanos?.[0]
   const sub = size ? `${size.nombre} · ${formatCop(size.precio)}` : dish.descripcion
   return (
-    <li className={`rounded-t-tarjeta bg-t-superficie pl-3.5 pr-1.5 py-2 flex items-center gap-2 ${dish.agotado ? 'opacity-55' : ''}`}>
-      <button type="button" onClick={() => onOpen(dish)} className="flex-1 min-w-0 min-h-[44px] py-1 flex items-center justify-between gap-3 text-left">
+    <li className="rounded-t-tarjeta bg-t-superficie pl-3.5 pr-1.5 py-2 flex items-center gap-2">
+      <button type="button" onClick={() => onOpen(dish)} className={`flex-1 min-w-0 min-h-[44px] py-1 flex items-center justify-between gap-3 text-left ${dish.agotado ? 'opacity-55' : ''}`}>
         <span className="flex-1 min-w-0 flex flex-col">
           <span className="flex items-center gap-2">
             <span className="text-[16px] font-medium leading-snug">{dish.nombre}</span>
             {dish.atributos?.soloHoy && <span className="inline-flex items-center h-[20px] px-1.5 rounded-t-chip bg-t-acento-suave text-[11px] font-medium">{tf('todayOnly')}</span>}
           </span>
-          {dish.agotado ? <span className="text-[13px] text-busy">{t('common.soldOut')}</span> : sub && <span className="text-[13px] text-t-tinta-suave truncate">{sub}</span>}
+          {sub && <span className="text-[13px] text-t-tinta-suave truncate">{sub}</span>}
         </span>
         <span className="font-t-mono tabular text-[16px] text-[#A9E0C0] whitespace-nowrap">{formatCop(dish.precio)}</span>
       </button>
-      <AddButton dish={dish} onAdd={onAdd} />
+      {dish.agotado ? <SoldOut dark={dark} className="pr-2" /> : <AddButton dish={dish} onAdd={onAdd} />}
     </li>
   )
 }
