@@ -612,6 +612,65 @@
         "missing": "{n, plural, one {Falta # para pedir} other {Faltan # para pedir}}",
         "order": "Pedir flight · $ {amount}",
         "allChosen": "Ya elegiste todo lo de esta categoría."
+      },
+      "familiaF": {
+        "pieces": "{n, plural, one {# pieza} other {# piezas}}",
+        "items": "{n, plural, one {# ítem} other {# ítems}}",
+        "spicy": "picante {n}",
+        "bento": {
+          "sub": "{category} · {n, plural, one {# plato} other {# platos}}",
+          "choose": "Elige",
+          "more": "{n, plural, one {# más} other {# más}}",
+          "add": "Agregar al pedido"
+        },
+        "omakase": {
+          "bar": "{venue} · Mesa {n}",
+          "courses": "{n, plural, one {# plato} other {# platos}}",
+          "inOrder": "en tu pedido · ×{n}",
+          "noChanges": "Sin cambios ni sustituciones.",
+          "call": "Llamar al itamae"
+        },
+        "filter": {
+          "title": "Filtra la carta",
+          "without": "Sin {allergen}",
+          "spicy": "Picante",
+          "contains": "Contiene: {list}",
+          "hiddenAllergen": "Contiene {allergen} · oculto por tu filtro",
+          "hiddenTag": "No es {tag} · oculto por tu filtro",
+          "note": "El filtro no borra el plato: lo muestra atenuado y dice por qué. La cocina recibe la alergia en la comanda."
+        },
+        "sets": {
+          "sub": "Precio por persona calculado",
+          "perPerson": "{amount} por persona · para {n}",
+          "compare": "Comparar",
+          "best": "Mejor precio por persona",
+          "open": "Ver el plato →",
+          "add": "Añadir · {name}"
+        },
+        "cart": {
+          "total": "Total",
+          "taxIncluded": "IVA incluido",
+          "me": "Yo",
+          "forTable": "Para la mesa",
+          "tip": "Propina",
+          "tipNone": "Sin propina",
+          "tipAtTable": "Propina {pct}% · se entrega en la mesa",
+          "discountUsed": "{pct}% ya usado en tu 1ª visita",
+          "discountApplied": "−{pct}% aplicado",
+          "payMine": "Pagar lo mío"
+        },
+        "pay": {
+          "confirmTitle": "Confirmar y pagar",
+          "products": "Productos",
+          "discount": "Descuento {pct}%",
+          "invoiceNote": "Enviaremos la factura electrónica a tu correo al confirmar el pago.",
+          "totalToPay": "Total a pagar",
+          "tokenized": "Tokenizado por la pasarela. Waiter no ve tu tarjeta.",
+          "howSplit": "¿Cómo dividen?",
+          "payMine": "Pagar lo mío",
+          "splitIn": "Dividir en {n}",
+          "payAll": "Pagar todo"
+        }
       }
     },
     "status": {
