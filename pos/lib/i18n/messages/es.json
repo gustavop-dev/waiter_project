@@ -556,6 +556,47 @@
         "print": "Imprimir",
         "close": "Cerrar"
       }
+    },
+    "cash": {
+      "openTitle": "Abrir caja",
+      "openBody": "No hay una caja abierta. Cuenta el efectivo inicial y abre el turno.",
+      "config": "Caja",
+      "openingCash": "Efectivo inicial (COP)",
+      "notes": "Notas",
+      "open": "Abrir caja",
+      "opening": "Abriendo…",
+      "card": {
+        "title": "Caja",
+        "openSince": "Abierta desde {time}",
+        "expectedCash": "Efectivo esperado",
+        "moves": "Entrada / salida",
+        "close": "Cerrar caja"
+      },
+      "move": {
+        "title": "Entrada o salida de efectivo",
+        "in": "Entrada",
+        "out": "Salida",
+        "amount": "Monto (COP)",
+        "reason": "Motivo",
+        "apply": "Registrar",
+        "done": "Movimiento registrado."
+      },
+      "close": {
+        "title": "Cerrar caja",
+        "orders": "{n} pedidos · $ {amount}",
+        "byMethod": "Por método",
+        "cash": "Efectivo",
+        "opening": "apertura {amount}",
+        "expected": "Efectivo esperado",
+        "counted": "Efectivo contado (COP)",
+        "difference": "Diferencia",
+        "notes": "Notas de cierre",
+        "drafts": "{n, plural, one {Hay # cuenta abierta} other {Hay # cuentas abiertas}}: cóbralas antes de cerrar.",
+        "confirm": "Cerrar caja",
+        "closing": "Cerrando…",
+        "closed": "Caja cerrada. El turno queda contabilizado en Odoo.",
+        "failed": "Odoo no cerró la caja: {message}"
+      }
     }
   }
 }

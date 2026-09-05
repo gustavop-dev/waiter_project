@@ -2,6 +2,7 @@
 
 import { create } from 'zustand'
 
+import { openRegister as openRegisterRequest } from '@/lib/services/cashRegister'
 import { currentUser, getOpenSession, login as loginRequest, logout as logoutRequest } from '@/lib/services/session'
 import type { AuthUser, PosSession } from '@/lib/services/session'
 
@@ -12,6 +13,8 @@ interface AuthState {
   login: (login: string, password: string) => Promise<void>
   hydrate: () => Promise<void>
   logout: () => Promise<void>
+  refreshSession: () => Promise<void>
+  openRegister: (configId: number, openingCash: number, notes: string) => Promise<void>
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -33,6 +36,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ user: null, session: null, hydrated: true })
     }
   },
+  refreshSession: async () => set({ session: await getOpenSession() }),
+  openRegister: async (configId, cash, notes) => set({ session: await openRegisterRequest(configId, cash, notes) }),
   logout: async () => {
     await logoutRequest()
     set({ user: null, session: null })

@@ -3,13 +3,17 @@
 import { useTranslations } from 'next-intl'
 import { useEffect, useMemo, useState } from 'react'
 
+import { CloseRegisterDrawer } from '@/components/cash/CloseRegisterDrawer'
+import { RegisterCard } from '@/components/cash/RegisterCard'
 import { Shell } from '@/components/layout/Shell'
 import { Topbar } from '@/components/layout/Topbar'
 import { DataTable, type Column } from '@/components/ui/DataTable'
 import { Select } from '@/components/ui/Field'
 import { KpiCard } from '@/components/ui/KpiCard'
 import { formatCop } from '@/lib/domain/money'
+import { cashInOut, closeRegister, closingData, type ClosingData } from '@/lib/services/cashRegister'
 import { listSales, listShifts, paymentsByMethod, salesByWaiter, topProducts, type MethodTotal, type ProductTotal, type SaleRow, type ShiftRow, type WaiterTotal } from '@/lib/services/sales'
+import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
 import { cn } from '@/lib/utils'
 
@@ -20,12 +24,16 @@ const day = (at: string) => new Date(at.replace(' ', 'T') + 'Z').toLocaleDateStr
 export default function VentasPage() {
   const t = useTranslations('pos.sales')
   const catalog = useCatalogStore((s) => s.catalog)
+  const { session, refreshSession } = useAuthStore()
+  const [closing, setClosing] = useState<ClosingData | null>(null)
+  const [expectedCash, setExpectedCash] = useState<number | null>(null)
   const [shifts, setShifts] = useState<ShiftRow[]>([])
   const [shiftId, setShiftId] = useState<number | null>(null)
   const [data, setData] = useState<Data | null>(null)
   const tableNumberOf = useMemo(() => (id: number) => catalog?.tables.find((tb) => tb.id === id)?.number ?? null, [catalog])
 
   useEffect(() => { void listShifts().then((rows) => { setShifts(rows); if (rows[0]) setShiftId((id) => id ?? rows[0].id) }) }, [])
+  useEffect(() => { if (session) void closingData(session.id).then((d) => setExpectedCash(d.expectedCash)) }, [session])
   useEffect(() => {
     if (shiftId === null) return
     void Promise.all([listSales(shiftId, tableNumberOf), paymentsByMethod(shiftId), salesByWaiter(shiftId), topProducts(shiftId)])
@@ -50,7 +58,10 @@ export default function VentasPage() {
         right={<div className="min-w-[320px]"><Select label={t('shift')} value={shiftId ?? ''} onChange={(e) => setShiftId(Number(e.target.value))}>
           {shifts.map((s) => <option key={s.id} value={s.id}>{t('shiftLabel', { name: s.name, date: day(s.startAt) })} · {s.state === 'closed' ? t('shiftClosed') : t('shiftOpen')}</option>)}
         </Select></div>} />
-      <div className="flex-1 min-h-0 p-6 px-7 flex flex-col gap-[18px] overflow-y-auto">
+      <div className="flex-1 min-h-0 flex">
+      <div className="flex-1 min-w-0 p-6 px-7 flex flex-col gap-[18px] overflow-y-auto">
+        {session && <RegisterCard openSince={shifts.find((s) => s.id === session.id)?.startAt ? time(shifts.find((s) => s.id === session.id)!.startAt) : '—'} expectedCash={expectedCash}
+          onClose={() => void closingData(session.id).then(setClosing)} onMove={async (type, amount, reason) => { await cashInOut(session.id, type, amount, reason); setExpectedCash((await closingData(session.id)).expectedCash) }} />}
         <div className="grid grid-cols-4 gap-3">
           <KpiCard label={t('kpi.sales')} value={`$ ${formatCop(total)}`} />
           <KpiCard label={t('kpi.orders')} value={current?.sales.length ?? 0} />
@@ -82,6 +93,9 @@ export default function VentasPage() {
           <div className="px-[22px] py-[18px] border-b border-[#EFE9E0] text-[19px] font-bold">{t('orders')}</div>
           <DataTable columns={columns} rows={current?.sales ?? []} rowKey={(s) => s.id} emptyText={t('empty')} />
         </div>
+      </div>
+      {closing && session && <CloseRegisterDrawer data={closing} onClose={() => setClosing(null)}
+        onConfirm={async (counted, notes) => { const r = await closeRegister(session.id, counted, notes); if (r.successful) setTimeout(() => void refreshSession(), 1500); return r }} />}
       </div>
     </Shell>
   )
