@@ -124,7 +124,14 @@
       "openOrder": "Abrir pedido",
       "meta": "{pax} pax · {waiter} · {elapsed} h",
       "tax": "IVA",
-      "tip": "Propina sugerida (10%)"
+      "tip": "Propina sugerida (10%)",
+      "newTableDialog": {
+        "title": "Nueva mesa",
+        "body": "Se agrega al piso {floor}.",
+        "number": "Número",
+        "seats": "Puestos",
+        "create": "Crear mesa"
+      }
     },
     "order": {
       "back": "Salón",
@@ -146,7 +153,8 @@
       "photo": "Foto 4:3",
       "menu": "Carta",
       "favorite": "El favorito",
-      "soldOutChip": "Agotados {count}"
+      "soldOutChip": "Agotados {count}",
+      "kitchenNoteTitle": "Nota general a cocina"
     },
     "kds": {
       "title": "Cocina caliente",
@@ -369,7 +377,9 @@
         "storableOn": "Se agota por inventario",
         "storableOff": "Siempre disponible",
         "save": "Guardar",
-        "saved": "Guardado. La carta del comensal se actualiza en un minuto."
+        "saved": "Guardado. La carta del comensal se actualiza en un minuto.",
+        "image": "Foto (4:3)",
+        "noImage": "Sin foto"
       },
       "catForm": {
         "title": "Categorías",

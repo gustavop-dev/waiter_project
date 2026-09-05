@@ -1,4 +1,4 @@
-# Plan E — Cierre del POS · Partes 1 a 3: cobro, caja y roles
+# Plan E — Cierre del POS · Partes 1 a 5: cobro, caja, roles, remates y entrada
 
 > **Para agentes:** ejecutar tarea por tarea, con el ciclo completo (test que
 > falla → implementación mínima → test que pasa → commit).
@@ -60,8 +60,20 @@ navegador), modo offline, semi-integración de datáfono.
 - Configuración → Usuarios: rol al crear y cambio de rol por usuario.
 - Demo: `sofia` (mesero), `julian` (cajero), clave `Waiter-2026`.
 
-Siguiente parte (no en este PR): buscar plato, nota general a cocina, fotos
-de producto, buscar mesa o pedido.
+## Parte 4 — Remates de la toma de pedido y del salón (2026-09-05)
+
+- **Buscar plato** en la toma de pedido (filtra la carta junto con la categoría).
+- **Nota general a cocina** en el pedido: viaja en `general_customer_note` y
+  el KDS la muestra resaltada (y marca el ticket como *Atención*). Las notas
+  de línea usan el mismo diálogo táctil; adiós al `prompt` del navegador.
+- **Fotos de producto**: la tarjeta muestra la imagen de Odoo (`web/image`
+  por el proxy same-origin) cuando existe; Catálogo permite subirla.
+- **Buscar mesa o pedido** en el salón (número de mesa, número de pedido o
+  mesero) y **Nueva mesa** en el piso activo.
+
+Con esto el POS del operador queda cerrado. Fuera, por decisión: modo offline,
+impresión térmica, modificadores por atributo y combos, semi-integración de
+datáfono, "mesa pide mesero" (llega con la PWA).
 
 ## Parte 5 — Entrada al turno e invitaciones por correo (2026-09-05)
 

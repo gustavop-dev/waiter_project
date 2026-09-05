@@ -1,4 +1,4 @@
-import { barFill, barTone, countByState, deriveTableViews, elapsedMinutes, formatElapsed } from '@/lib/domain/tableState'
+import { barFill, barTone, countByState, deriveTableViews, elapsedMinutes, formatElapsed, matchesSearch } from '@/lib/domain/tableState'
 
 const tables = [{ id: 1, number: 1, floorId: 1, seats: 4 }, { id: 2, number: 2, floorId: 1, seats: 2 }, { id: 3, number: 3, floorId: 1, seats: 2 }]
 const order = { id: 9, tableId: 2, total: 74200, tax: 11851, state: 'draft' as const, lineCount: 2, startedAt: '2026-09-04 20:00:00', waiter: 'Alejandra', kitchen: 'none' as const }
@@ -46,4 +46,10 @@ it('fills the 22-minute bar and changes tone at 12 and 18 minutes', () => {
   expect(barFill(11)).toBe(50)
   expect(barFill(30)).toBe(100)
   expect([barTone(5), barTone(12), barTone(18)]).toEqual(['ok', 'warn', 'late'])
+})
+
+// Falla si buscar "3" no encuentra la mesa 3, si "#9" no encuentra el pedido 9, o si el vacío filtra algo.
+it('matches tables by number, order id or waiter', () => {
+  const view = deriveTableViews(tables, [order], {})[1]
+  expect([matchesSearch(view, '2'), matchesSearch(view, '#9'), matchesSearch(view, 'ale'), matchesSearch(view, '7'), matchesSearch(view, '')]).toEqual([true, true, true, false, true])
 })

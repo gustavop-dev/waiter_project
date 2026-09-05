@@ -4,7 +4,7 @@ import { getOrderLines, payOrder, saveOrder } from '@/lib/services/orders'
 
 jest.mock('@/lib/services/odoo', () => ({ callKw: jest.fn() }))
 const mockCallKw = callKw as jest.Mock
-const angus = { id: 3, templateId: 2, name: 'Angus', price: 36900, categoryIds: [1], taxIds: [5], favorite: false, storable: false, soldOut: false }
+const angus = { id: 3, templateId: 2, name: 'Angus', price: 36900, categoryIds: [1], taxIds: [5], favorite: false, storable: false, soldOut: false, hasImage: false }
 const read = { id: 13, pos_reference: '260-1-000009', state: 'draft', amount_total: 87822, amount_tax: 14022, amount_paid: 0 }
 
 beforeEach(() => mockCallKw.mockReset())

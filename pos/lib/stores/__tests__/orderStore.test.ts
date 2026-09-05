@@ -10,7 +10,7 @@ const mSave = saveOrder as jest.Mock
 const mPay = payOrder as jest.Mock
 const mClose = closeOrder as jest.Mock
 const mList = listOpenOrders as jest.Mock
-const angus = { id: 3, templateId: 2, name: 'Angus', price: 36900, categoryIds: [1], taxIds: [5], favorite: false, storable: false, soldOut: false }
+const angus = { id: 3, templateId: 2, name: 'Angus', price: 36900, categoryIds: [1], taxIds: [5], favorite: false, storable: false, soldOut: false, hasImage: false }
 const saved = { id: 13, reference: '260-1-000009', state: 'draft' as const, total: 87822, tax: 14022, paid: 0 }
 
 beforeEach(() => {

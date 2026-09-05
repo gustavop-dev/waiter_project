@@ -7,7 +7,7 @@ import { useKitchenStore } from '@/lib/stores/kitchenStore'
 jest.mock('@/lib/services/kitchen', () => ({ listKitchenTickets: jest.fn(), listCompletedCourses: jest.fn(), markReady: jest.fn(), markServed: jest.fn() }))
 jest.mock('@/lib/audio/sounds', () => ({ play: jest.fn(), setMuted: jest.fn(), setStation: jest.fn() }))
 const mTickets = listKitchenTickets as jest.Mock
-const ticket = (id: number) => ({ id, orderId: id, tableId: 1, tracking: '1', waiter: '', firedAt: '2026-09-05 02:00:00', readyAt: null, lines: [] })
+const ticket = (id: number) => ({ id, orderId: id, tableId: 1, tracking: '1', waiter: '', note: '', firedAt: '2026-09-05 02:00:00', readyAt: null, lines: [] })
 const none = () => null
 
 beforeEach(() => {

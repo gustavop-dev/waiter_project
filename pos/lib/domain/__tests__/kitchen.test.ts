@@ -5,7 +5,7 @@ const NOW = Date.parse('2026-09-05T02:00:00Z')
 const at = (minutesAgo: number) => new Date(NOW - minutesAgo * 60_000).toISOString().slice(0, 19).replace('T', ' ')
 const line = (station: string | null, note = '') => ({ id: 1, name: 'Lomo', qty: 1, note, station })
 const ticket = (id: number, minutesAgo: number, lines = [line('Parrilla')]): KitchenTicket =>
-  ({ id, orderId: id, tableId: id, tracking: String(id), waiter: 'Sofía', firedAt: at(minutesAgo), readyAt: null, lines })
+  ({ id, orderId: id, tableId: id, tracking: String(id), waiter: 'Sofía', note: '', firedAt: at(minutesAgo), readyAt: null, lines })
 
 // Falla si el cronómetro muestra segundos sin cero a la izquierda o minutos mal divididos.
 it('formats seconds as minutes:seconds like the design timer', () => {
