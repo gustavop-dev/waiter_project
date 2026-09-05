@@ -2,20 +2,24 @@ import { fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { D5Menu } from '@/components/templates/families/D/D5Menu'
-import { cartOf, line, menuProps, wrap } from '@/components/templates/families/D/__tests__/fixtures'
+import { cafe, cartOf, entryOf, horno, line, menuProps, vacia, wrap } from '@/components/templates/families/D/__tests__/fixtures'
 
 const mockStore = { entry: null, account: null, accountOrders: [], loadAccount: jest.fn() }
 jest.mock('@/lib/stores/dinerStore', () => ({ useDinerStore: (sel?: (s: typeof mockStore) => unknown) => (sel ? sel(mockStore) : mockStore) }))
 
-// Falla si las franjas no son pestañas de ancho igual navegables con flechas, si la fila pierde miniatura (o placeholder), descripción
-// o precio en mono, o si la barra oscura no dice el estado del pedido ni lleva al pedido.
+// Falla si las franjas dejan de ser pestañas de ancho igual (rejilla de columnas iguales que salta de fila con 4+ categorías, nunca un
+// scroll que recorte la última) navegables con flechas, si la fila pierde miniatura (o placeholder), descripción o precio en mono, o
+// si la barra oscura no dice el estado del pedido ni lleva al pedido.
 it('paints the time-slot tabs, the 84px rows with thumbnails and the dark order bar', async () => {
   const user = userEvent.setup()
-  const p = menuProps({ template: { ...menuProps().template, codigo: 'D5' }, cart: cartOf([line()]) })
+  const p = menuProps({ template: { ...menuProps().template, codigo: 'D5' }, cart: cartOf([line()]), entry: entryOf([cafe, horno, vacia]) })
   wrap(<D5Menu {...p} />)
-  const tabs = within(screen.getByRole('tablist', { name: 'Categorías' })).getAllByRole('tab')
-  expect(tabs.map((t) => t.textContent)).toEqual(['Todo', 'Café', 'Del horno'])
-  expect(tabs[0]).toHaveClass('flex-[1_0_auto]', 'bg-t-acento')
+  const tablist = screen.getByRole('tablist', { name: 'Categorías' })
+  expect(tablist).toHaveClass('grid', 'grid-cols-[repeat(auto-fit,minmax(5.5rem,1fr))]')
+  expect(tablist.className).not.toMatch(/overflow-x/)
+  const tabs = within(tablist).getAllByRole('tab')
+  expect(tabs.map((t) => t.textContent)).toEqual(['Todo', 'Café', 'Del horno', 'Tardes'])
+  expect(tabs[0]).toHaveClass('min-w-0', 'bg-t-acento')
   tabs[0].focus()
   await user.keyboard('{ArrowRight}')
   expect(p.setCategory).toHaveBeenCalledWith(1)
@@ -32,7 +36,8 @@ it('paints the time-slot tabs, the 84px rows with thumbnails and the dark order 
   expect(bar).toHaveClass('bg-dark')
 })
 
-// Falla si la fila no abre el plato, si el ＋ no agrega, o si un plato agotado no queda al 50 % con «Vuelve mañana» y sin ＋.
+// Falla si la fila no abre el plato, si el ＋ no agrega, o si un plato agotado no queda al 50 % una sola vez (la fila; la foto no se
+// atenúa aparte) con «Vuelve mañana» en lugar de la descripción, sin ＋ y sin una segunda insignia «Agotado» (el marco no la trae).
 it('opens from the row, adds from the plus and says "Vuelve mañana" for sold-out dishes', () => {
   const p = menuProps()
   wrap(<D5Menu {...p} />)
@@ -42,8 +47,10 @@ it('opens from the row, adds from the plus and says "Vuelve mañana" for sold-ou
   expect(p.onAdd).toHaveBeenCalledWith(expect.objectContaining({ id: 1 }))
   const soldOut = screen.getByText('Cold brew').closest('article') as HTMLElement
   expect(soldOut).toHaveClass('opacity-50')
+  expect(within(soldOut).getByRole('presentation').className).not.toMatch(/opacity/)
   expect(within(soldOut).getByText('Vuelve mañana')).toHaveClass('text-busy-ink')
   expect(within(soldOut).queryByText('Doce horas en frío')).toBeNull()
+  expect(within(soldOut).queryByTestId('sold-out-badge')).toBeNull()
   expect(within(soldOut).queryByRole('button', { name: /Agregar/ })).toBeNull()
 })
 

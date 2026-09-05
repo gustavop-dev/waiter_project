@@ -6,6 +6,7 @@ import { useEffect, useMemo } from 'react'
 
 import { tabId } from '@/components/templates/generic/menuParts'
 import { formatCop, itemCount } from '@/lib/domain/cart'
+import { getAccount } from '@/lib/services/api'
 import { useDinerStore } from '@/lib/stores/dinerStore'
 import type { Cart, Category, Dish, DishAttributes, PhotoCrop } from '@/lib/types'
 
@@ -15,15 +16,15 @@ import type { Cart, Category, Dish, DishAttributes, PhotoCrop } from '@/lib/type
 // Recorte de foto según spec.fotos.recorte. 'ninguno' deja la altura al contenedor.
 export const CROP: Record<PhotoCrop, string> = { '4x3': 'aspect-[4/3]', '1x1': 'aspect-square', '3x4': 'aspect-[3/4]', '3x2': 'aspect-[3/2]', ninguno: '' }
 
-// Foto con object-cover; sin foto, placeholder «Foto del plato»; agotado al 55 % (la insignia la pone quien la necesite encima).
+// Foto con object-cover; sin foto, placeholder «Foto del plato». No atenúa nada: el agotado lo atenúa una sola vez la tarjeta o la
+// fila que la contiene (55 % en D3, 50 % en D5), como piden los marcos; atenuar también aquí dejaba la foto casi invisible.
 export function DishPhoto({ dish, className = '' }: { dish: Dish; className?: string }) {
   const t = useTranslations('diner.templates')
-  const dim = dish.agotado ? ' opacity-55' : ''
   return (
     <div className={`relative shrink-0 overflow-hidden bg-muted grid place-items-center text-[10px] tracking-[0.08em] uppercase text-center text-t-tinta-terciaria ${className}`}>
       {/* La foto viene de experience por URL; next.config la sirve sin optimizar (images.unoptimized). */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {dish.foto ? <img src={dish.foto} alt="" className={`w-full h-full object-cover${dim}`} /> : <span className={`px-1${dim}`}>{t('photo')}</span>}
+      {dish.foto ? <img src={dish.foto} alt="" className="w-full h-full object-cover" /> : <span className="px-1">{t('photo')}</span>}
     </div>
   )
 }
@@ -49,8 +50,9 @@ export function SearchField({ query, setQuery, className }: { query: string; set
   return <input type="search" aria-label={t('search')} placeholder={t('search')} value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" className={className} />
 }
 
-// Pestañas de categoría con el trazo del marco (D5 las quiere de ancho igual). Misma accesibilidad que CategoryTabs: tablist, ←/→, Home/End.
-export function TabRow({ categories, category, setCategory, chip, className = '' }: { categories: Category[]; category: number | null; setCategory: (c: number | null) => void; chip: (active: boolean) => string; className?: string }) {
+// Pestañas de categoría con el trazo del marco: `chip` dibuja cada pestaña y `className` el contenedor entero (D5 las quiere de ancho
+// igual y pone una rejilla). Misma accesibilidad que CategoryTabs: tablist, ←/→, Home/End.
+export function TabRow({ categories, category, setCategory, chip, className = 'flex gap-2 overflow-x-auto [scrollbar-width:none]' }: { categories: Category[]; category: number | null; setCategory: (c: number | null) => void; chip: (active: boolean) => string; className?: string }) {
   const t = useTranslations('diner.menu')
   const values: (number | null)[] = [null, ...categories.map((c) => c.id)]
   const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -67,7 +69,7 @@ export function TabRow({ categories, category, setCategory, chip, className = ''
     return <button key={tabId(value)} type="button" role="tab" id={tabId(value)} aria-selected={active} tabIndex={active ? 0 : -1} onClick={() => setCategory(value)} className={chip(active)}>{label}</button>
   }
   return (
-    <div role="tablist" aria-label={t('categories')} onKeyDown={onKeyDown} className={`flex overflow-x-auto [scrollbar-width:none] ${className}`}>
+    <div role="tablist" aria-label={t('categories')} onKeyDown={onKeyDown} className={className}>
       {tab(null, t('all'))}
       {categories.map((c) => tab(c.id, c.nombre))}
     </div>
@@ -100,23 +102,24 @@ export function AttributeChips({ attrs, className = '', chip = 'inline-flex item
   const items: string[] = []
   if (attrs.soloHoy) items.push(t('today'))
   if (attrs.piezas) items.push(t('pieces', { n: attrs.piezas }))
+  // Un 0 (picante 0, ABV 0, IBU 0) no es una escala que pintar: solo se muestra lo que dice algo.
   if (attrs.picante) items.push(t('spicy', { level: attrs.picante }))
-  if (attrs.abv !== undefined) items.push(t('abv', { abv: attrs.abv }))
-  if (attrs.ibu !== undefined) items.push(t('ibu', { ibu: attrs.ibu }))
+  if (attrs.abv) items.push(t('abv', { abv: attrs.abv }))
+  if (attrs.ibu) items.push(t('ibu', { ibu: attrs.ibu }))
   for (const e of attrs.etiquetas ?? []) items.push(e)
   if (items.length === 0) return null
   return <div className={`flex flex-wrap gap-1 ${className}`}>{items.map((i) => <span key={i} className={chip}>{i}</span>)}</div>
 }
 
-// Barra de pedido del marco. La página pinta la barra fija de Waiter cuando hay ítems; para no montarse encima, la del marco
-// solo se pega abajo mientras el pedido está vacío (que es cuando la de Waiter no aparece) y queda en flujo si no.
-export const barPosition = (cart: Cart | null) => (itemCount(cart) === 0 ? 'sticky bottom-0 z-30' : '')
-
-// Barra oscura «N ítems · total / Ver pedido →» (D5). Oscura por norma de Waiter (bg-dark), enlace en el acento.
-export function DarkOrderBar({ cart, href }: { cart: Cart | null; href: string }) {
+// Barra oscura «N ítems · total / Ver pedido →», pegada abajo del layout (la página no pinta su barra sobre los layouts fieles).
+// Es la barra del marco de D5, que la muestra siempre; los marcos sin barra propia (D2, D3, D4) la piden con `hideWhenEmpty`
+// y así cumplen la norma de Waiter (lo pedido nunca se pierde de vista) sin añadir nada al marco mientras no hay pedido.
+// Oscura por norma de Waiter (bg-dark), enlace en el acento.
+export function DarkOrderBar({ cart, href, hideWhenEmpty = false }: { cart: Cart | null; href: string; hideWhenEmpty?: boolean }) {
   const t = useTranslations('diner.orderBar')
+  if (hideWhenEmpty && itemCount(cart) === 0) return null
   return (
-    <Link href={href} aria-label={t('yourOrder')} className={`px-5 py-3 border-t border-t-borde bg-dark text-dark-ink flex items-center justify-between min-h-[52px] ${barPosition(cart)}`}>
+    <Link href={href} aria-label={t('yourOrder')} className="sticky bottom-0 z-30 px-5 py-3 border-t border-t-borde bg-dark text-dark-ink flex items-center justify-between min-h-[52px]">
       <span className="text-[14px]">{t('items', { n: itemCount(cart) })} · <span className="font-t-mono tabular">{formatCop(cart?.total ?? 0)}</span></span>
       <span className="text-[14px] font-medium text-t-acento">{t('seeOrder')}</span>
     </Link>
@@ -129,11 +132,18 @@ export function useDishIndex(): Map<number, Dish> {
   return useMemo(() => new Map((entry?.carta.categorias ?? []).flatMap((c) => c.productos).map((d) => [d.id, d])), [entry])
 }
 
-// Cuenta del comensal desde el store (la carta no la recibe por props): se pide una vez si aún no se conoce.
+// Cuenta del comensal desde el store (la carta no la recibe por props). Un comensal anónimo no tiene cuenta, así que «account
+// null» no significa «aún no se pidió»: se pregunta a experience UNA vez por carga de la app, fuera de `run` (nada de busy global
+// parpadeando ni de un error de red pintado en la carta) y en silencio si falla: sin cuenta la carta se muestra anónima y ya.
+let accountProbed = false
+export const resetAccountProbe = () => { accountProbed = false }
 export function useDinerAccount() {
   const account = useDinerStore((s) => s.account)
   const orders = useDinerStore((s) => s.accountOrders)
-  const loadAccount = useDinerStore((s) => s.loadAccount)
-  useEffect(() => { if (!account) void loadAccount() }, [account, loadAccount])
+  useEffect(() => {
+    if (account || accountProbed) return
+    accountProbed = true
+    getAccount().then((r) => useDinerStore.setState({ account: r.cuenta, accountOrders: r.pedidos ?? [] })).catch(() => { /* anónimo o sin red: la carta no lo necesita */ })
+  }, [account])
   return { account, orders }
 }

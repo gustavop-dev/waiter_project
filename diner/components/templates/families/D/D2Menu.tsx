@@ -3,10 +3,11 @@
 import { useTranslations } from 'next-intl'
 import { useMemo, useRef, useState } from 'react'
 
-import { AddButton, AttributeChips, MenuEmpty, ReferenceNote, SearchField, SoldOutBadge } from '@/components/templates/families/D/parts'
+import { AddButton, AttributeChips, DarkOrderBar, MenuEmpty, ReferenceNote, SearchField, SoldOutBadge } from '@/components/templates/families/D/parts'
 import { CategoryTabs, tabId, unique, useMenuDishes } from '@/components/templates/generic/menuParts'
 import type { MenuLayoutProps } from '@/components/templates/types'
 import { formatCop } from '@/lib/domain/cart'
+import { useDinerStore } from '@/lib/stores/dinerStore'
 import type { Dish } from '@/lib/types'
 
 // D2 · Constructor de bebida (docs/diseno/plantillas/D2). El marco muestra solo la ficha-constructor de una bebida (Tamaño en
@@ -14,10 +15,12 @@ import type { Dish } from '@/lib/types'
 // ficha del plato elegido (por defecto el primero con tamaños, si no el primero disponible) y debajo «Toda la carta» con
 // búsqueda, pestañas y filas nombre + precio + ＋. Tocar una fila carga el plato en el constructor (eso es «abrir» en este
 // marco); «Ver ficha completa →» lleva a la página del plato (onOpen). Grupos con datos: Tamaño (atributos.tamanos). Leche y
-// Extras (atributos.opciones) no existen en el contrato 2: se omiten sin hueco. La elección de tamaño es maquetada: onAdd
-// agrega el producto (el precio final lo pone el POS); la «última combinación» de la cuenta tampoco existe todavía.
-// El marco no tiene barra de pedido propia: la pinta la página (OrderBar fija de Waiter).
-export function D2Menu({ entry, query, setQuery, category, setCategory, onOpen, onAdd }: MenuLayoutProps) {
+// Extras (atributos.opciones) no existen en el contrato 2: se omiten sin hueco; la «última combinación» de la cuenta tampoco.
+// El precio del pie es el que cobra el carrito (producto.precio): el motor no admite variantes, así que los precios por tamaño
+// de atributos.tamanos no se pintan (mostrar 8.000 y cobrar 9.000 era engañar al comensal) y el tamaño elegido viaja como nota
+// de la línea («Tamaño: 12 oz»), que la cocina y el POS sí leen. Sin tamaños, «Añadir» es el onAdd del contrato.
+// El marco no tiene barra de pedido propia: al pie va la barra oscura de Waiter, solo cuando hay algo pedido.
+export function D2Menu({ entry, query, setQuery, category, setCategory, onOpen, onAdd, cart, orderBarHref }: MenuLayoutProps) {
   const t = useTranslations('diner')
   const td = useTranslations('diner.templates.D2')
   const tf = useTranslations('diner.templates.familiaD')
@@ -34,7 +37,8 @@ export function D2Menu({ entry, query, setQuery, category, setCategory, onOpen, 
   // Al elegir desde la lista, la ficha vuelve a la vista (scrollIntoView no existe en jsdom: se comprueba antes).
   const pick = (d: Dish) => { setSelectedId(d.id); if (typeof top.current?.scrollIntoView === 'function') top.current.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
   const sizes = selected?.atributos?.tamanos ?? []
-  const price = selected ? (sizes[size]?.precio ?? selected.precio) : 0
+  const addLine = useDinerStore((s) => s.add)
+  const add = (d: Dish) => { const chosen = sizes[size]; if (chosen) void addLine(d.id, 1, td('sizeNote', { size: chosen.nombre })); else onAdd(d) }
   const field = 'h-11 w-full rounded-t-boton bg-t-fondo border border-t-borde px-4 text-[15px] text-t-tinta placeholder:text-t-tinta-terciaria'
   const label = 'text-[13px] tracking-[0.1em] uppercase text-t-tinta-terciaria font-medium'
   return (
@@ -63,10 +67,10 @@ export function D2Menu({ entry, query, setQuery, category, setCategory, onOpen, 
             <button type="button" onClick={() => onOpen(selected)} className="self-start h-11 text-[14px] font-medium text-t-acento">{td('openDish')}</button>
           </div>
           <footer className="px-5 py-3.5 border-t border-t-borde flex items-center gap-2.5">
-            <span className="font-t-mono tabular text-[20px]">{formatCop(price)}</span>
+            <span className="font-t-mono tabular text-[20px]">{formatCop(selected.precio)}</span>
             {selected.agotado
               ? <span className="flex-1 h-14 rounded-t-boton bg-t-superficie grid place-items-center text-[15px] font-medium text-busy-ink">{t('common.soldOut')}</span>
-              : <button type="button" onClick={() => onAdd(selected)} className="flex-1 h-14 rounded-t-boton bg-t-acento text-t-acento-tinta text-[16px] font-bold">{td('add')}</button>}
+              : <button type="button" onClick={() => add(selected)} className="flex-1 h-14 rounded-t-boton bg-t-acento text-t-acento-tinta text-[16px] font-bold">{td('add')}</button>}
           </footer>
         </section>
       )}
@@ -81,6 +85,7 @@ export function D2Menu({ entry, query, setQuery, category, setCategory, onOpen, 
           ? <MenuEmpty query={query} category={category} setQuery={setQuery} setCategory={setCategory} button="h-11 px-[18px] rounded-t-boton bg-t-superficie border border-t-borde text-[15px] font-medium text-t-tinta" />
           : dishes.map((d) => <Row key={d.id} dish={d} active={d.id === selected?.id} onPick={pick} onAdd={onAdd} />)}
       </section>
+      <DarkOrderBar cart={cart} href={orderBarHref} hideWhenEmpty />
     </div>
   )
 }

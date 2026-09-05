@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 
-import { AddButton, DishPhoto, MenuEmpty, ReferenceNote, SearchField, SoldOutBadge } from '@/components/templates/families/D/parts'
+import { AddButton, DarkOrderBar, DishPhoto, MenuEmpty, ReferenceNote, SearchField, SoldOutBadge } from '@/components/templates/families/D/parts'
 import { CategoryTabs, tabId, useMenuDishes } from '@/components/templates/generic/menuParts'
 import type { MenuLayoutProps } from '@/components/templates/types'
 import { formatCop } from '@/lib/domain/cart'
@@ -11,10 +11,11 @@ import type { Dish } from '@/lib/types'
 // D3 · Vitrina de panadería (docs/diseno/plantillas/D3). Fondo crema; cabecera «Salió del horno» con, a la derecha en mono acento,
 // el conteo de piezas visibles (la hora del último horneado de la sede no existe en los datos); rejilla de 2 columnas de tarjetas
 // blancas con foto de 88 px (recorte 3x2), nombre 15/500 y precio mono; banda inferior sobre acentoSuave. El stock en vivo
-// («18 quedan») y la hora del próximo horneado no existen: a la derecha del precio va el ＋, y agotado deja la tarjeta al 55 %
-// con «Agotado» en rojo donde el marco pone «a las 10». Búsqueda y pestañas de Waiter bajo la cabecera (el marco no las trae).
-// Sin barra de pedido propia: la pinta la página.
-export function D3Menu({ entry, query, setQuery, category, setCategory, onOpen, onAdd }: MenuLayoutProps) {
+// («18 quedan») y la hora del próximo horneado no existen: a la derecha del precio va el ＋, y agotado deja la tarjeta entera al
+// 55 % (una sola vez: la foto no se atenúa aparte) con «Agotado» en rojo donde el marco pone «a las 10». La banda inferior lleva
+// el texto del marco. Búsqueda y pestañas de Waiter bajo la cabecera (el marco no las trae). Sin barra de pedido propia: al pie
+// va la barra oscura de Waiter, solo cuando hay algo pedido.
+export function D3Menu({ entry, query, setQuery, category, setCategory, onOpen, onAdd, cart, orderBarHref }: MenuLayoutProps) {
   const td = useTranslations('diner.templates.D3')
   const categories = entry.carta.categorias
   const dishes = useMenuDishes(categories, query, category)
@@ -36,6 +37,7 @@ export function D3Menu({ entry, query, setQuery, category, setCategory, onOpen, 
           : <div className="grid grid-cols-2 gap-3 content-start">{dishes.map((d) => <Card key={d.id} dish={d} onOpen={onOpen} onAdd={onAdd} />)}</div>}
       </section>
       <p className="px-5 py-3 border-t border-t-borde bg-t-acento-suave text-[13px] leading-[1.45] text-t-tinta-terciaria">{td('inventory')}</p>
+      <DarkOrderBar cart={cart} href={orderBarHref} hideWhenEmpty />
     </div>
   )
 }
