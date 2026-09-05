@@ -1,0 +1,306 @@
+{
+  "codigo": "C2",
+  "nombre": "Foto a sangre",
+  "familia": "C",
+  "familiaNombre": "Rápida y food truck",
+  "descripcion": "Un producto por pantalla con foto enorme a sangre; el tamaño es la decisión principal, hay un upsell de una línea y se navega deslizando entre productos.",
+  "fotos": {
+    "requiere": "todas",
+    "recorte": "3x4"
+  },
+  "tokens": {
+    "modo": "claro",
+    "fondo": "#FFFFFF",
+    "superficie": "#FAF8F5",
+    "tinta": "#1A1815",
+    "tintaSuave": "#6B6259",
+    "tintaTerciaria": "#8B8175",
+    "borde": "#E4DED4",
+    "acento": "#C1873A",
+    "acentoTinta": "#FFFFFF",
+    "acentoSuave": "#FDF6EA",
+    "displayFont": "Ubuntu",
+    "displayPeso": 700,
+    "displayTracking": "-0.02em",
+    "displayTransform": "none",
+    "cuerpoFont": "Ubuntu",
+    "monoFont": "IBM Plex Mono",
+    "radioTarjeta": 12,
+    "radioBoton": 12,
+    "radioChip": 999,
+    "densidad": "amplia"
+  },
+  "personalizable": {
+    "colores": [
+      "acento",
+      "fondo",
+      "superficie",
+      "tinta"
+    ],
+    "tipografiaDisplay": true,
+    "logo": true
+  },
+  "pantallas": {
+    "menu": {
+      "layout": "C2",
+      "resumen": "Marco blanco. Arriba la foto del producto a sangre (176 px de alto en el marco; foto vertical) con chip rojo «Solo hoy» abajo a la izquierda si atributos.soloHoy; debajo nombre 24/700 y precio mono 20 en la misma línea, descripción 15 px, selector de tamaño segmentado (atributos.tamanos; el activo en tinta con texto blanco), fila de upsell en acento suave con ＋ redondo; pie con stepper de cantidad y CTA «Añadir {precio}». Un producto por pantalla, se pasa al siguiente deslizando; categorías y búsqueda quedan fuera del marco (las pinta el motor).",
+      "datosOpcionales": [
+        "complemento"
+      ],
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #FFFFFF; border: 1px solid #DDD6C9; border-radius: 20px; color: #1A1815; font-family: 'Ubuntu'"
+        },
+        {
+          "bloque": "foto",
+          "que": "producto.foto a sangre, recorte vertical (placeholder #D9CFC0 si no hay foto)",
+          "css": "height: 176px; background: #D9CFC0; object-fit: cover; position: relative; placeholder: font-size 11px letter-spacing 0.1em text-transform uppercase color #8B8175"
+        },
+        {
+          "bloque": "foto.chipSoloHoy",
+          "que": "«Solo hoy» si atributos.soloHoy",
+          "css": "position: absolute; left: 18px; bottom: 18px; height: 32px; padding: 0 12px; border-radius: 999px; background: #B4342F; color: #FFFFFF; font-size: 13px; font-weight: 500"
+        },
+        {
+          "bloque": "cuerpo",
+          "que": "nombre, precio, descripción, tamaños, upsell",
+          "css": "padding: 20px; display: flex; flex-direction: column; gap: 12px"
+        },
+        {
+          "bloque": "cuerpo.nombrePrecio",
+          "que": "producto.nombre y producto.precio (del tamaño activo)",
+          "css": "display: flex; justify-content: space-between; align-items: baseline; gap: 12px; nombre: font-size 24px font-weight 700 letter-spacing -0.02em line-height 1.1; precio: font-family 'IBM Plex Mono' font-size 20px white-space nowrap"
+        },
+        {
+          "bloque": "cuerpo.descripcion",
+          "que": "producto.descripcion",
+          "css": "font-size: 15px; line-height: 1.5; color: #6B6259"
+        },
+        {
+          "bloque": "cuerpo.tamanos",
+          "que": "atributos.tamanos como segmentos iguales (se omite si no hay)",
+          "css": "display: flex; gap: 8px; segmento: flex 1 height 52px border-radius 10px border 1px solid #E4DED4 font-size 15px; activo: background #1A1815 color #FFFFFF font-weight 500 sin borde"
+        },
+        {
+          "bloque": "cuerpo.upsell",
+          "que": "«¿Le sumas {complemento.nombre} por {precio}?» + botón ＋ (dato no estándar: complemento; se omite si no hay)",
+          "css": "display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: 12px; background: #FDF6EA; border: 1px solid #EFE4D2; texto: font-size 14px color #6B4A05; boton: width 34px height 34px border-radius 999px background #C1873A color #FFFFFF font-size 17px"
+        },
+        {
+          "bloque": "pie",
+          "que": "stepper + CTA",
+          "css": "padding: 14px 20px; border-top: 1px solid #EFE9E0; display: flex; gap: 10px; align-items: center"
+        },
+        {
+          "bloque": "pie.stepper",
+          "que": "− / cantidad / ＋",
+          "css": "border: 1px solid #E4DED4; border-radius: 10px; overflow: hidden; boton: width 44px height 48px font-size 19px color #6B6259; separador ＋: border-left 1px solid #EFE9E0; cantidad: width 40px text-align center font-family 'IBM Plex Mono' font-size 17px"
+        },
+        {
+          "bloque": "pie.cta",
+          "que": "«Añadir {precio × cantidad}» (onAdd)",
+          "css": "flex: 1; height: 56px; border-radius: 12px; background: #C1873A; color: #FFFFFF; font-size: 16px; font-weight: 700"
+        }
+      ]
+    },
+    "carrito": {
+      "layout": "familia-C",
+      "resumen": "Esqueleto de la familia C en piel clara. Variante de fila C2: miniatura 54 px (producto.foto) a la izquierda, nombre 16/500 y precio mono 15 en la misma línea, nota 13 px, stepper pequeño y «Quitar» en rojo. Totales sobre #FAF8F5; CTA «Ir a pagar» y debajo la nota verde «Incluye tu 5% de primera compra».",
+      "descuento5": "linea",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #FFFFFF; border: 1px solid #DDD6C9; border-radius: 18px; color: #1A1815"
+        },
+        {
+          "bloque": "cabecera",
+          "que": "«Tu pedido» y «{n} ítems»",
+          "css": "padding: 16px 18px; border-bottom: 1px solid #EFE9E0; display: flex; align-items: baseline; justify-content: space-between; titulo: font-size 19px font-weight 700 letter-spacing -0.02em line-height 1.15; conteo: font-size 14px color #6B6259"
+        },
+        {
+          "bloque": "filaItem",
+          "que": "línea del carrito",
+          "css": "padding: 12px 18px; border-bottom: 1px solid #EFE9E0; display: flex; gap: 12px"
+        },
+        {
+          "bloque": "filaItem.miniatura",
+          "que": "producto.foto (placeholder #E8E1D5)",
+          "css": "width: 54px; height: 54px; border-radius: 10px; background: #E8E1D5; object-fit: cover"
+        },
+        {
+          "bloque": "filaItem.nombrePrecio",
+          "que": "producto.nombre y total de la línea",
+          "css": "display: flex; justify-content: space-between; gap: 10px; nombre: font-size 16px font-weight 500; precio: font-family 'IBM Plex Mono' font-size 15px white-space nowrap"
+        },
+        {
+          "bloque": "filaItem.nota",
+          "que": "nota / modificador; se omite si no hay",
+          "css": "font-size: 13px; color: #6B6259; margin-top: 2px"
+        },
+        {
+          "bloque": "filaItem.stepper",
+          "que": "− cantidad ＋ (setQty)",
+          "css": "margin-top: 8px; border: 1px solid #EFE9E0; border-radius: 9px; overflow: hidden; boton: width 38px height 42px font-size 17px color #6B6259; separador ＋: border-left 1px solid #EFE9E0; cantidad: width 32px text-align center font-family 'IBM Plex Mono' font-size 15px"
+        },
+        {
+          "bloque": "filaItem.quitar",
+          "que": "«Quitar» (remove)",
+          "css": "font-size: 14px; color: #96241F; margin-left: 8px"
+        },
+        {
+          "bloque": "totales",
+          "que": "Subtotal / Descuento primera compra 5% / Total",
+          "css": "padding: 16px 18px; border-top: 1px solid #EFE9E0; background: #FAF8F5; linea: font-size 15px color #6B6259 padding 3px 0 cifra 'IBM Plex Mono'; descuento: color #2F7A4F; total: padding-top 10px margin-top 8px border-top 1px solid #EFE9E0 etiqueta font-size 18px font-weight 700 letter-spacing -0.02em cifra 'IBM Plex Mono' 25px"
+        },
+        {
+          "bloque": "pie",
+          "que": "CTA y nota del descuento",
+          "css": "padding: 14px 18px; border-top: 1px solid #EFE9E0; background: #FAF8F5"
+        },
+        {
+          "bloque": "pie.cta",
+          "que": "«Ir a pagar» (goPay)",
+          "css": "height: 56px; border-radius: 12px; background: #C1873A; color: #FFFFFF; font-size: 16px; font-weight: 700"
+        },
+        {
+          "bloque": "pie.notaDescuento",
+          "que": "«Incluye tu 5% de primera compra» si discount.activo",
+          "css": "text-align: center; font-size: 13px; color: #2F7A4F; margin-top: 9px"
+        }
+      ]
+    },
+    "pago": {
+      "layout": "familia-C",
+      "resumen": "Piel clara del pago de familia C: banda de acento con «Total» 17/700 y cifra mono 28 en blanco; cuatro métodos de 62 px con borde #EFE9E0 (activo 2 px de acento y peso 500); CTA «Pagar $ {total}» de 60 px radio 12.",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #FFFFFF; border: 1px solid #DDD6C9; border-radius: 18px; color: #1A1815"
+        },
+        {
+          "bloque": "bandaTotal",
+          "que": "«Total» y bill.total",
+          "css": "padding: 20px 18px; background: #C1873A; color: #FFFFFF; display: flex; align-items: baseline; justify-content: space-between; etiqueta: font-size 17px font-weight 700 letter-spacing -0.02em; cifra: font-family 'IBM Plex Mono' font-size 28px"
+        },
+        {
+          "bloque": "metodos",
+          "que": "lista de métodos",
+          "css": "padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; metodo: height 62px border-radius 12px border 1px solid #EFE9E0 padding 0 16px font-size 16px color #6B6259; activo: border 2px solid #C1873A font-weight 500 color #1A1815"
+        },
+        {
+          "bloque": "pie",
+          "que": "CTA (onPay)",
+          "css": "padding: 14px 18px; border-top: 1px solid #EFE9E0; background: #FAF8F5; cta: height 60px border-radius 12px background #C1873A color #FFFFFF font-size 16px font-weight 700"
+        }
+      ]
+    },
+    "registro": {
+      "patron": "portada",
+      "resumen": "Portada centrada: «5%» grande en acento, «Tu primera vez en {restaurante}» 20/700 y «Déjanos tu correo y aplicamos el descuento ya.»; solo Correo (con foco) y Celular; casilla de datos marcada; caja «Sin contraseña: te enviamos un código cada vez que entres.»; CTA «Crear cuenta y aplicar 5%» y «Ya tengo cuenta». No pide nombre.",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #FFFFFF; border: 1px solid #DDD6C9; border-radius: 18px; color: #1A1815"
+        },
+        {
+          "bloque": "portada",
+          "que": "cifra, título y subtítulo centrados",
+          "css": "padding: 28px 20px 22px; text-align: center; border-bottom: 1px solid #EFE9E0; cifra: font-size 34px font-weight 700 color #C1873A letter-spacing -0.03em; titulo: font-size 20px font-weight 700 letter-spacing -0.02em line-height 1.15 margin-top 8px; subtitulo: font-size 15px line-height 1.45 color #6B6259 margin-top 8px"
+        },
+        {
+          "bloque": "formulario",
+          "que": "correo (foco) y celular",
+          "css": "padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; etiqueta: font-size 14px font-weight 500 color #6B6259; campo: height 52px border 1px solid #EFE9E0 border-radius 10px background #FFFFFF padding 0 14px font-size 16px; foco: border 2px solid #C1873A"
+        },
+        {
+          "bloque": "formulario.casilla",
+          "que": "aceptaDatos marcada",
+          "css": "width: 24px; height: 24px; border-radius: 7px; background: #C1873A; color: #FFFFFF; font-size: 13px; font-weight: 700; texto: font-size 14px color #6B6259"
+        },
+        {
+          "bloque": "formulario.nota",
+          "que": "«Sin contraseña: te enviamos un código cada vez que entres.»",
+          "css": "padding: 13px 15px; border-radius: 12px; background: #FAF8F5; border: 1px solid #EFE9E0; font-size: 14px; line-height: 1.45; color: #6B6259"
+        },
+        {
+          "bloque": "pie",
+          "que": "CTA y enlace",
+          "css": "padding: 16px 20px; border-top: 1px solid #EFE9E0; background: #FAF8F5; cta: height 56px border-radius 12px background #C1873A color #FFFFFF font-size 16px font-weight 700 letter-spacing -0.02em; enlace: text-align center font-size 14px color #6B6259 margin-top 11px"
+        }
+      ]
+    },
+    "codigo": {
+      "patron": "revisaCorreo",
+      "resumen": "Cabecera centrada con icono ✉ en círculo de superficie, «Revisa tu correo» y el email; seis casillas mono de 60 px (activa con borde de acento); «Reenviar en 0:38» centrado; nota sobre uso único / tablet del local; CTA «Confirmar código» apagado.",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #FFFFFF; border: 1px solid #DDD6C9; border-radius: 18px; color: #1A1815"
+        },
+        {
+          "bloque": "cabecera",
+          "que": "icono, título y correo",
+          "css": "padding: 26px 20px 20px; text-align: center; border-bottom: 1px solid #EFE9E0; icono: width 56px height 56px border-radius 999px background #FAF8F5 font-size 22px margin 0 auto 12px; titulo: font-size 19px font-weight 700 letter-spacing -0.02em; correo: font-size 15px color #6B6259 margin-top 6px"
+        },
+        {
+          "bloque": "cuerpo.casillas",
+          "que": "seis dígitos",
+          "css": "padding: 18px 20px; display: flex; gap: 7px; casilla: flex 1 height 60px border-radius 10px border 1px solid #EFE9E0 background #FFFFFF font-family 'IBM Plex Mono' font-size 23px; activa: border 2px solid #C1873A"
+        },
+        {
+          "bloque": "cuerpo.reenviar",
+          "que": "«Reenviar en {mm:ss}» (onResend al llegar a 0)",
+          "css": "text-align: center; font-size: 15px; color: #6B6259; reloj: font-family 'IBM Plex Mono'"
+        },
+        {
+          "bloque": "cuerpo.nota",
+          "que": "«El código sirve una sola vez y solo en este teléfono. Si es la tablet del local, la sesión se cierra al pagar.»",
+          "css": "padding: 13px 15px; border-radius: 12px; border: 1px solid #EFE9E0; font-size: 14px; line-height: 1.45; color: #6B6259"
+        },
+        {
+          "bloque": "pie",
+          "que": "CTA apagado (onVerify)",
+          "css": "padding: 16px 20px; border-top: 1px solid #EFE9E0; background: #FAF8F5; cta: height 56px border-radius 12px background #EFE9E0 color #6B6259 font-size 16px font-weight 700 letter-spacing -0.02em"
+        }
+      ]
+    },
+    "historial": {
+      "patron": "tablaCufe",
+      "resumen": "Cabecera de cuenta oscura (#1A1815) con avatar en acento; tabla de tres columnas Fecha / Pedido / Total con encabezado en versalitas sobre superficie; cada fila con fecha mono, resumen del pedido con elipsis y estado de factura («CUFE disponible», «Factura pendiente»); barra «Facturas» / «Volver a pedir».",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #FFFFFF; border: 1px solid #DDD6C9; border-radius: 18px; color: #1A1815"
+        },
+        {
+          "bloque": "cabeceraCuenta",
+          "que": "avatar, nombre, resumen",
+          "css": "padding: 20px; background: #1A1815; color: #F5F1EA; display: flex; align-items: center; gap: 13px; avatar: width 44px height 44px border-radius 999px background #C1873A color #FFFFFF font-size 16px font-weight 700; nombre: font-size 17px font-weight 700 letter-spacing -0.02em; resumen: font-size 13px opacity 0.72"
+        },
+        {
+          "bloque": "tabla.encabezado",
+          "que": "Fecha / Pedido / Total",
+          "css": "display: grid; grid-template-columns: 74px minmax(0,1fr) 92px; gap: 10px; padding: 11px 20px; background: #FAF8F5; border-bottom: 1px solid #EFE9E0; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: #6B6259; font-weight: 500"
+        },
+        {
+          "bloque": "tabla.fila",
+          "que": "un pedido: fecha, resumen + estado factura, total",
+          "css": "display: grid; grid-template-columns: 74px minmax(0,1fr) 92px; gap: 10px; padding: 13px 20px; border-bottom: 1px solid #EFE9E0; font-size: 15px; align-items: center; fecha: font-family 'IBM Plex Mono' font-size 13px color #6B6259; pedido: white-space nowrap overflow hidden text-overflow ellipsis; estado: font-size 12px color #6B6259; total: font-family 'IBM Plex Mono' font-size 14px text-align right"
+        },
+        {
+          "bloque": "pie",
+          "que": "«Facturas» y «Volver a pedir»",
+          "css": "padding: 14px 20px; border-top: 1px solid #EFE9E0; background: #FAF8F5; display: flex; gap: 10px; secundario: flex 1 height 50px border-radius 11px border 1px solid #EFE9E0 font-size 15px font-weight 500 color #6B6259; primario: background #C1873A color #FFFFFF"
+        }
+      ]
+    }
+  },
+  "fuentesGoogle": []
+}

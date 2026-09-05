@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 
 
@@ -19,6 +21,9 @@ class CartLine(models.Model):
     qty = models.PositiveIntegerField(default=1)
     note = models.CharField(max_length=200, blank=True)
     tax_ids = models.JSONField(default=list)
+    # Descuento de primera compra (Plan H) en %, fijado al confirmar: viaja a Odoo como pos.order.line.discount y se
+    # conserva para que un reenvío del pedido (mismo uuid) no lo pierda.
+    discount = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     status = models.CharField(max_length=10, default=OPEN)
     order = models.ForeignKey('experience_app.Order', on_delete=models.SET_NULL, null=True, blank=True, related_name='lines')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -29,5 +34,14 @@ class CartLine(models.Model):
 
     @property
     def subtotal(self):
-        """Lo que el comensal paga por la línea (impuestos incluidos), no la base gravable."""
+        """Lo que el comensal paga por la línea (impuestos incluidos), no la base gravable. Antes del descuento."""
         return self.shown_unit_price * self.qty
+
+    @property
+    def discount_amount(self):
+        """Lo que resta el descuento sobre la línea: Odoo lo aplica al precio base, así que sobre el final es la misma proporción."""
+        return (self.subtotal * self.discount / 100).quantize(Decimal('0.01')) if self.discount else Decimal(0)
+
+    @property
+    def net_subtotal(self):
+        return self.subtotal - self.discount_amount

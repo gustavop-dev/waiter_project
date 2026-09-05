@@ -18,12 +18,22 @@ class ProductTemplate(models.Model):
         help="Quién produjo la imagen del producto. «Generada con IA» hace que la app del comensal muestre "
              "«Imágenes de referencia»: una imagen generada no representa la porción servida.")
 
+    # Atributos por plato para la app del comensal (Plan H, Contrato 2): un objeto JSON con las claves que las
+    # plantillas saben pintar: piezas, picante (0-3), etiquetas[], alergenos[], abv, ibu, tamanos[{nombre, precio}],
+    # soloHoy. Se escribe por RPC (el POS lo editará en Catálogo en un plan posterior); experience/ lo parsea con
+    # tolerancia: lo que no sea un objeto JSON válido sale como {} y la carta no se rompe.
+    diner_attributes = fields.Text(
+        string="Atributos para el comensal (JSON)",
+        help="Objeto JSON con los datos opcionales que la app del comensal pinta si existen: "
+             "piezas, picante (0 a 3), etiquetas, alergenos, abv, ibu, tamanos [{nombre, precio}], soloHoy. "
+             "Ejemplo: {\"piezas\": 8, \"picante\": 2, \"etiquetas\": [\"popular\"]}. Vacío: sin atributos.")
+
     def _load_pos_data_fields(self, *args, **kwargs):
         # La experiencia del comensal (experience/) lee la carta con pos.session.load_data, igual que el POS,
-        # y load_data solo devuelve los campos de esta lista: sin añadirlo aquí el origen nunca saldría de Odoo.
-        # Si Odoo devuelve [] significa "todos los campos" y se respeta tal cual; nunca se reemplaza la lista,
-        # porque el POS necesita las suyas.
+        # y load_data solo devuelve los campos de esta lista: sin añadirlos aquí el origen y los atributos nunca
+        # saldrían de Odoo. Si Odoo devuelve [] significa "todos los campos" y se respeta tal cual; nunca se
+        # reemplaza la lista, porque el POS necesita las suyas.
         fields_ = super()._load_pos_data_fields(*args, **kwargs)
         if not fields_:
             return fields_
-        return fields_ + ["image_origin"]
+        return fields_ + ["image_origin", "diner_attributes"]

@@ -1,0 +1,153 @@
+"""Descuento de primera compra: se aplica de verdad al confirmar, una sola vez, solo sobre las líneas del comensal."""
+from decimal import Decimal
+from unittest.mock import patch
+
+import pytest
+from django.urls import reverse
+from django.utils import timezone
+
+from experience_app.adapters.odoo.client import OdooUnavailable
+from experience_app.adapters.odoo.pos import OdooOrder
+from experience_app.models import CartLine, DinerAccount
+from experience_app.services import discount, sessions
+from experience_app.tests.conftest import ANGUS, LIMONADA, TABLE
+
+PAYLOAD = {'restaurante': 'burger-house', 'sede': 'poblado', 'token': '8H2KQ7'}
+SENT = OdooOrder(id=13, reference='260-1-1', state='draft', total=87822, tax=14022, paid=0)
+
+
+def verified_account(diner, **fields):
+    defaults = {'name': 'Camila', 'email': 'camila@correo.com', 'accepts_data': True, 'verified': True, 'verified_at': timezone.now()}
+    account = DinerAccount.objects.create(**{**defaults, **fields})
+    diner.account = account
+    diner.save(update_fields=['account'])
+    return account
+
+
+@pytest.fixture
+def odoo():
+    with patch('experience_app.services.orders.resolve', return_value=TABLE), patch('experience_app.services.orders.OdooClient'), \
+            patch('experience_app.services.orders.pos.ensure_open_session', return_value=4), \
+            patch('experience_app.services.orders.pos.create_order', return_value=SENT) as create, \
+            patch('experience_app.services.orders.pos.fire_course', return_value=21), patch('experience_app.services.orders.pos.set_table_call'):
+        yield create
+
+
+@pytest.fixture
+def table(two_diners, catalog_stub):
+    session, ana, beto = two_diners
+    sessions.add_line(session, ana, ANGUS, 2)
+    sessions.add_line(session, beto, LIMONADA, 1)
+    return session, ana, beto
+
+
+def sent_lines(create):
+    return {line.name: line.discount for line in create.call_args.kwargs['lines']}
+
+
+@pytest.mark.django_db
+def test_confirming_with_a_verified_account_discounts_only_my_lines_and_uses_it_up(table, odoo):
+    """Atrapa un descuento que no llegue a Odoo, que se aplique a las líneas de otro comensal, o que se pueda repetir."""
+    from experience_app.services import orders
+    session, ana, beto = table
+    account = verified_account(ana)
+    orders.confirm(session, ana)
+    assert sent_lines(odoo) == {'Hamburguesa Angus': 5.0, 'Limonada de Coco': 0.0}
+    account.refresh_from_db()
+    assert account.discount_used_at is not None
+    assert CartLine.objects.get(diner=ana).discount == Decimal('5.00')
+    # Segunda ronda: la misma cuenta ya no descuenta, y la línea vieja viaja de nuevo CON su descuento (mismo uuid).
+    sessions.add_line(session, ana, LIMONADA, 1)
+    orders.confirm(session, ana)
+    lines = odoo.call_args.kwargs['lines']
+    assert [(line.name, line.discount) for line in lines] == [('Hamburguesa Angus', 5.0), ('Limonada de Coco', 0.0), ('Limonada de Coco', 0.0)]
+
+
+@pytest.mark.django_db
+def test_the_confirming_diner_is_who_gets_the_discount(table, odoo):
+    """Atrapa el descuento de Ana aplicado porque confirmó Beto (o viceversa)."""
+    from experience_app.services import orders
+    session, ana, beto = table
+    verified_account(ana)
+    orders.confirm(session, beto)
+    assert sent_lines(odoo) == {'Hamburguesa Angus': 0.0, 'Limonada de Coco': 0.0}
+    assert DinerAccount.objects.get().discount_used_at is None
+
+
+@pytest.mark.django_db
+def test_no_discount_without_a_verified_account_or_when_already_used_or_switched_off(table, odoo):
+    """Atrapa un descuento para una cuenta pendiente, ya usada, o con el porcentaje en 0 en el POS."""
+    from experience_app.services import orders
+    session, ana, _ = table
+    account = verified_account(ana, verified=False)
+    orders.confirm(session, ana)
+    assert sent_lines(odoo)['Hamburguesa Angus'] == 0.0
+    account.verified, account.discount_used_at = True, timezone.now()
+    account.save()
+    sessions.add_line(session, ana, ANGUS, 1)
+    orders.confirm(session, ana)
+    assert all(d == 0.0 for d in sent_lines(odoo).values())
+    account.discount_used_at = None
+    account.save()
+    sessions.add_line(session, ana, ANGUS, 1)
+    with patch('experience_app.services.discount.percent_for', return_value=0.0):
+        orders.confirm(session, ana)
+    assert all(d == 0.0 for d in sent_lines(odoo).values())
+    assert DinerAccount.objects.get().discount_used_at is None
+
+
+@pytest.mark.django_db
+def test_when_odoo_is_down_the_discount_is_not_marked_used(table, odoo):
+    """Atrapa un descuento "gastado" por un pedido que Odoo nunca recibió; el reintento debe llevarlo de nuevo."""
+    from experience_app.services import orders
+    session, ana, _ = table
+    account = verified_account(ana)
+    odoo.side_effect = [OdooUnavailable('down'), SENT]
+    with pytest.raises(OdooUnavailable):
+        orders.confirm(session, ana)
+    account.refresh_from_db()
+    assert account.discount_used_at is None
+    assert CartLine.objects.get(diner=ana).discount == 0
+    orders.confirm(session, ana)
+    assert sent_lines(odoo)['Hamburguesa Angus'] == 5.0
+    account.refresh_from_db()
+    assert account.discount_used_at is not None
+
+
+@pytest.mark.django_db
+def test_cart_and_bill_expose_the_discount_block(table, odoo):
+    """Atrapa un carrito que no anuncie el descuento por venir, o una cuenta que no lo reste ni lo muestre aplicado."""
+    from experience_app.services import orders
+    session, ana, beto = table
+    cart = sessions.cart_view(session, ana, 5.0)
+    assert cart['descuento'] == {'porcentaje': 5.0, 'monto': 0.0, 'aplicable': False, 'aplicado': False}
+    verified_account(ana)
+    ana.refresh_from_db()
+    cart = sessions.cart_view(session, ana, 5.0)
+    assert cart['descuento'] == {'porcentaje': 5.0, 'monto': 4391.1, 'aplicable': True, 'aplicado': False}
+    assert cart['total'] == 87822.0 + 9900.0  # aún sin aplicar: los totales son a precio de lista
+    assert sessions.cart_view(session, beto, 5.0)['descuento']['aplicable'] is False
+    orders.confirm(session, ana)
+    ana.refresh_from_db()
+    bill = sessions.bill_summary(session, ana, 5.0)
+    assert bill['descuento'] == {'porcentaje': 5.0, 'monto': 4391.1, 'aplicable': False, 'aplicado': True}
+    assert (bill['mio'], bill['total']) == (83430.9, 83430.9 + 9900.0)  # netos: lo que Odoo cobra
+    assert sessions.bill_summary(session, beto, 5.0)['descuento'] == {'porcentaje': 5.0, 'monto': 0.0, 'aplicable': False, 'aplicado': False}
+
+
+@pytest.mark.django_db
+def test_cart_endpoint_uses_the_venue_percentage(api_client, table_tenant, catalog_stub):
+    """Atrapa un carrito con el 5 % del diseño cuando el restaurante fijó otro porcentaje en el POS."""
+    from dataclasses import replace
+
+    from experience_app.tests.conftest import CATALOG
+    sid = api_client.post(reverse('open-session'), PAYLOAD, format='json').json()['sesion']['id']
+    with patch('experience_app.services.catalog.get_catalog', return_value=replace(CATALOG, signup_discount_percent=10.0)):
+        body = api_client.post(reverse('add-line', args=[sid]), {'producto_id': 3}, format='json').json()
+    assert body['descuento']['porcentaje'] == 10.0
+
+
+def test_percent_falls_back_to_the_design_when_odoo_or_the_registry_fail():
+    """Atrapa un carrito roto (5xx) solo por no poder leer el porcentaje del descuento."""
+    with patch('experience_app.services.catalog.get_catalog', side_effect=OdooUnavailable('down')):
+        assert discount.percent_for(TABLE) == 5.0

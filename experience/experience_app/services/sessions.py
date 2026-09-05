@@ -8,6 +8,7 @@ from experience_app.adapters.odoo.client import OdooClient, OdooError
 from experience_app.adapters.odoo.pos import Product
 from experience_app.adapters.registry.client import Tenant
 from experience_app.models import CartLine, Diner, Order, TableSession
+from experience_app.services import discount
 from experience_app.utils.errors import NotOwner
 
 PAID_STATES = {'paid', 'done', 'invoiced'}
@@ -53,7 +54,8 @@ def open_session(tenant: Tenant, diner_key: str | None) -> tuple[TableSession, D
     else:
         session = TableSession.objects.create(restaurant_slug=tenant.restaurant_slug, venue_slug=tenant.venue_slug)
     if diner is None or diner.session_id != session.id:
-        diner = Diner.objects.create(session=session)
+        # La cuenta verificada (Plan H) viaja con la cookie: otra visita es otro comensal, pero la misma persona.
+        diner = Diner.objects.create(session=session, account=diner.account if diner else None)
     return session, diner
 
 
@@ -84,7 +86,9 @@ def open_lines(session: TableSession):
     return session.lines.filter(status=CartLine.OPEN).select_related('diner').order_by('created_at')
 
 
-def cart_view(session: TableSession, diner: Diner) -> dict:
+def cart_view(session: TableSession, diner: Diner, discount_percent: float = discount.DEFAULT_PERCENT) -> dict:
+    """Lo abierto (aún sin confirmar), a precio de lista con impuestos. `descuento` es lo que el comensal descontará al
+    confirmar si tiene cuenta verificada con el descuento sin usar; los totales no lo restan porque todavía no se aplicó."""
     lines = list(open_lines(session))
     per_diner: dict[str, Decimal] = {}
     for line in lines:
@@ -99,6 +103,7 @@ def cart_view(session: TableSession, diner: Diner) -> dict:
         'total': float(total),
         'mio': float(per_diner.get(str(diner.id), Decimal(0))),
         'por_comensal': [{'comensal': k, 'total': float(v)} for k, v in per_diner.items()],
+        'descuento': discount.view(lines, diner, discount_percent),
     }
 
 
@@ -113,13 +118,15 @@ def table_call(tenant: Tenant, session: TableSession, kind: str) -> bool:
         return False
 
 
-def bill_summary(session: TableSession, diner: Diner) -> dict:
-    """Todo / lo mío / dividir sobre lo ya confirmado (lo abierto aún no es cuenta)."""
+def bill_summary(session: TableSession, diner: Diner, discount_percent: float = discount.DEFAULT_PERCENT) -> dict:
+    """Todo / lo mío / dividir sobre lo ya confirmado (lo abierto aún no es cuenta). Los totales son netos: ya restan el
+    descuento que viajó a Odoo con cada línea; `descuento` dice cuánto fue (aplicado) y si aún puede aplicarse (aplicable)."""
     lines = list(session.lines.filter(status=CartLine.CONFIRMED).select_related('diner'))
     per: dict[str, Decimal] = {}
     for line in lines:
-        per[str(line.diner_id)] = per.get(str(line.diner_id), Decimal(0)) + line.subtotal
+        per[str(line.diner_id)] = per.get(str(line.diner_id), Decimal(0)) + line.net_subtotal
     total = sum(per.values(), Decimal(0))
     diners = max(1, session.diners.count())
     return {'total': float(total), 'mio': float(per.get(str(diner.id), Decimal(0))),
-            'porComensal': [{'comensal': k, 'total': float(v)} for k, v in per.items()], 'partes': diners, 'porParte': float(round(total / diners)) if total else 0.0}
+            'porComensal': [{'comensal': k, 'total': float(v)} for k, v in per.items()], 'partes': diners, 'porParte': float(round(total / diners)) if total else 0.0,
+            'descuento': discount.view(lines, diner, discount_percent)}

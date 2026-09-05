@@ -4,6 +4,7 @@ Las formas de datos son las REALES de Odoo 19 (many2one como enteros pelados en
 load_data, precio y categorías en product.template), ya verificadas en pos/.
 """
 import base64
+import json
 import re
 from dataclasses import dataclass, field
 
@@ -20,6 +21,8 @@ DEFAULT_PHOTO_SIZE = 'tarjeta'
 # Marca en res.company (addon projectapp_ops): vacío en Odoo significa "usa el valor del registro".
 BRAND_FIELDS = ['name', 'brand_color', 'brand_font', 'brand_radius', 'brand_tagline', 'brand_greeting', 'brand_waiter_name',
                 'brand_welcome', 'brand_logo', 'write_date']
+# Descuento de primera compra (pos.config.signup_discount_percent, addon projectapp_ops) cuando Odoo no lo entrega.
+DEFAULT_SIGNUP_DISCOUNT = 5.0
 
 
 @dataclass(frozen=True)
@@ -42,6 +45,9 @@ class Product:
     # Lo que el comensal ve y paga: precio de lista más los impuestos que Odoo suma encima (IVA/INC excluidos del
     # precio). `price` sigue siendo el de lista porque es el que se envía a Odoo, que calcula el impuesto por su lado.
     final_price: float | None = None
+    # product.template.diner_attributes (addon projectapp_ops): JSON con piezas, picante, etiquetas, abv… (Contrato 2 del
+    # Plan H). Ya parseado y tolerante: JSON inválido, no-objeto o campo ausente ⇒ {}.
+    attributes: dict = field(default_factory=dict)
 
     def __post_init__(self):
         if self.final_price is None:
@@ -60,6 +66,8 @@ class Catalog:
     company_name: str
     products: list[Product] = field(default_factory=list)
     categories: list[Category] = field(default_factory=list)
+    # pos.config.signup_discount_percent: el porcentaje del descuento de primera compra que el restaurante fijó.
+    signup_discount_percent: float = DEFAULT_SIGNUP_DISCOUNT
 
 
 @dataclass(frozen=True)
@@ -88,6 +96,7 @@ class OrderLine:
     qty: float
     note: str
     tax_ids: list[int]
+    discount: float = 0.0  # % sobre la línea (pos.order.line.discount): el descuento de primera compra del Plan H
 
 
 @dataclass(frozen=True)
@@ -149,11 +158,33 @@ def load_catalog(client: OdooClient, pos_session_id: int) -> Catalog:
                         sold_out=pid in sold_out, template_id=t['id'], description=t.get('description_sale') or '',
                         favorite=bool(t.get('is_favorite')), has_image=bool(t.get('image_128')),
                         image_version=_version(t.get('write_date')), image_origin=t.get('image_origin') or '',
-                        final_price=price_with_taxes(t['list_price'], [taxes[i] for i in t['taxes_id'] if i in taxes]))
+                        final_price=price_with_taxes(t['list_price'], [taxes[i] for i in t['taxes_id'] if i in taxes]),
+                        attributes=parse_attributes(t.get('diner_attributes')))
                 for pid, t in base.items()]
     categories = [Category(c['id'], c['name'], c['sequence']) for c in raw['pos.category']]
     company = raw['res.company'][0]['name'] if raw.get('res.company') else ''
-    return Catalog(company_name=company, products=products, categories=categories)
+    return Catalog(company_name=company, products=products, categories=categories,
+                   signup_discount_percent=signup_discount_percent(raw.get('pos.config') or []))
+
+
+def parse_attributes(raw) -> dict:
+    """product.template.diner_attributes → dict. Es texto libre editado por RPC: lo que no sea un objeto JSON es {}."""
+    if not raw or not isinstance(raw, str):
+        return {}
+    try:
+        parsed = json.loads(raw)
+    except ValueError:
+        return {}
+    return parsed if isinstance(parsed, dict) else {}
+
+
+def signup_discount_percent(configs: list[dict]) -> float:
+    """pos.config.signup_discount_percent de load_data. Sin el campo (addon sin actualizar) o sin filas: el 5 % del diseño.
+    0.0 es un valor legítimo (descuento apagado), así que no se confunde con el False de un campo ausente."""
+    value = configs[0].get('signup_discount_percent') if configs else None
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return DEFAULT_SIGNUP_DISCOUNT
+    return max(0.0, min(100.0, float(value)))
 
 
 def _version(write_date) -> str:
@@ -229,7 +260,7 @@ def sync_payload(*, pos_session_id: int, table_id: int | None, order_uuid: str, 
         'lines': [[0, 0, {
             'id': -1, 'uuid': line.uuid, 'product_id': line.product_id, 'qty': line.qty, 'price_unit': line.unit_price,
             'tax_ids': [[6, 0, line.tax_ids]], 'price_subtotal': 0, 'price_subtotal_incl': 0,
-            'full_product_name': line.name, 'customer_note': line.note,
+            'full_product_name': line.name, 'customer_note': line.note, 'discount': line.discount,
         }] for line in lines],
     }
     if table_id is not None:

@@ -1,6 +1,7 @@
 from dataclasses import replace
 from unittest.mock import patch
 
+import pytest
 from django.urls import reverse
 
 from experience_app.adapters.odoo.client import OdooUnavailable
@@ -84,6 +85,7 @@ def test_logo_is_404_not_500_when_odoo_is_down(resolve, read, fetch, api_client)
     assert fetch.call_count == 0
 
 
+@pytest.mark.django_db  # la entrada resuelve la plantilla de la sede (Plan H): lee la base
 def test_entry_points_the_logo_to_the_experience_route_with_its_version(api_client, table_tenant, catalog_stub, company_brand_stub):
     """Atrapa una marca con la URL de Odoo en el logo, sin versión, o el logo del registro cuando Odoo ya tiene uno."""
     company_brand_stub.return_value = WITH_LOGO
@@ -92,6 +94,7 @@ def test_entry_points_the_logo_to_the_experience_route_with_its_version(api_clie
     assert marca['color'] == '#7A2E2A'
 
 
+@pytest.mark.django_db
 def test_entry_keeps_the_registry_logo_when_odoo_has_none(api_client, table_tenant, catalog_stub):
     """Atrapa un logo del onboarding perdido porque Odoo dijo "sin logo"."""
     tenant = table_tenant

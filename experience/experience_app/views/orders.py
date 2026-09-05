@@ -10,8 +10,8 @@ from experience_app.views.sessions import diner_for
 @api_view(['POST'])
 def confirm(request, session_id):
     session = get_object_or_404(TableSession, id=session_id, state__in=TableSession.OPEN_STATES)
-    diner_for(request, session)
-    order, created = orders.confirm(session)
+    # Quien confirma es quien puede llevar el descuento de primera compra (sobre SUS líneas).
+    order, created = orders.confirm(session, diner_for(request, session))
     return Response({'pedido': str(order.id), 'estado': 'enviado', 'total': float(order.total or 0)}, status=201 if created else 200)
 
 

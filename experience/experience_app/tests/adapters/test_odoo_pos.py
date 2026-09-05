@@ -164,3 +164,38 @@ def test_final_price_adds_the_taxes_odoo_charges_on_top():
     assert price_with_taxes(36900.0, [included]) == 36900.0
     assert price_with_taxes(36900.0, [iva, fixed]) == 44411.0
     assert price_with_taxes(36900.0, []) == 36900.0
+
+
+# Falla si los atributos por plato (Contrato 2 del Plan H) no se parsean con tolerancia: un JSON roto en Odoo no puede tumbar la carta.
+def test_parse_attributes_tolerates_anything_that_is_not_a_json_object():
+    assert pos.parse_attributes('{"piezas": 8, "picante": 2, "etiquetas": ["popular"]}') == {'piezas': 8, 'picante': 2, 'etiquetas': ['popular']}
+    assert pos.parse_attributes(False) == {}
+    assert pos.parse_attributes('') == {}
+    assert pos.parse_attributes('{no es json') == {}
+    assert pos.parse_attributes('[1, 2]') == {}
+    assert pos.parse_attributes(42) == {}
+
+
+# Falla si el porcentaje del POS no llega con la carta, si 0 (apagado) se confunde con "sin campo", o si un Odoo sin el addon rompe.
+def test_load_catalog_reads_the_signup_discount_and_the_attributes_from_load_data():
+    with_config = FakeResponse({
+        'product.product': [{'id': 3, 'product_tmpl_id': 21}],
+        'product.template': [{**TEMPLATE, 'id': 21, 'name': 'Angus', 'is_favorite': False, 'description_sale': False, 'image_128': False,
+                              'diner_attributes': '{"picante": 3}'}],
+        'pos.category': [], 'res.company': [], 'pos.config': [{'id': 1, 'signup_discount_percent': 0.0}],
+    })
+    catalog = pos.load_catalog(OdooClient(CREDS, FakeSession([AUTH, with_config, FakeResponse([])])), 4)
+    assert catalog.signup_discount_percent == 0.0
+    assert catalog.products[0].attributes == {'picante': 3}
+    assert pos.signup_discount_percent([]) == 5.0
+    assert pos.signup_discount_percent([{'id': 1}]) == 5.0
+    assert pos.signup_discount_percent([{'id': 1, 'signup_discount_percent': False}]) == 5.0
+    assert pos.signup_discount_percent([{'id': 1, 'signup_discount_percent': 12.5}]) == 12.5
+    assert pos.signup_discount_percent([{'id': 1, 'signup_discount_percent': 250}]) == 100.0
+
+
+# Falla si el descuento de primera compra no viaja en la línea de sync_from_ui (Odoo cobraría el precio completo).
+def test_sync_payload_carries_the_line_discount():
+    discounted = pos.OrderLine(uuid='l1', product_id=3, name='Angus', unit_price=36900, qty=2, note='', tax_ids=[5], discount=5.0)
+    payload = pos.sync_payload(pos_session_id=4, table_id=None, order_uuid='u', guests=1, lines=[discounted, LINE], date_order='d')
+    assert [line[2]['discount'] for line in payload['lines']] == [5.0, 0.0]

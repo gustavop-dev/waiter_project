@@ -68,10 +68,12 @@ def menu_view(catalog: pos.Catalog, photo_url: Callable[[int, str], str]) -> dic
     debe avisar que las fotos son de referencia.
     """
     categories = sorted(catalog.categories, key=lambda c: (c.sequence, c.id))
+    # `atributos` (Contrato 2 del Plan H): piezas, picante, etiquetas, abv… tal como los dejó el restaurante en
+    # product.template.diner_attributes; {} cuando no hay. Una plantilla pinta lo que existe y omite lo que no.
     items = [{'id': p.id, 'nombre': p.name, 'precio': p.final_price, 'agotado': p.sold_out, 'categorias': p.category_ids,
               'descripcion': p.description, 'favorito': p.favorite,
               'foto': photo_url(p.id, p.image_version) if p.has_image else None,
-              'fotoOrigen': PHOTO_ORIGINS.get(p.image_origin)}
+              'fotoOrigen': PHOTO_ORIGINS.get(p.image_origin), 'atributos': dict(p.attributes)}
              for p in catalog.products]
     # Límite legal (docs/diseno/2026-09-05-imagenes-menu.md): una imagen generada no representa la porción servida, así que
     # la carta avisa «Imágenes de referencia» en cuanto un plato VISIBLE con foto la tiene generada con IA. Se mira la carta

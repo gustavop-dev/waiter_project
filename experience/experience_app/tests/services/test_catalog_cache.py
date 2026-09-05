@@ -42,7 +42,7 @@ def test_menu_view_groups_products_by_category_in_pos_order():
     assert menu['categorias'][1]['productos'][0] == {
         'id': 3, 'nombre': 'Hamburguesa Angus', 'precio': 43911.0, 'agotado': False, 'categorias': [2],
         'descripcion': 'Carne angus 200 g, queso madurado', 'favorito': True, 'foto': '/fotos/3/?v=20260905010203',
-        'fotoOrigen': 'ia',
+        'fotoOrigen': 'ia', 'atributos': {},
     }
 
 

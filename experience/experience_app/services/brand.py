@@ -68,6 +68,19 @@ def logo_url(restaurant: str, venue: str, version: str) -> str:
     return f"{reverse('company-logo', args=[restaurant, venue])}?{urlencode({'v': version})}"
 
 
+def brand_inputs(tenant: Tenant) -> dict:
+    """Color, tipografía y redondeo de la marca SIN derivar (Odoo > registro; vacío o None si nadie los fijó).
+
+    Los usa la plantilla del menú (plantillas/services.py) como valores por defecto de sus tokens: ahí no vale el
+    tema derivado, porque un color que nadie eligió no debe pisar el acento del diseño de la plantilla.
+    """
+    registry = tenant.brand
+    company = get_company_brand(tenant)
+    return {'color': (company and company.color) or registry.get('color') or '',
+            'fuente': (company and company.font) or registry.get('fuente') or '',
+            'radio': (company and company.radius) or registry.get('radio') or None}
+
+
 def brand_view(tenant: Tenant) -> dict:
     """La marca con la forma exacta de diner Brand. Precedencia por campo: valor no vacío en Odoo > registro.
 

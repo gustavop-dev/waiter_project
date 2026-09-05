@@ -1,0 +1,281 @@
+{
+  "codigo": "C4",
+  "nombre": "Pizarra de camión",
+  "familia": "C",
+  "familiaNombre": "Rápida y food truck",
+  "descripcion": "Pizarra negra de food truck: lista con guía de puntos, tachados reales cuando algo se acaba y escasez honesta; cero fotos porque el camión ya se ve.",
+  "fotos": {
+    "requiere": "ninguna",
+    "recorte": "ninguno"
+  },
+  "tokens": {
+    "modo": "oscuro",
+    "fondo": "#16130F",
+    "superficie": "#1C1916",
+    "tinta": "#F1EDE4",
+    "tintaSuave": "#A8A096",
+    "tintaTerciaria": "#C4BCB2",
+    "borde": "#53504B",
+    "acento": "#F1EDE4",
+    "acentoTinta": "#16130F",
+    "acentoSuave": "#312616",
+    "displayFont": "Bebas Neue",
+    "displayPeso": 400,
+    "displayTracking": "0.04em",
+    "displayTransform": "uppercase",
+    "cuerpoFont": "Ubuntu",
+    "monoFont": "IBM Plex Mono",
+    "radioTarjeta": 10,
+    "radioBoton": 10,
+    "radioChip": 7,
+    "densidad": "compacta"
+  },
+  "personalizable": {
+    "colores": [
+      "acento"
+    ],
+    "tipografiaDisplay": true,
+    "logo": true
+  },
+  "pantallas": {
+    "menu": {
+      "layout": "C4",
+      "resumen": "Pizarra #16130F con tiza #F1EDE4. Cabecera centrada con el nombre del restaurante en Bebas Neue 34 y una línea de sede en versalitas 12 px con tracking 0.18em («Cra 7 · hoy hasta agotar»), separada por línea discontinua; lista sin tarjetas: nombre en Bebas Neue 24, guía de puntos y precio mono 17; el agotado con opacidad 0,42, nombre tachado y «se acabó» en vez de precio; caja de escasez con borde discontinuo al pie de la lista («Quedan 12 pastores…», atributo stock); CTA «PEDIR Y PAGAR» de 56 px en tiza con texto oscuro. El acento es la propia tiza: no hay color de marca en el marco. Sin categorías visibles ni buscador.",
+      "datosOpcionales": [
+        "stock",
+        "lemaSede"
+      ],
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor (pizarra)",
+          "css": "background: #16130F; border: 1px solid #2C2823; border-radius: 20px; color: #F1EDE4; font-family: 'Ubuntu'"
+        },
+        {
+          "bloque": "cabecera",
+          "que": "nombre del restaurante y línea de sede, centrados",
+          "css": "padding: 20px; text-align: center; border-bottom: 1px dashed rgba(241,237,228,0.28)"
+        },
+        {
+          "bloque": "cabecera.marca",
+          "que": "nombre del restaurante (o logo)",
+          "css": "font-family: 'Bebas Neue'; font-size: 34px; letter-spacing: 0.05em; line-height: 1; text-transform: uppercase"
+        },
+        {
+          "bloque": "cabecera.lema",
+          "que": "«{dirección} · hoy hasta agotar» (dato de sede no estándar: lemaSede; se omite si no hay)",
+          "css": "font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: #A8A096; margin-top: 6px"
+        },
+        {
+          "bloque": "lista",
+          "que": "productos en orden, sin separadores",
+          "css": "padding: 18px 20px; display: flex; flex-direction: column; gap: 14px"
+        },
+        {
+          "bloque": "lista.fila",
+          "que": "producto.nombre + guía + producto.precio (toque = onAdd)",
+          "css": "display: flex; align-items: baseline; gap: 10px; nombre: font-family 'Bebas Neue' font-size 24px letter-spacing 0.03em text-transform uppercase; guia: flex 1 border-bottom 1px dotted rgba(241,237,228,0.4); precio: font-family 'IBM Plex Mono' font-size 17px"
+        },
+        {
+          "bloque": "lista.filaAgotada",
+          "que": "producto.agotado",
+          "css": "opacity: 0.42; nombre: text-decoration line-through; guia: border-bottom 1px dotted rgba(241,237,228,0.3); etiqueta: font-size 13px texto «se acabó» en lugar del precio"
+        },
+        {
+          "bloque": "lista.escasez",
+          "que": "«Quedan {stock} {producto}. Cuando se acaban, se acaban.» para el producto con stock más bajo (atributo stock; se omite si no hay)",
+          "css": "margin-top: auto; padding: 12px 14px; border: 1px dashed rgba(241,237,228,0.28); border-radius: 10px; font-size: 13px; line-height: 1.45; color: #C4BCB2"
+        },
+        {
+          "bloque": "pie",
+          "que": "CTA (orderBarHref)",
+          "css": "padding: 16px 20px; border-top: 1px dashed rgba(241,237,228,0.28)"
+        },
+        {
+          "bloque": "pie.cta",
+          "que": "«PEDIR Y PAGAR»",
+          "css": "height: 56px; border-radius: 10px; background: #F1EDE4; color: #16130F; font-family: 'Bebas Neue'; font-size: 24px; letter-spacing: 0.04em; text-transform: uppercase"
+        }
+      ]
+    },
+    "carrito": {
+      "layout": "familia-C",
+      "resumen": "Esqueleto de la familia C en piel de pizarra. Cabecera centrada en columna («Tu pedido» Bebas 26 sobre «3 ítems»). Variante de fila C4: nombre en Bebas Neue 24, guía de puntos y precio mono 15, nota 13 px debajo; sin stepper ni «Quitar» visibles. Totales sobre #1C1916 con separador punteado antes del Total y un chip verde «−5% aplicado» junto a la cifra; CTA «IR A PAGAR» en tiza. Bordes con rgba(241,237,228,0.28) y no #2C2823.",
+      "descuento5": "chip",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #16130F; border: 1px solid rgba(241,237,228,0.28); border-radius: 12px; color: #F1EDE4"
+        },
+        {
+          "bloque": "cabecera",
+          "que": "«Tu pedido» y «{n} ítems», centrados en columna",
+          "css": "padding: 16px 18px; border-bottom: 1px solid rgba(241,237,228,0.28); display: flex; flex-direction: column; align-items: center; gap: 10px; titulo: font-family 'Bebas Neue' font-size 26px letter-spacing 0.04em line-height 1 uppercase; conteo: font-size 14px color #A8A096"
+        },
+        {
+          "bloque": "filaItem",
+          "que": "línea del carrito con guía de puntos",
+          "css": "padding: 15px 18px; border-bottom: 1px solid rgba(241,237,228,0.28); nombre: font-family 'Bebas Neue' font-size 24px letter-spacing 0.04em line-height 1 uppercase; guia: flex 1 border-bottom 1px dotted rgba(241,237,228,0.28); precio: font-family 'IBM Plex Mono' font-size 15px white-space nowrap; nota: font-size 13px color #A8A096 margin-top 4px"
+        },
+        {
+          "bloque": "totales",
+          "que": "Subtotal / Descuento primera compra 5% / Total",
+          "css": "padding: 16px 18px; border-top: 1px solid rgba(241,237,228,0.28); background: #1C1916; linea: font-size 15px color #A8A096 padding 3px 0 cifra 'IBM Plex Mono'; descuento: color #2F7A4F; total: padding-top 10px margin-top 8px border-top 1px dotted rgba(241,237,228,0.28) etiqueta font-family 'Bebas Neue' 25px letter-spacing 0.04em cifra 'IBM Plex Mono' 25px"
+        },
+        {
+          "bloque": "totales.chipDescuento",
+          "que": "«−5% aplicado» junto a la cifra del Total si discount.activo",
+          "css": "height: 26px; padding: 0 9px; border-radius: 7px; background: rgba(47,122,79,0.22); color: #A9E0C0; font-size: 13px; font-weight: 500; margin-right: 8px"
+        },
+        {
+          "bloque": "pie",
+          "que": "CTA (goPay)",
+          "css": "padding: 14px 18px; border-top: 1px solid rgba(241,237,228,0.28); background: #1C1916; cta: height 60px border-radius 8px background #F1EDE4 color #16130F font-family 'Bebas Neue' font-size 24px letter-spacing 0.04em line-height 1 uppercase"
+        }
+      ]
+    },
+    "pago": {
+      "layout": "familia-C",
+      "resumen": "Piel de pizarra del pago de familia C: banda superior en tiza (#F1EDE4) con «Total» Bebas 24 y cifra mono 28 en oscuro; cuatro métodos de 62 px con borde rgba(241,237,228,0.28) (activo 2 px de tiza); CTA «PAGAR $ {total}» de 64 px radio 8 en tiza.",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #16130F; border: 1px solid rgba(241,237,228,0.28); border-radius: 12px; color: #F1EDE4"
+        },
+        {
+          "bloque": "bandaTotal",
+          "que": "«Total» y bill.total",
+          "css": "padding: 20px 18px; background: #F1EDE4; color: #16130F; display: flex; align-items: baseline; justify-content: space-between; etiqueta: font-family 'Bebas Neue' 24px letter-spacing 0.04em line-height 1 uppercase; cifra: font-family 'IBM Plex Mono' 28px"
+        },
+        {
+          "bloque": "metodos",
+          "que": "lista de métodos",
+          "css": "padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; metodo: height 62px border-radius 12px border 1px solid rgba(241,237,228,0.28) padding 0 16px font-size 16px color #A8A096; activo: border 2px solid #F1EDE4 font-weight 500 color #F1EDE4"
+        },
+        {
+          "bloque": "pie",
+          "que": "CTA (onPay)",
+          "css": "padding: 14px 18px; border-top: 1px solid rgba(241,237,228,0.28); background: #1C1916; cta: height 64px border-radius 8px background #F1EDE4 color #16130F font-family 'Bebas Neue' font-size 24px letter-spacing 0.04em line-height 1 uppercase"
+        }
+      ]
+    },
+    "registro": {
+      "patron": "banner5",
+      "resumen": "Misma estructura que C1 en piel de pizarra: banda superior ámbar (rgba(193,135,58,0.16)) con «5%» y promesa en #E4B879 (el banner conserva el ámbar de la familia aunque el acento sea la tiza); Nombre / Correo / Celular en campos sobre #1C1916 (foco con 2 px de tiza); casilla de datos marcada en tiza y novedades vacía; CTA «CREAR Y APLICAR 5%» en tiza y «Ya tengo cuenta».",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #16130F; border: 1px solid rgba(241,237,228,0.28); border-radius: 12px; color: #F1EDE4"
+        },
+        {
+          "bloque": "banner5",
+          "que": "cifra y promesa",
+          "css": "padding: 20px; background: rgba(193,135,58,0.16); border-bottom: 1px solid rgba(241,237,228,0.28); display: flex; align-items: baseline; gap: 11px; cifra: font-size 34px font-weight 700 color #E4B879 letter-spacing -0.03em; texto: font-size 15px line-height 1.4 color #E4B879"
+        },
+        {
+          "bloque": "formulario",
+          "que": "nombre, correo (foco), celular",
+          "css": "padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; etiqueta: font-size 14px font-weight 500 color #A8A096; campo: height 52px border 1px solid rgba(241,237,228,0.28) border-radius 10px background #1C1916 padding 0 14px font-size 16px; foco: border 2px solid #F1EDE4"
+        },
+        {
+          "bloque": "formulario.casillaMarcada",
+          "que": "aceptaDatos",
+          "css": "width: 24px; height: 24px; border-radius: 7px; background: #F1EDE4; color: #16130F; font-size: 13px; font-weight: 700; texto: font-size 14px color #A8A096"
+        },
+        {
+          "bloque": "formulario.casillaVacia",
+          "que": "novedades",
+          "css": "width: 24px; height: 24px; border-radius: 7px; border: 1px solid rgba(241,237,228,0.28); texto: font-size 14px color #A8A096"
+        },
+        {
+          "bloque": "pie",
+          "que": "CTA y enlace",
+          "css": "padding: 16px 20px; border-top: 1px solid rgba(241,237,228,0.28); background: #1C1916; cta: height 56px border-radius 8px background #F1EDE4 color #16130F font-family 'Bebas Neue' font-size 23px letter-spacing 0.04em line-height 1 uppercase; enlace: text-align center font-size 14px color #A8A096 margin-top 11px"
+        }
+      ]
+    },
+    "codigo": {
+      "patron": "casillas",
+      "resumen": "Misma estructura que C1 en piel de pizarra: atrás + «Verifica que eres tú» en Bebas Neue; texto con el correo en tiza; seis casillas sobre #1C1916 (activa con 2 px de tiza); «Reenviar en 0:38» / «Usar SMS» en tiza; caja de ayuda; CTA «Confirmar código» apagado sobre rgba(241,237,228,0.28).",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #16130F; border: 1px solid rgba(241,237,228,0.28); border-radius: 12px; color: #F1EDE4"
+        },
+        {
+          "bloque": "cabecera",
+          "que": "atrás + título",
+          "css": "padding: 16px 20px; border-bottom: 1px solid rgba(241,237,228,0.28); display: flex; align-items: center; gap: 12px; atras: width 38px height 38px border-radius 10px border 1px solid rgba(241,237,228,0.28) font-size 16px color #A8A096; titulo: font-family 'Bebas Neue' font-size 25px letter-spacing 0.04em line-height 1 uppercase"
+        },
+        {
+          "bloque": "cuerpo",
+          "que": "texto, casillas, reenvío, ayuda",
+          "css": "padding: 18px 20px; display: flex; flex-direction: column; gap: 15px; texto: font-size 16px line-height 1.5 color #A8A096 con el email en #F1EDE4"
+        },
+        {
+          "bloque": "cuerpo.casillas",
+          "que": "seis dígitos",
+          "css": "display: flex; gap: 7px; casilla: flex 1 height 60px border-radius 10px border 1px solid rgba(241,237,228,0.28) background #1C1916 font-family 'IBM Plex Mono' font-size 23px; activa: border 2px solid #F1EDE4"
+        },
+        {
+          "bloque": "cuerpo.reenviar",
+          "que": "«Reenviar en {mm:ss}» y «Usar SMS» (onOtherChannel)",
+          "css": "display: flex; justify-content: space-between; font-size: 15px; color: #A8A096; reloj: font-family 'IBM Plex Mono'; enlace: color #F1EDE4 font-weight 500"
+        },
+        {
+          "bloque": "cuerpo.ayuda",
+          "que": "«¿No llega? Revisa spam. Tu pedido sigue guardado mientras verificas.»",
+          "css": "padding: 13px 15px; border-radius: 12px; background: #1C1916; font-size: 14px; line-height: 1.45; color: #A8A096"
+        },
+        {
+          "bloque": "pie",
+          "que": "CTA apagado (onVerify)",
+          "css": "padding: 16px 20px; border-top: 1px solid rgba(241,237,228,0.28); background: #1C1916; cta: height 56px border-radius 12px background rgba(241,237,228,0.28) color #A8A096 font-family 'Bebas Neue' font-size 23px letter-spacing 0.04em line-height 1"
+        }
+      ]
+    },
+    "historial": {
+      "patron": "tarjetas",
+      "resumen": "Misma estructura que C1 en piel de pizarra: cabecera sobre #1C1916 con avatar en tiza (texto oscuro) y nombre en Bebas Neue; tarjetas de pedido con borde rgba(241,237,228,0.28) radio 14, la más reciente con «Ver factura» / «Volver a pedir» en tiza; barra «Facturas» / «Volver a pedir».",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #16130F; border: 1px solid rgba(241,237,228,0.28); border-radius: 12px; color: #F1EDE4"
+        },
+        {
+          "bloque": "cabeceraCuenta",
+          "que": "avatar, nombre, resumen",
+          "css": "padding: 20px; background: #1C1916; display: flex; align-items: center; gap: 13px; avatar: width 44px height 44px border-radius 999px background #F1EDE4 color #16130F font-size 16px font-weight 700; nombre: font-family 'Bebas Neue' font-size 24px letter-spacing 0.04em line-height 1 uppercase; resumen: font-size 13px opacity 0.72"
+        },
+        {
+          "bloque": "lista",
+          "que": "tarjetas de pedidos",
+          "css": "padding: 16px 20px; display: flex; flex-direction: column; gap: 12px"
+        },
+        {
+          "bloque": "lista.tarjeta",
+          "que": "un pedido: sede, detalle, total y (en el más reciente) acciones",
+          "css": "border: 1px solid rgba(241,237,228,0.28); border-radius: 14px; padding: 15px; sede: font-family 'Bebas Neue' font-size 23px letter-spacing 0.04em line-height 1 uppercase; detalle: font-size 13px color #A8A096 margin-top 3px; total: font-family 'IBM Plex Mono' font-size 19px"
+        },
+        {
+          "bloque": "lista.tarjeta.acciones",
+          "que": "«Ver factura» y «Volver a pedir» (onReorder)",
+          "css": "display: flex; gap: 8px; margin-top: 12px; secundario: flex 1 height 44px border-radius 10px border 1px solid rgba(241,237,228,0.28) font-size 14px color #A8A096; primario: background #F1EDE4 color #16130F font-weight 500"
+        },
+        {
+          "bloque": "pie",
+          "que": "«Facturas» y «Volver a pedir»",
+          "css": "padding: 14px 20px; border-top: 1px solid rgba(241,237,228,0.28); background: #1C1916; display: flex; gap: 10px; secundario: flex 1 height 50px border-radius 11px border 1px solid rgba(241,237,228,0.28) font-size 15px font-weight 500 color #A8A096; primario: background #F1EDE4 color #16130F"
+        }
+      ]
+    }
+  },
+  "fuentesGoogle": [
+    "Bebas Neue"
+  ]
+}

@@ -95,5 +95,7 @@ EXPERIENCE_INTERNAL_KEY = os.getenv('EXPERIENCE_INTERNAL_KEY', '')
 MENU_CACHE_SECONDS = int(os.getenv('MENU_CACHE_SECONDS', '60'))
 # Marca del restaurante (res.company en Odoo): un cambio llega al comensal en ≤ este tiempo.
 BRAND_CACHE_SECONDS = int(os.getenv('BRAND_CACHE_SECONDS', '60'))
+# Plantilla del menú resuelta por sede (Plan H): un cambio desde el POS la invalida; este es el tope si nadie avisa.
+TEMPLATE_CACHE_SECONDS = int(os.getenv('TEMPLATE_CACHE_SECONDS', '60'))
 TENANT_CACHE_SECONDS = int(os.getenv('TENANT_CACHE_SECONDS', '120'))
 ODOO_TIMEOUT_SECONDS = int(os.getenv('ODOO_TIMEOUT_SECONDS', '20'))
