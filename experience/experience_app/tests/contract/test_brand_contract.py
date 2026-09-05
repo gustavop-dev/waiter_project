@@ -41,6 +41,7 @@ def branded_company():
 
 @patch('experience_app.views.logo.resolve', return_value=TENANT)
 @patch('experience_app.views.context.resolve', return_value=TENANT)
+@pytest.mark.django_db  # la entrada lee los ajustes de plantilla de la sede (Plan H)
 def test_brand_color_and_logo_written_in_odoo_reach_the_diner_over_http(context_resolve, logo_resolve, branded_company, api_client):
     """Atrapa un addon sin los campos brand_*, un color de Odoo que no pise al del registro, o un logo que no se sirva."""
     marca = api_client.get(ENTRY).json()['contexto']['marca']
