@@ -82,3 +82,15 @@ def test_menu_view_changes_the_photo_url_when_the_photo_changes():
     after = catalog.menu_view(changed, photo_url)['categorias'][1]['productos'][0]['foto']
     assert before != after
     assert after == '/fotos/3/?v=20260906120000'
+
+
+# Falla si un producto que no se pinta (sin categoría) enciende el aviso de imágenes de referencia.
+def test_reference_images_flag_only_counts_visible_dishes():
+    from dataclasses import replace
+
+    from experience_app.services.catalog import menu_view
+    from experience_app.tests.conftest import ANGUS, CATALOG, LIMONADA
+    hidden = replace(CATALOG, products=[replace(ANGUS, category_ids=[]), LIMONADA])
+    view = menu_view(hidden, lambda pid, v: f'/f/{pid}?v={v}')
+    assert view['imagenesDeReferencia'] is False
+    assert [i['nombre'] for c in view['categorias'] for i in c['productos']] == ['Limonada de Coco']

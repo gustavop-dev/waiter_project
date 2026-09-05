@@ -1,6 +1,6 @@
 {
     "name": "ProjectApp — Operación (origen del pedido, umbrales y supuestos de ROI)",
-    "summary": "Campos sin interfaz para el backoffice propio: quién originó cada pedido, umbrales de alerta y supuestos del ROI.",
+    "summary": "Campos sin interfaz para el backoffice propio: quién originó cada pedido, umbrales de alerta, supuestos del ROI, marca del restaurante y origen de cada foto.",
     "version": "19.0.1.0.0",
     "license": "LGPL-3",
     "author": "ProjectApp",

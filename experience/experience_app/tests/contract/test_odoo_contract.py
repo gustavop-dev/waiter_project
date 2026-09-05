@@ -9,7 +9,7 @@ from experience_app.adapters.odoo.client import OdooClient, OdooCredentials
 pytestmark = pytest.mark.contract
 CREDS = OdooCredentials(url='http://192.168.56.10:8069', db='projectapp', login='admin', password='admin', pos_config_id=1)
 # Claves de product.template en load_data de las que depende la carta del comensal (foto, descripción, recomendado, versión).
-MENU_KEYS = {'image_128', 'description_sale', 'is_favorite', 'write_date'}
+MENU_KEYS = {'image_128', 'description_sale', 'is_favorite', 'write_date', 'image_origin'}
 
 
 @pytest.fixture

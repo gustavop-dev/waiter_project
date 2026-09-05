@@ -74,11 +74,13 @@ def menu_view(catalog: pos.Catalog, photo_url: Callable[[int, str], str]) -> dic
               'fotoOrigen': PHOTO_ORIGINS.get(p.image_origin)}
              for p in catalog.products]
     # Límite legal (docs/diseno/2026-09-05-imagenes-menu.md): una imagen generada no representa la porción servida, así que
-    # la carta avisa «Imágenes de referencia» en cuanto un plato con foto la tiene generada con IA. Se mira la carta entera,
-    # no la categoría filtrada: el aviso no debe aparecer y desaparecer según lo que el comensal esté mirando.
-    reference_images = any(p.has_image and p.image_origin == 'ai' for p in catalog.products)
+    # la carta avisa «Imágenes de referencia» en cuanto un plato VISIBLE con foto la tiene generada con IA. Se mira la carta
+    # entera (todas las categorías), no la categoría filtrada: el aviso no debe aparecer y desaparecer según lo que el
+    # comensal esté mirando; pero un producto sin categoría no se pinta y por tanto tampoco cuenta.
+    grouped = [{'id': c.id, 'nombre': c.name, 'productos': [i for i in items if c.id in i['categorias']]} for c in categories]
+    reference_images = any(i['foto'] and i['fotoOrigen'] == 'ia' for g in grouped for i in g['productos'])
     return {
         'restaurante': catalog.company_name,
         'imagenesDeReferencia': reference_images,
-        'categorias': [{'id': c.id, 'nombre': c.name, 'productos': [i for i in items if c.id in i['categorias']]} for c in categories],
+        'categorias': grouped,
     }
