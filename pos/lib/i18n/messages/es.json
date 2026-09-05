@@ -253,13 +253,15 @@
       },
       "alertBody": {
         "kitchen": "{ref} de mesa {table} pasó los {late} minutos. La cocina tiene {queue} en cola.",
-        "payment": "Mesa {table} pidió la cuenta hace {minutes} min y nadie la ha cobrado."
+        "payment": "Mesa {table} pidió la cuenta hace {minutes} min y nadie la ha cobrado.",
+        "table": "Mesa {table} llamó al mesero desde su celular. Nadie ha ido."
       },
       "actions": {
         "seeKitchen": "Ver en cocina",
         "courtesy": "Ofrecer cortesía",
         "charge": "Ir a cobrar",
-        "done": "Atendida"
+        "done": "Atendida",
+        "onMyWay": "Voy yo"
       },
       "resolved": "Resueltas hoy",
       "resolvedNone": "Nada resuelto todavía",
@@ -267,7 +269,8 @@
       "courtesy": "Cortesía ofrecida en mesa {table}",
       "chargedLabel": "Cuenta de mesa {table} atendida",
       "thresholds": "Umbrales de alerta",
-      "configure": "Configurar"
+      "configure": "Configurar",
+      "attended": "Mesa {table} atendida"
     },
     "roi": {
       "title": "Retorno de inversión",

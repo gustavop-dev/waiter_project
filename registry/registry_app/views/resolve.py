@@ -36,7 +36,7 @@ def resolve(request, restaurant, venue, token=None):
             return Response({"detail": "mesa no disponible"}, status=404)
     return Response(
         {
-            "restaurant": {"slug": site.restaurant.slug, "name": site.restaurant.name},
+            "restaurant": {"slug": site.restaurant.slug, "name": site.restaurant.name, "brand": site.restaurant.brand()},
             "venue": {"slug": site.slug, "name": site.name},
             "table": _table_payload(table),
             "odoo": {

@@ -53,6 +53,8 @@ def confirm(session: TableSession) -> tuple[Order, bool]:
         order.state, order.attempts, order.last_error = Order.FAILED, order.attempts + 1, str(exc)
         order.save(update_fields=['state', 'attempts', 'last_error'])
         raise
+    if session.odoo_table_id is not None:
+        pos.set_table_call(client, session.odoo_table_id, 'none')  # ya no está "pidiendo": el salón ve el pedido en cocina
     with transaction.atomic():
         order.state, order.attempts, order.last_error = Order.SENT, order.attempts + 1, ''
         order.odoo_order_id, order.total, order.tax, order.sent_at = odoo_order.id, Decimal(str(odoo_order.total)), Decimal(str(odoo_order.tax)), timezone.now()

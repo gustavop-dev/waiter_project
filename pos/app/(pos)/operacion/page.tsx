@@ -26,7 +26,7 @@ export default function OperacionPage() {
   const subnav = useOperationSubnav('live')
   const session = useAuthStore((s) => s.session)
   const catalog = useCatalogStore((s) => s.catalog)
-  const { flags, shift, refreshShift } = useOrderStore()
+  const { flags, calls, shift, refreshShift, refreshOpenOrders, attendCall } = useOrderStore()
   const { orders, autonomy, billingSince, dismissed, resolved, refresh, resolve } = useOpsStore()
   const [filter, setFilter] = useState<Filter>('all')
   const [now, setNow] = useState(() => Date.now())
@@ -34,15 +34,15 @@ export default function OperacionPage() {
 
   useEffect(() => {
     if (!session || !catalog) return
-    const run = () => { void refresh(session.id, tableNumberOf); void refreshShift(session.id) }
+    const run = () => { void refresh(session.id, tableNumberOf); void refreshShift(session.id); void refreshOpenOrders(session.id) }
     run()
     const id = setInterval(() => { setNow(Date.now()); run() }, POLL_MS)
     return () => clearInterval(id)
-  }, [session, catalog, tableNumberOf, refresh, refreshShift])
+  }, [session, catalog, tableNumberOf, refresh, refreshShift, refreshOpenOrders])
 
   if (!catalog) return null
   const late = catalog.settings.alertLateMinutes
-  const alerts = deriveAlerts(orders, flags, billingSince, now, { late, bill: catalog.settings.alertBillMinutes }).filter((a) => !dismissed[a.id])
+  const alerts = deriveAlerts(orders, flags, billingSince, now, { late, bill: catalog.settings.alertBillMinutes }, calls, tableNumberOf).filter((a) => !dismissed[a.id])
   const visibleAlerts = alerts.filter((a) => matchesFilter(a.kind, filter))
   const open = orders.filter((o) => orderStatus(o, now, late).status !== 'paid')
   const cooking = open.filter((o) => ['cooking', 'late'].includes(orderStatus(o, now, late).status))
@@ -84,7 +84,8 @@ export default function OperacionPage() {
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto p-4 px-[18px] flex flex-col gap-3">
             {visibleAlerts.length === 0 && <p className="text-[15px] text-soft">{t('quiet')}</p>}
-            {visibleAlerts.map((a) => <AlertCard key={a.id} alert={a} late={late} queue={cooking.length} onResolve={(al, text) => resolve(al.id, text, Date.now())} />)}
+            {visibleAlerts.map((a) => <AlertCard key={a.id} alert={a} late={late} queue={cooking.length} onResolve={(al, text) => resolve(al.id, text, Date.now())}
+              onAttend={(al) => { if (al.tableId !== null) void attendCall(al.tableId); resolve(al.id, t('attended', { table: al.tableNumber ?? '—' }), Date.now()) }} />)}
             <div className="rounded-[14px] border border-[#EFE9E0] bg-canvas p-4 flex flex-col gap-1.5">
               <span className="text-[13px] tracking-[0.1em] uppercase text-ink-3 font-medium">{t('resolved')}</span>
               <span className="text-[15px] leading-relaxed text-soft">{resolved.length ? resolved.map((r) => t('resolvedItem', { text: r.text, time: time(r.at) })).join(' · ') : t('resolvedNone')}</span>

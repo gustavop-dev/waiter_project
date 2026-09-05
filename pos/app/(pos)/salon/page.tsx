@@ -34,7 +34,7 @@ export default function SalonPage() {
   const [query, setQuery] = useState('')
   const [creating, setCreating] = useState(false)
   const { activeFloorId, selectedTableId, setFloor, selectTable } = useFloorStore()
-  const { openOrders, flags, draft, refreshOpenOrders, refreshShift, settle, receipt, closeReceipt, busy } = useOrderStore()
+  const { openOrders, calls, flags, draft, refreshOpenOrders, refreshShift, settle, receipt, closeReceipt, busy } = useOrderStore()
   const [remote, setRemote] = useState<{ orderId: number; lines: OrderLineView[] } | null>(null)
   const [paying, setPaying] = useState(false)
   const [now, setNow] = useState(() => Date.now())
@@ -52,8 +52,8 @@ export default function SalonPage() {
   const views = useMemo(() => {
     if (!catalog) return []
     const tables = catalog.tables.filter((x) => x.floorId === activeFloorId)
-    return deriveTableViews(tables, openOrders, flags).filter((v) => matchesSearch(v, query))
-  }, [catalog, activeFloorId, openOrders, flags, query])
+    return deriveTableViews(tables, openOrders, flags, calls).filter((v) => matchesSearch(v, query))
+  }, [catalog, activeFloorId, openOrders, flags, calls, query])
   const selected = views.find((v) => v.table.id === selectedTableId) ?? null
   const isLocal = draft !== null && draft.tableId === selectedTableId
   const remoteOrderId = !isLocal ? (selected?.orderId ?? null) : null

@@ -157,3 +157,8 @@ def pay_order(client: OdooClient, order_id: int, payment_method_id: int, amount:
 def cash_payment_method_id(client: OdooClient) -> int:
     rows = client.call_kw('pos.payment.method', 'search_read', [[], ['id', 'type']])
     return next(r['id'] for r in rows if r['type'] == 'cash')
+
+
+# Lo que el comensal pide llega al salón por Odoo (addon projectapp_ops): "ordering" | "assist" | "bill" | "none".
+def set_table_call(client: OdooClient, table_id: int, kind: str) -> None:
+    client.call_kw('restaurant.table', 'set_waiter_call', [[table_id], kind])

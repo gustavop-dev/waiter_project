@@ -36,3 +36,19 @@ class PosConfig(models.Model):
             return fields_
         return fields_ + ["alert_late_minutes", "alert_bill_minutes", "roi_hour_cost", "roi_minutes_per_order",
                           "roi_baseline_hours_per_100", "roi_monthly_cost", "roi_start_date"]
+
+
+class RestaurantTable(models.Model):
+    """Lo que el comensal pide desde su móvil llega al salón por aquí (lo escribe el bloque 3 por su adaptador)."""
+
+    _inherit = "restaurant.table"
+
+    waiter_call = fields.Selection(
+        [("none", "Nada"), ("ordering", "Pidiendo"), ("assist", "Pide mesero"), ("bill", "Pide la cuenta")],
+        string="Llamada del comensal", default="none", index=True)
+    waiter_call_at = fields.Datetime(string="Desde")
+
+    def set_waiter_call(self, kind):
+        """Cambia la llamada y anota la hora del servidor. 'none' la limpia."""
+        self.write({"waiter_call": kind, "waiter_call_at": fields.Datetime.now() if kind != "none" else False})
+        return True

@@ -20,6 +20,8 @@ def open_session(request):
     data = request.data
     tenant = resolve(data.get('restaurante', ''), data.get('sede', ''), data.get('token') or None)
     session, diner = sessions.open_session(tenant, request.COOKIES.get(COOKIE))
+    if tenant.table_token and not session.orders.exists():
+        sessions.table_call(tenant, session, 'ordering')
     response = Response({'sesion': {'id': str(session.id), 'estado': session.state, 'mesa': session.table_number}, 'comensal': {'id': str(diner.id)}}, status=201)
     response.set_cookie(COOKIE, diner.key, max_age=COOKIE_MAX_AGE, httponly=True, samesite='Lax', path='/api/v1/')
     return response
@@ -52,3 +54,20 @@ def line(request, session_id, line_id):
         qty = request.data.get('cantidad')
         sessions.update_line(cart_line, diner, qty=None if qty is None else max(1, int(qty)), note=request.data.get('nota'))
     return Response(sessions.cart_view(session, diner))
+
+
+@api_view(['POST'])
+def call_waiter(request, session_id):
+    session = get_object_or_404(TableSession, id=session_id, state__in=TableSession.OPEN_STATES)
+    diner_for(request, session)
+    tenant = resolve(session.restaurant_slug, session.venue_slug, session.table_token)
+    return Response({'ok': sessions.table_call(tenant, session, 'assist')})
+
+
+@api_view(['POST'])
+def request_bill(request, session_id):
+    session = get_object_or_404(TableSession, id=session_id, state__in=TableSession.OPEN_STATES)
+    diner = diner_for(request, session)
+    tenant = resolve(session.restaurant_slug, session.venue_slug, session.table_token)
+    ok = sessions.table_call(tenant, session, 'bill')
+    return Response({'ok': ok, **sessions.bill_summary(session, diner)})

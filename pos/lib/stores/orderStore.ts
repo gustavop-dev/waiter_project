@@ -8,6 +8,7 @@ import type { LocalFlags } from '@/lib/domain/tableState'
 import { play } from '@/lib/audio/sounds'
 import { change, type SettlePlan } from '@/lib/domain/payment'
 import { fireUnsentLines } from '@/lib/services/kitchen'
+import { clearTableCall, listTableCalls, type TableCall } from '@/lib/services/tables'
 import { useOpsStore } from '@/lib/stores/opsStore'
 import { addTip, closeOrder, setChange, getShiftSummary, listOpenOrders, payOrder, saveOrder } from '@/lib/services/orders'
 import type { OpenOrder, SavedOrder, ShiftSummary } from '@/lib/services/orders'
@@ -17,6 +18,7 @@ interface OrderState {
   draft: DraftOrder | null
   saved: SavedOrder | null
   openOrders: OpenOrder[]
+  calls: TableCall[]
   shift: ShiftSummary | null
   flags: Record<number, LocalFlags>
   busy: boolean
@@ -36,6 +38,7 @@ interface OrderState {
   settle: (plan: SettlePlan, ctx: SettleContext) => Promise<boolean>
   closeReceipt: () => void
   refreshOpenOrders: (sessionId: number) => Promise<void>
+  attendCall: (tableId: number) => Promise<void>
   refreshShift: (sessionId: number) => Promise<void>
 }
 
@@ -75,7 +78,7 @@ export const useOrderStore = create<OrderState>((set, get) => {
     set((s) => ({ flags: { ...s.flags, [tableId]: { ...s.flags[tableId], ...patch } } }))
 
   return {
-    draft: null, saved: null, openOrders: [], shift: null, flags: {}, busy: false, error: null, receipt: null,
+    draft: null, saved: null, openOrders: [], calls: [], shift: null, flags: {}, busy: false, error: null, receipt: null,
     start: (sessionId, tableId, guests) => set({ draft: createDraft({ sessionId, tableId, guests }), saved: null, error: null }),
     add: (p) => { play('tap'); update((d) => addProduct(d, p)) },
     changeQty: (u, q) => update((d) => setQty(d, u, q)),
@@ -142,6 +145,8 @@ export const useOrderStore = create<OrderState>((set, get) => {
           subtotal: closed.total - closed.tax - plan.tip, tax: closed.tax, tip: plan.tip, total: closed.total,
           payments: plan.payments.map((p) => ({ method: ctx.methodName(p.methodId), amount: p.amount, reference: p.reference })), change: ch }
         set((s) => ({ draft: null, saved: null, busy: false, receipt, flags: { ...s.flags, [tableId!]: {} } }))
+        // La mesa deja de pedir / llamar: el comensal ya pagó.
+        void clearTableCall(tableId!).catch(() => undefined)
         return true
       } catch (e) {
         play('error')
@@ -150,7 +155,11 @@ export const useOrderStore = create<OrderState>((set, get) => {
       }
     },
     closeReceipt: () => set({ receipt: null }),
-    refreshOpenOrders: async (sessionId) => set({ openOrders: await listOpenOrders(sessionId) }),
+    refreshOpenOrders: async (sessionId) => {
+      const [openOrders, calls] = await Promise.all([listOpenOrders(sessionId), listTableCalls().catch(() => [] as TableCall[])])
+      set({ openOrders, calls })
+    },
+    attendCall: async (tableId) => { await clearTableCall(tableId); set((s) => ({ calls: s.calls.filter((c) => c.tableId !== tableId) })) },
     refreshShift: async (sessionId) => set({ shift: await getShiftSummary(sessionId) }),
   }
 })

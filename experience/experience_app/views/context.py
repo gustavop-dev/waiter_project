@@ -9,7 +9,8 @@ from experience_app.services import catalog
 def _context(tenant):
     table = tenant.table_token and {'numero': tenant.table_number, 'token': tenant.table_token}
     return {'restaurante': {'slug': tenant.restaurant_slug, 'nombre': tenant.restaurant_name},
-            'sede': {'slug': tenant.venue_slug, 'nombre': tenant.venue_name}, 'mesa': table or None}
+            'sede': {'slug': tenant.venue_slug, 'nombre': tenant.venue_name}, 'mesa': table or None,
+            'marca': {'nombre': tenant.restaurant_name, **tenant.brand}}
 
 
 @api_view(['GET'])

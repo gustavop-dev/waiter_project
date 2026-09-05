@@ -1,0 +1,64 @@
+# Plan F — Bloque del usuario · Parte 1: PWA del comensal (sin pago ni IA)
+
+> **Para agentes:** ejecutar tarea por tarea con el ciclo completo (test que
+> falla → implementación mínima → test que pasa → commit). Regla dura: nada
+> en `diner/` importa de `pos/` ni habla con Odoo o el registro.
+
+**Objetivo:** que el comensal, al tocar el NFC de la mesa (o abrir el enlace
+de domicilio), vea la carta con la marca del restaurante, arme su pedido
+junto a los demás de la mesa, lo confirme y siga su estado; y que pueda
+llamar al mesero o pedir la cuenta, y que eso se vea en el salón del POS.
+
+**Arquitectura:** ver `docs/decisiones/2026-09-05-comensal-app-aparte.md`.
+`diner/` (Next.js 16, Tailwind 4, next-intl, Zustand, Jest, Playwright) ↔
+`experience/` (Django) ↔ adaptadores ↔ Odoo / registro.
+
+**Spec:** `docs/diseno/waiter-design-system.dc.html` sección **06 · Comensal
+y white-label** (portada: encabezado con nombre en serif y lema, píldora
+"Mesa N", saludo en serif, línea del mesero, "Ver la carta →",
+"Recomendado para ti" en tarjetas con foto, descripción, precio mono y ＋,
+**barra de pedido fija** oscura abajo) · `docs/arquitectura/2026-09-04-bloque-3-experiencia.md`
+(contrato de API) · visión §4 (NFC/QR), §11 (todo / lo mío / dividir).
+
+## Contrato entre bloques (fijo para todas las tareas)
+
+```jsonc
+// GET /api/v1/<rest>/<sede>[/t/<token>]/  → contexto.marca (nuevo)
+"marca": { "nombre": "La Provincia", "lema": "Cocina de barrio", "color": "#7A2E2A", "colorTexto": "#FFFFFF",
+           "colorSuave": "#F6EBEA", "fuente": "Instrument Serif", "radio": 14, "logo": null,
+           "saludo": "Buenas noches", "mesero": "Alex", "bienvenida": "¿Qué te provoca hoy?" }
+// POST /api/v1/sesiones/<id>/llamar/   → {"ok": true}   escribe restaurant.table.waiter_call = "assist"
+// POST /api/v1/sesiones/<id>/cuenta/   → {"ok": true, "total": 83700, "porComensal": [...]}  waiter_call = "bill"
+// POST /api/v1/sesiones/               (mesa) marca waiter_call = "ordering" si la mesa no tiene pedido aún
+// POST /api/v1/sesiones/<id>/confirmar/ limpia "ordering"
+// Fuentes curadas (6): "Instrument Serif", "Playfair Display", "Fraunces", "DM Serif Display", "Lora", "Cormorant Garamond"
+// Radios: 4 | 14 | 24
+```
+
+En el POS (`pos/`): `restaurant.table.waiter_call` ∈ none | ordering | assist |
+bill (+ `waiter_call_at`), leído en cada refresco del salón; alimenta los
+estados **Pidiendo**, **Asistencia**, **En cuenta** y la alerta "Mesa pide
+mesero" de operación en vivo. Cobrar la mesa o atender la alerta lo limpia.
+
+## Tareas
+
+1. ✅ Plan, ADR, contrato. Addon: `restaurant.table.waiter_call/_at`.
+   Registro: `Restaurant.brand_*` + derivación de contraste. Experiencia:
+   `marca` en el contexto, `llamar/`, `cuenta/`, `ordering` al abrir sesión,
+   limpieza al confirmar; adaptador `set_table_call`. POS: lee las llamadas
+   y las pinta; alerta "Mesa pide mesero"; cobrar/atender las limpia.
+2. `diner/`: andamiaje (proxy a `experience`, tokens `--w-*` fijos + `--r-*`
+   por restaurante, i18n es, PWA), cliente de API, stores, componentes base
+   (`Header`, `OrderBar`, `DishCard`, sello Waiter) y **Portada**.
+3. **Carta** (categorías, búsqueda, tarjetas) y **Plato** (detalle, nota,
+   cantidad, agregar).
+4. **Pedido** (carrito compartido: la mesa / lo mío, editar, quitar,
+   confirmar con manejo de "el restaurante no responde") y **Estado**
+   (enviado → en cocina → listo → servido, sondeo; "pedir más").
+5. **Llamar al mesero** y **Pedir la cuenta** (resumen todo / lo mío /
+   dividir; "Pagar desde el celular · pronto"); estados en el POS de punta a
+   punta.
+6. Revisión adversarial por pantalla, E2E comensal ↔ POS, docs, PR.
+
+Fuera: pasarela (decisión pendiente), Mesero IA (la línea del mesero es texto
+del restaurante), modo offline, notificaciones push, varios idiomas.

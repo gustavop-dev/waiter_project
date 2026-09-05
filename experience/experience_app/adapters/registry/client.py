@@ -1,5 +1,5 @@
 """Cliente del registro central. ÚNICO lugar del bloque 3 que conoce su URL y su clave."""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import requests
 from django.conf import settings
@@ -18,6 +18,7 @@ class Tenant:
     table_number: int | None
     odoo_table_id: int | None
     odoo: OdooCredentials
+    brand: dict = field(default_factory=dict)
 
 
 class TenantNotFound(Exception):
@@ -41,6 +42,7 @@ def _to_tenant(body: dict) -> Tenant:
         venue_slug=body['venue']['slug'], venue_name=body['venue']['name'],
         table_token=table.get('token'), table_number=table.get('number'), odoo_table_id=table.get('odoo_table_id'),
         odoo=OdooCredentials(url=o['url'], db=o['db'], login=o['login'], password=o['password'], pos_config_id=o['pos_config_id']),
+        brand=body['restaurant'].get('brand') or {},
     )
 
 

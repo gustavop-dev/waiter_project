@@ -6,7 +6,7 @@ const order = { id: 9, tableId: 2, total: 74200, tax: 11851, state: 'draft' as c
 // Falla si una mesa sin pedido abierto deja de mostrarse libre.
 it('marks tables without an open order as free with zero total', () => {
   const [t1] = deriveTableViews(tables, [order], {})
-  expect(t1).toEqual({ table: tables[0], state: 'free', total: 0, tax: 0, orderId: null, startedAt: null, waiter: null })
+  expect(t1).toEqual({ table: tables[0], state: 'free', total: 0, tax: 0, orderId: null, startedAt: null, waiter: null, callSince: null })
 })
 
 // Falla si el monto, el mesero o la hora de inicio del pedido no llegan a la celda de la mesa.
@@ -52,4 +52,13 @@ it('fills the 22-minute bar and changes tone at 12 and 18 minutes', () => {
 it('matches tables by number, order id or waiter', () => {
   const view = deriveTableViews(tables, [order], {})[1]
   expect([matchesSearch(view, '2'), matchesSearch(view, '#9'), matchesSearch(view, 'ale'), matchesSearch(view, '7'), matchesSearch(view, '')]).toEqual([true, true, true, false, true])
+})
+
+
+// Falla si lo que el comensal pide desde su móvil (pidiendo, mesero, cuenta) no cambia el estado de la mesa.
+it('derives ordering, assist and billing from the diner calls that live in Odoo', () => {
+  const calls = [{ tableId: 1, kind: 'ordering' as const, since: '2026-09-04 20:00:00' }, { tableId: 2, kind: 'assist' as const, since: '2026-09-04 20:01:00' }, { tableId: 3, kind: 'bill' as const, since: '' }]
+  const views = deriveTableViews(tables, [order, { ...order, id: 10, tableId: 3 }], {}, calls)
+  expect(views.map((v) => v.state)).toEqual(['ordering', 'assist', 'billing'])
+  expect(views[1].callSince).toBe('2026-09-04 20:01:00')
 })

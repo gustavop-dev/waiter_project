@@ -1,21 +1,24 @@
 import type { OpenOrder } from '@/lib/services/orders'
+import type { TableCall } from '@/lib/services/tables'
 import type { KitchenPhase } from '@/lib/domain/kitchen'
 import type { Table } from '@/lib/types'
 
 export type TableState = 'free' | 'occupied' | 'kitchen' | 'billing' | 'paid' | 'ordering' | 'served' | 'assist' | 'closed'
 export interface LocalFlags { billing?: boolean; assist?: boolean; closed?: boolean; ordering?: boolean }
-export interface TableView { table: Table; state: TableState; total: number; tax: number; orderId: number | null; startedAt: string | null; waiter: string | null }
+export interface TableView { table: Table; state: TableState; total: number; tax: number; orderId: number | null; startedAt: string | null; waiter: string | null; callSince: string | null }
 
 const STATES: TableState[] = ['free', 'occupied', 'kitchen', 'billing', 'paid', 'ordering', 'served', 'assist', 'closed']
 
 // Odoo sabe libre / con pedido / pagado y, por los cursos, en cocina / servido (ADR 2026-09-05).
 // Lo demás es estado local (o del registro central más adelante).
 // Prioridad cuando coinciden: closed > assist > billing > served > kitchen.
-function stateFor(order: OpenOrder | undefined, flags: LocalFlags): TableState {
+// Las llamadas del comensal (pidiendo / pide mesero / pide la cuenta) vienen de Odoo; las banderas locales
+// son lo que el mesero marcó en esta tablet. Asistencia gana a todo lo demás.
+function stateFor(order: OpenOrder | undefined, flags: LocalFlags, call: TableCall | undefined): TableState {
   if (flags.closed) return 'closed'
-  if (flags.assist) return 'assist'
-  if (!order) return flags.ordering ? 'ordering' : 'free'
-  if (flags.billing) return 'billing'
+  if (flags.assist || call?.kind === 'assist') return 'assist'
+  if (!order) return flags.ordering || call?.kind === 'ordering' ? 'ordering' : 'free'
+  if (flags.billing || call?.kind === 'bill') return 'billing'
   return phaseState(order.kitchen)
 }
 function phaseState(phase: KitchenPhase): TableState {
@@ -23,11 +26,12 @@ function phaseState(phase: KitchenPhase): TableState {
   return phase === 'none' ? 'occupied' : 'kitchen'
 }
 
-export function deriveTableViews(tables: Table[], orders: OpenOrder[], flags: Record<number, LocalFlags>): TableView[] {
+export function deriveTableViews(tables: Table[], orders: OpenOrder[], flags: Record<number, LocalFlags>, calls: TableCall[] = []): TableView[] {
   return tables.map((table) => {
     const order = orders.find((o) => o.tableId === table.id)
-    return { table, state: stateFor(order, flags[table.id] ?? {}), total: order?.total ?? 0, tax: order?.tax ?? 0, orderId: order?.id ?? null,
-      startedAt: order?.startedAt ?? null, waiter: order?.waiter ?? null }
+    const call = calls.find((c) => c.tableId === table.id)
+    return { table, state: stateFor(order, flags[table.id] ?? {}, call), total: order?.total ?? 0, tax: order?.tax ?? 0, orderId: order?.id ?? null,
+      startedAt: order?.startedAt ?? null, waiter: order?.waiter ?? null, callSince: call?.since || null }
   })
 }
 

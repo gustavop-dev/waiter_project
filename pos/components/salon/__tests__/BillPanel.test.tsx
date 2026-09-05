@@ -6,7 +6,7 @@ import messages from '@/lib/i18n/messages/es.json'
 
 const wrap = (ui: React.ReactElement) => render(<NextIntlClientProvider locale="es" messages={messages}>{ui}</NextIntlClientProvider>)
 const table = { id: 6, number: 9, floorId: 1, seats: 4 }
-const view = { table, state: 'billing' as const, total: 73600, tax: 11753, orderId: 9, startedAt: '2026-09-04 20:00:00', waiter: 'Alejandra' }
+const view = { table, state: 'billing' as const, total: 73600, tax: 11753, orderId: 9, startedAt: '2026-09-04 20:00:00', waiter: 'Alejandra', callSince: null }
 const lines = [{ uuid: 'a', productId: 3, name: 'Hamburguesa Angus', unitPrice: 36900, qty: 1, note: '', taxIds: [] }]
 const NOW = Date.parse('2026-09-04T21:26:00Z')
 
@@ -31,7 +31,7 @@ it('shows pax, waiter and elapsed time in the header', () => {
 
 // Falla si una mesa libre muestra una cuenta en $ 0 con "Cobrar $ 0" en vez de la acción de abrir pedido.
 it('offers to open the order instead of a zero bill on a free table', () => {
-  wrap(<BillPanel view={{ table, state: 'free', total: 0, tax: 0, orderId: null, startedAt: null, waiter: null }} lines={[]} onCharge={jest.fn()} onOpenOrder={jest.fn()} now={NOW} />)
+  wrap(<BillPanel view={{ table, state: 'free', total: 0, tax: 0, orderId: null, startedAt: null, waiter: null, callSince: null }} lines={[]} onCharge={jest.fn()} onOpenOrder={jest.fn()} now={NOW} />)
   expect(screen.getByRole('button', { name: 'Abrir pedido' })).toHaveClass('bg-brand-500')
   expect(screen.queryByText(/Cobrar/)).toBeNull()
 })

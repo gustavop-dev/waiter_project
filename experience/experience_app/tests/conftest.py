@@ -9,7 +9,8 @@ from experience_app.adapters.odoo.pos import Catalog, Category, Product
 from experience_app.adapters.registry.client import Tenant
 
 ODOO = OdooCredentials(url='http://odoo', db='bh', login='svc', password='x', pos_config_id=1)
-TABLE = Tenant('burger-house', 'Burger House', 'poblado', 'Poblado', '8H2KQ7', 8, 9, ODOO)
+BRAND = {'color': '#7A2E2A', 'colorTexto': '#FFFFFF', 'colorSuave': '#F2EAEA', 'fuente': 'Fraunces', 'radio': 14, 'lema': 'Cocina de barrio', 'saludo': '', 'mesero': 'Alex', 'bienvenida': '¿Qué te provoca hoy?', 'logo': None}
+TABLE = Tenant('burger-house', 'Burger House', 'poblado', 'Poblado', '8H2KQ7', 8, 9, ODOO, BRAND)
 DELIVERY = Tenant('burger-house', 'Burger House', 'poblado', 'Poblado', None, None, None, ODOO)
 ANGUS = Product(id=3, name='Hamburguesa Angus', price=36900.0, category_ids=[2], tax_ids=[5])
 LIMONADA = Product(id=7, name='Limonada de Coco', price=9900.0, category_ids=[1], tax_ids=[5])

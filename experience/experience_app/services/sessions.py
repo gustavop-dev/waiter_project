@@ -1,6 +1,8 @@
 """Sesión de mesa, comensales y carrito con atribución por persona."""
 from decimal import Decimal
 
+from experience_app.adapters.odoo import pos
+from experience_app.adapters.odoo.client import OdooClient, OdooError
 from experience_app.adapters.odoo.pos import Product
 from experience_app.adapters.registry.client import Tenant
 from experience_app.models import CartLine, Diner, TableSession
@@ -71,3 +73,26 @@ def cart_view(session: TableSession, diner: Diner) -> dict:
         'mio': float(per_diner.get(str(diner.id), Decimal(0))),
         'por_comensal': [{'comensal': k, 'total': float(v)} for k, v in per_diner.items()],
     }
+
+
+# ---- Llamadas al salón: viajan por Odoo (adaptador), nunca por un canal paralelo. Un fallo de Odoo no rompe la sesión.
+def table_call(tenant: Tenant, session: TableSession, kind: str) -> bool:
+    if session.odoo_table_id is None:
+        return False
+    try:
+        pos.set_table_call(OdooClient(tenant.odoo), session.odoo_table_id, kind)
+        return True
+    except OdooError:
+        return False
+
+
+def bill_summary(session: TableSession, diner: Diner) -> dict:
+    """Todo / lo mío / dividir sobre lo ya confirmado (lo abierto aún no es cuenta)."""
+    lines = list(session.lines.filter(status=CartLine.CONFIRMED).select_related('diner'))
+    per: dict[str, Decimal] = {}
+    for line in lines:
+        per[str(line.diner_id)] = per.get(str(line.diner_id), Decimal(0)) + line.subtotal
+    total = sum(per.values(), Decimal(0))
+    diners = max(1, session.diners.count())
+    return {'total': float(total), 'mio': float(per.get(str(diner.id), Decimal(0))),
+            'porComensal': [{'comensal': k, 'total': float(v)} for k, v in per.items()], 'partes': diners, 'porParte': float(round(total / diners)) if total else 0.0}
