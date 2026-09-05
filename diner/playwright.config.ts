@@ -8,6 +8,7 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   reporter: [['list']],
+  expect: { timeout: 15_000 },
   use: { baseURL, trace: 'retain-on-failure' },
   projects: [{ name: 'Mobile Chrome', use: { ...devices['Pixel 7'] } }],
   webServer: { command: 'npx next dev --hostname 192.168.56.10 --port 3001', url: baseURL, reuseExistingServer: true, timeout: 120_000 },

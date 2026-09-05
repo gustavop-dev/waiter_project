@@ -11,7 +11,9 @@
       "unavailable": "Esta mesa no está disponible",
       "soldOut": "Agotado",
       "add": "Agregar",
-      "close": "Cerrar"
+      "close": "Cerrar",
+      "rootTitle": "Acerca tu celular al NFC de la mesa",
+      "rootBody": "O escanea el código QR de la placa. La carta del restaurante se abre sola, sin descargar nada."
     },
     "home": {
       "waiterLine": "Soy {name}, tu mesero. {welcome}",
