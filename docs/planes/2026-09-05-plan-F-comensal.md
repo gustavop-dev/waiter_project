@@ -72,9 +72,10 @@ mesero" de operación en vivo. Cobrar la mesa o atender la alerta lo limpia.
   arranca limpio. La app del comensal reabre sesión sola ante el 409.
 - Recargar la página del comensal conservaba la sesión (cookie) pero no traía
   el carrito: la barra de pedido desaparecía. Ahora se trae al cargar.
-- Pendiente de decisión del usuario: quién edita la marca del restaurante
-  (hoy la fija ProjectApp en el registro al hacer el onboarding; la
-  alternativa es un panel en Configuración del POS guardando en Odoo).
+- Quién edita la marca del restaurante quedó pendiente aquí (ProjectApp la
+  fijaba en el registro al hacer el onboarding). Resuelto en el Plan G: se
+  edita desde Configuración › Marca del POS y vive en Odoo; el registro
+  guarda el valor inicial (`docs/decisiones/2026-09-05-marca-desde-el-pos.md`).
 
 ## Tareas
 

@@ -27,8 +27,14 @@ La descripción completa del producto está en
 - **Backoffice del operador** en `pos/`: operación en vivo (1e), ROI (1d),
   ventas, catálogo, inventario, clientes, facturación normal y configuración.
   Plan C. Sonidos del sistema Waiter sintetizados en el navegador.
+  **Configuración › Marca** (Plan G, solo administradores): logo, color de
+  acción, tipografía, redondeo, lema, saludo, nombre del mesero IA y
+  bienvenida; se guarda en Odoo (`res.company`, addon `projectapp_ops`) y el
+  registro conserva el valor inicial del onboarding como fallback.
 - **`diner/`**: la app del comensal (PWA móvil, marca del restaurante). Solo
-  habla con `experience/`; nada suyo toca Odoo ni `pos/`. Plan F.
+  habla con `experience/`; nada suyo toca Odoo ni `pos/`. Plan F. La marca
+  que pinta la sirve `experience/` (Odoo > registro, caché
+  `BRAND_CACHE_SECONDS`, 60 s por defecto en `experience/.env`).
 - Diseño y decisiones en `docs/`; planes ejecutados en `docs/planes/`.
 
 ## Levantar el entorno de desarrollo
@@ -66,5 +72,7 @@ scripts/demo-comensal.sh
 
 1. Pasarela de pago en el bloque 3 (`experience/pagos`): al `pago aprobado`,
    registrar el pago en Odoo y emitir el evento para facturación.
-2. Plan C: dashboard de ROI y operación en vivo.
-3. PWA del comensal y Mesero IA sobre la API del bloque 3.
+2. Mesero IA sobre la API del bloque 3 (la PWA del comensal ya existe, Plan F;
+   la marca ya se edita desde el POS, Plan G).
+3. Fotos de portada del restaurante y varios idiomas del comensal (fuera del
+   Plan G a propósito).
