@@ -1,7 +1,7 @@
-import { fireEvent, screen } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 
 import { A2Menu } from '@/components/templates/families/A/A2Menu'
-import { entryOf, fuertes, menuProps, postres, wrap } from '@/components/templates/families/A/__tests__/fixtures'
+import { dimmedAncestors, entryOf, fuertes, menuProps, postres, wrap } from '@/components/templates/families/A/__tests__/fixtures'
 
 // Falla si la categoría no se lee como el menú (antetítulo, nombre del primer producto en serif, precio «por persona» en mono), si los pasos
 // no van numerados 01, 02… con los demás productos, o si «Reservar el menú» no agrega el producto-menú.
@@ -32,7 +32,8 @@ it('dims sold-out steps, defaults to the first category and offers the others as
   expect(props.setCategory).toHaveBeenCalledWith(3)
   expect(screen.getByRole('link', { name: /Tu pedido · 2 platos · \$ 65\.800/ })).toHaveAttribute('href', '/prov/centro/t/Z2XUVG/pedido')
   const { unmount } = wrap(<A2Menu {...menuProps('A2', { category: 3, entry: entryOf([postres, fuertes]) })} />)
-  expect(screen.getByText('Brownie').closest('li')).toHaveClass('opacity-55')
+  expect(dimmedAncestors(screen.getByText('Brownie'))).toBe(1)
+  expect(dimmedAncestors(within(screen.getByText('Brownie').closest('li') as HTMLElement).getByTestId('sold-out-badge'))).toBe(0)
   unmount()
 })
 

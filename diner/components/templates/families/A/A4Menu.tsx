@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { useRef, useState } from 'react'
 
-import { AddButton, DishPhoto, EditorialTabs, EmptyMenu, OrderStrip, SearchToggle, SoldOutBadge, attributeChips } from '@/components/templates/families/A/shared'
+import { AddButton, DishPhoto, EditorialTabs, EmptyMenu, OrderStrip, SearchToggle, SoldOutBadge, attributeChips, dimIf } from '@/components/templates/families/A/shared'
 import { tabId, useMenuDishes } from '@/components/templates/generic/menuParts'
 import type { MenuLayoutProps } from '@/components/templates/types'
 import { formatCop } from '@/lib/domain/cart'
@@ -62,10 +62,11 @@ export function A4Menu({ entry, query, setQuery, category, setCategory, onOpen, 
             <h2 className="text-[11px] tracking-[0.2em] uppercase text-t-tinta-terciaria pb-2">{t('templates.A4.more')}</h2>
             <ul>
               {rest.map((d) => (
-                <li key={d.id} className={`py-2.5 border-t border-t-borde flex items-center gap-3 ${d.agotado ? 'opacity-55' : ''}`}>
+                <li key={d.id} className="py-2.5 border-t border-t-borde flex items-center gap-3">
+                  {/* Agotado: la miniatura ya se atenúa sola (DishPhoto); aquí solo el texto, una vez, y la insignia fuera. */}
                   <button type="button" aria-label={t('templates.A4.show', { name: d.nombre })} onClick={() => pick(d.id)} className="min-w-0 flex-1 text-left flex items-center gap-3">
                     <DishPhoto dish={d} badge={false} className="w-11 h-11 shrink-0 rounded-[8px] text-[0px]" />
-                    <span className="flex flex-col min-w-0"><span className="text-[15px] font-medium text-t-tinta truncate">{d.nombre}</span><span className="font-t-mono tabular text-[13px] text-t-tinta-suave">{formatCop(d.precio)}</span></span>
+                    <span className={`flex flex-col min-w-0 ${dimIf(d)}`}><span className="text-[15px] font-medium text-t-tinta truncate">{d.nombre}</span><span className="font-t-mono tabular text-[13px] text-t-tinta-suave">{formatCop(d.precio)}</span></span>
                   </button>
                   {d.agotado ? <SoldOutBadge /> : <AddButton dish={d} onAdd={onAdd} />}
                 </li>

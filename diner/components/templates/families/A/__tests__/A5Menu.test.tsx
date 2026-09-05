@@ -1,8 +1,8 @@
-import { fireEvent, screen } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { A5Menu } from '@/components/templates/families/A/A5Menu'
-import { menuProps, wrap } from '@/components/templates/families/A/__tests__/fixtures'
+import { dimmedAncestors, menuProps, wrap } from '@/components/templates/families/A/__tests__/fixtures'
 
 // Falla si la portada no lista las secciones en tarjetas con «N platos» en mono, si tocar una no la abre (setCategory), o si sin nada pedido
 // se dibuja una barra de pedido vacía.
@@ -21,17 +21,23 @@ it('paints the section index with counts and opens a section on tap', () => {
   expect(screen.queryByRole('article')).toBeNull()
 })
 
-// Falla si la sección abierta no pliega la portada a «← La carta» + la tarjeta activa en el acento, si la lista editorial no lleva los platos
-// con ＋ y agotado, o si volver no limpia la categoría.
-it('folds the index to the active card and lists the section editorially', () => {
+// Falla si la sección abierta no pliega la portada a «← La carta» + la tarjeta activa en tinta (bloque tarjetaSeccionActiva: fondo #1A1815,
+// nombre en el color del fondo y conteo en dorado = acento; NO el acento de fondo, que en A5 es dorado), si la lista editorial no lleva los
+// platos con ＋ y agotado (atenuado una vez, insignia entera), o si volver no limpia la categoría.
+it('folds the index to the active card in ink with the golden count and lists the section editorially', () => {
   const props = menuProps('A5', { category: 2 })
   wrap(<A5Menu {...props} />)
   expect(screen.getAllByRole('tab')).toHaveLength(1)
-  expect(screen.getByRole('tab', { name: /Fuertes/, selected: true })).toHaveClass('bg-t-acento')
+  const active = screen.getByRole('tab', { name: /Fuertes/, selected: true })
+  expect(active).toHaveClass('bg-t-tinta')
+  expect(active).not.toHaveClass('bg-t-acento')
+  expect(within(active).getByText('Fuertes')).toHaveClass('text-t-fondo')
+  expect(within(active).getByText('2 platos')).toHaveClass('text-t-acento', 'font-t-mono')
   expect(screen.getAllByRole('article')).toHaveLength(2)
   fireEvent.click(screen.getByRole('button', { name: 'Agregar: Cordero de Boyacá' }))
   expect(props.onAdd).toHaveBeenCalledWith(expect.objectContaining({ id: 3 }))
-  expect(screen.getByText('Ajiaco').closest('article')).toHaveClass('opacity-55')
+  expect(dimmedAncestors(screen.getByText('Ajiaco'))).toBe(1)
+  expect(dimmedAncestors(screen.getByTestId('sold-out-badge'))).toBe(0)
   fireEvent.click(screen.getByRole('button', { name: /^Cordero de Boyacá/ }))
   expect(props.onOpen).toHaveBeenCalledWith(expect.objectContaining({ id: 3 }))
   fireEvent.click(screen.getByRole('button', { name: /La carta/ }))

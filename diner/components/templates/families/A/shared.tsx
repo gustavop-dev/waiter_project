@@ -22,8 +22,10 @@ export interface FamilyASkin {
   note: string
   // Pies de totales y CTA: #FAF8F5 = superficie en A2/A3/A4; en A1/A5 es visualmente el fondo.
   foot: string
-  // Altura y tipografía del CTA principal.
+  // Tipografía del CTA principal y sus alturas: el carrito mide 56 px (60 en A5) y el pago 60 px (64 en A5), como fijan los bloques
+  // cta de spec.pantallas.carrito / pago.
   cta: string
+  payCta: string
   // Guía de totales: punteada (A1, A2, A5) o continua (A3, A4).
   rule: string
 }
@@ -31,17 +33,21 @@ export function skinOf(t: Template): FamilyASkin {
   const code = t.codigo.toUpperCase()
   const dark = t.tokens.modo === 'oscuro'
   const serifCta = code === 'A1' || code === 'A5'
+  const font = code === 'A5' ? 'font-t-display text-[20px] leading-[1.1]' : serifCta ? 'font-t-display text-[19px] leading-[1.1]' : 'text-[16px] font-bold'
   return {
     code, dark, serifCta,
     input: code === 'A3' || code === 'A4' ? 'bg-t-fondo' : 'bg-t-superficie',
     note: dark ? 'bg-t-superficie' : 'bg-muted',
     foot: serifCta ? 'bg-t-fondo' : 'bg-t-superficie',
-    cta: code === 'A5' ? 'h-[60px] font-t-display text-[20px] leading-[1.1]' : serifCta ? 'h-14 font-t-display text-[19px] leading-[1.1]' : 'h-14 text-[16px] font-bold',
+    cta: `${code === 'A5' ? 'h-[60px]' : 'h-14'} ${font}`,
+    payCta: `${code === 'A5' ? 'h-16' : 'h-[60px]'} ${font}`,
     rule: serifCta || dark ? 'border-dotted' : 'border-solid',
   }
 }
-export const primaryCta = (s: FamilyASkin) => `${s.cta} rounded-t-boton bg-t-acento text-t-acento-tinta disabled:opacity-60`
-export const secondaryCta = (s: FamilyASkin) => `${s.cta} rounded-t-boton bg-t-superficie border border-t-borde text-t-tinta disabled:opacity-60`
+export type CtaSize = 'cart' | 'pay'
+const ctaOf = (s: FamilyASkin, size: CtaSize) => (size === 'pay' ? s.payCta : s.cta)
+export const primaryCta = (s: FamilyASkin, size: CtaSize = 'cart') => `${ctaOf(s, size)} rounded-t-boton bg-t-acento text-t-acento-tinta disabled:opacity-60`
+export const secondaryCta = (s: FamilyASkin, size: CtaSize = 'cart') => `${ctaOf(s, size)} rounded-t-boton bg-t-superficie border border-t-borde text-t-tinta disabled:opacity-60`
 
 // Filtra una carta por texto conservando las secciones: cada categoría queda con los platos que coinciden; las vacías se van.
 export function filterSections(categories: Category[], category: number | null, query: string): Category[] {
@@ -154,40 +160,46 @@ export function DishPhoto({ dish, className = '', placeholderClass = 'bg-muted',
   )
 }
 
+// Atenuación de agotado: una sola vez (55 %) y solo sobre el contenido; la insignia queda fuera para seguir legible.
+export const dimIf = (dish: Dish) => (dish.agotado ? 'opacity-55' : '')
+
 // Plato editorial (A1; A5 lo reutiliza dentro de la sección): nombre en serif 21, descripción larga, precio discreto en mono.
-// La fila entera abre el plato; el ＋ hueco junto al precio lo agrega. Agotado: fila al 55 % con insignia.
+// La fila entera abre el plato; el ＋ hueco junto al precio lo agrega. Agotado: nombre, descripción y precio al 55 %, insignia entera.
 export function EditorialDish({ dish, onOpen, onAdd }: { dish: Dish; onOpen: (d: Dish) => void; onAdd: (d: Dish) => void }) {
   return (
-    <article className={`flex flex-col gap-1 ${dish.agotado ? 'opacity-55' : ''}`}>
-      <button type="button" onClick={() => onOpen(dish)} className="w-full text-left flex flex-col gap-1">
+    <article className="flex flex-col gap-1">
+      <button type="button" onClick={() => onOpen(dish)} className={`w-full text-left flex flex-col gap-1 ${dimIf(dish)}`}>
         <span className="font-t-display text-[21px] leading-[1.15] text-t-tinta">{dish.nombre}</span>
         {dish.descripcion && <span className="text-[14px] leading-[1.45] text-t-tinta-suave">{dish.descripcion}</span>}
       </button>
       <div className="flex items-center justify-between gap-3">
-        <span className="font-t-mono tabular text-[15px] text-t-tinta">{formatCop(dish.precio)}</span>
+        <span className={`font-t-mono tabular text-[15px] text-t-tinta ${dimIf(dish)}`}>{formatCop(dish.precio)}</span>
         {dish.agotado ? <SoldOutBadge /> : <AddButton dish={dish} onAdd={onAdd} />}
       </div>
     </article>
   )
 }
 
-// Barra de pedido de la familia. `pill` es la de A1 («Tu pedido» + píldora «Ver · N»); `line` es la línea discreta que añaden los marcos que no
-// la dibujan (A2, A3, A4, A5), solo cuando hay algo pedido. Va pegada abajo del flujo, no fija: la fija la pinta la página.
-export function OrderStrip({ cart, href, variant }: { cart: Cart | null; href: string; variant: 'pill' | 'line' }) {
+// Barra de pedido de la familia: la única en pantalla (la página no pinta su OrderBar sobre los layouts registrados). `pill` es la de A1
+// («Tu pedido» + píldora «Ver · N», siempre visible como en el marco); `line` es la línea discreta que añaden los marcos que no la dibujan
+// (A2, A3, A4, A5), solo cuando hay algo pedido. Pegada abajo (sticky) mientras se recorre la carta; `sticky={false}` cuando el layout ya la
+// mete en su propio pie pegado (A3), para que no haya dos bloques pegados encimados.
+export function OrderStrip({ cart, href, variant, sticky = true }: { cart: Cart | null; href: string; variant: 'pill' | 'line'; sticky?: boolean }) {
   const t = useTranslations('diner.templates.familiaA')
   const count = itemCount(cart)
   const amount = formatCop(cart?.total ?? 0)
+  const stick = sticky ? 'sticky bottom-0' : ''
   if (variant === 'line') {
     if (count === 0) return null
     return (
-      <Link href={href} className="sticky bottom-0 flex items-center justify-between gap-3 px-6 h-tap-min border-t border-t-borde bg-t-fondo text-[13px] text-t-tinta-suave">
+      <Link href={href} className={`${stick} flex items-center justify-between gap-3 px-6 h-tap-min border-t border-t-borde bg-t-fondo text-[13px] text-t-tinta-suave`}>
         <span>{t('orderLine', { n: count, amount })}</span>
         <span className="font-medium text-t-tinta">{t('seeOrder')} →</span>
       </Link>
     )
   }
   return (
-    <div className="sticky bottom-0 flex items-center justify-between gap-3 px-6 py-3.5 border-t border-t-borde bg-t-fondo">
+    <div className={`${stick} flex items-center justify-between gap-3 px-6 py-3.5 border-t border-t-borde bg-t-fondo`}>
       <span className="text-[14px] text-t-tinta-suave">{t('yourOrder')}{count > 0 && <span className="font-t-mono tabular"> · $ {amount}</span>}</span>
       <Link href={href} className="inline-flex items-center h-11 px-4 rounded-t-chip bg-t-acento text-t-acento-tinta text-[14px] font-medium">{t('see', { n: count })}</Link>
     </div>

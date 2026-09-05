@@ -33,3 +33,11 @@ export const menuProps = (codigo: string, over: Partial<MenuLayoutProps> = {}): 
 })
 
 export const wrap = (ui: React.ReactElement) => render(<NextIntlClientProvider locale="es" messages={messages}>{ui}</NextIntlClientProvider>)
+
+// Cuántos ancestros (o el propio nodo) llevan la atenuación de agotado: el texto de un plato agotado debe dar exactamente 1 (una sola vez,
+// 55 %) y su insignia 0 (legible).
+export const dimmedAncestors = (el: HTMLElement | null): number => {
+  let n = 0
+  for (let node: HTMLElement | null = el; node; node = node.parentElement) if (node.classList.contains('opacity-55')) n += 1
+  return n
+}

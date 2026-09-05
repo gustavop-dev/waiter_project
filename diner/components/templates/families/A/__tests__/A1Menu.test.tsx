@@ -2,13 +2,16 @@ import { fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { A1Menu } from '@/components/templates/families/A/A1Menu'
-import { cartOf, entradas, entryOf, fuertes, menuProps, postres, wrap } from '@/components/templates/families/A/__tests__/fixtures'
+import { cartOf, dimmedAncestors, entradas, entryOf, fuertes, menuProps, postres, wrap } from '@/components/templates/families/A/__tests__/fixtures'
 
-// Falla si la cabecera pierde la marca centrada con «lema · Mesa N», si las secciones no llevan su rótulo en versalitas, si un plato con
-// descripción no la pinta entera (el marco es editorial: sin fotos) o si el precio deja la fuente mono.
-it('paints the editorial header, the sections and the dishes without photos', () => {
+// Falla si la cabecera pierde la marca centrada con «lema · Mesa N» (la única cabecera: la página no pinta la suya sobre este layout), si la
+// marca se repite, si las secciones no llevan su rótulo en versalitas, si un plato con descripción no la pinta entera (el marco es editorial:
+// sin fotos) o si el precio deja la fuente mono.
+it('paints the editorial header once, the sections and the dishes without photos', () => {
   wrap(<A1Menu {...menuProps('A1')} />)
   expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('La Provincia')
+  expect(screen.getAllByRole('banner')).toHaveLength(1)
+  expect(screen.getAllByText('La Provincia')).toHaveLength(1)
   expect(screen.getByText('Cocina de barrio · Mesa 14')).toHaveClass('uppercase')
   expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['Entradas', 'Fuertes', 'Postres'])
   expect(screen.getByText('Tomate confitado, pesto de albahaca, focaccia de la casa.')).toBeInTheDocument()
@@ -25,9 +28,12 @@ it('opens the dish from the row, adds from the ＋ and dims the sold-out one', (
   expect(props.onOpen).toHaveBeenCalledWith(expect.objectContaining({ id: 1 }))
   fireEvent.click(screen.getByRole('button', { name: 'Agregar: Cordero de Boyacá' }))
   expect(props.onAdd).toHaveBeenCalledWith(expect.objectContaining({ id: 3 }))
-  const soldOut = screen.getByText('Ajiaco').closest('article')
-  expect(soldOut).toHaveClass('opacity-55')
-  expect(within(soldOut as HTMLElement).getByTestId('sold-out-badge')).toHaveTextContent('Agotado')
+  const soldOut = screen.getByText('Ajiaco').closest('article') as HTMLElement
+  expect(dimmedAncestors(screen.getByText('Ajiaco'))).toBe(1)
+  expect(dimmedAncestors(within(soldOut).getByText('40.000'))).toBe(1)
+  const badge = within(soldOut).getByTestId('sold-out-badge')
+  expect(badge).toHaveTextContent('Agotado')
+  expect(dimmedAncestors(badge)).toBe(0)
   expect(screen.queryByRole('button', { name: 'Agregar: Ajiaco' })).toBeNull()
 })
 
@@ -46,6 +52,8 @@ it('filters by the versal index and the folded search, and keeps the order bar w
   expect(props.setQuery).toHaveBeenLastCalledWith('j')
   expect(screen.getByRole('link', { name: 'Ver · 3' })).toHaveAttribute('href', '/prov/centro/t/Z2XUVG/pedido')
   expect(screen.getByText(/105\.441/)).toBeInTheDocument()
+  // Una sola barra de pedido: la del marco (la página no superpone su OrderBar sobre un layout registrado).
+  expect(screen.getAllByRole('link')).toHaveLength(1)
 })
 
 // Falla si una búsqueda sin coincidencias no lo dice o si una carta vacía habla de búsqueda.

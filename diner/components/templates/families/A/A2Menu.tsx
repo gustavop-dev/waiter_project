@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 
-import { EditorialTabs, EmptyMenu, OrderStrip, SearchToggle, SoldOutBadge } from '@/components/templates/families/A/shared'
+import { EditorialTabs, EmptyMenu, OrderStrip, SearchToggle, SoldOutBadge, dimIf } from '@/components/templates/families/A/shared'
 import { fold, tabId } from '@/components/templates/generic/menuParts'
 import type { MenuLayoutProps } from '@/components/templates/types'
 import { formatCop } from '@/lib/domain/cart'
@@ -47,15 +47,16 @@ export function A2Menu({ entry, query, setQuery, category, setCategory, onOpen, 
                 : (
                   <ol aria-label={t('templates.A2.steps')} className="flex flex-col gap-3.5">
                     {steps.map((d, i) => (
-                      <li key={d.id} className={d.agotado ? 'opacity-55' : ''}>
-                        <button type="button" onClick={() => onOpen(d)} className="w-full text-left flex gap-3.5 items-start min-h-tap-min py-1">
+                      <li key={d.id} className="flex gap-3.5 items-start">
+                        {/* Paso agotado: número y texto al 55 % (una sola vez); la insignia va fuera del botón atenuado para seguir legible. */}
+                        <button type="button" onClick={() => onOpen(d)} className={`min-w-0 flex-1 text-left flex gap-3.5 items-start min-h-tap-min py-1 ${dimIf(d)}`}>
                           <span aria-hidden="true" className="w-[18px] shrink-0 font-t-mono text-[13px] leading-[1.6] text-t-acento">{String(i + 1).padStart(2, '0')}</span>
                           <span className="flex flex-col gap-0.5 min-w-0">
                             <span className="text-[16px] font-medium leading-snug text-t-tinta">{d.nombre}</span>
                             {d.descripcion && <span className="text-[13px] text-t-tinta-suave">{d.descripcion}</span>}
-                            {d.agotado && <SoldOutBadge className="self-start mt-0.5" />}
                           </span>
                         </button>
+                        {d.agotado && <SoldOutBadge className="shrink-0 mt-1.5" />}
                       </li>
                     ))}
                   </ol>
