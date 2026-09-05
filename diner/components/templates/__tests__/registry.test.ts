@@ -42,12 +42,12 @@ it('falls back to the generic layout for every missing key and honours registere
 
 // Falla si el genérico deja de ser B1 (la referencia del diseño) o si las pantallas fijas dejan de exportarse.
 it('registers the generic set under B1 / family B / base patterns and exports the fixed screens', () => {
-  expect(MENU_LAYOUTS).toEqual({ B1: GenericMenu })
-  expect(CART_LAYOUTS).toEqual({ B: GenericCart })
-  expect(PAY_LAYOUTS).toEqual({ B: GenericPay })
-  expect(SIGNUP_PATTERNS).toEqual({ banner5: GenericSignup })
-  expect(CODE_PATTERNS).toEqual({ casillas: GenericCode })
-  expect(HISTORY_PATTERNS).toEqual({ porMes: GenericHistory })
+  expect(MENU_LAYOUTS.B1).toBe(GenericMenu)
+  expect(CART_LAYOUTS.B).toBe(GenericCart)
+  expect(PAY_LAYOUTS.B).toBe(GenericPay)
+  expect(SIGNUP_PATTERNS.banner5).toBe(GenericSignup)
+  expect(CODE_PATTERNS.casillas).toBe(GenericCode)
+  expect(HISTORY_PATTERNS.porMes).toBe(GenericHistory)
   expect(typeof AccountHome).toBe('function')
   expect(typeof EmptyHistory).toBe('function')
 })

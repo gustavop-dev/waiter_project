@@ -11,6 +11,15 @@ import { GenericPay } from '@/components/templates/generic/GenericPay'
 import { GenericSignup } from '@/components/templates/generic/GenericSignup'
 import type { CartLayoutProps, CodeProps, HistoryProps, MenuLayoutProps, PayLayoutProps, SignupProps } from '@/components/templates/types'
 import type { CodePattern, HistoryPattern, SignupPattern, TemplateFamily } from '@/lib/types'
+// --- familia D
+import { D1Menu } from '@/components/templates/families/D/D1Menu'
+import { D2Menu } from '@/components/templates/families/D/D2Menu'
+import { D3Menu } from '@/components/templates/families/D/D3Menu'
+import { D4Menu } from '@/components/templates/families/D/D4Menu'
+import { D5Menu } from '@/components/templates/families/D/D5Menu'
+import { FamilyDCart } from '@/components/templates/families/D/FamilyDCart'
+import { FamilyDPay } from '@/components/templates/families/D/FamilyDPay'
+// --- fin familia D
 
 export type { CartHrefs, CartLayoutProps, CodeProps, HistoryProps, MenuLayoutProps, PayLayoutProps, SignupProps } from '@/components/templates/types'
 
@@ -20,6 +29,12 @@ export const PAY_LAYOUTS: Partial<Record<TemplateFamily, ComponentType<PayLayout
 export const SIGNUP_PATTERNS: Partial<Record<SignupPattern, ComponentType<SignupProps>>> = { banner5: GenericSignup }
 export const CODE_PATTERNS: Partial<Record<CodePattern, ComponentType<CodeProps>>> = { casillas: GenericCode }
 export const HISTORY_PATTERNS: Partial<Record<HistoryPattern, ComponentType<HistoryProps>>> = { porMes: GenericHistory }
+
+// --- familia D
+Object.assign(MENU_LAYOUTS, { D1: D1Menu, D2: D2Menu, D3: D3Menu, D4: D4Menu, D5: D5Menu })
+CART_LAYOUTS.D = FamilyDCart
+PAY_LAYOUTS.D = FamilyDPay
+// --- fin familia D
 
 export const menuLayout = (code: string | undefined): ComponentType<MenuLayoutProps> => (code && MENU_LAYOUTS[code.toUpperCase()]) || GenericMenu
 export const cartLayout = (familia: TemplateFamily | string | undefined): ComponentType<CartLayoutProps> => CART_LAYOUTS[familia as TemplateFamily] ?? GenericCart
