@@ -3,6 +3,9 @@
 // así el motor funciona antes de que existan los 30 y una plantilla nueva es un JSON + su layout aquí.
 import type { ComponentType } from 'react'
 
+import { familyOf } from '@/lib/domain/template'
+import type { Template } from '@/lib/types'
+
 import { GenericCart } from '@/components/templates/generic/GenericCart'
 import { GenericCode } from '@/components/templates/generic/GenericCode'
 import { GenericHistory } from '@/components/templates/generic/GenericHistory'
@@ -140,3 +143,12 @@ export const payLayout = (familia: TemplateFamily | string | undefined): Compone
 export const signupPattern = (patron: SignupPattern | string | undefined): ComponentType<SignupProps> => SIGNUP_PATTERNS[patron as SignupPattern] ?? GenericSignup
 export const codePattern = (patron: CodePattern | string | undefined): ComponentType<CodeProps> => CODE_PATTERNS[patron as CodePattern] ?? GenericCode
 export const historyPattern = (patron: HistoryPattern | string | undefined): ComponentType<HistoryProps> => HISTORY_PATTERNS[patron as HistoryPattern] ?? GenericHistory
+
+// La página pinta la cabecera de marca y la barra de pedido de Waiter solo cuando la pantalla cae al genérico: los layouts
+// fieles traen su propia cabecera y su propia barra, tal como las dibujan los marcos del diseño.
+export const ownsChrome = (screen: string, t: Template): boolean => {
+  if (screen === 'carta') return Boolean(MENU_LAYOUTS[t.codigo.toUpperCase()])
+  if (screen === 'pedido') return Boolean(CART_LAYOUTS[familyOf(t.layouts.carrito, t.familia)])
+  if (screen === 'pago') return Boolean(PAY_LAYOUTS[familyOf(t.layouts.pago, t.familia)])
+  return false
+}

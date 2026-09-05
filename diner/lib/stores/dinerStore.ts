@@ -70,7 +70,9 @@ export const useDinerStore = create<DinerState>((set, get) => {
     // Entrada: contexto + carta (+ plantilla resuelta). La sesión (cookie del comensal) se abre al primer gesto que la necesite.
     load: async (keys) => {
       const same = get().keys && JSON.stringify(get().keys) === JSON.stringify(keys)
-      if (!same) set({ keys, entry: null, session: null, cart: null, order: null, bill: null })
+      // La vista previa (?vista_previa=) sobrevive a recargas de la entrada y a cambios de mesa; solo se descarta al cambiar de sede.
+      const sameVenue = get().keys?.rest === keys.rest && get().keys?.venue === keys.venue
+      if (!same) set({ keys, entry: null, session: null, cart: null, order: null, bill: null, preview: sameVenue ? get().preview : null })
       await run(async () => { const entry = await getEntry(keys.rest, keys.venue, keys.token); set({ entry, template: resolveTemplate(get().preview, entry) }) })
     },
     // Vista previa sin guardar (la usa el POS por iframe): parte de los tokens del catálogo para el código pedido, no de los de la sede.

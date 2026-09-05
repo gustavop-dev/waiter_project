@@ -1,3 +1,4 @@
+import { DEFAULT_TEMPLATE } from '@/lib/domain/template'
 import { AccountHome } from '@/components/templates/generic/AccountHome'
 import { EmptyHistory } from '@/components/templates/generic/EmptyHistory'
 import { GenericCart } from '@/components/templates/generic/GenericCart'
@@ -6,7 +7,7 @@ import { GenericHistory } from '@/components/templates/generic/GenericHistory'
 import { GenericMenu } from '@/components/templates/generic/GenericMenu'
 import { GenericPay } from '@/components/templates/generic/GenericPay'
 import { GenericSignup } from '@/components/templates/generic/GenericSignup'
-import { CART_LAYOUTS, CODE_PATTERNS, HISTORY_PATTERNS, MENU_LAYOUTS, PAY_LAYOUTS, SIGNUP_PATTERNS, cartLayout, codePattern, historyPattern, menuLayout, payLayout, signupPattern } from '@/components/templates/registry'
+import { CART_LAYOUTS, CODE_PATTERNS, HISTORY_PATTERNS, MENU_LAYOUTS, PAY_LAYOUTS, SIGNUP_PATTERNS, cartLayout, codePattern, historyPattern, menuLayout, ownsChrome, payLayout, signupPattern } from '@/components/templates/registry'
 
 // Falla si una clave que aún no existe (los 30 llegan en otra oleada) rompe el motor en vez de caer al genérico, o si una registrada no se respeta.
 it('falls back to the generic layout for every missing key and honours registered ones', () => {
@@ -48,14 +49,28 @@ it('falls back to the generic layout for every missing key and honours registere
   }
 })
 
-// Falla si el genérico deja de ser B1 (la referencia del diseño) o si las pantallas fijas dejan de exportarse.
-it('registers the generic set under B1 / family B / base patterns and exports the fixed screens', () => {
-  expect(MENU_LAYOUTS).toMatchObject({ B1: GenericMenu })
-  expect(CART_LAYOUTS).toMatchObject({ B: GenericCart })
-  expect(PAY_LAYOUTS).toMatchObject({ B: GenericPay })
-  expect(SIGNUP_PATTERNS).toMatchObject({ banner5: GenericSignup })
-  expect(CODE_PATTERNS).toMatchObject({ casillas: GenericCode })
-  expect(HISTORY_PATTERNS).toMatchObject({ porMes: GenericHistory })
+// Falla si alguna de las 30 plantillas, alguna familia o alguno de los nueve patrones vuelve a caer al genérico.
+it('registers the 30 menus, the six families and the nine account patterns with real layouts', () => {
+  const codes = ['A', 'B', 'C', 'D', 'E', 'F'].flatMap((f) => [1, 2, 3, 4, 5].map((n) => `${f}${n}`))
+  for (const code of codes) expect(MENU_LAYOUTS[code]).toBeDefined()
+  for (const code of codes) expect(MENU_LAYOUTS[code]).not.toBe(GenericMenu)
+  for (const f of ['A', 'B', 'C', 'D', 'E', 'F'] as const) {
+    expect(CART_LAYOUTS[f]).toBeDefined(); expect(CART_LAYOUTS[f]).not.toBe(GenericCart)
+    expect(PAY_LAYOUTS[f]).toBeDefined(); expect(PAY_LAYOUTS[f]).not.toBe(GenericPay)
+  }
+  expect(Object.keys(SIGNUP_PATTERNS).sort()).toEqual(['banner5', 'beneficios', 'portada'])
+  expect(Object.keys(CODE_PATTERNS).sort()).toEqual(['canal', 'casillas', 'revisaCorreo'])
+  expect(Object.keys(HISTORY_PATTERNS).sort()).toEqual(['porMes', 'tablaCufe', 'tarjetas'])
   expect(typeof AccountHome).toBe('function')
   expect(typeof EmptyHistory).toBe('function')
+})
+
+// Falla si un layout fiel deja de declarar que trae su propia cabecera y barra (la página las duplicaría).
+it('ownsChrome is true for registered menu, cart and pay layouts and false elsewhere', () => {
+  const t = { ...DEFAULT_TEMPLATE, codigo: 'A1', familia: 'A', layouts: { ...DEFAULT_TEMPLATE.layouts, menu: 'A1', carrito: 'familia-A', pago: 'familia-A' } } as typeof DEFAULT_TEMPLATE
+  expect(ownsChrome('carta', t)).toBe(true)
+  expect(ownsChrome('pedido', t)).toBe(true)
+  expect(ownsChrome('pago', t)).toBe(true)
+  expect(ownsChrome('inicio', t)).toBe(false)
+  expect(ownsChrome('carta', { ...t, codigo: 'Z9' })).toBe(false)
 })
