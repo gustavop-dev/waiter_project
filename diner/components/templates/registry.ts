@@ -33,6 +33,17 @@ import { PortadaSignup } from '@/components/templates/patterns/PortadaSignup'
 import { RevisaCorreoCode } from '@/components/templates/patterns/RevisaCorreoCode'
 import { TablaCufeHistory } from '@/components/templates/patterns/TablaCufeHistory'
 // --- fin familia A
+// --- familia C
+import { C1Menu } from '@/components/templates/families/C/C1Menu'
+import { C2Menu } from '@/components/templates/families/C/C2Menu'
+import { C3Menu } from '@/components/templates/families/C/C3Menu'
+import { C4Menu } from '@/components/templates/families/C/C4Menu'
+import { C5Menu } from '@/components/templates/families/C/C5Menu'
+import { FamilyCCart } from '@/components/templates/families/C/FamilyCCart'
+import { FamilyCPay } from '@/components/templates/families/C/FamilyCPay'
+import { BenefitsSignup } from '@/components/templates/patterns/BenefitsSignup'
+import { ChannelCode } from '@/components/templates/patterns/ChannelCode'
+// --- fin familia C
 
 export type { CartHrefs, CartLayoutProps, CodeProps, HistoryProps, MenuLayoutProps, PayLayoutProps, SignupProps } from '@/components/templates/types'
 
@@ -64,6 +75,15 @@ CART_LAYOUTS.B = FamilyBCart
 PAY_LAYOUTS.B = FamilyBPay
 HISTORY_PATTERNS.tarjetas = CardsHistory
 // --- fin familia B
+// --- familia C
+// Rápida y food truck: cinco menús por código, carrito y pago por familia (C3 y C5 ramifican dentro por template.codigo) y los
+// patrones de cuenta que esta familia introduce (beneficios, canal); tarjetas y tablaCufe llegan con otras familias.
+Object.assign(MENU_LAYOUTS, { C1: C1Menu, C2: C2Menu, C3: C3Menu, C4: C4Menu, C5: C5Menu })
+CART_LAYOUTS.C = FamilyCCart
+PAY_LAYOUTS.C = FamilyCPay
+SIGNUP_PATTERNS.beneficios = BenefitsSignup
+CODE_PATTERNS.canal = ChannelCode
+// --- fin familia C
 
 export const menuLayout = (code: string | undefined): ComponentType<MenuLayoutProps> => (code && MENU_LAYOUTS[code.toUpperCase()]) || GenericMenu
 export const cartLayout = (familia: TemplateFamily | string | undefined): ComponentType<CartLayoutProps> => CART_LAYOUTS[familia as TemplateFamily] ?? GenericCart
