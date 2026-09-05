@@ -15,7 +15,7 @@ it('falls back to the generic layout for every missing key and honours registere
   expect(menuLayout('b1')).toBe(MENU_LAYOUTS.B1)
   expect(cartLayout('F')).toBe(GenericCart)
   expect(cartLayout('familia-A')).toBe(GenericCart)
-  expect(payLayout('E')).toBe(GenericPay)
+  expect(payLayout('X')).toBe(GenericPay)
   expect(signupPattern('portada')).toBe(GenericSignup)
   expect(codePattern('canal')).toBe(GenericCode)
   expect(historyPattern('tablaCufe')).toBe(GenericHistory)
@@ -40,14 +40,15 @@ it('falls back to the generic layout for every missing key and honours registere
   }
 })
 
-// Falla si el genérico deja de ser B1 (la referencia del diseño) o si las pantallas fijas dejan de exportarse.
+// Falla si el genérico deja de ser B1 (la referencia del diseño) o si las pantallas fijas dejan de exportarse. Las familias añaden
+// sus claves al lado (toMatchObject): el genérico sigue siendo la referencia aunque el registro crezca.
 it('registers the generic set under B1 / family B / base patterns and exports the fixed screens', () => {
-  expect(MENU_LAYOUTS).toEqual({ B1: GenericMenu })
-  expect(CART_LAYOUTS).toEqual({ B: GenericCart })
-  expect(PAY_LAYOUTS).toEqual({ B: GenericPay })
-  expect(SIGNUP_PATTERNS).toEqual({ banner5: GenericSignup })
-  expect(CODE_PATTERNS).toEqual({ casillas: GenericCode })
-  expect(HISTORY_PATTERNS).toEqual({ porMes: GenericHistory })
+  expect(MENU_LAYOUTS).toMatchObject({ B1: GenericMenu })
+  expect(CART_LAYOUTS).toMatchObject({ B: GenericCart })
+  expect(PAY_LAYOUTS).toMatchObject({ B: GenericPay })
+  expect(SIGNUP_PATTERNS).toMatchObject({ banner5: GenericSignup })
+  expect(CODE_PATTERNS).toMatchObject({ casillas: GenericCode })
+  expect(HISTORY_PATTERNS).toMatchObject({ porMes: GenericHistory })
   expect(typeof AccountHome).toBe('function')
   expect(typeof EmptyHistory).toBe('function')
 })
