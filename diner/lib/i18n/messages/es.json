@@ -37,7 +37,8 @@
       "empty": "Nada coincide con tu búsqueda",
       "emptyCategory": "Esta categoría no tiene platos por ahora",
       "emptyMenu": "La carta está vacía por ahora",
-      "categories": "Categorías"
+      "categories": "Categorías",
+      "referenceImages": "Imágenes de referencia: la porción servida puede variar."
     },
     "dish": {
       "note": "Nota para la cocina",

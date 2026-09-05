@@ -2,7 +2,7 @@ from dataclasses import replace
 from unittest.mock import patch
 
 from experience_app.services import catalog
-from experience_app.tests.conftest import ANGUS, CATALOG, TABLE
+from experience_app.tests.conftest import ANGUS, CATALOG, LIMONADA, TABLE
 
 
 @patch('experience_app.services.catalog.pos.load_catalog', return_value=CATALOG)
@@ -42,7 +42,30 @@ def test_menu_view_groups_products_by_category_in_pos_order():
     assert menu['categorias'][1]['productos'][0] == {
         'id': 3, 'nombre': 'Hamburguesa Angus', 'precio': 43911.0, 'agotado': False, 'categorias': [2],
         'descripcion': 'Carne angus 200 g, queso madurado', 'favorito': True, 'foto': '/fotos/3/?v=20260905010203',
+        'fotoOrigen': 'ia',
     }
+
+
+def test_menu_view_translates_the_photo_origin_for_the_diner():
+    """Atrapa el valor de Odoo ('ai') filtrado tal cual, un plato sin marcar que no salga como null, o un valor desconocido
+    que rompa el tipo de la app."""
+    def origin_of(product):
+        return catalog.menu_view(replace(CATALOG, products=[product]), photo_url)['categorias'][1]['productos'][0]['fotoOrigen']
+
+    assert origin_of(ANGUS) == 'ia'
+    assert origin_of(replace(ANGUS, image_origin='real')) == 'real'
+    assert origin_of(replace(ANGUS, image_origin='placeholder')) == 'placeholder'
+    assert origin_of(replace(ANGUS, image_origin='')) is None
+    assert origin_of(replace(ANGUS, image_origin='stock')) is None
+
+
+def test_menu_view_flags_reference_images_only_when_a_dish_with_photo_was_generated():
+    """Atrapa una carta con foto generada sin el aviso legal, o el aviso encendido por un plato marcado 'ai' que no tiene foto."""
+    assert catalog.menu_view(CATALOG, photo_url)['imagenesDeReferencia'] is True
+    real = replace(CATALOG, products=[replace(ANGUS, image_origin='real'), LIMONADA])
+    assert catalog.menu_view(real, photo_url)['imagenesDeReferencia'] is False
+    marked_without_photo = replace(CATALOG, products=[replace(ANGUS, image_origin=''), replace(LIMONADA, image_origin='ai')])
+    assert catalog.menu_view(marked_without_photo, photo_url)['imagenesDeReferencia'] is False
 
 
 def test_menu_view_gives_no_photo_url_to_products_without_image():

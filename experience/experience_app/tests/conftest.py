@@ -17,9 +17,10 @@ UNTOUCHED_COMPANY = CompanyBrand(name='', color='', font='', radius=None, taglin
                                  has_logo=False, version='20260905010203')
 # template_id distinto del id: atrapa a quien pida la foto con el id del producto en vez del de la plantilla.
 # final_price distinto de price: atrapa a quien muestre o sume la base gravable en vez de lo que se paga.
+# image_origin='ai' en el plato con foto: atrapa una carta que no avise «Imágenes de referencia».
 ANGUS = Product(id=3, name='Hamburguesa Angus', price=36900.0, category_ids=[2], tax_ids=[5], template_id=21,
                 description='Carne angus 200 g, queso madurado', favorite=True, has_image=True, image_version='20260905010203',
-                final_price=43911.0)
+                image_origin='ai', final_price=43911.0)
 LIMONADA = Product(id=7, name='Limonada de Coco', price=9900.0, category_ids=[1], tax_ids=[5],
                    template_id=22, description='', favorite=False, has_image=False)
 CATALOG = Catalog(company_name='Burger House', products=[ANGUS, LIMONADA], categories=[Category(1, 'Bebidas', 1), Category(2, 'Hamburguesas', 2)])

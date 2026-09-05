@@ -14,6 +14,9 @@ DEFAULT_PHOTO_SIZE = pos.DEFAULT_PHOTO_SIZE
 # La clave de la foto lleva la versión de la plantilla: una foto nueva es una clave nueva, así que la caché puede
 # vivir mucho más que la carta sin servir nunca una foto vieja (ni volver a Odoo por cada comensal).
 PHOTO_CACHE_SECONDS = max(settings.MENU_CACHE_SECONDS, 3600)
+# Origen de la foto (product.template.image_origin) → contrato del comensal. Vacío o un valor que la app no conoce sale
+# como null: la app solo entiende estos tres.
+PHOTO_ORIGINS = {'real': 'real', 'ai': 'ia', 'placeholder': 'placeholder'}
 
 
 def _key(tenant: Tenant) -> str:
@@ -61,13 +64,21 @@ def menu_view(catalog: pos.Catalog, photo_url: Callable[[int, str], str]) -> dic
 
     `photo_url(product_id, version)` construye la URL pública de la foto: la carta nunca lleva la URL de Odoo, y la
     versión (write_date de la plantilla) cambia la URL cuando cambia la foto para que la caché pública no la retenga.
+    `fotoOrigen` dice de dónde salió la foto ('real' | 'ia' | 'placeholder' | null) y `imagenesDeReferencia`, si la carta
+    debe avisar que las fotos son de referencia.
     """
     categories = sorted(catalog.categories, key=lambda c: (c.sequence, c.id))
     items = [{'id': p.id, 'nombre': p.name, 'precio': p.final_price, 'agotado': p.sold_out, 'categorias': p.category_ids,
               'descripcion': p.description, 'favorito': p.favorite,
-              'foto': photo_url(p.id, p.image_version) if p.has_image else None}
+              'foto': photo_url(p.id, p.image_version) if p.has_image else None,
+              'fotoOrigen': PHOTO_ORIGINS.get(p.image_origin)}
              for p in catalog.products]
+    # Límite legal (docs/diseno/2026-09-05-imagenes-menu.md): una imagen generada no representa la porción servida, así que
+    # la carta avisa «Imágenes de referencia» en cuanto un plato con foto la tiene generada con IA. Se mira la carta entera,
+    # no la categoría filtrada: el aviso no debe aparecer y desaparecer según lo que el comensal esté mirando.
+    reference_images = any(p.has_image and p.image_origin == 'ai' for p in catalog.products)
     return {
         'restaurante': catalog.company_name,
+        'imagenesDeReferencia': reference_images,
         'categorias': [{'id': c.id, 'nombre': c.name, 'productos': [i for i in items if c.id in i['categorias']]} for c in categories],
     }

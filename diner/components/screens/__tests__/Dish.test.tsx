@@ -4,7 +4,7 @@ import { NextIntlClientProvider } from 'next-intl'
 
 import { Dish } from '@/components/screens/Dish'
 import messages from '@/lib/i18n/messages/es.json'
-import type { Entry } from '@/lib/types'
+import type { Dish as MenuItem, Entry } from '@/lib/types'
 
 const mockAdd = jest.fn()
 const mockState = { error: null as string | null }
@@ -15,10 +15,13 @@ jest.mock('@/lib/stores/dinerStore', () => {
 })
 
 const brand = { nombre: 'La Provincia', lema: '', logo: null, saludo: '', mesero: '', bienvenida: '', color: '#7A2E2A', colorTexto: '#FFFFFF', colorSuave: '#F6EBEA', fuente: 'Instrument Serif', radio: 14 }
-const lomo = { id: 3, nombre: 'Lomo al trapo', precio: 38900, agotado: false, categorias: [2], descripcion: 'Con papas criollas' }
-const ajiaco = { id: 4, nombre: 'Ajiaco', precio: 29000, agotado: true, categorias: [2] }
-const entry: Entry = { contexto: { restaurante: { slug: 'prov', nombre: 'La Provincia' }, sede: { slug: 'centro', nombre: 'Centro' }, mesa: null, marca: brand }, carta: { restaurante: 'prov', categorias: [{ id: 2, nombre: 'Fuertes', productos: [lomo, ajiaco] }] } }
+// lomo va marcado 'ia' pero sin foto; ajiaco con foto real; bandeja con foto generada: solo la última lleva la nota legal.
+const lomo: MenuItem = { id: 3, nombre: 'Lomo al trapo', precio: 38900, agotado: false, categorias: [2], descripcion: 'Con papas criollas', fotoOrigen: 'ia' }
+const ajiaco: MenuItem = { id: 4, nombre: 'Ajiaco', precio: 29000, agotado: true, categorias: [2], foto: '/fotos/4/?v=1', fotoOrigen: 'real' }
+const bandeja: MenuItem = { id: 5, nombre: 'Bandeja paisa', precio: 32000, agotado: false, categorias: [2], foto: '/fotos/5/?v=1', fotoOrigen: 'ia' }
+const entry: Entry = { contexto: { restaurante: { slug: 'prov', nombre: 'La Provincia' }, sede: { slug: 'centro', nombre: 'Centro' }, mesa: null, marca: brand }, carta: { restaurante: 'prov', categorias: [{ id: 2, nombre: 'Fuertes', productos: [lomo, ajiaco, bandeja] }] } }
 const wrap = (id: string | null) => render(<NextIntlClientProvider locale="es" messages={messages}><Dish entry={entry} rest="prov" venue="centro" token={null} id={id} /></NextIntlClientProvider>)
+const NOTE = 'Imágenes de referencia: la porción servida puede variar.'
 
 beforeEach(() => { mockAdd.mockReset().mockResolvedValue(undefined); mockState.error = null })
 
@@ -111,4 +114,22 @@ it('says the dish is gone with a link back to the menu', () => {
   wrap('99')
   expect(screen.getByText('Este plato ya no está en la carta')).toBeInTheDocument()
   expect(screen.getByRole('link', { name: 'Volver' })).toHaveAttribute('href', '/prov/centro/carta')
+})
+
+// Falla si bajo una foto generada con IA no va la nota de imagen de referencia, o si la nota queda antes de la foto.
+it('notes under a generated photo that it is a reference image', () => {
+  wrap('5')
+  const photo = screen.getByRole('img', { name: 'Bandeja paisa' })
+  expect(photo.compareDocumentPosition(screen.getByText(NOTE)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+})
+
+// Falla si la nota aparece con una foto real, o en un plato marcado 'ia' que no tiene foto que aclarar.
+it('keeps quiet for a real photo and for a marked dish without photo', () => {
+  const { unmount } = wrap('4')
+  expect(screen.getByRole('img', { name: 'Ajiaco' })).toBeInTheDocument()
+  expect(screen.queryByText(NOTE)).toBeNull()
+  unmount()
+  wrap('3')
+  expect(screen.queryByRole('img')).toBeNull()
+  expect(screen.queryByText(NOTE)).toBeNull()
 })

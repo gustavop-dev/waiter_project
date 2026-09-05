@@ -51,6 +51,8 @@ export function Dish({ entry, rest, venue, token, id }: { entry: Entry; rest: st
       <div className="mx-[18px] aspect-[4/3] rounded-rest bg-muted overflow-hidden grid place-items-center text-[11px] tracking-[0.08em] uppercase text-ink-3">
         {dish.foto ? <img src={dish.foto} alt={dish.nombre} className="w-full h-full object-cover" /> : t('home.photo')}
       </div>
+      {/* Límite legal: bajo una foto generada con IA va la misma nota que en la carta; sin foto no hay nada que aclarar. */}
+      {dish.foto && dish.fotoOrigen === 'ia' && <p className="mx-[18px] text-[13px] text-soft">{t('menu.referenceImages')}</p>}
       <section className="px-[18px] flex flex-col gap-2">
         <h1 className="font-display text-[28px] leading-tight">{dish.nombre}</h1>
         {dish.descripcion && <p className="text-base text-soft">{dish.descripcion}</p>}
