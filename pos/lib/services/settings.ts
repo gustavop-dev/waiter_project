@@ -4,7 +4,7 @@ import type { Settings } from '@/lib/types'
 
 export interface CompanyInfo { id: number; name: string; vat: string; phone: string; email: string; street: string; city: string }
 export interface FloorInfo { id: number; name: string; tables: { id: number; number: number; seats: number; active: boolean }[] }
-export interface UserInfo { id: number; name: string; login: string; lastLogin: string | null; role: Role }
+export interface UserInfo { id: number; name: string; login: string; lastLogin: string | null; role: Role; activated: boolean }
 export interface PaymentMethodInfo { id: number; name: string; type: string }
 export interface TaxInfo { id: number; name: string; amount: number }
 
@@ -51,12 +51,24 @@ export async function listTaxes(): Promise<TaxInfo[]> {
 }
 
 export async function listUsers(): Promise<UserInfo[]> {
-  const rows = await callKw<{ id: number; name: string; login: string; login_date: string | false; waiter_role: Role | false }[]>('res.users', 'search_read', [[['share', '=', false]], ['name', 'login', 'login_date', 'waiter_role']], { order: 'name asc' })
-  return rows.map((r) => ({ id: r.id, name: r.name, login: r.login, lastLogin: r.login_date || null, role: r.waiter_role || 'waiter' }))
+  const rows = await callKw<{ id: number; name: string; login: string; login_date: string | false; waiter_role: Role | false; waiter_activated: boolean }[]>('res.users', 'search_read', [[['share', '=', false]], ['name', 'login', 'login_date', 'waiter_role', 'waiter_activated']], { order: 'name asc' })
+  return rows.map((r) => ({ id: r.id, name: r.name, login: r.login, lastLogin: r.login_date || null, role: r.waiter_role || 'waiter', activated: r.waiter_activated || Boolean(r.login_date) }))
 }
 
-export async function createUser(u: { name: string; login: string; password: string; role: Role }): Promise<number> {
-  return callKw<number>('res.users', 'create', [{ name: u.name, login: u.login, password: u.password, waiter_role: u.role }])
+// El administrador invita por correo: el usuario recibe un código y elige su contraseña en el login.
+export async function inviteUser(u: { name: string; email: string; role: Role }): Promise<number> {
+  const id = await callKw<number>('res.users', 'create', [{ name: u.name, login: u.email.trim().toLowerCase(), email: u.email.trim().toLowerCase(), waiter_role: u.role }])
+  await callKw('res.users', 'send_waiter_invite', [[id]])
+  return id
+}
+
+export async function resendInvite(id: number): Promise<void> {
+  await callKw('res.users', 'send_waiter_invite', [[id]])
+}
+
+// Solo para contratos: el administrador obtiene el código sin enviar correo.
+export async function inviteCodeDryRun(id: number): Promise<string> {
+  return callKw<string>('res.users', 'send_waiter_invite', [[id]], { dry_run: true })
 }
 
 // Cambiar el rol reasigna los grupos de Odoo (lo hace el addon).

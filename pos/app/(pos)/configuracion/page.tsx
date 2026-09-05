@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/Button'
 import { Select, TextInput, Toggle } from '@/components/ui/Field'
 import { play, setStation, type SoundId, type Station } from '@/lib/audio/sounds'
 import { ROLES, type Role } from '@/lib/domain/roles'
-import { createUser, getCompany, listFloors, listPaymentMethods, listTaxes, listUsers, saveCompany, saveFloor, saveSettings, saveTable, setUserRole, type CompanyInfo, type FloorInfo, type PaymentMethodInfo, type TaxInfo, type UserInfo } from '@/lib/services/settings'
+import { getCompany, inviteUser, resendInvite, listFloors, listPaymentMethods, listTaxes, listUsers, saveCompany, saveFloor, saveSettings, saveTable, setUserRole, type CompanyInfo, type FloorInfo, type PaymentMethodInfo, type TaxInfo, type UserInfo } from '@/lib/services/settings'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
 import { cn } from '@/lib/utils'
@@ -63,7 +63,8 @@ function FloorsForm({ floors, configId, onChanged }: { floors: FloorInfo[]; conf
 function UsersForm({ users, onChanged }: { users: UserInfo[]; onChanged: () => Promise<void> }) {
   const t = useTranslations('pos.settings.users')
   const roles = useTranslations('pos.nav.roles')
-  const [u, setU] = useState<{ name: string; login: string; password: string; role: Role }>({ name: '', login: '', password: '', role: 'waiter' })
+  const [u, setU] = useState<{ name: string; email: string; role: Role }>({ name: '', email: '', role: 'waiter' })
+  const [resent, setResent] = useState<number | null>(null)
   const [state, save] = useSaveState()
   return (
     <div className="flex flex-col gap-5">
@@ -71,7 +72,10 @@ function UsersForm({ users, onChanged }: { users: UserInfo[]; onChanged: () => P
         {users.map((x) => (
           <div key={x.id} className="flex items-center justify-between gap-3 px-5 py-3 border-b border-[#F3EFE8] text-[15px]">
             <span className="font-medium">{x.name} <span className="text-soft font-normal">· {x.login}</span></span>
-            <span className="flex items-center gap-3"><span className="text-soft">{t('lastLogin')}: {x.lastLogin ? x.lastLogin.slice(0, 10) : t('never')}</span>
+            <span className="flex items-center gap-3">
+              <span className={cn('inline-flex h-7 px-2.5 rounded-lg items-center text-[13px] font-medium', x.activated ? 'bg-free-soft text-free-ink' : 'bg-pending-soft text-pending-ink')}>{x.activated ? t('active') : t('pending')}</span>
+              {!x.activated && <Button size="compact" onClick={async () => { await resendInvite(x.id); setResent(x.id) }}>{resent === x.id ? t('resent') : t('resend')}</Button>}
+              <span className="text-soft">{t('lastLogin')}: {x.lastLogin ? x.lastLogin.slice(0, 10) : t('never')}</span>
               <select aria-label={`${t('role')}: ${x.name}`} value={x.role} onChange={async (e) => { await setUserRole(x.id, e.target.value as Role); await onChanged() }} className="h-tap-min px-3 rounded-[10px] border border-border bg-surface text-[15px]">
                 {ROLES.map((r) => <option key={r} value={r}>{roles(r)}</option>)}
               </select></span>
@@ -80,10 +84,9 @@ function UsersForm({ users, onChanged }: { users: UserInfo[]; onChanged: () => P
       </div>
       <div className="flex flex-col gap-3 max-w-md">
         <TextInput label={t('name')} value={u.name} onChange={(e) => setU((v) => ({ ...v, name: e.target.value }))} />
-        <TextInput label={t('login')} value={u.login} onChange={(e) => setU((v) => ({ ...v, login: e.target.value }))} />
-        <TextInput label={t('password')} type="password" value={u.password} onChange={(e) => setU((v) => ({ ...v, password: e.target.value }))} />
+        <TextInput label={t('email')} type="email" value={u.email} onChange={(e) => setU((v) => ({ ...v, email: e.target.value }))} hint={t('emailHint')} />
         <Select label={t('role')} hint={t('roleHint')} value={u.role} onChange={(e) => setU((v) => ({ ...v, role: e.target.value as Role }))}>{ROLES.map((r) => <option key={r} value={r}>{roles(r)}</option>)}</Select>
-        <SaveBar state={state} onSave={() => save(async () => { await createUser(u); setU({ name: '', login: '', password: '', role: 'waiter' }); await onChanged() })} disabled={!u.name.trim() || !u.login.trim() || u.password.length < 8} />
+        <SaveBar state={state} onSave={() => save(async () => { await inviteUser(u); setU({ name: '', email: '', role: 'waiter' }); await onChanged() })} disabled={!u.name.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(u.email)} />
       </div>
     </div>
   )

@@ -43,11 +43,58 @@
       "newTable": "Nueva mesa"
     },
     "login": {
-      "title": "Entrar al turno",
-      "user": "Usuario",
+      "eyebrow": "{date}",
+      "greeting": {
+        "morning": "Buenos días",
+        "afternoon": "Buenas tardes",
+        "night": "Buenas noches"
+      },
+      "subtitle": "{restaurant} · Entra con tu correo.",
+      "subtitleNoRestaurant": "Entra con tu correo.",
+      "terminal": "Terminal · {name}",
+      "terminalUnknown": "Terminal",
+      "email": "Correo",
       "password": "Contraseña",
-      "submit": "Entrar",
-      "failed": "Usuario o contraseña incorrectos"
+      "show": "Ver",
+      "hide": "Ocultar",
+      "forgot": "La olvidé",
+      "remember": "Mantener la sesión en esta terminal",
+      "submit": "Abrir mi turno",
+      "failed": "Correo o contraseña incorrectos",
+      "code": {
+        "title": "Tengo un código",
+        "intro": "Escribe tu correo. Si tienes cuenta, te llega un código de 6 dígitos desde team@projectapp.co.",
+        "send": "Enviar código",
+        "sent": "Si el correo existe, el código ya va en camino. Revisa también el correo no deseado.",
+        "code": "Código de 6 dígitos",
+        "newPassword": "Nueva contraseña (mínimo 8)",
+        "confirm": "Repite la contraseña",
+        "activate": "Guardar y entrar",
+        "invalid": "Código inválido o vencido. Pide uno nuevo.",
+        "mismatch": "Las contraseñas no coinciden.",
+        "back": "← Volver a entrar con contraseña"
+      },
+      "footer": "Waiter 1.1 · Odoo {odoo}",
+      "online": "Conectado a Odoo",
+      "offline": "Sin conexión con Odoo",
+      "frases": [
+        {
+          "frase": "Buena comida, mejores momentos.",
+          "pie": "El salón está listo. Nosotros nos encargamos del resto del turno."
+        },
+        {
+          "frase": "El servicio empieza antes de la primera mesa.",
+          "pie": "Meseros, mesas y cocina en una sola pantalla."
+        },
+        {
+          "frase": "Que la noche te encuentre listo.",
+          "pie": "Pedidos, cocina y cuentas en el mismo lugar, sin papel."
+        },
+        {
+          "frase": "Menos tiempo en la tablet, más en la mesa.",
+          "pie": "Cada pedido autónomo es tiempo que vuelve al salón."
+        }
+      ]
     },
     "salon": {
       "legend": {
@@ -485,15 +532,18 @@
       },
       "users": {
         "name": "Nombre",
-        "login": "Usuario",
-        "password": "Contraseña",
         "lastLogin": "Último ingreso",
         "never": "Nunca",
-        "create": "Crear usuario",
-        "hint": "El usuario nace con acceso básico; los permisos de POS se asignan en el aprovisionamiento.",
+        "create": "Invitar",
         "role": "Rol",
         "roleHint": "Mesero: salón y pedidos. Cajero: además caja, ventas y facturación. Administrador: todo.",
-        "roleSaved": "Rol actualizado."
+        "roleSaved": "Rol actualizado.",
+        "email": "Correo",
+        "emailHint": "Le llegará un código para activar su cuenta y elegir su contraseña.",
+        "active": "Activa",
+        "pending": "Invitación pendiente",
+        "resend": "Reenviar código",
+        "resent": "Código reenviado"
       },
       "alerts": {
         "late": "Minutos para «demorado»",

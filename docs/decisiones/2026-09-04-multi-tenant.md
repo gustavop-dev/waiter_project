@@ -183,6 +183,12 @@ y no estorban**; pelearse con el `auto_install` de Odoo no compensa.
 Si en el futuro hiciera falta reducir más lo que ve el personal, la herramienta
 correcta son los grupos de acceso —ocultar menús—, no desinstalar módulos.
 
+### Correo saliente
+
+Tras crear la base: `odoo/provisioning/configure-mail.sh <db>` lee `SMTP_*` de
+`compose/.env` y deja el servidor de correo y `mail.default.from` listos para
+las invitaciones de usuarios.
+
 ## Pendiente
 
 - Script de aprovisionamiento automatizado (crear base, configurar compañía,

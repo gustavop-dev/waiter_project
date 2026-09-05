@@ -17,7 +17,10 @@ export const useCatalogStore = create<CatalogState>((set) => ({
   load: async (sessionId) => {
     set({ status: 'loading' })
     try {
-      set({ catalog: await loadPosData(sessionId), status: 'ready' })
+      const catalog = await loadPosData(sessionId)
+      set({ catalog, status: 'ready' })
+      // El login siguiente saluda con el restaurante y la terminal, antes de tener sesión.
+      try { localStorage.setItem('waiter.restaurant', catalog.company.name); localStorage.setItem('waiter.terminal', catalog.settings.configName) } catch { /* sin almacenamiento */ }
     } catch {
       set({ status: 'error' })
     }

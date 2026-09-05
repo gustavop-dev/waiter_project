@@ -13,6 +13,7 @@ services:
 
   odoo:
     image: odoo:19
+    env_file: .env   # SMTP_* para el correo saliente (ver provisioning/configure-mail.sh)
     depends_on:
       - db
     ports:

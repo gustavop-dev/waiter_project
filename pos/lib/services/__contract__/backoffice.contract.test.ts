@@ -7,7 +7,7 @@ import { closeOrder, payOrder, saveOrder } from '@/lib/services/orders'
 import { loadPosData } from '@/lib/services/posData'
 import { getOpenSession, login } from '@/lib/services/session'
 import { callKw } from '@/lib/services/odoo'
-import { createUser, listFloors, saveSettings } from '@/lib/services/settings'
+import { listFloors, saveSettings } from '@/lib/services/settings'
 
 // Falla si Odoo exige más que un cliente para facturar un pedido pagado, o si el cliente nuevo no queda como tal.
 it('invoices a paid order to a freshly created customer against the real Odoo', async () => {
@@ -37,7 +37,7 @@ it('saves settings, creates a user and reads floors with tables', async () => {
   const [cfg] = await callKw<{ alert_late_minutes: number }[]>('pos.config', 'read', [[settings.configId], ['alert_late_minutes']])
   expect(cfg.alert_late_minutes).toBe(19)
   await saveSettings(settings)
-  const userId = await createUser({ name: 'Mesero Contrato', login: `contrato-${Date.now()}`, password: 'Prueba-1234', role: 'waiter' })
+  const userId = await callKw<number>('res.users', 'create', [{ name: 'Mesero Contrato', login: `contrato-${Date.now()}`, waiter_role: 'waiter' }])
   await callKw('res.users', 'write', [[userId], { active: false }])
   const floors = await listFloors()
   expect(floors[0].tables.length).toBeGreaterThan(0)

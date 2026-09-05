@@ -62,3 +62,20 @@ navegador), modo offline, semi-integración de datáfono.
 
 Siguiente parte (no en este PR): buscar plato, nota general a cocina, fotos
 de producto, buscar mesa o pedido.
+
+## Parte 5 — Entrada al turno e invitaciones por correo (2026-09-05)
+
+- Login según el diseño **Waiter Login 2a**, sin la fila de perfiles (decisión
+  del usuario): panel izquierdo con frases rotando, saludo por hora, terminal y
+  restaurante recordados del turno anterior, correo + contraseña con «Ver»,
+  «Mantener la sesión» (recuerda el correo), estado de conexión con Odoo.
+- **Invitaciones**: el administrador crea el usuario con nombre, correo y rol
+  (Configuración → Usuarios); el addon genera un código de 6 dígitos (hash,
+  vence a las 48 h) y lo envía desde `team@projectapp.co` (GoDaddy,
+  `smtpout.secureserver.net:465`). «Reenviar código» para pendientes.
+- **Activación / «La olvidé»**: el mismo código sirve para fijar contraseña
+  desde el login por endpoints públicos del addon (`/waiter/auth/*`), que
+  nunca revelan si un correo existe.
+- Correo saliente configurado por `odoo/provisioning/configure-mail.sh` desde
+  `compose/.env` (`SMTP_*`, nunca versionado). Sedes: las activa ProjectApp
+  al subir de plan; el administrador del restaurante no las gestiona.
