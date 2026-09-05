@@ -100,7 +100,7 @@ La forma de `contexto.marca` no cambia (`diner/lib/types.ts`, interfaz
    (endpoint `logo/`, precedencia, `BRAND_CACHE_SECONDS`), README raíz,
    aclaración en el ADR del comensal de que el registro guarda el valor
    inicial.
-4. [ ] **Integración.** Actualizar el addon en Odoo (`-u projectapp_ops`),
+4. [x] **Integración.** Actualizar el addon en Odoo (`-u projectapp_ops`),
    contrato de `experience/` contra Odoo real (`@pytest.mark.contract`), E2E
    Playwright de marca (un admin cambia color y nombre del mesero en el POS y
    el comensal lo ve en `diner/`; un mesero no ve Configuración › Marca),
