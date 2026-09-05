@@ -1,3 +1,13 @@
-from django.urls import path  # noqa: F401
+from django.urls import path
 
-urlpatterns = []
+from experience_app.views import context, internal, sessions
+
+urlpatterns = [
+    path('api/v1/sesiones/', sessions.open_session, name='open-session'),
+    path('api/v1/sesiones/<uuid:session_id>/carrito/', sessions.cart, name='cart'),
+    path('api/v1/sesiones/<uuid:session_id>/lineas/', sessions.add_line, name='add-line'),
+    path('api/v1/sesiones/<uuid:session_id>/lineas/<int:line_id>/', sessions.line, name='line'),
+    path('api/v1/<slug:restaurant>/<slug:venue>/', context.entry, name='entry-delivery'),
+    path('api/v1/<slug:restaurant>/<slug:venue>/t/<str:token>/', context.entry, name='entry-table'),
+    path('internal/v1/carta/<slug:restaurant>/<slug:venue>/invalidar/', internal.invalidate_menu, name='invalidate-menu'),
+]

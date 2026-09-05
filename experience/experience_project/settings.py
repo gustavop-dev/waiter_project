@@ -43,6 +43,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
     'DEFAULT_RENDERER_CLASSES': ('rest_framework.renderers.JSONRenderer',),
     'UNAUTHENTICATED_USER': None,
+    'EXCEPTION_HANDLER': 'experience_app.utils.errors.handle',
 }
 
 ROOT_URLCONF = 'experience_project.urls'

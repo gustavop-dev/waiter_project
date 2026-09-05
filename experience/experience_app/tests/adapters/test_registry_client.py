@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 from django.core.cache import cache
+from django.test import override_settings
 
 from experience_app.adapters.registry import client
 from experience_app.tests.helpers import RawResponse
@@ -16,6 +17,7 @@ def clear_cache():
     cache.clear()
 
 
+@override_settings(REGISTRY_INTERNAL_KEY='k')
 @patch('experience_app.adapters.registry.client.requests.get', return_value=RawResponse(BODY))
 def test_resolve_maps_the_registry_answer_and_caches_it(get):
     """Atrapa un mapeo roto del contrato interno o un registro golpeado en cada petición."""
@@ -24,7 +26,7 @@ def test_resolve_maps_the_registry_answer_and_caches_it(get):
     assert tenant.odoo_table_id == 9
     assert tenant.odoo.password == 's3'
     assert get.call_count == 1
-    assert get.call_args.kwargs['headers']['X-Internal-Key'] == ''
+    assert get.call_args.kwargs['headers']['X-Internal-Key'] == 'k'
 
 
 @patch('experience_app.adapters.registry.client.requests.get', return_value=RawResponse({}, status_code=404))
