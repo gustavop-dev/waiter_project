@@ -51,16 +51,24 @@ Las del Plan A. Además: toda escritura a Odoo pasa por `call_kw` `write`/
 inventory,customers,invoices,settings}.ts`); las pantallas no conocen modelos
 de Odoo. Un sonido a la vez; solo *crítico* se repite (cada 60 s).
 
-## Estado: parcial al 2026-09-05 (rama `feat/05092026-backoffice`, PR #4)
+## Estado: ejecutado el 2026-09-05 (PR #4 parcial, cerrado al mergear; PR #5 el resto)
 
-Hechas: tareas 1 a 5 (cimientos, sonidos, sidebar, **Operación en vivo**,
-**ROI**, **Ventas**, **Catálogo** con edición de productos y categorías).
-Pendientes: 6 Inventario, 7 Clientes, 8 Facturación (factura normal de Odoo),
-9 Configuración, 10 E2E de humo y docs. Sus servicios de Odoo ya están
-sondeados (formas reales en el historial de la sesión): `stock.quant` +
-`action_apply_inventory`, `res.partner` con `customer_rank`,
-`pos.order.action_pos_order_invoice`, `res.company` / `restaurant.floor` /
-`restaurant.table` / `res.users` / `pos.config`.
+Las diez tareas hechas. Desvíos y notas:
+
+- Los seis módulos sin diseño usan el patrón de 1d/1e (cabecera de 84 px,
+  KPIs, tabla de rejilla, panel derecho de 400 px). Cuando exista diseño
+  propio en Claude Design, se ajustan sobre estos componentes.
+- Inventario ajusta existencias por `stock.quant` + `action_apply_inventory`
+  (el mecanismo de conteo de Odoo), no por movimientos manuales.
+- Facturación emite **factura normal** con `action_pos_order_invoice`; exige
+  cliente. El PDF lo sirve Odoo por el proxy same-origin. La electrónica es
+  el bloque 2.
+- Usuarios: se crean con nombre, usuario y clave; los grupos de POS se asignan
+  en el aprovisionamiento (pendiente).
+- Densidad y estación de sonido se guardan en el dispositivo (localStorage);
+  umbrales y supuestos del ROI en `pos.config` para todas las tablets.
+- «Mesa pide mesero» y «Rechazo DIAN» quedan como tipos de alerta sin fuente
+  hasta la PWA y el bloque 2.
 
 ## Tareas
 
@@ -72,8 +80,8 @@ sondeados (formas reales en el historial de la sesión): `stock.quant` +
 3. ✅ **Automatización** `/automatizacion` (1d) + subrutas vacías honestas.
 4. ✅ **Ventas** `/ventas`.
 5. ✅ **Catálogo** `/catalogo`.
-6. **Inventario** `/inventario`.
-7. **Clientes** `/clientes`.
-8. **Facturación** `/facturacion`.
-9. **Configuración** `/configuracion`.
+6. ✅ **Inventario** `/inventario`.
+7. ✅ **Clientes** `/clientes`.
+8. ✅ **Facturación** `/facturacion`.
+9. ✅ **Configuración** `/configuracion`.
 10. E2E de humo por módulo, docs y PR apilado sobre `feat/05092026-experience`.

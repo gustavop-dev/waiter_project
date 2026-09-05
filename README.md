@@ -24,6 +24,9 @@ La descripción completa del producto está en
 - **`experience/`**: backend del bloque 3. Carta desde caché, sesión de mesa
   con comensales por cookie, carrito compartido con atribución por persona,
   confirmación idempotente hacia Odoo y estado del pedido. Plan D.
+- **Backoffice del operador** en `pos/`: operación en vivo (1e), ROI (1d),
+  ventas, catálogo, inventario, clientes, facturación normal y configuración.
+  Plan C. Sonidos del sistema Waiter sintetizados en el navegador.
 - Diseño y decisiones en `docs/`; planes ejecutados en `docs/planes/`.
 
 ## Levantar el entorno de desarrollo
@@ -32,7 +35,7 @@ Todo escucha en la interfaz host-only `192.168.56.10` (el navegador corre en
 la anfitriona).
 
 ```bash
-# Odoo (motor POS) — addons propios: projectapp_pos_design, projectapp_kitchen
+# Odoo (motor POS) — addons propios: projectapp_pos_design, projectapp_kitchen, projectapp_ops
 docker compose -p odoo-spike -f odoo/compose/docker-compose.yml up -d        # :8069
 
 # App del operador (salón, pedido, KDS)

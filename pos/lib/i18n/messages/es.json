@@ -328,6 +328,189 @@
         "save": "Guardar"
       }
     },
+    "inventory": {
+      "title": "Inventario",
+      "subtitle": "{n} productos con control de existencias",
+      "hint": "Activa «Controla existencias» en Catálogo para que un plato entre aquí.",
+      "kpi": {
+        "tracked": "Con existencias",
+        "low": "Bajo stock",
+        "out": "Agotados"
+      },
+      "cols": {
+        "product": "Producto",
+        "category": "Categoría",
+        "qty": "Existencias",
+        "state": "Estado"
+      },
+      "status": {
+        "out": "Agotado",
+        "low": "Bajo",
+        "ok": "OK"
+      },
+      "empty": "Ningún producto controla existencias todavía",
+      "form": {
+        "title": "Ajustar existencias",
+        "current": "Existencias actuales",
+        "qty": "Cantidad contada",
+        "apply": "Aplicar conteo",
+        "applied": "Existencias actualizadas.",
+        "goCatalog": "Ir al catálogo"
+      }
+    },
+    "customers": {
+      "title": "Clientes",
+      "subtitle": "{n} clientes",
+      "search": "Buscar por nombre, documento o teléfono",
+      "new": "Nuevo cliente",
+      "cols": {
+        "name": "Cliente",
+        "doc": "Documento",
+        "phone": "Teléfono",
+        "orders": "Pedidos",
+        "invoiced": "Facturado"
+      },
+      "empty": "Ningún cliente coincide",
+      "form": {
+        "title": "Editar cliente",
+        "newTitle": "Nuevo cliente",
+        "name": "Nombre",
+        "idType": "Tipo de documento",
+        "vat": "Número de documento",
+        "phone": "Teléfono",
+        "email": "Correo",
+        "street": "Dirección",
+        "city": "Ciudad",
+        "save": "Guardar",
+        "saved": "Cliente guardado.",
+        "history": "Últimos pedidos",
+        "noHistory": "Sin pedidos a su nombre todavía"
+      }
+    },
+    "billing": {
+      "title": "Facturación",
+      "subtitle": "Factura normal de Odoo. La electrónica (DIAN) llega como módulo aparte.",
+      "tabs": {
+        "pending": "Por facturar",
+        "invoices": "Facturas"
+      },
+      "kpi": {
+        "pending": "Pedidos sin factura",
+        "month": "Facturas del mes",
+        "amount": "Facturado este mes"
+      },
+      "cols": {
+        "order": "Pedido",
+        "date": "Fecha",
+        "customer": "Cliente",
+        "total": "Total",
+        "invoice": "Factura",
+        "state": "Estado",
+        "number": "Número"
+      },
+      "noCustomer": "Sin cliente",
+      "invoiced": "Facturado",
+      "notInvoiced": "Sin factura",
+      "emptyPending": "Todos los pedidos pagados tienen factura",
+      "emptyInvoices": "Ninguna factura emitida todavía",
+      "state": {
+        "draft": "Borrador",
+        "posted": "Emitida",
+        "cancel": "Anulada"
+      },
+      "paid": "Pagada",
+      "notPaid": "Pendiente de pago",
+      "form": {
+        "title": "Emitir factura",
+        "customer": "Cliente",
+        "search": "Buscar cliente",
+        "none": "Elige un cliente",
+        "issue": "Emitir factura",
+        "issued": "Factura {name} emitida.",
+        "pdf": "Ver PDF",
+        "goCustomers": "Crear cliente en Clientes"
+      }
+    },
+    "settings": {
+      "title": "Configuración",
+      "sections": {
+        "restaurant": "Restaurante",
+        "floors": "Pisos y mesas",
+        "payments": "Métodos de pago",
+        "taxes": "Impuestos",
+        "users": "Usuarios",
+        "alerts": "Umbrales de alerta",
+        "roi": "Supuestos del ROI",
+        "display": "Pantalla y sonido"
+      },
+      "save": "Guardar",
+      "saved": "Guardado.",
+      "new": "Nuevo",
+      "restaurant": {
+        "name": "Nombre",
+        "vat": "NIT",
+        "phone": "Teléfono",
+        "email": "Correo",
+        "street": "Dirección",
+        "city": "Ciudad"
+      },
+      "floors": {
+        "floor": "Piso",
+        "newFloor": "Nuevo piso",
+        "floorName": "Nombre del piso",
+        "table": "Mesa {n}",
+        "number": "Número",
+        "seats": "Puestos",
+        "active": "Activa",
+        "activeOn": "En el salón",
+        "activeOff": "Retirada",
+        "newTable": "Agregar mesa",
+        "tables": "{n} mesas"
+      },
+      "payments": {
+        "hint": "Los métodos se crean en Odoo por el aprovisionamiento; aquí se ven los del canal.",
+        "type": {
+          "cash": "Efectivo",
+          "bank": "Datáfono / banco",
+          "pay_later": "Cuenta de cliente"
+        }
+      },
+      "taxes": {
+        "hint": "Impuestos de venta disponibles para la carta."
+      },
+      "users": {
+        "name": "Nombre",
+        "login": "Usuario",
+        "password": "Contraseña",
+        "lastLogin": "Último ingreso",
+        "never": "Nunca",
+        "create": "Crear usuario",
+        "hint": "El usuario nace con acceso básico; los permisos de POS se asignan en el aprovisionamiento."
+      },
+      "alerts": {
+        "late": "Minutos para «demorado»",
+        "bill": "Minutos con la cuenta pedida sin cobrar"
+      },
+      "roi": {
+        "hourCost": "Costo por hora de atención (COP)",
+        "minutes": "Minutos que ahorra un pedido autónomo",
+        "baseline": "Horas de atención por 100 pedidos, antes de ProjectApp",
+        "monthly": "Coste mensual de ProjectApp (COP)",
+        "start": "Inicio de uso (AAAA-MM-DD)"
+      },
+      "display": {
+        "density": "Densidad de la interfaz",
+        "compact": "Compacta",
+        "balanced": "Equilibrada",
+        "wide": "Amplia",
+        "station": "Esta pantalla es",
+        "kds": "Cocina (alto)",
+        "tablet": "Tablet de mesero (medio)",
+        "caja": "Caja (bajo)",
+        "test": "Probar sonido",
+        "localHint": "La densidad y el volumen se guardan en este dispositivo."
+      }
+    },
     "pay": {
       "title": "Cobrar mesa {number}",
       "subtotalLabel": "Cuenta",
