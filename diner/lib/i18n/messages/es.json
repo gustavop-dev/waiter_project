@@ -187,7 +187,94 @@
     },
     "templates": {
       "preview": "Vista previa · {code} · sin guardar",
-      "photo": "Foto del plato"
+      "photo": "Foto del plato",
+      "C1": {
+        "note": "Di el número al mesero o tócalo aquí.",
+        "order": "Pedir el {n}",
+        "seeOrder": "Ver el pedido",
+        "mostOrdered": "El más pedido",
+        "select": "Elegir el {n}: {name}"
+      },
+      "C2": {
+        "onlyToday": "Solo hoy",
+        "addFor": "Añadir {amount}",
+        "upsell": "¿Le sumas {name} por {amount}?",
+        "addUpsell": "Sumar {name}",
+        "counter": "{i} / {n}",
+        "prev": "Plato anterior",
+        "next": "Plato siguiente",
+        "sizes": "Tamaño"
+      },
+      "C3": {
+        "step": "Paso {i} de {n}",
+        "choose": "Elige {name}",
+        "included": "incluido",
+        "extra": "+{amount}",
+        "soldOut": "agotado",
+        "runningLabel": "Va en",
+        "next": "Siguiente",
+        "add": "Añadir",
+        "progress": "Pasos",
+        "jump": "Paso {i}: {name}"
+      },
+      "C4": {
+        "soldOut": "se acabó",
+        "scarcity": "Hoy ya se acabó: {names}. Cuando se acaban, se acaban.",
+        "cta": "Pedir y pagar",
+        "add": "Agregar: {name}"
+      },
+      "C5": {
+        "yourOrder": "Tu pedido",
+        "beforePay": "Antes de pagar",
+        "plus": "+{amount}",
+        "keepOrdering": "Seguir pidiendo",
+        "pay": "Pagar",
+        "empty": "Todavía no has agregado nada. Elige de la carta.",
+        "menuTitle": "Carta",
+        "qty": "{n}×"
+      },
+      "familiaC": {
+        "cart": {
+          "firstPurchaseApplied": "Primera compra: descuento aplicado.",
+          "includes": "Incluye tu {pct}% de primera compra",
+          "chipApplied": "−{pct}% aplicado",
+          "vat": "IVA incluido",
+          "tip": "Propina {pct}%",
+          "tipLabel": "Propina",
+          "noTip": "Sin propina",
+          "tipPct": "{pct}%",
+          "tipNote": "La propina se confirma al pagar.",
+          "edit": "Editar {name}",
+          "send": "Enviar a cocina",
+          "total": "Total"
+        },
+        "pay": {
+          "total": "Total",
+          "tarjeta": "Tarjeta crédito o débito",
+          "pse": "PSE · desde tu banco",
+          "nequi": "Nequi · con QR",
+          "efectivo": "Efectivo en la caja",
+          "tokenized": "Tokenizado por la pasarela. Waiter no ve tu tarjeta."
+        }
+      },
+      "patterns": {
+        "beneficios": {
+          "title": "Crear cuenta",
+          "subtitle": "Tres razones, ninguna de marketing",
+          "discountToday": "de descuento hoy",
+          "savedCard": "Tu tarjeta guardada, sin volver a escribirla",
+          "allergies": "Tus alergias van solas a la comanda"
+        },
+        "canal": {
+          "title": "Entrar sin contraseña",
+          "subtitle": "Elige por dónde te llega el código",
+          "channels": "Canal del código",
+          "email": "Correo",
+          "sms": "SMS",
+          "smsHint": "A tu celular",
+          "waiting": "Escribe el código cuando llegue. No cierres esta pantalla."
+        }
+      }
     },
     "status": {
       "title": "Tu pedido",

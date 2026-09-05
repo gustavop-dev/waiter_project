@@ -11,6 +11,17 @@ import { GenericPay } from '@/components/templates/generic/GenericPay'
 import { GenericSignup } from '@/components/templates/generic/GenericSignup'
 import type { CartLayoutProps, CodeProps, HistoryProps, MenuLayoutProps, PayLayoutProps, SignupProps } from '@/components/templates/types'
 import type { CodePattern, HistoryPattern, SignupPattern, TemplateFamily } from '@/lib/types'
+// --- familia C
+import { C1Menu } from '@/components/templates/families/C/C1Menu'
+import { C2Menu } from '@/components/templates/families/C/C2Menu'
+import { C3Menu } from '@/components/templates/families/C/C3Menu'
+import { C4Menu } from '@/components/templates/families/C/C4Menu'
+import { C5Menu } from '@/components/templates/families/C/C5Menu'
+import { FamilyCCart } from '@/components/templates/families/C/FamilyCCart'
+import { FamilyCPay } from '@/components/templates/families/C/FamilyCPay'
+import { BenefitsSignup } from '@/components/templates/patterns/BenefitsSignup'
+import { ChannelCode } from '@/components/templates/patterns/ChannelCode'
+// --- fin familia C
 
 export type { CartHrefs, CartLayoutProps, CodeProps, HistoryProps, MenuLayoutProps, PayLayoutProps, SignupProps } from '@/components/templates/types'
 
@@ -20,6 +31,16 @@ export const PAY_LAYOUTS: Partial<Record<TemplateFamily, ComponentType<PayLayout
 export const SIGNUP_PATTERNS: Partial<Record<SignupPattern, ComponentType<SignupProps>>> = { banner5: GenericSignup }
 export const CODE_PATTERNS: Partial<Record<CodePattern, ComponentType<CodeProps>>> = { casillas: GenericCode }
 export const HISTORY_PATTERNS: Partial<Record<HistoryPattern, ComponentType<HistoryProps>>> = { porMes: GenericHistory }
+
+// --- familia C
+// Rápida y food truck: cinco menús por código, carrito y pago por familia (C3 y C5 ramifican dentro por template.codigo) y los
+// patrones de cuenta que esta familia introduce (beneficios, canal); tarjetas y tablaCufe llegan con otras familias.
+Object.assign(MENU_LAYOUTS, { C1: C1Menu, C2: C2Menu, C3: C3Menu, C4: C4Menu, C5: C5Menu })
+CART_LAYOUTS.C = FamilyCCart
+PAY_LAYOUTS.C = FamilyCPay
+SIGNUP_PATTERNS.beneficios = BenefitsSignup
+CODE_PATTERNS.canal = ChannelCode
+// --- fin familia C
 
 export const menuLayout = (code: string | undefined): ComponentType<MenuLayoutProps> => (code && MENU_LAYOUTS[code.toUpperCase()]) || GenericMenu
 export const cartLayout = (familia: TemplateFamily | string | undefined): ComponentType<CartLayoutProps> => CART_LAYOUTS[familia as TemplateFamily] ?? GenericCart
