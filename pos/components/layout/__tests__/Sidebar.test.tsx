@@ -6,11 +6,19 @@ import messages from '@/lib/i18n/messages/es.json'
 
 const wrap = (ui: React.ReactElement) => render(<NextIntlClientProvider locale="es" messages={messages}>{ui}</NextIntlClientProvider>)
 
-// Falla si un módulo sin pantalla (Ventas, Inventario…) se vuelve navegable y lleva a un 404.
-it('renders Operación as the only enabled navigation item', () => {
-  wrap(<Sidebar active="operation" />)
-  expect(screen.getByRole('link', { name: 'Operación' })).toHaveAttribute('href', '/salon')
-  expect(screen.getByRole('button', { name: /Ventas/ })).toBeDisabled()
+// Falla si una entrada del sidebar deja de llevar a su pantalla o si el badge de atención no se ve.
+it('renders every module as a link and shows badges with counts', () => {
+  wrap(<Sidebar active="operation" badges={{ operation: { count: 3, tone: 'brand' }, billing: { count: 1, tone: 'busy' } }} />)
+  expect(screen.getByRole('link', { name: /Operación/ })).toHaveAttribute('href', '/salon')
+  expect(screen.getByRole('link', { name: /Ventas/ })).toHaveAttribute('href', '/ventas')
+  expect(screen.getByRole('link', { name: /Facturación 1/ })).toBeInTheDocument()
+})
+
+// Falla si la pantalla de operación en vivo pierde la tarjeta "sin intervención humana" o su porcentaje.
+it('shows the autonomy card instead of the shift card when given', () => {
+  wrap(<Sidebar active="operation" autonomy={{ autonomous: 86, total: 128 }} shift={{ sales: 1, orders: 1, waiters: 1 }} />)
+  expect(screen.getByText('67%')).toHaveClass('font-mono')
+  expect(screen.getByText('86 de 128 pedidos hoy')).toBeInTheDocument()
 })
 
 // Falla si la lateral pierde el nombre del restaurante, las ventas del turno o quién está en caja.

@@ -19,7 +19,7 @@ export default function KdsPage() {
   const t = useTranslations('pos.kds')
   const session = useAuthStore((s) => s.session)
   const catalog = useCatalogStore((s) => s.catalog)
-  const { tickets, done, tab, muted, refresh, ready, serve, setTab, toggleMute } = useKitchenStore()
+  const { tickets, done, tab, muted, refresh, ready, serve, setTab, toggleMute, tick } = useKitchenStore()
   const [now, setNow] = useState(() => Date.now())
 
   // Estación de un producto: la de la primera categoría suya que tenga una.
@@ -35,7 +35,7 @@ export default function KdsPage() {
     const id = setInterval(() => void refresh(session.id, stationOf), POLL_MS)
     return () => clearInterval(id)
   }, [session, catalog, stationOf, refresh])
-  useEffect(() => { const id = setInterval(() => setNow(Date.now()), 1_000); return () => clearInterval(id) }, [])
+  useEffect(() => { const id = setInterval(() => { const n = Date.now(); setNow(n); tick(n) }, 1_000); return () => clearInterval(id) }, [tick])
 
   if (!session || !catalog) return null
   const tableNumberOf = (tableId: number) => catalog.tables.find((tb) => tb.id === tableId)?.number ?? tableId

@@ -5,6 +5,7 @@ import { create } from 'zustand'
 import { addProduct, createDraft, removeLine, setNote, setQty } from '@/lib/domain/order'
 import type { DraftOrder } from '@/lib/domain/order'
 import type { LocalFlags } from '@/lib/domain/tableState'
+import { play } from '@/lib/audio/sounds'
 import { fireUnsentLines } from '@/lib/services/kitchen'
 import { closeOrder, getShiftSummary, listOpenOrders, payOrder, saveOrder } from '@/lib/services/orders'
 import type { OpenOrder, SavedOrder, ShiftSummary } from '@/lib/services/orders'
@@ -49,6 +50,7 @@ export const useOrderStore = create<OrderState>((set, get) => {
       set({ saved, draft: { ...d, serverId: saved.id }, busy: false })
       return saved
     } catch (e) {
+      play('error')
       set({ busy: false, error: message(e) })
       return null
     }
@@ -59,7 +61,7 @@ export const useOrderStore = create<OrderState>((set, get) => {
   return {
     draft: null, saved: null, openOrders: [], shift: null, flags: {}, busy: false, error: null,
     start: (sessionId, tableId, guests) => set({ draft: createDraft({ sessionId, tableId, guests }), saved: null, error: null }),
-    add: (p) => update((d) => addProduct(d, p)),
+    add: (p) => { play('tap'); update((d) => addProduct(d, p)) },
     changeQty: (u, q) => update((d) => setQty(d, u, q)),
     note: (u, n) => update((d) => setNote(d, u, n)),
     remove: (u) => update((d) => removeLine(d, u)),
@@ -82,6 +84,7 @@ export const useOrderStore = create<OrderState>((set, get) => {
       try {
         await payOrder(saved.id, paymentMethodId, saved.total)
         await closeOrder(saved.id)
+        play('cobro')
         const tableId = get().draft!.tableId
         set((s) => ({ draft: null, saved: null, busy: false, flags: { ...s.flags, [tableId]: {} } }))
       } catch (e) {
@@ -94,6 +97,7 @@ export const useOrderStore = create<OrderState>((set, get) => {
       try {
         await payOrder(orderId, paymentMethodId, total)
         await closeOrder(orderId)
+        play('cobro')
         set((s) => ({ busy: false, flags: { ...s.flags, [tableId]: {} } }))
       } catch (e) {
         set({ busy: false, error: message(e) })

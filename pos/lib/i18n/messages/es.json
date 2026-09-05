@@ -13,7 +13,14 @@
       "soon": "Próximamente",
       "shift": "Turno de hoy",
       "shiftMeta": "{orders} pedidos · {waiters} meseros",
-      "role": "Mesero"
+      "role": "Mesero",
+      "byProjectApp": "by ProjectApp",
+      "automationSection": "Automatización",
+      "roi": "Retorno de inversión",
+      "aiAnalytics": "Analítica del mesero IA",
+      "aiConfig": "Configurar mesero IA",
+      "noHuman": "Sin intervención humana",
+      "noHumanMeta": "{autonomous} de {total} pedidos hoy"
     },
     "rail": {
       "tables": "Mesas",
@@ -116,6 +123,21 @@
       "history": "Historial del turno",
       "mute": "Silenciar avisos",
       "unmute": "Activar avisos"
+    },
+    "ui": {
+      "empty": "Nada por aquí todavía",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "close": "Cerrar",
+      "loading": "Cargando…",
+      "error": "No se pudo completar. Intenta de nuevo.",
+      "search": "Buscar",
+      "new": "Nuevo",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "yes": "Sí",
+      "no": "No",
+      "export": "Exportar"
     }
   }
 }

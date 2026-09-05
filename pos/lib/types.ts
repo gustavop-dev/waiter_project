@@ -4,4 +4,6 @@ export interface Floor { id: number; name: string; tableIds: number[] }
 export interface Table { id: number; number: number; floorId: number; seats: number }
 export interface PaymentMethod { id: number; name: string; type: 'cash' | 'bank' | 'pay_later' }
 export interface Company { name: string }
-export interface Catalog { company: Company; products: Product[]; categories: Category[]; floors: Floor[]; tables: Table[]; paymentMethods: PaymentMethod[] }
+// Umbrales y supuestos que viven en pos.config (addon projectapp_ops) para que todas las tablets vean lo mismo.
+export interface Settings { configId: number; configName: string; alertLateMinutes: number; alertBillMinutes: number; roiHourCost: number; roiMinutesPerOrder: number; roiBaselineHoursPer100: number; roiMonthlyCost: number; roiStartDate: string | null }
+export interface Catalog { company: Company; settings: Settings; products: Product[]; categories: Category[]; floors: Floor[]; tables: Table[]; paymentMethods: PaymentMethod[] }

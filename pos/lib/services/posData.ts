@@ -1,5 +1,5 @@
 import { callKw } from '@/lib/services/odoo'
-import type { Catalog, Category, Floor, PaymentMethod, Product, Table } from '@/lib/types'
+import type { Catalog, Category, Floor, PaymentMethod, Product, Settings, Table } from '@/lib/types'
 
 // Formas REALES de load_data (capturadas contra Odoo 19, no supuestas): los many2one llegan
 // como enteros pelados, y precio/categorías/impuestos viven en product.template.
@@ -10,9 +10,10 @@ interface RawFloor { id: number; name: string; table_ids: number[] }
 interface RawTable { id: number; table_number: number; floor_id: number; seats: number; active: boolean }
 interface RawMethod { id: number; name: string; type: PaymentMethod['type'] }
 interface RawCompany { id: number; name: string }
+interface RawConfig { id: number; name: string; alert_late_minutes: number; alert_bill_minutes: number; roi_hour_cost: number; roi_minutes_per_order: number; roi_baseline_hours_per_100: number; roi_monthly_cost: number; roi_start_date: string | false }
 interface RawLoad {
   'product.product': RawProduct[]; 'product.template': RawTemplate[]; 'pos.category': RawCategory[]
-  'restaurant.floor': RawFloor[]; 'restaurant.table': RawTable[]; 'pos.payment.method': RawMethod[]; 'res.company': RawCompany[]
+  'restaurant.floor': RawFloor[]; 'restaurant.table': RawTable[]; 'pos.payment.method': RawMethod[]; 'res.company': RawCompany[]; 'pos.config': RawConfig[]
 }
 
 // "Agotado" solo aplica a productos almacenables: un consumible sin control de stock tiene qty 0 siempre.
@@ -42,5 +43,9 @@ export async function loadPosData(sessionId: number): Promise<Catalog> {
     .map((t) => ({ id: t.id, number: t.table_number, floorId: t.floor_id, seats: t.seats }))
   const paymentMethods: PaymentMethod[] = raw['pos.payment.method'].map(({ id, name, type }) => ({ id, name, type }))
   const company = { name: raw['res.company'][0]?.name ?? '' }
-  return { company, products, categories, floors, tables, paymentMethods }
+  const c = raw['pos.config'][0]
+  const settings: Settings = { configId: c.id, configName: c.name, alertLateMinutes: c.alert_late_minutes, alertBillMinutes: c.alert_bill_minutes,
+    roiHourCost: c.roi_hour_cost, roiMinutesPerOrder: c.roi_minutes_per_order, roiBaselineHoursPer100: c.roi_baseline_hours_per_100,
+    roiMonthlyCost: c.roi_monthly_cost, roiStartDate: c.roi_start_date || null }
+  return { company, settings, products, categories, floors, tables, paymentMethods }
 }
