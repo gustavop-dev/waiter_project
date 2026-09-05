@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+import pytest
 from django.urls import reverse
 
 from experience_app.tests.conftest import DELIVERY
@@ -76,6 +77,7 @@ def test_photo_is_404_for_a_product_not_in_the_menu(resolve, fetch, api_client, 
     assert fetch.call_count == 0
 
 
+@pytest.mark.django_db  # la entrada resuelve la plantilla de la sede (Plan H): lee la base
 def test_entry_menu_points_photos_to_the_experience_route(api_client, table_tenant, catalog_stub):
     """Atrapa una carta con la URL de Odoo (o sin URL, o sin versión) en la foto de un plato, o sin el origen y el aviso legal."""
     body = api_client.get(reverse('entry-table', args=['burger-house', 'poblado', '8H2KQ7'])).json()

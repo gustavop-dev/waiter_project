@@ -15,4 +15,6 @@ class Diner(models.Model):
     session = models.ForeignKey('experience_app.TableSession', on_delete=models.CASCADE, related_name='diners')
     key = models.CharField(max_length=64, unique=True, default=new_key)
     name = models.CharField(max_length=60, blank=True)
+    # Cuenta verificada desde esta cookie (Plan H). Se hereda al comensal nuevo cuando la misma cookie abre otra visita.
+    account = models.ForeignKey('experience_app.DinerAccount', on_delete=models.SET_NULL, null=True, blank=True, related_name='diners')
     created_at = models.DateTimeField(auto_now_add=True)
