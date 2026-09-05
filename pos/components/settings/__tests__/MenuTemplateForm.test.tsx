@@ -62,7 +62,7 @@ it('shows the family tabs, marks the saved template and previews the diner entry
   expect(screen.getByLabelText('Hex · Color de acción')).toHaveValue('#C1873A')
   await waitFor(() => expect(screen.getByTitle('Vista previa del menú')).toBeInTheDocument(), { timeout: 2_000 })
   const { base, settings } = previewSettings()
-  expect(base).toBe('http://192.168.56.10:3001/burger-house/poblado/')
+  expect(base).toBe('http://192.168.56.10:3001/burger-house/poblado/carta/')
   expect(settings).toEqual({ plantilla: 'B1', paleta: {}, tipografia: {} })
   expect(document.getElementById('waiter-brand-fonts')).toHaveAttribute('href', expect.stringContaining('Cormorant+Garamond'))
 })

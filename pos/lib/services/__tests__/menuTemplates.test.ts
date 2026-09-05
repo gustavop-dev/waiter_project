@@ -37,7 +37,7 @@ it('fetches the public catalog from experience and rejects HTTP errors', async (
 it('builds the diner preview URL with the settings as base64url JSON', () => {
   const url = previewUrl('http://192.168.56.10:3001/', 'burger-house', 'poblado', SETTINGS)
   const [base, query] = url.split('?vista_previa=')
-  expect(base).toBe('http://192.168.56.10:3001/burger-house/poblado/')
+  expect(base).toBe('http://192.168.56.10:3001/burger-house/poblado/carta/')
   expect(query).toMatch(/^[A-Za-z0-9_-]+$/)
   const decoded = Buffer.from(query.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8')
   expect(JSON.parse(decoded)).toEqual(SETTINGS)

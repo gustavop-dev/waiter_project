@@ -140,7 +140,7 @@ al controller del addon (misma sesión de Odoo). Servicio `pos/lib/services/menu
 
 ## Tareas (oleadas; 4 agentes concurrentes)
 
-1. [ ] **Análisis** (6 agentes, uno por familia): `spec.json` por plantilla a partir de
+1. [x] **Análisis** (6 agentes, uno por familia): `spec.json` por plantilla a partir de
    `docs/diseno/plantillas/<codigo>/*.html` + `menu.png`; F2–F5 sin pantallas de cuenta
    (archivo cortado): asignar patrones siguiendo la rotación de su familia y la piel del
    pago; anotarlo en `spec.json.reconstruido`.
@@ -152,8 +152,8 @@ al controller del addon (misma sesión de Odoo). Servicio `pos/lib/services/menu
    `projectapp_ops` (`signup_discount_percent`, `diner_attributes`, `/waiter/admin/menu_settings`),
    parámetros del sistema en `odoo/provisioning/seed-menu-params.sh`. Pendiente de integración:
    `migrate` en experience, `-u projectapp_ops`, sembrar parámetros, contratos `-m contract`.
-3. [ ] **POS**: sección Plantilla del menú con galería, personalización y vista previa.
-4. [ ] **Motor del comensal**: tokens, registro de layouts, rutas y store de pago/cuenta,
+3. [x] **POS**: sección Plantilla del menú con galería, personalización y vista previa.
+4. [x] **Motor del comensal**: tokens, registro de layouts, rutas y store de pago/cuenta,
    pantallas base (carrito/pago/cuenta genéricos), modo vista previa.
 5. [ ] **Layouts por familia** (6 agentes): 5 menús + carrito + pago + patrones de cuenta
    de la familia, fieles a los marcos; tests; captura propia con `next dev` en puerto propio.

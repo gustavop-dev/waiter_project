@@ -73,5 +73,6 @@ export function base64url(text: string): string {
 
 // Vista previa sin guardar: el comensal reemplaza la plantilla del contexto por la codificada en la URL.
 export function previewUrl(dinerUrl: string, restaurante: string, sede: string, ajustes: MenuSettings): string {
-  return `${trimSlash(dinerUrl)}/${restaurante}/${sede}/?vista_previa=${base64url(JSON.stringify(ajustes))}`
+  // La vista previa abre la carta (no la portada): es la pantalla donde la plantilla se ve de verdad.
+  return `${trimSlash(dinerUrl)}/${restaurante}/${sede}/carta/?vista_previa=${base64url(JSON.stringify(ajustes))}`
 }
