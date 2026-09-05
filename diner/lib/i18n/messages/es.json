@@ -98,8 +98,6 @@
       "split": "Dividir",
       "parts": "{n} partes de {amount}",
       "requested": "Listo. Un mesero trae la cuenta a la mesa.",
-      "payPhone": "Pagar desde el celular",
-      "soon": "pronto",
       "back": "Volver al pedido",
       "nothing": "Todavía no hay nada confirmado que cobrar.",
       "notNotified": "No pudimos avisar al salón. Llama al mesero o inténtalo de nuevo.",

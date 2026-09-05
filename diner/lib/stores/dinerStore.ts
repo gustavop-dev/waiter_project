@@ -67,7 +67,8 @@ export const useDinerStore = create<DinerState>((set, get) => {
       if (!session) return
       await run(async () => set({ cart: await removeLine(session.id, lineId) }))
     },
-    // Idempotente en el servidor: tocar dos veces devuelve el mismo pedido. Si Odoo no responde, el carrito sigue ahí.
+    // Idempotente en el servidor: tocar dos veces devuelve el mismo pedido. Si el restaurante no responde (experience
+    // devuelve el pedido como fallido), el carrito sigue ahí.
     confirm: async () => {
       const session = get().session
       if (!session) return null

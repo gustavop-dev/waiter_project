@@ -29,12 +29,13 @@ export function Status({ entry, rest, venue, token, id }: { entry: Entry; rest: 
   const order = stored && stored.id === id ? stored : null
   const settled = order !== null && SETTLED.includes(order.estado)
   // Sin id, o con el pedido perdido (404: otro celular, cookie vencida) o sin red, no hay nada que sondear: se corta y se ofrece salida.
-  const lost = !order && (!id || error !== null)
+  const [attempted, setAttempted] = useState(false)
+  const lost = !order && (!id || (attempted && error !== null))
   const atTable = entry.contexto.mesa !== null
   const go = (screen: 'carta' | 'pedido' | 'cuenta') => router.push(pathFor(rest, venue, token, screen))
   const secondary = 'h-tap-min px-[18px] rounded-rest bg-surface border border-border text-[15px] font-medium disabled:opacity-50'
 
-  useEffect(() => { if (id) void refreshOrder(id) }, [id, refreshOrder])
+  useEffect(() => { if (id) void Promise.resolve(refreshOrder(id)).finally(() => setAttempted(true)) }, [id, refreshOrder])
   useEffect(() => {
     if (!id || settled || lost) return
     const timer = setInterval(() => { void refreshOrder(id) }, POLL_MS)

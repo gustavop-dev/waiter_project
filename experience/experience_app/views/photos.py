@@ -2,7 +2,8 @@
 
 GET /api/v1/<rest>/<sede>/fotos/<id>/?v=<versión>&tam=tarjeta|plato
 - `v` llega en la URL `foto` de la carta (versión de la plantilla): cambia cuando cambia la foto, por eso la caché
-  pública puede ser larga e inmutable. El servidor no lo lee: sirve la versión que conoce la carta en caché.
+  pública puede ser larga e inmutable. Si `v` no coincide con la versión que conoce la carta en caché (carta vieja o
+  URL vieja), se sirve igual pero con `no-store`: nunca se promete inmutabilidad sobre una versión que no es la actual.
 - `tam`: `tarjeta` (por defecto, para la carta) o `plato` (más grande, para la pantalla del plato). Otro valor → 400.
 - 404 `sin foto` si el producto no está en la carta, no tiene foto, u Odoo ya no la tiene.
 """
@@ -37,5 +38,6 @@ def photo(request, restaurant, venue, product_id):
         return Response(NO_PHOTO, status=404)
     data, content_type = found
     response = HttpResponse(data, content_type=content_type)
-    response['Cache-Control'] = CACHE_CONTROL
+    requested = request.GET.get('v')
+    response['Cache-Control'] = CACHE_CONTROL if not requested or requested == product.image_version else 'no-store'
     return response

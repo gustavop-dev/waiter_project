@@ -14,7 +14,7 @@ OPEN_SESSION_STATES = ['opening_control', 'opened']
 # la pantalla del plato la muestra a ancho completo y en un móvil 3x necesita 1024 px.
 PHOTO_FIELDS = {'tarjeta': 'image_512', 'plato': 'image_1024'}
 DEFAULT_PHOTO_SIZE = 'tarjeta'
-IMAGE_SIGNATURES = [(b'\x89PNG', 'image/png'), (b'\xff\xd8', 'image/jpeg'), (b'GIF8', 'image/gif')]
+IMAGE_SIGNATURES = [(b'\x89PNG', 'image/png'), (b'\xff\xd8', 'image/jpeg'), (b'GIF8', 'image/gif'), (b'<svg', 'image/svg+xml'), (b'<?xml', 'image/svg+xml')]
 
 
 @dataclass(frozen=True)

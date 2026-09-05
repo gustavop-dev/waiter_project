@@ -88,6 +88,8 @@ POST /api/v1/sesiones/<id>/lineas          {producto_id, cantidad, nota?}
 PATCH/DELETE /api/v1/sesiones/<id>/lineas/<lid>   solo el comensal dueño
 POST /api/v1/sesiones/<id>/confirmar       → Odoo (uuid idempotente) → cocina; 503 conserva el carrito
 GET  /api/v1/pedidos/<id>                  {estado: enviado|en_cocina|listo|servido|pagado|fallido, total}
+GET  /api/v1/<rest>/<sede>/fotos/<id>/?v=&tam=   foto del plato (Plan F)
+POST /api/v1/sesiones/<id>/llamar/ · /cuenta/    llamadas al salón (Plan F)
 POST /internal/v1/carta/<rest>/<sede>/invalidar   (clave interna) vacía la caché de esa sede
 ```
 

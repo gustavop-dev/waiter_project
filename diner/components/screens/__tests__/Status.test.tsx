@@ -102,11 +102,13 @@ it('shows loading instead of a stale order from the store', () => {
 })
 
 // Falla si un pedido que no llega (404: otro celular, cookie vencida, sin red) deja "Cargando…" sin salida y sigue sondeando cada 8 s.
-it('stops polling and offers to retry or go back when the order cannot be loaded', () => {
+it('stops polling and offers to retry or go back when the order cannot be loaded', async () => {
   jest.useFakeTimers()
   mockOrder = { ...base, id: 'otro' }
   mockError = 'Error 404'
   wrap(status())
+  // El fallback aparece solo cuando la propia petición terminó (no por un error viejo del store).
+  await act(async () => { await Promise.resolve() })
   expect(screen.getByText('No encontramos ese pedido en este celular.')).toBeInTheDocument()
   act(() => { jest.advanceTimersByTime(16_000) })
   expect(mockRefreshOrder).toHaveBeenCalledTimes(1)

@@ -29,7 +29,8 @@ export function Bill({ entry, rest, venue, token }: { entry: Entry; rest: string
 
   // Se pide al montar (y al reintentar) y se muestra solo la respuesta fresca: nunca la cuenta de una visita anterior.
   const load = useCallback(() => askBill().then((fresh) => { if (fresh) { setBill(fresh); setParts(clampParts(fresh.partes)) } }), [askBill])
-  useEffect(() => { void load() }, [load])
+  const [attempted, setAttempted] = useState(false)
+  useEffect(() => { void Promise.resolve(load()).finally(() => setAttempted(true)) }, [load])
 
   const back = () => router.push(order ? pathFor(rest, venue, token, 'estado', order.id) : pathFor(rest, venue, token, 'pedido'))
   const backLink = <button type="button" onClick={back} className="h-tap-min rounded-rest text-[15px] font-medium text-brand">{t('back')}</button>
@@ -37,7 +38,7 @@ export function Bill({ entry, rest, venue, token }: { entry: Entry; rest: string
 
   // Sin cuenta y con error (sin red, sesión caída): se dice y se deja reintentar, nunca "Cargando…" sin salida.
   if (!bill) {
-    const failed = !busy && error !== null
+    const failed = attempted && !busy && error !== null
     return (
       <div className="px-[18px] pt-[22px] flex flex-col gap-3">
         <p className="text-base text-soft">{failed ? tc('offline') : tc('loading')}</p>

@@ -185,6 +185,9 @@ POST /api/v1/sesiones/<id>/lineas         agrega al carrito
 PATCH/DELETE  .../lineas/<id>             modifica o quita
 POST /api/v1/sesiones/<id>/confirmar      → Odoo → cocina (idempotente)
 GET  /api/v1/pedidos/<id>                 estado del pedido
+GET  /api/v1/<rest>/<sede>/fotos/<id>/?v=<versión>&tam=tarjeta|plato   foto del plato (bytes + content-type real; 404 sin foto, 400 tamaño inválido)
+POST /api/v1/sesiones/<id>/llamar         el comensal llama al mesero (llega al salón por Odoo)
+POST /api/v1/sesiones/<id>/cuenta         pide la cuenta: todo / lo mío / dividir
 ```
 
 ## Estructura

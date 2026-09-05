@@ -12,7 +12,7 @@ import type { Entry } from '@/lib/types'
 // Plato (sistema de diseño §06): foto 4:3, nombre en la serif del restaurante, nota, cantidad y una sola acción en el color del restaurante.
 export function Dish({ entry, rest, venue, token, id }: { entry: Entry; rest: string; venue: string; token: string | null; id: string | null }) {
   const t = useTranslations('diner')
-  const { add } = useDinerStore()
+  const { add, busy } = useDinerStore()
   const [qty, setQty] = useState(1)
   const [note, setNote] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -74,7 +74,7 @@ export function Dish({ entry, rest, venue, token, id }: { entry: Entry; rest: st
         {added
           ? <Link href={menuPath} className={`h-tap text-lg ${secondary}`}>{t('dish.backToMenu')}</Link>
           : (
-            <button type="button" disabled={dish.agotado || submitting} aria-busy={submitting} onClick={() => void submit()} className="h-tap-money rounded-rest bg-brand text-brand-ink text-lg font-medium disabled:opacity-60">
+            <button type="button" disabled={dish.agotado || submitting || busy} aria-busy={submitting} onClick={() => void submit()} className="h-tap-money rounded-rest bg-brand text-brand-ink text-lg font-medium disabled:opacity-60">
               {dish.agotado ? t('common.soldOut') : submitting ? t('dish.adding') : <>{before}<span className="font-mono tabular">{amount}</span>{after}</>}
             </button>
           )}
