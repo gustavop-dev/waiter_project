@@ -16,7 +16,10 @@ load_dotenv(BASE_DIR / '.env')
 DJANGO_ENV = os.getenv('DJANGO_ENV', 'development')
 IS_PRODUCTION = DJANGO_ENV == 'production'
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'change-me')
-DEBUG = os.getenv('DJANGO_DEBUG', 'true').lower() in {'1', 'true', 'yes', 'on'}
+DEBUG = os.getenv('DJANGO_DEBUG', 'false' if IS_PRODUCTION else 'true').lower() in {'1', 'true', 'yes', 'on'}
+# Falla cerrado: en producción no arranca con el secreto de ejemplo ni con DEBUG.
+if IS_PRODUCTION and (SECRET_KEY == 'change-me' or len(SECRET_KEY) < 50 or DEBUG):
+    raise RuntimeError('DJANGO_SECRET_KEY real (>=50 caracteres) y DJANGO_DEBUG=false son obligatorios en producción')
 ALLOWED_HOSTS = [h.strip() for h in os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',') if h.strip()]
 
 INSTALLED_APPS = [
