@@ -187,7 +187,107 @@
     },
     "templates": {
       "preview": "Vista previa · {code} · sin guardar",
-      "photo": "Foto del plato"
+      "photo": "Foto del plato",
+      "familiaA": {
+        "searchOpen": "Buscar",
+        "searchClose": "Cerrar búsqueda",
+        "yourOrder": "Tu pedido",
+        "see": "Ver · {n}",
+        "seeOrder": "Ver el pedido",
+        "dishes": "{n, plural, one {# plato} other {# platos}}",
+        "orderLine": "Tu pedido · {n, plural, one {# plato} other {# platos}} · $ {amount}",
+        "sections": "Secciones",
+        "attr": {
+          "pieces": "{n, plural, one {# pieza} other {# piezas}}",
+          "spicy": "Picante",
+          "onlyToday": "Solo hoy",
+          "abv": "{abv}% ABV",
+          "ibu": "IBU {ibu}",
+          "contains": "Contiene: {list}"
+        },
+        "cart": {
+          "subtotal": "Subtotal",
+          "total": "Total",
+          "mine": "Lo mío",
+          "byOther": "Pedido por otro comensal",
+          "editHint": "Toca un plato para cambiar la cantidad o quitarlo.",
+          "qtyOf": "{n} × {amount}",
+          "upsellTitle": "¿Algo para cerrar?",
+          "upsellSub": "{waiter} sugiere postre o café · desde {amount}",
+          "upsellSubNoWaiter": "Postre o café · desde {amount}",
+          "kitchenNote": "Puedes seguir pidiendo hasta que cierres la cuenta.",
+          "pct": "{pct}%",
+          "banner5Applied": "Primera compra: descuento aplicado.",
+          "chipDiscount": "−{pct}% aplicado",
+          "chipTax": "IVA incluido",
+          "includesDiscount": "Incluye tu {pct}% de primera compra"
+        },
+        "pay": {
+          "totalToPay": "Total a pagar",
+          "confirmTitle": "Confirmar y pagar",
+          "confirmSub": "{n, plural, one {# plato} other {# platos}} · mesa {table}",
+          "confirmSubNoTable": "{n, plural, one {# plato} other {# platos}}",
+          "products": "Productos",
+          "discount": "Descuento {pct}%",
+          "total": "Total",
+          "tokenized": "Tokenizado por la pasarela. Waiter no ve tu tarjeta.",
+          "invoiceNote": "Enviaremos la factura electrónica a tu correo al confirmar el pago."
+        }
+      },
+      "A2": {
+        "perPerson": "por persona",
+        "allergies": "Cuéntanos alergias antes de empezar: la cocina ajusta los pasos.",
+        "reserve": "Reservar el menú",
+        "reserveSoldOut": "Menú agotado por hoy",
+        "steps": "Pasos del menú",
+        "menus": "Menús",
+        "noSteps": "Este menú no tiene pasos por ahora."
+      },
+      "A3": {
+        "filter": "Filtrar",
+        "filterClose": "Cerrar filtro",
+        "sommelier": "Pedir sumiller",
+        "called": "Listo, ya viene alguien.",
+        "callFailed": "No pudimos avisar. Inténtalo de nuevo."
+      },
+      "A4": {
+        "add": "Añadir",
+        "more": "Más de la carta",
+        "show": "Ver ficha: {name}"
+      },
+      "A5": {
+        "title": "La carta",
+        "subtitle": "Toca una sección para abrirla",
+        "count": "{n, plural, one {# plato} other {# platos}}",
+        "back": "La carta",
+        "results": "Resultados de la búsqueda"
+      },
+      "portada": {
+        "title": "Tu primera vez en {brand}",
+        "titleNoBrand": "Tu primera vez aquí",
+        "phrase": "Déjanos tu correo y aplicamos el descuento ya.",
+        "noPassword": "Sin contraseña: te enviamos un código cada vez que entres.",
+        "haveAccount": "Ya tengo cuenta",
+        "haveAccountHint": "Escribe el mismo correo: te enviamos un código y entras con tu cuenta.",
+        "skip": "Seguir sin registrarme"
+      },
+      "revisaCorreo": {
+        "title": "Revisa tu correo",
+        "once": "El código sirve una sola vez y solo en este teléfono. Si es la tablet del local, la sesión se cierra al pagar.",
+        "fixEmail": "Corregir mi correo"
+      },
+      "tablaCufe": {
+        "date": "Fecha",
+        "order": "Pedido",
+        "total": "Total",
+        "cufe": "CUFE disponible",
+        "pending": "Factura pendiente",
+        "items": "{n, plural, one {# ítem} other {# ítems}} · mesa {table}",
+        "itemsNoTable": "{n, plural, one {# ítem} other {# ítems}}",
+        "more": "{name} +{n}",
+        "reorder": "Volver a pedir",
+        "reorderHint": "Vuelve a pedir tu último pedido en esta mesa."
+      }
     },
     "status": {
       "title": "Tu pedido",
