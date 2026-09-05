@@ -36,7 +36,8 @@ export function FamilyCPay({ bill, template, methods, onPay, state, demo, goBack
   const border = code === 'C4' ? 'border-t-tinta/28' : 'border-t-borde'
   const shell = `flex flex-col text-t-tinta border-b ${border}`
   const ctaText = dark ? 't-title text-[24px] leading-none' : 'text-[17px] font-bold tracking-[-0.02em]'
-  const cta = `w-full h-16 ${code === 'C2' ? 'rounded-t-boton h-[60px]' : 'rounded-[8px]'} bg-t-acento text-t-acento-tinta ${ctaText} disabled:opacity-60`
+  // CTA del marco: 64 px radio 8 (C1, C3, C4, C5); C2 lo dibuja de 60 px con el radio de botón de la plantilla.
+  const cta = `w-full ${code === 'C2' ? 'h-[60px] rounded-t-boton' : 'h-16 rounded-[8px]'} bg-t-acento text-t-acento-tinta ${ctaText} disabled:opacity-60`
   const secondary = `h-14 rounded-t-boton bg-t-superficie border ${border} text-[16px] font-medium text-t-tinta`
   const foot = `sticky bottom-0 px-[18px] py-3.5 border-t ${border} bg-t-superficie flex flex-col gap-2.5`
   const field = `h-[52px] w-full rounded-[10px] bg-t-fondo border ${border} px-3.5 font-t-mono text-[16px] text-t-tinta placeholder:text-t-tinta-terciaria focus:outline-none focus:border-t-acento`
@@ -97,10 +98,11 @@ export function FamilyCPay({ bill, template, methods, onPay, state, demo, goBack
     const option = `h-14 px-4 rounded-t-boton border ${border} bg-t-superficie text-left text-[16px] font-medium text-t-tinta flex items-center justify-between`
     return (
       <div className={`${shell} px-[18px] py-4 gap-3.5`}>
-        <div role="alert" className="rounded-t-tarjeta bg-busy-soft border border-[#EBC7C4] p-4 flex gap-3">
+        {/* La caja lleva su propio fondo (rojo suave fijo de Waiter): se lee igual sobre las pieles oscuras y las claras. */}
+        <div role="alert" className="rounded-t-tarjeta bg-busy-soft border border-busy/25 p-4 flex gap-3">
           <span aria-hidden="true" className="w-7 h-7 shrink-0 rounded-full bg-busy text-white grid place-items-center font-bold">!</span>
           <div className="flex flex-col gap-1">
-            <h1 className="text-[18px] font-bold text-[#7E1C18] leading-tight">{t('declined')}</h1>
+            <h1 className="text-[18px] font-bold text-busy-ink leading-tight">{t('declined')}</h1>
             <p className="text-[15px] text-busy-ink">{t('declinedHint')}</p>
           </div>
         </div>
@@ -168,12 +170,10 @@ export function FamilyCPay({ bill, template, methods, onPay, state, demo, goBack
 
   if (code === 'C3') {
     const chip = (m: PayMethod) => `shrink-0 h-[42px] px-[13px] rounded-t-chip text-[14px] ${method === m ? 'bg-t-acento text-t-acento-tinta font-medium' : 'border border-t-borde text-t-tinta-suave'}`
+    // El marco C3 empieza directamente en los chips de método: el total solo va en el CTA. El título queda para el lector de pantalla.
     return (
       <div className={shell}>
-        <div className="flex items-baseline justify-between gap-3 px-[18px] pt-4">
-          <h1 className="t-title text-[19px] leading-tight">{t('title')}</h1>
-          <span className="font-t-mono tabular text-[20px]">{money(bill.total)}</span>
-        </div>
+        <h1 className="sr-only">{t('title')} · {money(bill.total)}</h1>
         <div role="radiogroup" aria-label={t('methods')} className="px-[18px] py-2.5 border-b border-t-borde flex gap-[7px] overflow-x-auto [scrollbar-width:none]">
           {methods.map((m) => <button key={m} type="button" role="radio" aria-checked={method === m} onClick={() => setMethod(m)} className={chip(m)}>{t(`method.${m}`)}</button>)}
         </div>

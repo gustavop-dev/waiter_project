@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { useRef, useState } from 'react'
 
-import { DishPhoto, EmptyList, SearchField, extrasOf, footClass, price } from '@/components/templates/families/C/parts'
+import { DishPhoto, EmptyList, FOOT_CLASS, SearchField, extrasOf, price } from '@/components/templates/families/C/parts'
 import { CategoryTabs, tabId, useMenuDishes } from '@/components/templates/generic/menuParts'
 import type { MenuLayoutProps } from '@/components/templates/types'
 import type { Dish } from '@/lib/types'
@@ -15,7 +15,7 @@ import type { Dish } from '@/lib/types'
 // carrusel con scroll-snap (se pasa deslizando, o con ‹ › de 44 px sobre la foto); el buscador y las categorías de Waiter van
 // encima del marco. Tocar la foto o el nombre abre la ficha (onOpen). onAdd solo recibe el plato: con cantidad n se llama n veces
 // y el tamaño elegido no viaja (el motor no lo admite todavía); se anota en el comentario y no se inventa nada.
-export function C2Menu({ entry, query, setQuery, category, setCategory, onOpen, onAdd, cart }: MenuLayoutProps) {
+export function C2Menu({ entry, query, setQuery, category, setCategory, onOpen, onAdd }: MenuLayoutProps) {
   const t = useTranslations('diner')
   const tc = useTranslations('diner.templates.C2')
   const categories = entry.carta.categorias
@@ -78,7 +78,7 @@ export function C2Menu({ entry, query, setQuery, category, setCategory, onOpen, 
                       <div role="radiogroup" aria-label={tc('sizes')} className="px-5 pt-3 flex gap-2">
                         {own.map((s, si) => {
                           const on = active && isSelectedSize(si, own.length)
-                          return <button key={s.nombre} type="button" role="radio" aria-checked={on} tabIndex={active ? 0 : -1} onClick={() => setSize(si)} className={`flex-1 h-[52px] rounded-[10px] text-[15px] ${on ? 'bg-dark text-white font-medium' : 'border border-t-borde text-t-tinta'}`}>{s.nombre}</button>
+                          return <button key={s.nombre} type="button" role="radio" aria-checked={on} tabIndex={active ? 0 : -1} onClick={() => setSize(si)} className={`flex-1 h-[52px] rounded-[10px] text-[15px] ${on ? 'bg-t-tinta text-t-fondo font-medium' : 'border border-t-borde text-t-tinta'}`}>{s.nombre}</button>
                         })}
                       </div>
                     )}
@@ -106,7 +106,7 @@ export function C2Menu({ entry, query, setQuery, category, setCategory, onOpen, 
         )}
       </section>
       {current && (
-        <div className={`${footClass(cart)} px-5 py-3.5 border-t border-t-borde bg-t-fondo flex items-center gap-2.5`}>
+        <div className={`${FOOT_CLASS} px-5 py-3.5 border-t border-t-borde bg-t-fondo flex items-center gap-2.5`}>
           <div role="group" aria-label={t('dish.qty')} className="flex items-center border border-t-borde rounded-[10px] overflow-hidden shrink-0">
             <button type="button" aria-label={t('dish.fewer')} onClick={() => setQty(Math.max(1, qty - 1))} className="w-11 h-12 grid place-items-center text-[19px] text-t-tinta-suave">−</button>
             <span className="w-10 text-center font-t-mono tabular text-[17px]">{qty}</span>

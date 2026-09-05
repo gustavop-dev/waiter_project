@@ -40,13 +40,15 @@ it('accumulates the running price, opens the chosen option on a second tap and a
   expect(p.setCategory).toHaveBeenCalledWith(1)
 })
 
-// Falla si los segmentos de progreso no saltan de paso, si la búsqueda no filtra las opciones del paso, o si el pie no se levanta con ítems.
-it('jumps steps from the progress segments, filters options with the search and lifts the foot', () => {
+// Falla si los segmentos de progreso no saltan de paso, si la búsqueda no filtra las opciones del paso, o si el pie vuelve a levantarse
+// para esquivar una barra de Waiter que la página ya no pinta sobre este layout.
+it('jumps steps from the progress segments, filters options with the search and keeps the foot at the bottom', () => {
   const p = menuProps('C3', { query: 'doble', cart: cartOf([line({})]) })
   wrap(<C3Menu {...p} />)
   fireEvent.click(screen.getByRole('tab', { name: 'Paso 2: Bebidas' }))
   expect(p.setCategory).toHaveBeenCalledWith(2)
   expect(screen.getByRole('button', { name: /Doble carne/ })).toBeInTheDocument()
   expect(screen.queryByRole('button', { name: /Burger/ })).toBeNull()
-  expect(screen.getByRole('button', { name: 'Siguiente' }).parentElement).toHaveClass('bottom-[92px]')
+  expect(screen.getByRole('button', { name: 'Siguiente' }).parentElement).toHaveClass('sticky', 'bottom-0')
+  expect(screen.getByRole('button', { name: 'Siguiente' }).parentElement).not.toHaveClass('bottom-[92px]')
 })

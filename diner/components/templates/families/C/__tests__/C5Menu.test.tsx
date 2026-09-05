@@ -30,6 +30,7 @@ it('opens the menu grid behind «Seguir pidiendo» with search, tabs, add and op
   expect(toggle).toHaveAttribute('aria-expanded', 'false')
   fireEvent.click(toggle)
   expect(toggle).toHaveAttribute('aria-expanded', 'true')
+  expect(toggle.parentElement).toHaveClass('sticky', 'bottom-0')
   expect(screen.getByRole('searchbox', { name: 'Buscar un plato' })).toBeInTheDocument()
   expect(screen.getByRole('tab', { name: 'Bebidas' })).toBeInTheDocument()
   expect(screen.getAllByRole('article')).toHaveLength(7)

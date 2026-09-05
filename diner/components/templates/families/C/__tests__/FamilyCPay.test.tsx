@@ -35,11 +35,16 @@ it('base skin: total band, method rows, local card form, demo badge and the mone
   expect(p.onPay).toHaveBeenLastCalledWith('pse')
 })
 
-// Falla si C3 no cambia a chips de método con el formulario debajo, si efectivo no manda al mesero, o si sin cuenta no invita al 5 %.
-it('C3 skin: method chips over the card form, cash goes to the table and the signup hook shows without account', () => {
+// Falla si C3 no cambia a chips de método con el formulario debajo, si vuelve a pintar una cabecera «Pagar · total» que el marco no
+// tiene (el total solo va en el CTA; el título queda para el lector de pantalla), si efectivo no manda al mesero, o si sin cuenta no
+// invita al 5 %.
+it('C3 skin: method chips over the card form, no visible header, cash goes to the table and the signup hook shows without account', () => {
   const p = props('C3', { bill: { ...bill, descuento: { porcentaje: 5, monto: 0, aplicable: true, aplicado: false } } })
   wrap(<FamilyCPay {...p} />)
   expect(screen.getByRole('radio', { name: 'Tarjeta', checked: true })).toHaveClass('rounded-t-chip')
+  expect(screen.getByRole('heading', { level: 1 })).toHaveClass('sr-only')
+  expect(screen.getAllByText(/91\.865/)).toHaveLength(2)
+  expect(screen.getByRole('button', { name: 'Pagar $ 91.865' })).toHaveClass('h-16', 'rounded-[8px]')
   expect(screen.getByRole('switch', { name: 'Guardar para la próxima visita' })).toHaveAttribute('aria-checked', 'true')
   fireEvent.click(screen.getByRole('button', { name: /Identifícate y ahorra 5%/ }))
   expect(p.onSignup).toHaveBeenCalledTimes(1)
@@ -69,6 +74,8 @@ it('paints the three outcome states in the family skin', () => {
   const declined = props('C2', { state: 'declined' })
   wrap(<FamilyCPay {...declined} />)
   expect(screen.getByRole('alert')).toHaveTextContent('No se hizo ningún cobro. Tu pedido sigue guardado.')
+  expect(screen.getByRole('alert')).toHaveClass('bg-busy-soft', 'border-busy/25')
+  expect(screen.getByRole('heading', { level: 1, name: 'Tu banco no autorizó el pago' })).toHaveClass('text-busy-ink')
   fireEvent.click(screen.getByRole('button', { name: /Intentar con otra tarjeta/ }))
   fireEvent.click(screen.getByRole('button', { name: /Que el mesero cobre en la mesa/ }))
   expect(declined.onRetry).toHaveBeenCalledTimes(1)

@@ -67,7 +67,7 @@ export function GenericCode({ email, onVerify, onResend, onOtherChannel, onBack,
       </div>
       {resent && <p role="status" className="text-[14px] text-free-ink">{t('resent')}</p>}
       {otherChannel && <p role="status" className="text-[14px] text-t-tinta-suave">{t('otherChannelHint')}</p>}
-      <p className="px-3.5 py-2.5 rounded-t-boton bg-muted text-[13px] leading-snug text-t-tinta-suave">{t('keep')}</p>
+      <p className="px-3.5 py-2.5 rounded-t-boton bg-t-superficie border border-t-borde text-[13px] leading-snug text-t-tinta-suave">{t('keep')}</p>
       <p className="px-3.5 py-2.5 rounded-t-boton border border-t-borde text-[13px] leading-snug text-t-tinta-suave">{t('spam')}</p>
       <p className="text-[12px] text-t-tinta-terciaria">{t('once')} {t('demo')}</p>
       {error && <p role="alert" className="px-3.5 py-2.5 rounded-t-boton bg-busy-soft text-busy-ink text-[15px]">{error}</p>}

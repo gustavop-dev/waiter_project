@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
-import { DishPhoto, EmptyList, SearchField, extrasOf, footClass, price } from '@/components/templates/families/C/parts'
+import { DishPhoto, EmptyList, FOOT_CLASS, SearchField, extrasOf, price } from '@/components/templates/families/C/parts'
 import { CategoryTabs, TemplateDishCard, tabId, useMenuDishes } from '@/components/templates/generic/menuParts'
 import type { MenuLayoutProps } from '@/components/templates/types'
 import { itemCount } from '@/lib/domain/cart'
@@ -75,7 +75,7 @@ export function C5Menu({ entry, query, setQuery, category, setCategory, onOpen, 
           </div>
         </section>
       )}
-      <div className={`${footClass(cart)} px-[18px] py-3.5 border-t border-t-borde bg-t-fondo flex gap-2.5`}>
+      <div className={`${FOOT_CLASS} px-[18px] py-3.5 border-t border-t-borde bg-t-fondo flex gap-2.5`}>
         <button type="button" aria-expanded={showMenu} aria-controls="c5-menu" onClick={() => setOpen((o) => !o)} className="flex-1 h-[60px] rounded-t-boton border border-t-borde text-[16px] font-medium">{tc('keepOrdering')}</button>
         <Link href={orderBarHref} className="flex-[1.3] h-[60px] rounded-t-boton bg-t-acento text-t-acento-tinta text-[17px] font-bold grid place-items-center">{tc('pay')}</Link>
       </div>
