@@ -37,7 +37,7 @@ it('saves settings, creates a user and reads floors with tables', async () => {
   const [cfg] = await callKw<{ alert_late_minutes: number }[]>('pos.config', 'read', [[settings.configId], ['alert_late_minutes']])
   expect(cfg.alert_late_minutes).toBe(19)
   await saveSettings(settings)
-  const userId = await createUser({ name: 'Mesero Contrato', login: `contrato-${Date.now()}`, password: 'Prueba-1234' })
+  const userId = await createUser({ name: 'Mesero Contrato', login: `contrato-${Date.now()}`, password: 'Prueba-1234', role: 'waiter' })
   await callKw('res.users', 'write', [[userId], { active: false }])
   const floors = await listFloors()
   expect(floors[0].tables.length).toBeGreaterThan(0)

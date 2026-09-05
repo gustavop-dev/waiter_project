@@ -1,13 +1,15 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
+import { allowedPath } from '@/lib/domain/roles'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
 
 export default function PosLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
+  const pathname = usePathname()
   const { user, session, hydrated, hydrate } = useAuthStore()
   const load = useCatalogStore((s) => s.load)
 
@@ -19,9 +21,11 @@ export default function PosLayout({ children }: { children: React.ReactNode }) {
     // Sin usuario: login. Con usuario pero sin caja abierta: abrir caja (no es un error, es el inicio del turno).
     if (!user) { router.replace('/login'); return }
     if (!session) { router.replace('/caja'); return }
+    // Rol: una pantalla que no le toca lo devuelve al salón, sin pantalla de error.
+    if (!allowedPath(user.role, pathname)) { router.replace('/salon'); return }
     void load(session.id)
-  }, [hydrated, user, session, router, load])
+  }, [hydrated, user, session, pathname, router, load])
 
-  if (!hydrated || !session) return null
+  if (!hydrated || !session || !user || !allowedPath(user.role, pathname)) return null
   return <>{children}</>
 }

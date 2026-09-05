@@ -10,7 +10,8 @@ import { SaveBar, ThresholdsForm, useSaveState } from '@/components/settings/Set
 import { Button } from '@/components/ui/Button'
 import { Select, TextInput, Toggle } from '@/components/ui/Field'
 import { play, setStation, type SoundId, type Station } from '@/lib/audio/sounds'
-import { createUser, getCompany, listFloors, listPaymentMethods, listTaxes, listUsers, saveCompany, saveFloor, saveSettings, saveTable, type CompanyInfo, type FloorInfo, type PaymentMethodInfo, type TaxInfo, type UserInfo } from '@/lib/services/settings'
+import { ROLES, type Role } from '@/lib/domain/roles'
+import { createUser, getCompany, listFloors, listPaymentMethods, listTaxes, listUsers, saveCompany, saveFloor, saveSettings, saveTable, setUserRole, type CompanyInfo, type FloorInfo, type PaymentMethodInfo, type TaxInfo, type UserInfo } from '@/lib/services/settings'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
 import { cn } from '@/lib/utils'
@@ -61,18 +62,28 @@ function FloorsForm({ floors, configId, onChanged }: { floors: FloorInfo[]; conf
 
 function UsersForm({ users, onChanged }: { users: UserInfo[]; onChanged: () => Promise<void> }) {
   const t = useTranslations('pos.settings.users')
-  const [u, setU] = useState({ name: '', login: '', password: '' })
+  const roles = useTranslations('pos.nav.roles')
+  const [u, setU] = useState<{ name: string; login: string; password: string; role: Role }>({ name: '', login: '', password: '', role: 'waiter' })
   const [state, save] = useSaveState()
   return (
     <div className="flex flex-col gap-5">
       <div className="rounded-[18px] bg-surface border border-[#E9E2D7] overflow-hidden">
-        {users.map((x) => <div key={x.id} className="flex justify-between px-5 py-3.5 border-b border-[#F3EFE8] text-[15px]"><span className="font-medium">{x.name} <span className="text-soft font-normal">· {x.login}</span></span><span className="text-soft">{t('lastLogin')}: {x.lastLogin ? x.lastLogin.slice(0, 10) : t('never')}</span></div>)}
+        {users.map((x) => (
+          <div key={x.id} className="flex items-center justify-between gap-3 px-5 py-3 border-b border-[#F3EFE8] text-[15px]">
+            <span className="font-medium">{x.name} <span className="text-soft font-normal">· {x.login}</span></span>
+            <span className="flex items-center gap-3"><span className="text-soft">{t('lastLogin')}: {x.lastLogin ? x.lastLogin.slice(0, 10) : t('never')}</span>
+              <select aria-label={`${t('role')}: ${x.name}`} value={x.role} onChange={async (e) => { await setUserRole(x.id, e.target.value as Role); await onChanged() }} className="h-tap-min px-3 rounded-[10px] border border-border bg-surface text-[15px]">
+                {ROLES.map((r) => <option key={r} value={r}>{roles(r)}</option>)}
+              </select></span>
+          </div>
+        ))}
       </div>
       <div className="flex flex-col gap-3 max-w-md">
         <TextInput label={t('name')} value={u.name} onChange={(e) => setU((v) => ({ ...v, name: e.target.value }))} />
         <TextInput label={t('login')} value={u.login} onChange={(e) => setU((v) => ({ ...v, login: e.target.value }))} />
-        <TextInput label={t('password')} type="password" value={u.password} onChange={(e) => setU((v) => ({ ...v, password: e.target.value }))} hint={t('hint')} />
-        <SaveBar state={state} onSave={() => save(async () => { await createUser(u); setU({ name: '', login: '', password: '' }); await onChanged() })} disabled={!u.name.trim() || !u.login.trim() || u.password.length < 8} />
+        <TextInput label={t('password')} type="password" value={u.password} onChange={(e) => setU((v) => ({ ...v, password: e.target.value }))} />
+        <Select label={t('role')} hint={t('roleHint')} value={u.role} onChange={(e) => setU((v) => ({ ...v, role: e.target.value as Role }))}>{ROLES.map((r) => <option key={r} value={r}>{roles(r)}</option>)}</Select>
+        <SaveBar state={state} onSave={() => save(async () => { await createUser(u); setU({ name: '', login: '', password: '', role: 'waiter' }); await onChanged() })} disabled={!u.name.trim() || !u.login.trim() || u.password.length < 8} />
       </div>
     </div>
   )

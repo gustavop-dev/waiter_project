@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 
 import { Money } from '@/components/ui/Money'
+import { navFor, type Role } from '@/lib/domain/roles'
 import type { ShiftSummary } from '@/lib/services/orders'
 import { cn } from '@/lib/utils'
 
@@ -25,10 +26,10 @@ export function initials(name: string): string {
 
 interface Props {
   active: NavItem; restaurant?: string; shift?: ShiftSummary | null; userName?: string
-  badges?: Partial<Record<NavItem, NavBadge>>; subnav?: { label: string; items: SubNavItem[] }; autonomy?: Autonomy | null
+  badges?: Partial<Record<NavItem, NavBadge>>; subnav?: { label: string; items: SubNavItem[] }; autonomy?: Autonomy | null; role?: Role
 }
 
-export function Sidebar({ active, restaurant = '', shift = null, userName = '', badges = {}, subnav, autonomy = null }: Props) {
+export function Sidebar({ active, restaurant = '', shift = null, userName = '', badges = {}, subnav, autonomy = null, role = 'admin' }: Props) {
   const t = useTranslations('pos')
   const itemClass = 'flex items-center justify-between h-12 px-3 rounded-[10px] text-base'
   return (
@@ -41,7 +42,7 @@ export function Sidebar({ active, restaurant = '', shift = null, userName = '', 
         </div>
       </div>
       <nav className="flex flex-col gap-[3px]">
-        {NAV_ITEMS.map((item) => {
+        {NAV_ITEMS.filter((item) => navFor(role).includes(item)).map((item) => {
           const badge = badges[item]
           return (
             <Link key={item} href={ROUTES[item]} className={cn(itemClass, item === active ? 'bg-brand-500 text-ink font-bold' : 'hover:bg-sidebar-hover hover:text-sidebar-ink')}>
@@ -76,7 +77,7 @@ export function Sidebar({ active, restaurant = '', shift = null, userName = '', 
         {userName && (
           <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-[10px] bg-sidebar-raised">
             <span className="w-[34px] h-[34px] rounded-full bg-[#3A342E] text-sidebar-ink grid place-items-center text-sm font-medium">{initials(userName)}</span>
-            <div className="flex flex-col leading-tight"><span className="text-[15px] text-sidebar-ink">{userName}</span><span className="text-[13px] text-sidebar-dim">{t('nav.role')}</span></div>
+            <div className="flex flex-col leading-tight"><span className="text-[15px] text-sidebar-ink">{userName}</span><span className="text-[13px] text-sidebar-dim">{t(`nav.roles.${role}`)}</span></div>
           </div>
         )}
       </div>

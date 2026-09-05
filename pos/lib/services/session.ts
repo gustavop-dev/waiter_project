@@ -1,6 +1,8 @@
 import { callKw, jsonRpc } from '@/lib/services/odoo'
 
-export interface AuthUser { uid: number; name: string; companyId: number }
+import type { Role } from '@/lib/domain/roles'
+
+export interface AuthUser { uid: number; name: string; companyId: number; role: Role }
 export interface PosSession { id: number; configId: number; state: 'opened' | 'opening_control' }
 
 interface RawSession { id: number; config_id: [number, string]; state: PosSession['state'] }
@@ -12,14 +14,20 @@ const OPEN_STATES = ['opened', 'opening_control']
 
 export async function login(loginName: string, password: string): Promise<AuthUser> {
   const raw = await jsonRpc<RawAuth>('/web/session/authenticate', { db: DB, login: loginName, password })
-  return { uid: raw.uid, name: raw.name, companyId: raw.user_companies.current_company }
+  return { uid: raw.uid, name: raw.name, companyId: raw.user_companies.current_company, role: await roleOf(raw.uid) }
 }
 
 // Quién está logueado según la cookie (HttpOnly: solo Odoo lo sabe). null si no hay sesión.
 export async function currentUser(): Promise<AuthUser | null> {
   const raw = await jsonRpc<RawInfo>('/web/session/get_session_info', {})
   if (!raw.uid) return null
-  return { uid: raw.uid, name: raw.name ?? '', companyId: raw.user_companies?.current_company ?? 0 }
+  return { uid: raw.uid, name: raw.name ?? '', companyId: raw.user_companies?.current_company ?? 0, role: await roleOf(raw.uid) }
+}
+
+// El rol lo pone el addon projectapp_ops en res.users; un usuario siempre puede leer el suyo.
+async function roleOf(uid: number): Promise<Role> {
+  const [row] = await callKw<{ waiter_role: Role | false }[]>('res.users', 'read', [[uid], ['waiter_role']])
+  return row.waiter_role || 'waiter'
 }
 
 export function logout(): Promise<void> {

@@ -10,9 +10,10 @@ beforeEach(() => { mockCallKw.mockReset(); mockRpc.mockReset() })
 // Falla si el login deja de mandar la base de datos: con dos bases Odoo responde 404.
 it('authenticates against the configured database and maps the user', async () => {
   mockRpc.mockResolvedValue({ uid: 2, name: 'Mitchell Admin', user_companies: { current_company: 1 } })
+  mockCallKw.mockResolvedValueOnce([{ waiter_role: 'admin' }])
   const user = await login('admin', 'admin')
   expect(mockRpc).toHaveBeenCalledWith('/web/session/authenticate', { db: 'projectapp', login: 'admin', password: 'admin' })
-  expect(user).toEqual({ uid: 2, name: 'Mitchell Admin', companyId: 1 })
+  expect(user).toEqual({ uid: 2, name: 'Mitchell Admin', companyId: 1, role: 'admin' })
 })
 
 // Falla si se toma como abierta una sesión en estado closed.

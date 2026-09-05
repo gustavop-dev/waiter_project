@@ -1,9 +1,10 @@
 import { callKw } from '@/lib/services/odoo'
+import type { Role } from '@/lib/domain/roles'
 import type { Settings } from '@/lib/types'
 
 export interface CompanyInfo { id: number; name: string; vat: string; phone: string; email: string; street: string; city: string }
 export interface FloorInfo { id: number; name: string; tables: { id: number; number: number; seats: number; active: boolean }[] }
-export interface UserInfo { id: number; name: string; login: string; lastLogin: string | null }
+export interface UserInfo { id: number; name: string; login: string; lastLogin: string | null; role: Role }
 export interface PaymentMethodInfo { id: number; name: string; type: string }
 export interface TaxInfo { id: number; name: string; amount: number }
 
@@ -50,12 +51,17 @@ export async function listTaxes(): Promise<TaxInfo[]> {
 }
 
 export async function listUsers(): Promise<UserInfo[]> {
-  const rows = await callKw<{ id: number; name: string; login: string; login_date: string | false }[]>('res.users', 'search_read', [[['share', '=', false]], ['name', 'login', 'login_date']], { order: 'name asc' })
-  return rows.map((r) => ({ id: r.id, name: r.name, login: r.login, lastLogin: r.login_date || null }))
+  const rows = await callKw<{ id: number; name: string; login: string; login_date: string | false; waiter_role: Role | false }[]>('res.users', 'search_read', [[['share', '=', false]], ['name', 'login', 'login_date', 'waiter_role']], { order: 'name asc' })
+  return rows.map((r) => ({ id: r.id, name: r.name, login: r.login, lastLogin: r.login_date || null, role: r.waiter_role || 'waiter' }))
 }
 
-export async function createUser(u: { name: string; login: string; password: string }): Promise<number> {
-  return callKw<number>('res.users', 'create', [{ name: u.name, login: u.login, password: u.password }])
+export async function createUser(u: { name: string; login: string; password: string; role: Role }): Promise<number> {
+  return callKw<number>('res.users', 'create', [{ name: u.name, login: u.login, password: u.password, waiter_role: u.role }])
+}
+
+// Cambiar el rol reasigna los grupos de Odoo (lo hace el addon).
+export async function setUserRole(id: number, role: Role): Promise<void> {
+  await callKw('res.users', 'write', [[id], { waiter_role: role }])
 }
 
 export async function saveSettings(s: Settings): Promise<void> {
