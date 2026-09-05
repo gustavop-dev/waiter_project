@@ -186,9 +186,45 @@ PATCH/DELETE  .../lineas/<id>             modifica o quita
 POST /api/v1/sesiones/<id>/confirmar      → Odoo → cocina (idempotente)
 GET  /api/v1/pedidos/<id>                 estado del pedido
 GET  /api/v1/<rest>/<sede>/fotos/<id>/?v=<versión>&tam=tarjeta|plato   foto del plato (bytes + content-type real; 404 sin foto, 400 tamaño inválido)
+GET  /api/v1/<rest>/<sede>/logo/?v=<versión>                            logo del restaurante (brand_logo de Odoo; solo ráster, 404 si no hay o no es PNG/JPEG/GIF)
 POST /api/v1/sesiones/<id>/llamar         el comensal llama al mesero (llega al salón por Odoo)
 POST /api/v1/sesiones/<id>/cuenta         pide la cuenta: todo / lo mío / dividir
 ```
+
+`fotos/` y `logo/` comparten las mismas defensas: se sirve solo lo que los
+bytes dicen ser (PNG/JPEG/GIF por *sniff*; un SVG ⇒ 404 porque desde el
+origen de la API permitiría XSS), `X-Content-Type-Options: nosniff`, CSP
+`default-src 'none'; sandbox`, `Content-Disposition: inline`, y
+`Cache-Control` inmutable cuando `v` coincide con la versión actual y
+`no-store` cuando no. La versión del logo es el `write_date` de `res.company`
+compactado (`YYYYMMDDhhmmss`); la de las fotos, la del producto.
+
+## Marca: precedencia Odoo > registro
+
+`contexto.marca` se arma con dos fuentes (ADR
+[la marca se edita desde el POS](../decisiones/2026-09-05-marca-desde-el-pos.md)):
+
+1. **Odoo, `res.company`** (campos `brand_*` del addon `projectapp_ops`, sin
+   vistas): lo que el administrador del restaurante edita en Configuración ›
+   Marca del POS. El nombre es `res.company.name`.
+2. **El registro central** (`Restaurant.brand_*`, `tagline`, `greeting`,
+   `waiter_name`, `logo_url`): el valor **inicial** que ProjectApp deja en el
+   onboarding.
+
+La regla es **campo a campo**: un valor no vacío en Odoo gana; un campo vacío
+en Odoo cae al registro. Sobre el color final se deriva el tema
+(`colorTexto`, `colorSuave`, `contraste`) con las mismas reglas que
+`registry/registry_app/utils/brand.py` (tinta blanca o `#1A1815` según
+contraste ≥ 4.5, suave = mezcla al 10 % sobre blanco, seis fuentes curadas,
+radios 4 | 14 | 24); un test de paridad en `experience/` impide que las dos
+copias diverjan. `logo` es la URL relativa de `logo/` (con `v`) si hay
+`brand_logo` en Odoo; si no, `logo_url` del registro o `null`.
+
+La marca se cachea `settings.BRAND_CACHE_SECONDS` (env `BRAND_CACHE_SECONDS`,
+60 por defecto), aparte de la carta (`MENU_CACHE_SECONDS`) y del tenant
+(`TENANT_CACHE_SECONDS`). No hay invalidación explícita: un cambio desde el
+POS llega al comensal en ≤ 1 minuto, y el logo se vuelve a descargar porque
+cambia `v`.
 
 ## Estructura
 
