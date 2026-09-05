@@ -1,0 +1,455 @@
+{
+  "codigo": "C1",
+  "nombre": "Combos numerados",
+  "familia": "C",
+  "familiaNombre": "Rápida y food truck",
+  "descripcion": "Para el mostrador con cola: el número es el producto y se pide en voz alta igual que en pantalla; máximo seis combos, sin fotos y una sola acción grande abajo.",
+  "fotos": {
+    "requiere": "ninguna",
+    "recorte": "ninguno"
+  },
+  "tokens": {
+    "modo": "oscuro",
+    "fondo": "#1A1815",
+    "superficie": "#262220",
+    "tinta": "#F5F1EA",
+    "tintaSuave": "#A8A096",
+    "tintaTerciaria": "#8F877D",
+    "borde": "#2C2823",
+    "acento": "#C1873A",
+    "acentoTinta": "#1A1815",
+    "acentoSuave": "#352A1B",
+    "displayFont": "Bebas Neue",
+    "displayPeso": 400,
+    "displayTracking": "0.04em",
+    "displayTransform": "uppercase",
+    "cuerpoFont": "Ubuntu",
+    "monoFont": "IBM Plex Mono",
+    "radioTarjeta": 14,
+    "radioBoton": 12,
+    "radioChip": 999,
+    "densidad": "media"
+  },
+  "personalizable": {
+    "colores": [
+      "acento"
+    ],
+    "tipografiaDisplay": true,
+    "logo": true
+  },
+  "pantallas": {
+    "menu": {
+      "layout": "C1",
+      "resumen": "Marco oscuro #1A1815. Cabecera con el nombre del restaurante en Bebas Neue 30 px y un chip rojo de tiempo de espera; lista vertical de hasta seis filas-tarjeta (#262220, radio 14) con el número del combo en Bebas Neue 40 px ámbar, nombre 17/700, subtítulo 13 px y precio en IBM Plex Mono 17; nota de uso al pie de la lista y CTA de 60 px «PEDIR EL {n}» en ámbar con texto oscuro. Sin fotos, sin tabs de categoría ni buscador (Waiter los pinta fuera del marco o en la cabecera). El número = posición del producto en la categoría; el CTA refleja el combo tocado.",
+      "datosOpcionales": [
+        "esperaMinutos"
+      ],
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor de la pantalla (modo oscuro)",
+          "css": "background: #1A1815; border: 1px solid #2C2823; border-radius: 20px; color: #F5F1EA; font-family: 'Ubuntu'"
+        },
+        {
+          "bloque": "cabecera",
+          "que": "nombre del restaurante (marca) a la izquierda y chip de espera a la derecha",
+          "css": "padding: 18px 20px; border-bottom: 1px solid #2C2823; display: flex; align-items: center; justify-content: space-between"
+        },
+        {
+          "bloque": "cabecera.marca",
+          "que": "nombre del restaurante (o logo de la marca, Plan G) en mayúsculas",
+          "css": "font-family: 'Bebas Neue'; font-size: 30px; letter-spacing: 0.04em; line-height: 1; text-transform: uppercase; color: #F5F1EA"
+        },
+        {
+          "bloque": "cabecera.chipEspera",
+          "que": "tiempo de espera de la sede («8 min de espera»); dato no estándar (esperaMinutos): se omite si no existe",
+          "css": "height: 34px; padding: 0 11px; border-radius: 999px; background: #B4342F; color: #F5F1EA; font-size: 13px; font-weight: 500"
+        },
+        {
+          "bloque": "lista",
+          "que": "columna de combos de la categoría activa, máximo seis",
+          "css": "padding: 14px 20px; display: flex; flex-direction: column; gap: 10px"
+        },
+        {
+          "bloque": "lista.filaCombo",
+          "que": "una tarjeta por producto: número, nombre, subtítulo y precio (toque = seleccionar; el CTA lo pide)",
+          "css": "display: flex; gap: 14px; align-items: center; padding: 12px; border-radius: 14px; background: #262220"
+        },
+        {
+          "bloque": "lista.filaCombo.numero",
+          "que": "posición del producto en la categoría (1…6)",
+          "css": "font-family: 'Bebas Neue'; font-size: 40px; color: #C1873A; line-height: 0.9; width: 42px"
+        },
+        {
+          "bloque": "lista.filaCombo.nombre",
+          "que": "producto.nombre",
+          "css": "font-family: 'Ubuntu'; font-size: 17px; font-weight: 700; color: #F5F1EA"
+        },
+        {
+          "bloque": "lista.filaCombo.subtitulo",
+          "que": "producto.descripcion (primera línea) o «El más pedido» si producto.favorito; se omite si no hay",
+          "css": "font-size: 13px; color: #A8A096"
+        },
+        {
+          "bloque": "lista.filaCombo.precio",
+          "que": "producto.precio sin símbolo, separador de miles",
+          "css": "font-family: 'IBM Plex Mono'; font-size: 17px; color: #F5F1EA"
+        },
+        {
+          "bloque": "lista.nota",
+          "que": "texto fijo «Di el número al mesero o tócalo aquí.» pegado abajo de la lista",
+          "css": "margin-top: auto; font-size: 13px; color: #8F877D"
+        },
+        {
+          "bloque": "pie",
+          "que": "barra fija inferior con el CTA",
+          "css": "padding: 16px 20px; border-top: 1px solid #2C2823"
+        },
+        {
+          "bloque": "pie.cta",
+          "que": "«PEDIR EL {número}» del combo seleccionado (onAdd); si no hay selección, va al carrito (orderBarHref)",
+          "css": "height: 60px; border-radius: 12px; background: #C1873A; color: #1A1815; font-family: 'Bebas Neue'; font-size: 26px; letter-spacing: 0.04em; text-transform: uppercase; display: grid; place-items: center"
+        }
+      ]
+    },
+    "carrito": {
+      "layout": "familia-C",
+      "resumen": "Esqueleto de la familia C (cabecera «Tu pedido · N ítems», filas, bloque de totales con Subtotal/Descuento/Total, CTA «Ir a pagar») en piel oscura. Variante de fila C1: número de posición en Bebas Neue 32 ámbar, nombre en Bebas Neue 23, nota 13 px y precio mono; sin stepper ni «Quitar» visibles (el marco no los muestra). Banner del 5 % bajo la cabecera.",
+      "descuento5": "banner",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #1A1815; border: 1px solid #2C2823; border-radius: 16px; color: #F5F1EA"
+        },
+        {
+          "bloque": "cabecera",
+          "que": "«Tu pedido» y conteo de ítems (cart.lineas)",
+          "css": "padding: 16px 18px; border-bottom: 1px solid #2C2823; display: flex; align-items: baseline; justify-content: space-between; gap: 10px"
+        },
+        {
+          "bloque": "cabecera.titulo",
+          "que": "«Tu pedido»",
+          "css": "font-family: 'Bebas Neue'; font-size: 26px; letter-spacing: 0.04em; line-height: 1; text-transform: uppercase"
+        },
+        {
+          "bloque": "cabecera.conteo",
+          "que": "«{n} ítems»",
+          "css": "font-size: 14px; color: #A8A096"
+        },
+        {
+          "bloque": "banner5",
+          "que": "descuento de primera compra aplicado (discount.activo); se oculta si no aplica",
+          "css": "padding: 13px 18px; background: rgba(193,135,58,0.16); border-bottom: 1px solid #2C2823; display: flex; align-items: center; gap: 10px"
+        },
+        {
+          "bloque": "banner5.cifra",
+          "que": "«5%» (discount.porcentaje)",
+          "css": "font-size: 22px; font-weight: 700; color: #E4B879; letter-spacing: -0.02em"
+        },
+        {
+          "bloque": "banner5.texto",
+          "que": "«Primera compra: descuento aplicado.»",
+          "css": "font-size: 14px; line-height: 1.35; color: #E4B879"
+        },
+        {
+          "bloque": "filaItem",
+          "que": "línea del carrito: posición, nombre, nota y precio de la línea (cantidad × precio)",
+          "css": "padding: 15px 18px; border-bottom: 1px solid #2C2823; display: flex; gap: 14px; align-items: center"
+        },
+        {
+          "bloque": "filaItem.numero",
+          "que": "posición de la línea en el carrito (1, 2…), no la cantidad",
+          "css": "font-family: 'Bebas Neue'; font-size: 32px; color: #C1873A; width: 34px; line-height: 1"
+        },
+        {
+          "bloque": "filaItem.nombre",
+          "que": "producto.nombre",
+          "css": "font-family: 'Bebas Neue'; font-size: 23px; letter-spacing: 0.04em; line-height: 1; text-transform: uppercase"
+        },
+        {
+          "bloque": "filaItem.nota",
+          "que": "nota de la línea (modificador); se omite si no hay",
+          "css": "font-size: 13px; color: #A8A096; margin-top: 3px"
+        },
+        {
+          "bloque": "filaItem.precio",
+          "que": "total de la línea",
+          "css": "font-family: 'IBM Plex Mono'; font-size: 17px; white-space: nowrap"
+        },
+        {
+          "bloque": "totales",
+          "que": "Subtotal, Descuento primera compra 5% y Total",
+          "css": "padding: 16px 18px; border-top: 1px solid #2C2823; background: #262220"
+        },
+        {
+          "bloque": "totales.linea",
+          "que": "Subtotal (etiqueta + cifra mono)",
+          "css": "display: flex; justify-content: space-between; font-size: 15px; color: #A8A096; padding: 3px 0; font-family cifra: 'IBM Plex Mono'"
+        },
+        {
+          "bloque": "totales.descuento",
+          "que": "«Descuento primera compra 5%» con cifra negativa (−4.835)",
+          "css": "display: flex; justify-content: space-between; font-size: 15px; color: #2F7A4F; padding: 3px 0"
+        },
+        {
+          "bloque": "totales.total",
+          "que": "«Total» y cifra con símbolo «$ »",
+          "css": "display: flex; justify-content: space-between; align-items: baseline; padding-top: 10px; margin-top: 8px; border-top: 1px solid #2C2823; etiqueta: font-family 'Bebas Neue' 25px letter-spacing 0.04em line-height 1; cifra: font-family 'IBM Plex Mono' 25px"
+        },
+        {
+          "bloque": "pie",
+          "que": "barra inferior con el CTA (goPay)",
+          "css": "padding: 14px 18px; border-top: 1px solid #2C2823; background: #262220"
+        },
+        {
+          "bloque": "pie.cta",
+          "que": "«IR A PAGAR»",
+          "css": "height: 60px; border-radius: 8px; background: #C1873A; color: #1A1815; font-family: 'Bebas Neue'; font-size: 24px; letter-spacing: 0.04em; line-height: 1; text-transform: uppercase"
+        }
+      ]
+    },
+    "pago": {
+      "layout": "familia-C",
+      "resumen": "Piel oscura del pago de familia C: banda superior de acento con «Total» y la cifra en mono 28; cuatro métodos como filas de 62 px (la seleccionada con borde de 2 px de acento); CTA «PAGAR $ {total}» de 64 px. Métodos de PayLayoutProps.methods; insignia «Demo · sin cobro real» la añade el motor.",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #1A1815; border: 1px solid #2C2823; border-radius: 16px; color: #F5F1EA"
+        },
+        {
+          "bloque": "bandaTotal",
+          "que": "«Total» y bill.total",
+          "css": "padding: 20px 18px; background: #C1873A; color: #1A1815; display: flex; align-items: baseline; justify-content: space-between; etiqueta: font-family 'Bebas Neue' 24px letter-spacing 0.04em line-height 1 uppercase; cifra: font-family 'IBM Plex Mono' 28px"
+        },
+        {
+          "bloque": "metodos",
+          "que": "lista de métodos (Tarjeta crédito o débito, PSE · desde tu banco, Nequi · con QR, Efectivo en la caja)",
+          "css": "padding: 16px 18px; display: flex; flex-direction: column; gap: 10px"
+        },
+        {
+          "bloque": "metodos.metodo",
+          "que": "método no seleccionado",
+          "css": "height: 62px; border-radius: 12px; border: 1px solid #2C2823; padding: 0 16px; display: flex; align-items: center; font-size: 16px; color: #A8A096"
+        },
+        {
+          "bloque": "metodos.metodoActivo",
+          "que": "método seleccionado",
+          "css": "height: 62px; border-radius: 12px; border: 2px solid #C1873A; padding: 0 16px; font-size: 16px; font-weight: 500; color: #F5F1EA"
+        },
+        {
+          "bloque": "pie",
+          "que": "barra inferior con el CTA (onPay)",
+          "css": "padding: 14px 18px; border-top: 1px solid #2C2823; background: #262220"
+        },
+        {
+          "bloque": "pie.cta",
+          "que": "«PAGAR $ {total}»",
+          "css": "height: 64px; border-radius: 8px; background: #C1873A; color: #1A1815; font-family: 'Bebas Neue'; font-size: 24px; letter-spacing: 0.04em; line-height: 1; text-transform: uppercase"
+        }
+      ]
+    },
+    "registro": {
+      "patron": "banner5",
+      "resumen": "Banda superior de acento suave con «5%» en ámbar claro y la promesa («en tu primera compra. Después pagas en dos toques.»); formulario Nombre / Correo / Celular en campos de 52 px sobre superficie; dos casillas (acepto datos marcada, novedades vacía); CTA «CREAR Y APLICAR 5%» y enlace «Ya tengo cuenta».",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #1A1815; border: 1px solid #2C2823; border-radius: 16px; color: #F5F1EA"
+        },
+        {
+          "bloque": "banner5",
+          "que": "cifra del descuento y promesa",
+          "css": "padding: 20px; background: rgba(193,135,58,0.16); border-bottom: 1px solid #2C2823; display: flex; align-items: baseline; gap: 11px"
+        },
+        {
+          "bloque": "banner5.cifra",
+          "que": "«5%»",
+          "css": "font-size: 34px; font-weight: 700; color: #E4B879; letter-spacing: -0.03em"
+        },
+        {
+          "bloque": "banner5.texto",
+          "que": "«en tu primera compra. Después pagas en dos toques.»",
+          "css": "font-size: 15px; line-height: 1.4; color: #E4B879"
+        },
+        {
+          "bloque": "formulario",
+          "que": "campos nombre, correo, celular",
+          "css": "padding: 18px 20px; display: flex; flex-direction: column; gap: 14px"
+        },
+        {
+          "bloque": "formulario.etiqueta",
+          "que": "rótulo del campo",
+          "css": "font-size: 14px; font-weight: 500; color: #A8A096; margin-bottom: 6px"
+        },
+        {
+          "bloque": "formulario.campo",
+          "que": "input de texto",
+          "css": "height: 52px; border: 1px solid #2C2823; border-radius: 10px; background: #262220; padding: 0 14px; font-size: 16px; color: #F5F1EA"
+        },
+        {
+          "bloque": "formulario.campoFoco",
+          "que": "input con foco (en el marco, Correo)",
+          "css": "border: 2px solid #C1873A"
+        },
+        {
+          "bloque": "formulario.casillaMarcada",
+          "que": "aceptaDatos",
+          "css": "width: 24px; height: 24px; border-radius: 7px; background: #C1873A; color: #1A1815; font-size: 13px; font-weight: 700; texto: font-size 14px color #A8A096"
+        },
+        {
+          "bloque": "formulario.casillaVacia",
+          "que": "novedades",
+          "css": "width: 24px; height: 24px; border-radius: 7px; border: 1px solid #2C2823; texto: font-size 14px color #A8A096"
+        },
+        {
+          "bloque": "pie",
+          "que": "CTA y enlace",
+          "css": "padding: 16px 20px; border-top: 1px solid #2C2823; background: #262220"
+        },
+        {
+          "bloque": "pie.cta",
+          "que": "«CREAR Y APLICAR 5%» (onSubmit)",
+          "css": "height: 56px; border-radius: 8px; background: #C1873A; color: #1A1815; font-family: 'Bebas Neue'; font-size: 23px; letter-spacing: 0.04em; line-height: 1; text-transform: uppercase"
+        },
+        {
+          "bloque": "pie.enlace",
+          "que": "«Ya tengo cuenta» (onSkip / entrar)",
+          "css": "text-align: center; font-size: 14px; color: #A8A096; margin-top: 11px"
+        }
+      ]
+    },
+    "codigo": {
+      "patron": "casillas",
+      "resumen": "Cabecera con botón atrás y «Verifica que eres tú» en Bebas Neue; texto con el correo destacado; seis casillas de 60 px en mono (la activa con borde de acento); fila «Reenviar en 0:38» / «Usar SMS» (onOtherChannel); caja de ayuda; CTA «Confirmar código» apagado hasta completar.",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #1A1815; border: 1px solid #2C2823; border-radius: 16px; color: #F5F1EA"
+        },
+        {
+          "bloque": "cabecera",
+          "que": "atrás + título",
+          "css": "padding: 16px 20px; border-bottom: 1px solid #2C2823; display: flex; align-items: center; gap: 12px"
+        },
+        {
+          "bloque": "cabecera.atras",
+          "que": "botón ←",
+          "css": "width: 38px; height: 38px; border-radius: 10px; border: 1px solid #2C2823; font-size: 16px; color: #A8A096"
+        },
+        {
+          "bloque": "cabecera.titulo",
+          "que": "«Verifica que eres tú»",
+          "css": "font-family: 'Bebas Neue'; font-size: 25px; letter-spacing: 0.04em; line-height: 1; text-transform: uppercase"
+        },
+        {
+          "bloque": "cuerpo",
+          "que": "texto, casillas, reenvío y ayuda",
+          "css": "padding: 18px 20px; display: flex; flex-direction: column; gap: 15px"
+        },
+        {
+          "bloque": "cuerpo.texto",
+          "que": "«Código de seis dígitos enviado a {email}. Vence en 10 minutos.» (email en #F5F1EA)",
+          "css": "font-size: 16px; line-height: 1.5; color: #A8A096"
+        },
+        {
+          "bloque": "cuerpo.casillas",
+          "que": "seis dígitos",
+          "css": "display: flex; gap: 7px; casilla: flex 1; height 60px; border-radius 10px; border 1px solid #2C2823; background #262220; font-family 'IBM Plex Mono'; font-size 23px; activa: border 2px solid #C1873A"
+        },
+        {
+          "bloque": "cuerpo.reenviar",
+          "que": "«Reenviar en {mm:ss}» (reloj en mono) y «Usar SMS»",
+          "css": "display: flex; justify-content: space-between; font-size: 15px; color: #A8A096; enlace: color #C1873A font-weight 500"
+        },
+        {
+          "bloque": "cuerpo.ayuda",
+          "que": "«¿No llega? Revisa spam. Tu pedido sigue guardado mientras verificas.»",
+          "css": "padding: 13px 15px; border-radius: 12px; background: #262220; font-size: 14px; line-height: 1.45; color: #A8A096"
+        },
+        {
+          "bloque": "pie",
+          "que": "CTA",
+          "css": "padding: 16px 20px; border-top: 1px solid #2C2823; background: #262220"
+        },
+        {
+          "bloque": "pie.ctaApagado",
+          "que": "«Confirmar código» inactivo hasta seis dígitos (onVerify)",
+          "css": "height: 56px; border-radius: 12px; background: #2C2823; color: #A8A096; font-family: 'Bebas Neue'; font-size: 23px; letter-spacing: 0.04em; line-height: 1"
+        }
+      ]
+    },
+    "historial": {
+      "patron": "tarjetas",
+      "resumen": "Cabecera de cuenta sobre superficie con avatar de iniciales en acento, nombre en Bebas Neue y «{n} pedidos · {ahorro} ahorrados»; una tarjeta por pedido (sede, fecha · resumen, total mono) y en la más reciente los botones «Ver factura» / «Volver a pedir»; barra inferior «Facturas» / «Volver a pedir».",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #1A1815; border: 1px solid #2C2823; border-radius: 16px; color: #F5F1EA"
+        },
+        {
+          "bloque": "cabeceraCuenta",
+          "que": "avatar, account.nombre y resumen",
+          "css": "padding: 20px; background: #262220; display: flex; align-items: center; gap: 13px"
+        },
+        {
+          "bloque": "cabeceraCuenta.avatar",
+          "que": "iniciales",
+          "css": "width: 44px; height: 44px; border-radius: 999px; background: #C1873A; color: #1A1815; font-size: 16px; font-weight: 700"
+        },
+        {
+          "bloque": "cabeceraCuenta.nombre",
+          "que": "account.nombre",
+          "css": "font-family: 'Bebas Neue'; font-size: 24px; letter-spacing: 0.04em; line-height: 1; text-transform: uppercase"
+        },
+        {
+          "bloque": "cabeceraCuenta.resumen",
+          "que": "«{n} pedidos · {ahorro} ahorrados»",
+          "css": "font-size: 13px; opacity: 0.72"
+        },
+        {
+          "bloque": "lista",
+          "que": "tarjetas de pedidos",
+          "css": "padding: 16px 20px; display: flex; flex-direction: column; gap: 12px"
+        },
+        {
+          "bloque": "lista.tarjeta",
+          "que": "un pedido",
+          "css": "border: 1px solid #2C2823; border-radius: 14px; padding: 15px"
+        },
+        {
+          "bloque": "lista.tarjeta.sede",
+          "que": "nombre de la sede",
+          "css": "font-family: 'Bebas Neue'; font-size: 23px; letter-spacing: 0.04em; line-height: 1; text-transform: uppercase"
+        },
+        {
+          "bloque": "lista.tarjeta.detalle",
+          "que": "«{día} {n} {mes} · {primer ítem} +{resto}» o «· {n} ítems»",
+          "css": "font-size: 13px; color: #A8A096; margin-top: 3px"
+        },
+        {
+          "bloque": "lista.tarjeta.total",
+          "que": "total del pedido",
+          "css": "font-family: 'IBM Plex Mono'; font-size: 19px; white-space: nowrap"
+        },
+        {
+          "bloque": "lista.tarjeta.acciones",
+          "que": "solo en el pedido más reciente: «Ver factura» y «Volver a pedir» (onReorder)",
+          "css": "display: flex; gap: 8px; margin-top: 12px; secundario: flex 1 height 44px border-radius 10px border 1px solid #2C2823 font-size 14px color #A8A096; primario: background #C1873A color #1A1815 font-weight 500"
+        },
+        {
+          "bloque": "pie",
+          "que": "«Facturas» y «Volver a pedir»",
+          "css": "padding: 14px 20px; border-top: 1px solid #2C2823; background: #262220; display: flex; gap: 10px; secundario: flex 1 height 50px border-radius 11px border 1px solid #2C2823 font-size 15px font-weight 500 color #A8A096; primario: background #C1873A color #1A1815"
+        }
+      ]
+    }
+  },
+  "fuentesGoogle": [
+    "Bebas Neue"
+  ]
+}
