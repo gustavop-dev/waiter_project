@@ -7,9 +7,11 @@ from odoo.http import request
 
 
 def _find_user(login):
-    if not login or "@" not in str(login) and len(str(login)) < 3:
+    """Coincidencia EXACTA sobre el login normalizado. Nunca `ilike`: un `%` casaría con el primer usuario activo."""
+    login = str(login or "").strip().lower()
+    if len(login) < 3 or any(ch in login for ch in ("%", "_", "\\")):
         return request.env["res.users"].sudo()
-    return request.env["res.users"].sudo().search([("login", "=ilike", str(login).strip()), ("active", "=", True), ("share", "=", False)], limit=1)
+    return request.env["res.users"].sudo().search([("login", "=", login), ("active", "=", True), ("share", "=", False)], limit=1)
 
 
 class WaiterAuth(http.Controller):

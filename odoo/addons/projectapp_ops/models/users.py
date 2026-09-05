@@ -61,6 +61,8 @@ from odoo import _
 from odoo.exceptions import AccessError, UserError
 
 INVITE_HOURS = 48
+MAX_ATTEMPTS = 5          # intentos fallidos por código antes de invalidarlo (6 dígitos no se fuerzan en 5)
+RESEND_SECONDS = 60       # mínimo entre envíos: frena el abuso del endpoint público
 
 
 class ResUsersInvite(models.Model):
@@ -69,6 +71,8 @@ class ResUsersInvite(models.Model):
     waiter_invite_code = fields.Char(string="Código de invitación (hash)", copy=False)
     waiter_invite_expires = fields.Datetime(string="Vence el código", copy=False)
     waiter_activated = fields.Boolean(string="Cuenta activada", default=False, copy=False)
+    waiter_invite_attempts = fields.Integer(string="Intentos fallidos del código", default=0, copy=False)
+    waiter_invite_sent_at = fields.Datetime(string="Último envío del código", copy=False)
 
     @property
     def SELF_READABLE_FIELDS(self):
@@ -83,9 +87,12 @@ class ResUsersInvite(models.Model):
         self.ensure_one()
         if dry_run and not self.env.user.has_group("point_of_sale.group_pos_manager"):
             raise AccessError(_("Solo un administrador puede pedir un código sin enviarlo."))
+        now = fields.Datetime.now()
+        if not dry_run and self.waiter_invite_sent_at and (now - self.waiter_invite_sent_at).total_seconds() < RESEND_SECONDS:
+            return False  # demasiado seguido: se ignora en silencio (el cliente ve la misma respuesta)
         code = f"{secrets.randbelow(1_000_000):06d}"
-        self.sudo().write({"waiter_invite_code": self._waiter_hash(self.login, code),
-                           "waiter_invite_expires": fields.Datetime.now() + timedelta(hours=INVITE_HOURS)})
+        self.sudo().write({"waiter_invite_code": self._waiter_hash(self.login, code), "waiter_invite_attempts": 0,
+                           "waiter_invite_expires": now + timedelta(hours=INVITE_HOURS), "waiter_invite_sent_at": now})
         if dry_run:
             return code
         to = self.email or (self.login if "@" in self.login else False)
@@ -105,9 +112,16 @@ class ResUsersInvite(models.Model):
         return True
 
     def waiter_check_code(self, code):
+        """Un solo uso, vence a las 48 h y se invalida tras MAX_ATTEMPTS fallos: no se puede forzar."""
         self.ensure_one()
-        if not self.waiter_invite_code or not self.waiter_invite_expires:
+        if not self.waiter_invite_code or not self.waiter_invite_expires or fields.Datetime.now() > self.waiter_invite_expires:
             return False
-        if fields.Datetime.now() > self.waiter_invite_expires:
-            return False
-        return secrets.compare_digest(self.waiter_invite_code, self._waiter_hash(self.login, str(code)))
+        if secrets.compare_digest(self.waiter_invite_code, self._waiter_hash(self.login, str(code or ""))):
+            return True
+        attempts = self.waiter_invite_attempts + 1
+        values = {"waiter_invite_attempts": attempts}
+        if attempts >= MAX_ATTEMPTS:
+            values.update({"waiter_invite_code": False, "waiter_invite_expires": False})
+        self.sudo().write(values)
+        self.env.cr.commit()  # el fallo debe quedar contado aunque la petición termine en error
+        return False
