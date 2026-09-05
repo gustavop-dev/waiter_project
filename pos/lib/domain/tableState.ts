@@ -31,6 +31,13 @@ export function deriveTableViews(tables: Table[], orders: OpenOrder[], flags: Re
   })
 }
 
+// "Buscar mesa o pedido": por número de mesa, por número de pedido (#42 o 42) o por mesero.
+export function matchesSearch(view: TableView, query: string): boolean {
+  const q = query.trim().replace(/^#/, '').toLowerCase()
+  if (!q) return true
+  return String(view.table.number) === q || (view.orderId !== null && String(view.orderId) === q) || (view.waiter ?? '').toLowerCase().includes(q)
+}
+
 export function countByState(views: TableView[]): Record<TableState, number> {
   const counts = Object.fromEntries(STATES.map((s) => [s, 0])) as Record<TableState, number>
   views.forEach((v) => { counts[v.state] += 1 })

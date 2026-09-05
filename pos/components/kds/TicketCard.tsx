@@ -32,6 +32,7 @@ export function TicketCard({ ticket, tableNumber, now, onReady }: TicketCardProp
           {mood !== 'normal' && <span className={cn('block mt-2 ml-auto w-fit rounded-full px-2.5 h-7 leading-7 text-[13px] font-medium', TAG[mood])}>{t(`mood.${mood}`)}</span>}
         </div>
       </header>
+      {ticket.note && <p className="px-3 py-2 rounded-[10px] bg-pending-soft text-pending-ink text-[15px] font-medium">{ticket.note}</p>}
       <ul className="flex flex-col gap-2.5 text-lg">
         {ticket.lines.map((l) => (
           <li key={l.id}>

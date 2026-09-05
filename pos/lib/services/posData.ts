@@ -4,7 +4,7 @@ import type { Catalog, Category, Floor, PaymentMethod, Product, Settings, Table 
 // Formas REALES de load_data (capturadas contra Odoo 19, no supuestas): los many2one llegan
 // como enteros pelados, y precio/categorías/impuestos viven en product.template.
 interface RawProduct { id: number; product_tmpl_id: number; display_name: string; lst_price: number }
-interface RawTemplate { id: number; name: string; list_price: number; pos_categ_ids: number[]; taxes_id: number[]; available_in_pos: boolean; active: boolean; is_favorite: boolean; is_storable: boolean }
+interface RawTemplate { id: number; name: string; list_price: number; pos_categ_ids: number[]; taxes_id: number[]; available_in_pos: boolean; active: boolean; is_favorite: boolean; is_storable: boolean; image_128: string | false }
 interface RawCategory { id: number; name: string; sequence: number; kitchen_station: string | false }
 interface RawFloor { id: number; name: string; table_ids: number[] }
 interface RawTable { id: number; table_number: number; floor_id: number; seats: number; active: boolean }
@@ -33,7 +33,7 @@ export async function loadPosData(sessionId: number): Promise<Catalog> {
   const base: Product[] = raw['product.product'].flatMap((p) => {
     const t = templates.get(p.product_tmpl_id)
     return t ? [{ id: p.id, templateId: t.id, name: t.name, price: t.list_price, categoryIds: t.pos_categ_ids, taxIds: t.taxes_id,
-      favorite: Boolean(t.is_favorite), storable: Boolean(t.is_storable), soldOut: false }] : []
+      favorite: Boolean(t.is_favorite), storable: Boolean(t.is_storable), soldOut: false, hasImage: Boolean(t.image_128) }] : []
   })
   const out = await soldOutIds(base)
   const products = base.map((p) => ({ ...p, soldOut: out.has(p.id) }))

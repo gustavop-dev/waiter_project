@@ -68,7 +68,7 @@ export default function CatalogoPage() {
           </div>
         </section>
         {panel.kind === 'product' && (
-          <ProductForm key={panel.id ?? 'new'} initial={editing ? { ...editing } : EMPTY} isNew={panel.id === null} categories={categories} taxes={taxes} onSave={onSaveProduct} onClose={() => setPanel({ kind: 'none' })} />
+          <ProductForm key={panel.id ?? 'new'} initial={editing ? { name: editing.name, price: editing.price, categoryIds: editing.categoryIds, taxIds: editing.taxIds, available: editing.available, storable: editing.storable, favorite: editing.favorite, description: editing.description } : EMPTY} hasImage={editing?.hasImage} templateId={editing?.id ?? null} isNew={panel.id === null} categories={categories} taxes={taxes} onSave={onSaveProduct} onClose={() => setPanel({ kind: 'none' })} />
         )}
         {panel.kind === 'categories' && <CategoryPanel categories={categories} onSave={async (id, c) => { await saveCategory(id, c); await load() }} onClose={() => setPanel({ kind: 'none' })} />}
       </div>

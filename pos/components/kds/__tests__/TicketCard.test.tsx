@@ -6,7 +6,7 @@ import messages from '@/lib/i18n/messages/es.json'
 
 const wrap = (ui: React.ReactElement) => render(<NextIntlClientProvider locale="es" messages={messages}>{ui}</NextIntlClientProvider>)
 const NOW = Date.parse('2026-09-05T02:18:40Z')
-const ticket = { id: 5, orderId: 9, tableId: 3, tracking: '127', waiter: 'Sofía', firedAt: '2026-09-05 02:00:00', readyAt: null,
+const ticket = { id: 5, orderId: 9, tableId: 3, tracking: '127', waiter: 'Sofía', note: '', firedAt: '2026-09-05 02:00:00', readyAt: null,
   lines: [{ id: 1, name: 'Lomo a la parrilla', qty: 1, note: 'término medio', station: 'Parrilla' }, { id: 2, name: 'Burrata italiana', qty: 2, note: '', station: 'Fríos' }] }
 
 // Falla si la tarjeta no se lee a dos metros: cantidad, plato, nota, cronómetro y la etiqueta de demora.
