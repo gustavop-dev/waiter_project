@@ -428,10 +428,13 @@
           "tipLabel": "Propina",
           "noTip": "Sin propina",
           "tipPct": "{pct}%",
-          "tipNote": "La propina se confirma al pagar.",
+          "tipNote": "La propina se confirma al pagar; no entra en el total del pedido.",
           "edit": "Editar {name}",
           "send": "Enviar a cocina",
-          "total": "Total"
+          "total": "Total",
+          "closingTitle": "¿Algo para cerrar?",
+          "closingBy": "{waiter} sugiere {name} · {amount}",
+          "closing": "Te sugerimos {name} · {amount}"
         },
         "pay": {
           "total": "Total",

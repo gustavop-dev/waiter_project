@@ -47,7 +47,8 @@ export function GenericSignup({ onSubmit, onSkip, busy, error, discountPct }: Si
           <span aria-hidden="true" className={box(novedades)}>{novedades ? '✓' : ''}</span>
           <span className="text-[15px]">{t('news')}</span>
         </label>
-        <p className="px-3.5 py-2.5 rounded-t-boton bg-muted text-[13px] leading-snug text-t-tinta-suave">{t('notice')}</p>
+        {/* Sobre tokens: en las pieles oscuras (C1, C4) el fondo fijo claro dejaba el texto gris ilegible. */}
+        <p className="px-3.5 py-2.5 rounded-t-boton bg-t-superficie border border-t-borde text-[13px] leading-snug text-t-tinta-suave">{t('notice')}</p>
         {error && <p role="alert" className="px-3.5 py-2.5 rounded-t-boton bg-busy-soft text-busy-ink text-[15px]">{error}</p>}
         <button type="submit" disabled={!valid || busy} className="h-tap rounded-t-boton bg-t-acento text-t-acento-tinta text-base font-bold disabled:opacity-50">{busy ? t('submitting') : t('submit', { pct: discountPct })}</button>
         <button type="button" onClick={onSkip} className="h-tap-min text-[14px] font-medium text-t-tinta-suave">{t('skip')}</button>

@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
-import { EmptyList, SearchField, footClass, price } from '@/components/templates/families/C/parts'
+import { EmptyList, FOOT_CLASS, SearchField, price } from '@/components/templates/families/C/parts'
 import { fold } from '@/components/templates/generic/menuParts'
 import type { MenuLayoutProps } from '@/components/templates/types'
 import type { Dish } from '@/lib/types'
@@ -15,7 +15,7 @@ import type { Dish } from '@/lib/types'
 // opción elegida con onAdd y vuelve al primer paso). El paso actual es la categoría de Waiter (setCategory): los segmentos son
 // pestañas y saltan de paso; el buscador filtra las opciones del paso. Tocar la opción ya elegida abre su ficha (onOpen).
 // Datos no estándar omitidos: precioBase e «incluido» explícito (se infiere solo de precio 0).
-export function C3Menu({ entry, query, setQuery, category, setCategory, onOpen, onAdd, cart }: MenuLayoutProps) {
+export function C3Menu({ entry, query, setQuery, category, setCategory, onOpen, onAdd }: MenuLayoutProps) {
   const tc = useTranslations('diner.templates.C3')
   const categories = entry.carta.categorias
   const [chosen, setChosen] = useState<Record<number, Dish>>({})
@@ -67,7 +67,7 @@ export function C3Menu({ entry, query, setQuery, category, setCategory, onOpen, 
           )
         })}
       </section>
-      <div className={`${footClass(cart)} px-5 py-3.5 border-t border-t-borde bg-t-fondo flex items-center gap-3`}>
+      <div className={`${FOOT_CLASS} px-5 py-3.5 border-t border-t-borde bg-t-fondo flex items-center gap-3`}>
         <div className="flex flex-col leading-tight shrink-0">
           <span className="text-[13px] text-t-tinta-terciaria">{tc('runningLabel')}</span>
           <span className="font-t-mono tabular text-[18px]">{price(running)}</span>

@@ -53,10 +53,13 @@ it('shows the placeholder without photo, the sold-out badge instead of the CTA, 
   expect(screen.getByText('3 / 3')).toBeInTheDocument()
 })
 
-// Falla si el pie no se levanta sobre la barra de Waiter con ítems, o si la búsqueda vacía no lo dice.
-it('lifts the foot above the order bar and states an honest empty search', () => {
+// Falla si el pie vuelve a levantarse para esquivar una barra de Waiter que la página ya no pinta sobre este layout, si el segmento de
+// tamaño activo deja los tokens de tinta/fondo, o si la búsqueda vacía no lo dice.
+it('keeps the foot at the bottom, paints the active size on tokens and states an honest empty search', () => {
   wrap(<C2Menu {...menuProps('C2', { cart: cartOf([line({})]) })} />)
-  expect(screen.getByRole('button', { name: /Añadir/ }).parentElement).toHaveClass('bottom-[92px]')
+  expect(screen.getByRole('button', { name: /Añadir/ }).parentElement).toHaveClass('sticky', 'bottom-0')
+  expect(screen.getByRole('button', { name: /Añadir/ }).parentElement).not.toHaveClass('bottom-[92px]')
+  expect(screen.getByRole('radio', { name: 'Sencilla' })).toHaveClass('bg-t-tinta', 'text-t-fondo')
   wrap(<C2Menu {...menuProps('C2', { query: 'zzz' })} />)
   expect(screen.getByRole('status')).toHaveTextContent('Nada coincide con tu búsqueda')
 })

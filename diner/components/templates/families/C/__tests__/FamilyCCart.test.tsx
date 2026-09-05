@@ -5,8 +5,10 @@ import { cartOf, entryOf, line, templateC, wrap } from '@/components/templates/f
 import type { CartLayoutProps } from '@/components/templates/types'
 import type { Discount } from '@/lib/types'
 
-// La miniatura de C2 sale de la carta del store (la línea solo trae producto_id): se simula el store con la carta de prueba.
-jest.mock('@/lib/stores/dinerStore', () => ({ useDinerStore: (sel: (s: { entry: unknown }) => unknown) => sel({ entry: entryOf() }) }))
+// La miniatura de C2 y el extra de cierre de C3 salen de la carta del store (la línea solo trae producto_id); el ＋ de C3 agrega por
+// el store: se simula con la carta de prueba y un add espía.
+const storeAdd = jest.fn()
+jest.mock('@/lib/stores/dinerStore', () => ({ useDinerStore: (sel: (s: { entry: unknown; add: unknown }) => unknown) => sel({ entry: entryOf(), add: storeAdd }) }))
 
 const hrefs = { home: '/h', menu: '/m', pay: '/p', table: '/t', signup: '/s' }
 const applied: Discount = { porcentaje: 5, monto: 3290, aplicable: true, aplicado: true }
@@ -57,42 +59,63 @@ it('C1: opens the controls on tap, steps and removes, and turns the banner into 
   expect(p.remove).toHaveBeenCalledTimes(2)
 })
 
-// Falla si C2 no pinta la miniatura real del producto, si el stepper y «Quitar» no están siempre visibles, o si la nota verde del 5 %
-// no acompaña al CTA cuando el descuento aplica.
-it('C2: shows the product thumbnail, visible steppers and the green discount note', () => {
+// Falla si C2 no pinta la miniatura real del producto (sobre el token de fondo apagado, no un hex), si el stepper y «Quitar» no están
+// siempre visibles, si el CTA pierde los 56 px del marco, o si la nota verde del 5 % no acompaña al CTA cuando el descuento aplica.
+it('C2: shows the product thumbnail, visible steppers, the 56 px CTA and the green discount note', () => {
   const p = props('C2', { discount: applied })
   wrap(<FamilyCCart {...p} />)
   expect(document.querySelector('img')).toHaveAttribute('src', 'https://x/burger.jpg')
+  expect(document.querySelector('img')?.parentElement).toHaveClass('bg-muted')
+  expect(screen.getByRole('button', { name: 'Enviar a cocina' })).toHaveClass('h-14')
   expect(screen.getAllByRole('button', { name: 'Más' })).toHaveLength(2)
   fireEvent.click(screen.getAllByRole('button', { name: 'Más' })[0])
   expect(p.setQty).toHaveBeenCalledWith(1, 3)
   expect(screen.getByText('Incluye tu 5% de primera compra')).toHaveClass('text-free')
 })
 
-// Falla si C3 pierde los chips de modificador e «IVA incluido», o si C4 pierde la guía de puntos, el chip «−5% aplicado» junto al total
-// o la línea de descuento (que en C4 es el chip, no una fila).
-it('C3 chips the modifiers and C4 puts the applied discount as a chip next to the total', () => {
+// Falla si C3 pierde los chips de modificador e «IVA incluido» o la fila de upsell del marco («¿Algo para cerrar?» con el extra de la
+// carta a nombre del mesero, ＋ que agrega por el store y que no repite lo que ya está en el pedido), o si C4 pierde la guía de puntos,
+// el chip «−5% aplicado» junto al total (sobre tokens, legible en la pizarra) o la línea de descuento (que en C4 es el chip, no una fila).
+it('C3 chips the modifiers and offers the closing extra; C4 puts the applied discount as a chip next to the total', () => {
   wrap(<FamilyCCart {...props('C3', { discount: applied })} />)
   expect(screen.getByText('papas grandes')).toHaveClass('rounded-[6px]')
   expect(screen.getAllByText('IVA incluido')).toHaveLength(2)
   expect(screen.getByText('Descuento primera compra 5%')).toBeInTheDocument()
+  expect(screen.getByText('¿Algo para cerrar?')).toBeInTheDocument()
+  expect(screen.getByText('Alex sugiere Papas · 6.900')).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Agregar: Papas' }))
+  expect(storeAdd).toHaveBeenCalledWith(9, 1, '')
+  cleanup()
+  wrap(<FamilyCCart {...props('C3', { cart: cartOf([line({ producto_id: 9, nombre: 'Papas' })]) })} />)
+  expect(screen.getByText('Alex sugiere Salsa extra · 2.000')).toBeInTheDocument()
+  cleanup()
+  wrap(<FamilyCCart {...props('C1', { discount: applied })} />)
+  expect(screen.queryByText('¿Algo para cerrar?')).toBeNull()
   cleanup()
   wrap(<FamilyCCart {...props('C4', { discount: applied })} />)
-  expect(screen.getByText('−5% aplicado')).toBeInTheDocument()
+  expect(screen.getByText('−5% aplicado')).toHaveClass('text-free-soft')
   expect(screen.queryByText('Descuento primera compra 5%')).toBeNull()
   expect(screen.getByRole('heading', { level: 1, name: 'Tu pedido' }).parentElement).toHaveClass('flex-col')
 })
 
-// Falla si C5 pierde el selector de propina (10 % por defecto, como el marco), si el Total no la incluye, o si el número de línea no va en mono.
-it('C5: offers the tip selector and includes the tip in the total', () => {
+// Falla si C5 pierde el selector de propina (10 % por defecto, como el marco), si la propina entra en el Total (el pago no la recibe y
+// mostraría otra cifra), si el bloque de propina se cuela dentro de la caja de totales, o si la nota no dice que se confirma al pagar.
+it('C5: offers the tip selector as information outside the totals and keeps the total equal to what pay will show', () => {
   wrap(<FamilyCCart {...props('C5', { discount: applied })} />)
   expect(screen.getByRole('radio', { name: '10%' })).toHaveAttribute('aria-checked', 'true')
   expect(screen.getByText('Propina 10%').nextSibling).toHaveTextContent('7.870')
-  expect(screen.getByText('$ 86.570')).toHaveClass('font-t-mono')
-  fireEvent.click(screen.getByRole('radio', { name: 'Sin propina' }))
-  expect(screen.queryByText(/Propina 10%/)).toBeNull()
+  expect(screen.getByText('$ 78.700')).toHaveClass('font-t-mono')
+  expect(screen.queryByText('$ 86.570')).toBeNull()
+  const totals = screen.getByText('Subtotal').closest('dl') as HTMLElement
+  expect(within(totals).queryByRole('radiogroup')).toBeNull()
+  expect(screen.getByRole('region', { name: 'Propina' })).toContainElement(screen.getByRole('radio', { name: '15%' }))
+  fireEvent.click(screen.getByRole('radio', { name: '15%' }))
+  expect(screen.getByText('Propina 15%').nextSibling).toHaveTextContent('11.805')
   expect(screen.getByText('$ 78.700')).toBeInTheDocument()
-  expect(screen.getByText('La propina se confirma al pagar.')).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('radio', { name: 'Sin propina' }))
+  expect(screen.queryByText(/Propina 1\d%/)).toBeNull()
+  expect(screen.getByText('$ 78.700')).toBeInTheDocument()
+  expect(screen.getByText('La propina se confirma al pagar; no entra en el total del pedido.')).toBeInTheDocument()
 })
 
 // Falla si lo de los demás en la mesa se puede editar o desaparece, si el carrito vacío no lleva a la carta, o si un carrito que no cargó
