@@ -1,4 +1,6 @@
 """Las dos entradas públicas: domicilio y mesa. Una sola maquinaria."""
+from urllib.parse import urlencode
+
 from django.urls import reverse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -14,8 +16,15 @@ def _context(tenant):
             'marca': {'nombre': tenant.restaurant_name, **tenant.brand}}
 
 
+def _photo_url(restaurant, venue):
+    # La versión va en la URL: cuando el restaurante cambia la foto, el navegador la pide de nuevo aunque la caché sea larga.
+    def build(product_id, version):
+        return f"{reverse('product-photo', args=[restaurant, venue, product_id])}?{urlencode({'v': version})}"
+    return build
+
+
 @api_view(['GET'])
 def entry(request, restaurant, venue, token=None):
     tenant = resolve(restaurant, venue, token)
-    menu = catalog.menu_view(catalog.get_catalog(tenant), photo_url=lambda pid: reverse('product-photo', args=[restaurant, venue, pid]))
+    menu = catalog.menu_view(catalog.get_catalog(tenant), photo_url=_photo_url(restaurant, venue))
     return Response({'contexto': _context(tenant), 'carta': menu})

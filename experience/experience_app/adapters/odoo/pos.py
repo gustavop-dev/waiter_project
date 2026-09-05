@@ -3,14 +3,18 @@
 Las formas de datos son las REALES de Odoo 19 (many2one como enteros pelados en
 load_data, precio y categorías en product.template), ya verificadas en pos/.
 """
+import base64
+import re
 from dataclasses import dataclass, field
 
-import requests
-from django.conf import settings
-
-from experience_app.adapters.odoo.client import OdooClient, OdooUnavailable
+from experience_app.adapters.odoo.client import OdooClient
 
 OPEN_SESSION_STATES = ['opening_control', 'opened']
+# Tamaños públicos de la foto → campo de image.mixin. 512 px basta para la tarjeta de la carta;
+# la pantalla del plato la muestra a ancho completo y en un móvil 3x necesita 1024 px.
+PHOTO_FIELDS = {'tarjeta': 'image_512', 'plato': 'image_1024'}
+DEFAULT_PHOTO_SIZE = 'tarjeta'
+IMAGE_SIGNATURES = [(b'\x89PNG', 'image/png'), (b'\xff\xd8', 'image/jpeg'), (b'GIF8', 'image/gif')]
 
 
 @dataclass(frozen=True)
@@ -25,6 +29,8 @@ class Product:
     description: str = ''
     favorite: bool = False
     has_image: bool = False
+    # write_date de la plantilla, compactado: cambia con la foto y versiona su URL pública.
+    image_version: str = ''
 
 
 @dataclass(frozen=True)
@@ -83,25 +89,40 @@ def load_catalog(client: OdooClient, pos_session_id: int) -> Catalog:
     # description_sale e image_128 llegan como False cuando están vacíos (no como '' ni None).
     products = [Product(id=pid, name=t['name'], price=t['list_price'], category_ids=t['pos_categ_ids'], tax_ids=t['taxes_id'],
                         sold_out=pid in sold_out, template_id=t['id'], description=t.get('description_sale') or '',
-                        favorite=bool(t.get('is_favorite')), has_image=bool(t.get('image_128'))) for pid, t in base.items()]
+                        favorite=bool(t.get('is_favorite')), has_image=bool(t.get('image_128')),
+                        image_version=_version(t.get('write_date'))) for pid, t in base.items()]
     categories = [Category(c['id'], c['name'], c['sequence']) for c in raw['pos.category']]
     company = raw['res.company'][0]['name'] if raw.get('res.company') else ''
     return Catalog(company_name=company, products=products, categories=categories)
 
 
-def fetch_product_image(client: OdooClient, template_id: int, size: str = 'image_512') -> bytes | None:
-    """Bytes de la foto de la plantilla vía /web/image, con la sesión del cliente. None si Odoo no da una imagen."""
-    if client.uid is None:
-        client.authenticate()
-    try:
-        response = client.http.get(f'{client.creds.url}/web/image/product.template/{template_id}/{size}',
-                                   timeout=settings.ODOO_TIMEOUT_SECONDS)
-    except (requests.ConnectionError, requests.Timeout) as exc:
-        raise OdooUnavailable(f'Odoo no responde: {exc}') from exc
-    # Sin sesión válida Odoo responde 200 con el HTML del login: el content-type es la única señal fiable.
-    if response.status_code != 200 or not response.headers.get('Content-Type', '').startswith('image/'):
+def _version(write_date) -> str:
+    """'2026-09-05 01:02:03' → '20260905010203': un cache-buster corto y seguro en una URL."""
+    return re.sub(r'\D', '', str(write_date or ''))
+
+
+def image_content_type(data: bytes) -> str:
+    """Tipo real de la imagen por sus primeros bytes: Odoo conserva el formato original (PNG, WebP, GIF, JPEG)."""
+    if data[:4] == b'RIFF' and data[8:12] == b'WEBP':
+        return 'image/webp'
+    return next((ctype for magic, ctype in IMAGE_SIGNATURES if data.startswith(magic)), 'application/octet-stream')
+
+
+def fetch_product_image(client: OdooClient, template_id: int, size: str = DEFAULT_PHOTO_SIZE) -> tuple[bytes, str] | None:
+    """Bytes y content-type de la foto de la plantilla, leídos por JSON-RPC. None si la plantilla no tiene foto.
+
+    No se usa /web/image: es público y responde 200 image/png con el placeholder genérico de Odoo tanto sin sesión
+    como sin foto o con una plantilla inexistente, así que no distingue nada. Por JSON-RPC el campo llega en False
+    cuando está vacío, la lista vacía si la plantilla ya no existe (o fue archivada), y se reutiliza la
+    reautenticación de call_kw.
+    """
+    image_field = PHOTO_FIELDS[size]
+    rows = client.call_kw('product.template', 'search_read', [[['id', '=', template_id]], [image_field]])
+    encoded = rows[0].get(image_field) if rows else None
+    if not encoded:
         return None
-    return response.content
+    data = base64.b64decode(encoded)
+    return data, image_content_type(data)
 
 
 def ensure_open_session(client: OdooClient, config_id: int) -> int:

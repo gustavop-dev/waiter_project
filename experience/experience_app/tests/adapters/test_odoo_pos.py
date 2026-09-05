@@ -1,3 +1,5 @@
+import base64
+
 import pytest
 
 from experience_app.adapters.odoo import pos
@@ -8,7 +10,8 @@ CREDS = OdooCredentials(url='http://odoo', db='bh', login='svc', password='x', p
 LINE = pos.OrderLine(uuid='l1', product_id=3, name='Angus', unit_price=36900, qty=2, note='sin cebolla', tax_ids=[5])
 READ = FakeResponse([{'id': 13, 'pos_reference': '260-1-1', 'state': 'draft', 'amount_total': 87822, 'amount_tax': 14022, 'amount_paid': 0}])
 # Forma real de load_data (Odoo 19): description_sale e image_128 llegan como False cuando están vacíos.
-TEMPLATE = {'list_price': 36900, 'pos_categ_ids': [1], 'taxes_id': [55], 'available_in_pos': True, 'active': True, 'is_storable': False}
+TEMPLATE = {'list_price': 36900, 'pos_categ_ids': [1], 'taxes_id': [55], 'available_in_pos': True, 'active': True,
+            'is_storable': False, 'write_date': '2026-09-05 01:02:03'}
 LOAD_DATA = FakeResponse({
     'product.product': [{'id': 3, 'product_tmpl_id': 21}, {'id': 7, 'product_tmpl_id': 22}],
     'product.template': [
@@ -17,23 +20,12 @@ LOAD_DATA = FakeResponse({
     ],
     'pos.category': [{'id': 1, 'name': 'Carta', 'sequence': 0}], 'res.company': [{'id': 1, 'name': 'Burger House'}],
 })
+PNG = b'\x89PNG\r\n\x1a\n' + b'x' * 8
 
 
-class RawImage:
-    def __init__(self, content=b'', status_code=200, content_type='image/jpeg'):
-        self.content, self.status_code, self.headers = content, status_code, {'Content-Type': content_type}
-
-
-class ImageSession(FakeSession):
-    """FakeSession que además atiende GET (la foto va por /web/image, no por JSON-RPC)."""
-
-    def __init__(self, responses, image):
-        super().__init__(responses)
-        self.image, self.gets = image, []
-
-    def get(self, url, timeout=None):
-        self.gets.append(url)
-        return self.image
+def photo_rows(encoded, image_field='image_512'):
+    """Lo que search_read devuelve para una plantilla: el campo binario en base64, o False si está vacío."""
+    return FakeResponse([{'id': 21, image_field: encoded}])
 
 
 def test_create_order_syncs_with_uuid_then_recomputes_prices():
@@ -82,38 +74,61 @@ def test_connection_error_becomes_unavailable():
         OdooClient(CREDS, Down()).authenticate()
 
 
-def test_load_catalog_reads_template_id_description_favorite_and_photo_flag():
-    """Atrapa una descripción False, un favorito perdido o "tiene foto" con image_128 en False."""
+def test_load_catalog_reads_template_id_description_favorite_photo_flag_and_version():
+    """Atrapa una descripción False, un favorito perdido, "tiene foto" con image_128 en False o una foto sin versión."""
     catalog = pos.load_catalog(OdooClient(CREDS, FakeSession([AUTH, LOAD_DATA])), 4)
     angus, limonada = catalog.products
     assert (angus.id, angus.template_id) == (3, 21)
     assert (angus.description, angus.favorite, angus.has_image) == ('Carne 200 g', True, True)
     assert (limonada.description, limonada.favorite, limonada.has_image) == ('', False, False)
+    assert angus.image_version == '20260905010203'
 
 
-def test_fetch_product_image_authenticates_and_streams_the_template_photo():
-    """Atrapa una foto pedida sin sesión (Odoo devuelve el login) o con el id de producto en vez del de plantilla."""
-    http = ImageSession([AUTH], RawImage(b'\xff\xd8jpeg'))
-    assert pos.fetch_product_image(OdooClient(CREDS, http), 21) == b'\xff\xd8jpeg'
+def test_fetch_product_image_reads_the_template_photo_by_json_rpc():
+    """Atrapa una foto pedida por /web/image (placeholder de Odoo), con el id de producto en vez del de plantilla, o mal tipada."""
+    http = FakeSession([AUTH, photo_rows(base64.b64encode(PNG).decode())])
+    assert pos.fetch_product_image(OdooClient(CREDS, http), 21) == (PNG, 'image/png')
     assert http.calls[0][0] == 'authenticate'
-    assert http.gets == ['http://odoo/web/image/product.template/21/image_512']
+    read = params(http.calls[1])
+    assert (read['model'], read['method']) == ('product.template', 'search_read')
+    assert read['args'] == [[['id', '=', 21]], ['image_512']]
 
 
-def test_fetch_product_image_is_none_for_errors_and_non_images():
-    """Atrapa un 404 o el HTML del login de Odoo servidos al comensal como si fueran la foto."""
-    missing = ImageSession([AUTH], RawImage(b'not found', status_code=404))
-    login_page = ImageSession([AUTH], RawImage(b'<html>', status_code=200, content_type='text/html; charset=utf-8'))
-    assert pos.fetch_product_image(OdooClient(CREDS, missing), 21) is None
-    assert pos.fetch_product_image(OdooClient(CREDS, login_page), 21) is None
+def test_fetch_product_image_is_none_when_the_template_has_no_photo_or_is_gone():
+    """Atrapa el placeholder genérico de Odoo servido como foto: por JSON-RPC el campo vacío es False y la plantilla borrada, []."""
+    empty = FakeSession([AUTH, photo_rows(False)])
+    gone = FakeSession([AUTH, FakeResponse([])])
+    assert pos.fetch_product_image(OdooClient(CREDS, empty), 21) is None
+    assert pos.fetch_product_image(OdooClient(CREDS, gone), 21) is None
+
+
+def test_fetch_product_image_asks_the_dish_size_and_rejects_unknown_ones():
+    """Atrapa un tamaño arbitrario que llegue a Odoo, o la pantalla del plato servida con la miniatura de 512 px."""
+    http = FakeSession([AUTH, photo_rows(base64.b64encode(PNG).decode(), 'image_1024')])
+    assert pos.fetch_product_image(OdooClient(CREDS, http), 21, size='plato') == (PNG, 'image/png')
+    assert params(http.calls[1])['args'][1] == ['image_1024']
+    with pytest.raises(KeyError):
+        pos.fetch_product_image(OdooClient(CREDS, FakeSession([AUTH])), 21, size='image_1920')
+
+
+def test_image_content_type_sniffs_the_real_format():
+    """Atrapa una foto PNG o WebP etiquetada como JPEG: Odoo conserva el formato original en image_512."""
+    assert pos.image_content_type(PNG) == 'image/png'
+    assert pos.image_content_type(b'\xff\xd8\xff\xe0jpeg') == 'image/jpeg'
+    assert pos.image_content_type(b'RIFF\x00\x00\x00\x00WEBPVP8 ') == 'image/webp'
+    assert pos.image_content_type(b'GIF89a') == 'image/gif'
+    assert pos.image_content_type(b'<html>') == 'application/octet-stream'
 
 
 def test_fetch_product_image_wraps_a_down_odoo_as_unavailable():
     """Atrapa una caída de Odoo al pedir la foto que salga como 500 en vez de 503 reintentable."""
     import requests
 
-    class Down(ImageSession):
-        def get(self, *a, **k):
+    class Down:
+        def post(self, *a, **k):
             raise requests.Timeout('slow')
 
+    client = OdooClient(CREDS, Down())
+    client.uid = 2  # ya autenticado: la caída ocurre al leer la foto, no al entrar
     with pytest.raises(OdooUnavailable):
-        pos.fetch_product_image(OdooClient(CREDS, Down([AUTH], None)), 21)
+        pos.fetch_product_image(client, 21)
