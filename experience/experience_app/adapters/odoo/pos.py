@@ -119,6 +119,8 @@ def create_order(client: OdooClient, *, pos_session_id: int, table_id: int | Non
     # Por la API cruda amount_total queda en 0: el recálculo en servidor es obligatorio (y es lo que hace que
     # los precios del cliente no importen).
     client.call_kw('pos.order', 'recompute_prices', [[order_id]])
+    # Origen del pedido (addon projectapp_ops): de aquí salen "sin intervención humana" y el ROI.
+    client.call_kw('pos.order', 'write', [[order_id], {'waiter_origin': 'diner'}])
     return _read_order(client, order_id)
 
 

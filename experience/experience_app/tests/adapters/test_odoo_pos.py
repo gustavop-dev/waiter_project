@@ -11,13 +11,14 @@ READ = FakeResponse([{'id': 13, 'pos_reference': '260-1-1', 'state': 'draft', 'a
 
 def test_create_order_syncs_with_uuid_then_recomputes_prices():
     """Atrapa un payload que Odoo rechace o un pedido sin recalcular (total en 0)."""
-    http = FakeSession([AUTH, FakeResponse({'pos.order': [{'id': 13}]}), FakeResponse(True), READ])
+    http = FakeSession([AUTH, FakeResponse({'pos.order': [{'id': 13}]}), FakeResponse(True), FakeResponse(True), READ])
     order = pos.create_order(OdooClient(CREDS, http), pos_session_id=4, table_id=9, order_uuid='u-1', guests=2, lines=[LINE], date_order='2026-09-05 01:00:00')
     sync = params(http.calls[1])
     assert sync['method'] == 'sync_from_ui'
     assert sync['args'][0][0]['uuid'] == 'u-1'
     assert sync['args'][0][0]['lines'][0][2]['tax_ids'] == [[6, 0, [5]]]
     assert params(http.calls[2])['method'] == 'recompute_prices'
+    assert params(http.calls[3])['args'] == [[13], {'waiter_origin': 'diner'}]
     assert order.total == 87822
 
 
