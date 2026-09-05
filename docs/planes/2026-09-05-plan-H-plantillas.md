@@ -144,9 +144,14 @@ al controller del addon (misma sesión de Odoo). Servicio `pos/lib/services/menu
    `docs/diseno/plantillas/<codigo>/*.html` + `menu.png`; F2–F5 sin pantallas de cuenta
    (archivo cortado): asignar patrones siguiendo la rotación de su familia y la piel del
    pago; anotarlo en `spec.json.reconstruido`.
-2. [ ] **Backend** (experience + addon): catálogo, ajustes por sede, endpoints, contexto,
+2. [x] **Backend** (experience + addon): catálogo, ajustes por sede, endpoints, contexto,
    cuenta y descuento, pago simulado, pasarela admin en el addon, `diner_attributes`,
-   migraciones, tests y contratos.
+   migraciones, tests y contratos. Hecho el 2026-09-05: `experience_app/plantillas/`
+   (catálogo sembrado en `migrate` por `post_migrate` y con `seed_templates`; miniaturas por
+   `tools/diseno/sincronizar_catalogo.py`), `DinerAccount`, `CartLine.discount`,
+   `projectapp_ops` (`signup_discount_percent`, `diner_attributes`, `/waiter/admin/menu_settings`),
+   parámetros del sistema en `odoo/provisioning/seed-menu-params.sh`. Pendiente de integración:
+   `migrate` en experience, `-u projectapp_ops`, sembrar parámetros, contratos `-m contract`.
 3. [ ] **POS**: sección Plantilla del menú con galería, personalización y vista previa.
 4. [ ] **Motor del comensal**: tokens, registro de layouts, rutas y store de pago/cuenta,
    pantallas base (carrito/pago/cuenta genéricos), modo vista previa.
