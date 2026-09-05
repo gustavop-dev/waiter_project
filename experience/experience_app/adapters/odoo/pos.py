@@ -4,13 +4,22 @@ Las formas de datos son las REALES de Odoo 19 (many2one como enteros pelados en
 load_data, precio y categorías en product.template), ya verificadas en pos/.
 """
 import base64
+import logging
 import re
 from dataclasses import dataclass, field
 
 from experience_app.adapters.odoo.client import OdooClient
 
 # Reexportados: el sniff vive en utils/images.py (lo comparten fotos y logo); quien ya usaba pos.image_content_type sigue igual.
-from experience_app.utils.images import IMAGE_SIGNATURES, image_content_type, raster_content_type  # noqa: F401
+from experience_app.utils.images import (  # noqa: F401
+    IMAGE_SIGNATURES,
+    MAX_LOGO_BYTES,
+    decoded_size,
+    image_content_type,
+    raster_content_type,
+)
+
+log = logging.getLogger(__name__)
 
 OPEN_SESSION_STATES = ['opening_control', 'opened']
 # Tamaños públicos de la foto → campo de image.mixin. 512 px basta para la tarjeta de la carta;
@@ -167,7 +176,8 @@ def read_company_brand(client: OdooClient) -> CompanyBrand:
     row = rows[0] if rows else {}
 
     def text(key):
-        return row.get(key) or ''
+        # Solo espacios cuenta como vacío: si no, un lema de '  ' en Odoo pisaría al del registro con un lema en blanco.
+        return (row.get(key) or '').strip()
 
     return CompanyBrand(name=text('name'), color=text('brand_color'), font=text('brand_font'),
                         radius=int(row['brand_radius']) if row.get('brand_radius') else None,
@@ -176,10 +186,17 @@ def read_company_brand(client: OdooClient) -> CompanyBrand:
 
 
 def fetch_company_logo(client: OdooClient) -> tuple[bytes, str] | None:
-    """Bytes y content-type del logo de la compañía. None si no hay logo o no es PNG/JPEG/GIF (un SVG nunca sale)."""
+    """Bytes y content-type del logo de la compañía. None si no hay logo, pesa más de MAX_LOGO_BYTES o no es PNG/JPEG/GIF.
+
+    El tope se comprueba sobre el base64, antes de decodificar: un logo enorme (addon sin el tope) no debe ocupar memoria
+    ni caché en la experiencia. Un SVG nunca sale.
+    """
     rows = client.call_kw('res.company', 'search_read', [[], ['brand_logo']], {'limit': 1})
     encoded = rows[0].get('brand_logo') if rows else None
     if not encoded:
+        return None
+    if decoded_size(encoded) > MAX_LOGO_BYTES:
+        log.warning('logo de la compañía: pesa %d bytes, más del tope de 2 MB; no se sirve', decoded_size(encoded))
         return None
     data = base64.b64decode(encoded)
     content_type = raster_content_type(data)

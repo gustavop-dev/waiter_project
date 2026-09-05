@@ -9,6 +9,15 @@ from django.http import HttpResponse
 IMAGE_SIGNATURES = [(b'\x89PNG', 'image/png'), (b'\xff\xd8', 'image/jpeg'), (b'GIF8', 'image/gif')]
 # La URL lleva la versión del recurso: cuando cambia, cambia la URL, así que la caché pública puede ser larga e inmutable.
 CACHE_CONTROL = 'public, max-age=86400, immutable'
+# Tope del logo en bytes decodificados: el mismo que impone el addon projectapp_ops (2 MB). Un logo mayor solo puede venir
+# de un Odoo con el addon viejo; no se decodifica ni se cachea (la caché guardaría 2 MB+ por sede y por versión).
+MAX_LOGO_BYTES = 2_000_000
+
+
+def decoded_size(encoded: str | bytes) -> int:
+    """Bytes que ocupará un base64 al decodificarlo, sin decodificarlo: 3 por cada 4 caracteres, menos el relleno final."""
+    padding = encoded[-2:].count('=' if isinstance(encoded, str) else b'=')
+    return len(encoded) * 3 // 4 - padding
 
 
 def raster_content_type(data: bytes) -> str | None:

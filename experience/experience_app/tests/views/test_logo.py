@@ -1,9 +1,10 @@
 from dataclasses import replace
 from unittest.mock import patch
 
+import pytest
 from django.urls import reverse
 
-from experience_app.adapters.odoo.client import OdooUnavailable
+from experience_app.adapters.odoo.client import OdooError, OdooUnavailable
 from experience_app.tests.conftest import DELIVERY, UNTOUCHED_COMPANY
 
 LOGO = reverse('company-logo', args=['burger-house', 'poblado'])
@@ -74,14 +75,27 @@ def test_logo_is_404_when_the_binary_is_not_a_raster(resolve, read, fetch, api_c
     assert fetch.call_count == 1
 
 
+@pytest.mark.parametrize('read_fails,fetch_fails', [
+    (OdooUnavailable('down'), None),                 # la marca no llega: no se toca el logo
+    (None, OdooUnavailable('down')),                 # marca en caché con "hay logo", Odoo se cae al bajar el binario
+    (None, OdooError('Invalid field brand_logo')),   # ídem con un error de negocio (addon sin actualizar)
+], ids=['brand-read-fails', 'binary-fetch-unavailable', 'binary-fetch-error'])
 @patch(FETCH)
-@patch(READ, side_effect=OdooUnavailable('down'))
+@patch(READ)
 @patch(RESOLVE, return_value=DELIVERY)
-def test_logo_is_404_not_500_when_odoo_is_down(resolve, read, fetch, api_client):
+def test_logo_is_404_not_500_when_odoo_is_down(resolve, read, fetch, read_fails, fetch_fails, api_client):
     """Atrapa un 500 (o un 503 con JSON) en un <img>: el navegador solo entiende "no hay imagen"."""
+    read.side_effect = read_fails
+    read.return_value = WITH_LOGO
+    fetch.side_effect = fetch_fails
     response = api_client.get(LOGO)
     assert response.status_code == 404
-    assert fetch.call_count == 0
+    assert response.json() == {'detail': 'sin logo'}
+    assert fetch.call_count == (0 if read_fails else 1)
+    # El fallo no se cachea: cuando Odoo vuelve, el logo sale en la siguiente petición.
+    read.side_effect = fetch.side_effect = None
+    fetch.return_value = PNG
+    assert api_client.get(LOGO).status_code == 200
 
 
 def test_entry_points_the_logo_to_the_experience_route_with_its_version(api_client, table_tenant, catalog_stub, company_brand_stub):

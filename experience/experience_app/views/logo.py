@@ -10,6 +10,7 @@ Mismas cabeceras que fotos/ (utils/images.py).
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from experience_app.adapters.odoo.client import OdooError
 from experience_app.adapters.registry.client import resolve
 from experience_app.services import brand
 from experience_app.utils.images import image_response
@@ -24,7 +25,11 @@ def logo(request, restaurant, venue):
     # La marca (en caché) ya sabe si hay logo: sin él no se toca Odoo ni la caché del logo.
     if company is None or not company.has_logo:
         return Response(NO_LOGO, status=404)
-    found = brand.get_logo(tenant, company)
+    try:
+        found = brand.get_logo(tenant, company)
+    except OdooError:
+        # El servicio ya lo captura; esta es la promesa de la ruta: jamás un 5xx en un <img> por culpa de Odoo.
+        found = None
     if found is None:
         return Response(NO_LOGO, status=404)
     data, content_type = found
