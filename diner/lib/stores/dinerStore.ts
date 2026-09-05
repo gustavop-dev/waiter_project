@@ -70,9 +70,23 @@ export const useDinerStore = create<DinerState>((set, get) => {
     // Idempotente en el servidor: tocar dos veces devuelve el mismo pedido. Si el restaurante no responde (experience
     // devuelve el pedido como fallido), el carrito sigue ahí.
     confirm: async () => {
-      const session = get().session
-      if (!session) return null
-      return run(async () => { const r = await confirmOrder(session.id); const order = await getOrder(r.pedido); set({ order, cart: await getCart(session.id) }); return r.pedido })
+      const { session, keys } = get()
+      if (!session || !keys) return null
+      return run(async () => {
+        try {
+          const r = await confirmOrder(session.id)
+          const order = await getOrder(r.pedido)
+          set({ order, cart: await getCart(session.id) })
+          return r.pedido
+        } catch (e) {
+          // 409: el salón ya cobró la cuenta de esta visita. La sesión terminó; se abre otra limpia y se avisa.
+          if (e instanceof ApiError && e.status === 409) {
+            const r = await openSession(keys.rest, keys.venue, keys.token)
+            set({ session: r.sesion, cart: await getCart(r.sesion.id), order: null, bill: null })
+          }
+          throw e
+        }
+      })
     },
     refreshOrder: async (orderId) => { await run(async () => set({ order: await getOrder(orderId) })) },
     call: async () => {

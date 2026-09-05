@@ -18,11 +18,16 @@ class NothingToConfirm(Exception):
     pass
 
 
+class SessionAlreadyPaid(Exception):
+    """La cuenta de esta visita ya se pagó (la cobró el salón): la sesión termina y hay que abrir otra."""
+
+
 MAPPING = [
     (TenantNotFound, 404, 'Esta mesa no está disponible'),
     (ProductNotFound, 400, 'Ese producto no está en la carta'),
     (NotOwner, 403, 'Solo quien agregó el plato puede cambiarlo'),
     (NothingToConfirm, 400, 'No hay nada que confirmar'),
+    (SessionAlreadyPaid, 409, 'La cuenta de esta mesa ya se pagó. Vuelve a tocar el NFC para empezar una nueva.'),
     (OdooUnavailable, 503, 'El restaurante no responde; tu pedido se conserva, intenta de nuevo'),
     (RegistryUnavailable, 503, 'Servicio no disponible, intenta de nuevo'),
 ]

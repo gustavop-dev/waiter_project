@@ -5,7 +5,7 @@ from django.urls import reverse
 
 from experience_app.adapters.odoo.client import OdooUnavailable
 from experience_app.adapters.odoo.pos import OdooOrder, OrderStatus
-from experience_app.models import CartLine, Order
+from experience_app.models import CartLine, Order, TableSession
 from experience_app.tests.conftest import TABLE
 
 PAYLOAD = {'restaurante': 'burger-house', 'sede': 'poblado', 'token': '8H2KQ7'}
@@ -80,3 +80,16 @@ def test_order_detail_requires_a_diner_of_that_table(api_client, cart, odoo):
     order_id = api_client.post(reverse('confirm', args=[cart]), format='json').json()['pedido']
     stranger = api_client.__class__()
     assert stranger.get(reverse('order-detail', args=[order_id])).status_code == 404
+
+
+# Falla si a un pedido que el salón ya cobró se le pueden seguir agregando líneas, o si la mesa no vuelve a empezar limpia.
+@pytest.mark.django_db
+@patch('experience_app.services.orders.pos.read_order_status', return_value=OrderStatus(state='paid', kitchen='served'))
+def test_a_paid_bill_ends_the_visit_and_the_next_tap_opens_a_new_session(read, api_client, cart, odoo):
+    api_client.post(reverse('confirm', args=[cart]), format='json')
+    api_client.post(reverse('add-line', args=[cart]), {'producto_id': 7}, format='json')
+    response = api_client.post(reverse('confirm', args=[cart]), format='json')
+    assert response.status_code == 409
+    assert TableSession.objects.get(id=cart).state == TableSession.PAID
+    again = api_client.post(reverse('open-session'), PAYLOAD, format='json').json()
+    assert again['sesion']['id'] != cart

@@ -26,7 +26,9 @@ export default function DinerPage() {
   const { entry, cart, error, load, refreshCart, session } = useDinerStore()
   const keys = useMemo(() => ({ rest: params.rest, venue: params.sede, token: route.token }), [params.rest, params.sede, route.token])
 
-  useEffect(() => { void load(keys) }, [keys, load])
+  // Al entrar (o recargar) se abre/recupera la sesión del comensal por su cookie y se trae el carrito de la mesa:
+  // la barra de pedido no puede desaparecer por una recarga.
+  useEffect(() => { void load(keys).then(() => refreshCart()) }, [keys, load, refreshCart])
   // Con sesión abierta, el carrito de la mesa se refresca al entrar a cada pantalla (otros comensales también piden).
   useEffect(() => { if (session) void refreshCart() }, [session, route.screen, refreshCart])
 
