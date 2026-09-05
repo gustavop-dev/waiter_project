@@ -40,4 +40,8 @@ def photo(request, restaurant, venue, product_id):
     response = HttpResponse(data, content_type=content_type)
     requested = request.GET.get('v')
     response['Cache-Control'] = CACHE_CONTROL if not requested or requested == product.image_version else 'no-store'
+    # Defensa en profundidad: la foto es un binario que se pinta en <img>, nunca un documento que ejecute nada.
+    response['X-Content-Type-Options'] = 'nosniff'
+    response['Content-Security-Policy'] = "default-src 'none'; sandbox"
+    response['Content-Disposition'] = 'inline; filename="foto"'
     return response
