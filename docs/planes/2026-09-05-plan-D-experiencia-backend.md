@@ -2,7 +2,7 @@
 
 > **Para agentes:** ejecutar tarea por tarea, en orden, con el ciclo de cada
 > tarea completo (test que falla → implementación mínima → test que pasa →
-> commit). Los pasos usan `- [ ]`. Cada tarea deja software probado y
+> commit). Los pasos usan `- [x]`. Cada tarea deja software probado y
 > commiteado por sí sola.
 
 **Objetivo:** que una URL pública de mesa (`/burger-house/poblado/t/8H2KQ7`)
@@ -114,6 +114,22 @@ def add_line / update_line / remove_line
 def confirm(session) -> Order            # idempotente por Order.uuid; OdooUnavailable → Order.state='failed'
 def order_status(order) -> dict
 ```
+
+## Estado: ejecutado el 2026-09-05 (rama `feat/05092026-experience`)
+
+Desvíos respecto al plan, todos menores:
+
+- Rutas con barra final (`/api/v1/sesiones/<id>/carrito/`), convención del fleet.
+- **Un `pos.order` por sesión de mesa**, no uno por confirmación: cada
+  confirmación re-sincroniza todas las líneas bajo el mismo uuid (Odoo
+  actualiza) y dispara un curso solo con lo nuevo. Así el salón ve una sola
+  cuenta por mesa y "pedir más" es otra comanda, como pide el bloque 3.
+- `Tenant` lleva `odoo_table_id` y `table_number`; la respuesta pública usa
+  `mesa.numero`.
+- Los contratos deben leer la carta real (`catalog.get_catalog`): un stub con
+  ids de producto/impuesto inventados hace fallar `sync_from_ui`.
+- `settings.py` de ambos servicios falla cerrado en producción sin secreto
+  real o con DEBUG (hallazgo de la revisión de seguridad del commit).
 
 ## Tareas
 

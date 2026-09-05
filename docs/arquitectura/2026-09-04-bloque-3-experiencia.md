@@ -1,7 +1,7 @@
 # Bloque 3 — Experiencia del comensal
 
 - **Fecha:** 2026-09-04
-- **Estado:** aceptado, pendiente de implementación
+- **Estado:** backend implementado el 2026-09-05 (`experience/`, Plan D); pagos, IA y PWA pendientes
 - **Depende de:** [arquitectura modular](2026-09-04-arquitectura-modular.md),
   [una base por restaurante](../decisiones/2026-09-04-multi-tenant.md)
 
@@ -171,6 +171,10 @@ aprovisionamiento debe reiniciar Odoo tras activar el idioma**, o el canal de
 autoservicio queda roto con un error que no señala la causa.
 
 ## Contrato de la API
+
+Las rutas reales llevan barra final (convención del fleet). Un `TableSession`
+tiene **un** `pos.order`; cada confirmación agrega líneas bajo el mismo uuid y
+dispara una comanda nueva.
 
 ```text
 GET  /api/v1/<rest>/<sede>/t/<token>     contexto de mesa + carta
