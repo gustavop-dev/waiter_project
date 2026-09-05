@@ -510,6 +510,108 @@
       },
       "D5": {
         "tomorrow": "Vuelve mañana"
+      },
+      "familiaE": {
+        "search": "Buscar en la carta",
+        "searchToggle": "Buscar",
+        "filters": "Filtrar",
+        "tagFilters": "Filtrar por etiqueta",
+        "items": "{n, plural, one {# ítem} other {# ítems}}",
+        "orderEmpty": "Todavía no has agregado nada.",
+        "seeOrder": "Ver pedido",
+        "seeOrderTotal": "Ver pedido · $ {amount}",
+        "abvShort": "{abv}%",
+        "ibu": "{ibu} IBU",
+        "pieces": "{n, plural, one {# pieza} other {# piezas}}",
+        "spicy": "Picante nivel {n} de 3",
+        "todayOnly": "Solo hoy",
+        "sizesFrom": "{n, plural, one {# tamaño} other {# tamaños}} · desde {amount}",
+        "you": "Yo",
+        "diner": "Comensal {n}",
+        "cart": {
+          "items": "{n, plural, one {# ítem} other {# ítems}}",
+          "lineNote": "{qty} · {note}",
+          "lineQty": "{qty, plural, one {# unidad} other {# unidades}}",
+          "editLine": "Editar {name}",
+          "others": "Pedido por otros en la mesa",
+          "subtotal": "Subtotal",
+          "mine": "Lo mío",
+          "total": "Total",
+          "totalTable": "Total de la mesa",
+          "discountChip": "−{pct}% aplicado",
+          "discountBanner": "Primera compra: descuento aplicado.",
+          "discountBannerPending": "Primera compra: regístrate y ahorra {pct}% →",
+          "discountIncluded": "Incluye tu {pct}% de primera compra",
+          "taxes": "IVA incluido",
+          "payMine": "Pagar lo mío"
+        },
+        "pay": {
+          "split": "¿Cómo dividen?",
+          "splitOptions": "Cómo dividir la cuenta",
+          "splitMine": "Pagar lo mío",
+          "splitParts": "Dividir en {n}",
+          "splitAll": "Pagar todo",
+          "methodTarjeta": "Tarjeta crédito o débito",
+          "methodPse": "PSE · desde tu banco",
+          "methodNequi": "Nequi · con QR",
+          "methodEfectivo": "Efectivo en la caja",
+          "otherMethod": "Usar otra forma de pago",
+          "total": "Total",
+          "confirm": "Confirmar y pagar",
+          "products": "Productos",
+          "tokenizedShort": "Tokenizado por la pasarela. Waiter no ve tu tarjeta.",
+          "invoiceNote": "Enviaremos la factura electrónica a tu correo al confirmar el pago."
+        }
+      },
+      "E1": {
+        "taps": "{n, plural, one {# grifo} other {# grifos}}",
+        "categoryCount": "{name} · {n}",
+        "abvIbu": "ABV · IBU",
+        "empty": "barril vacío",
+        "flight": "Armar flight",
+        "round": "Pedir ronda",
+        "roundTotal": "Pedir ronda · $ {amount}"
+      },
+      "E2": {
+        "cocktails": "{n, plural, one {# cóctel} other {# cócteles}}",
+        "round": "{n, plural, one {# ítem} other {# ítems}} · ",
+        "again": "Otra igual",
+        "seeOrder": "Ver pedido"
+      },
+      "E3": {
+        "todayKicker": "Solo hoy · {name}",
+        "todayCount": "{n, plural, one {plato solo hoy} other {platos solo hoy}}",
+        "menuKicker": "Carta",
+        "todayFilter": "Solo hoy",
+        "todayNote": "Lo marcado «Solo hoy» es de hoy: mañana vuelve la carta normal. Nada se pide por ti.",
+        "cta": "Ver pedido · $ {amount}",
+        "ctaEmpty": "Tu pedido"
+      },
+      "E4": {
+        "table": "Mesa {n}",
+        "tablePeople": "Mesa {n} · {people, plural, one {# persona} other {# personas}}",
+        "noTable": "La mesa",
+        "itemsOpen": "{n, plural, one {# ítem} other {# ítems}} en la mesa",
+        "nobodyYet": "Nadie ha pedido todavía.",
+        "splitNote": "La cuenta se divide en {n}: {amount} cada uno.",
+        "payMine": "Pagar lo mío",
+        "splitIn": "Dividir en {n}",
+        "payAll": "Pagar todo · $ {amount}",
+        "payAllEmpty": "Pagar todo",
+        "menuTitle": "La carta"
+      },
+      "E5": {
+        "title": "Arma tu flight",
+        "pickFour": "Elige cuatro",
+        "progress": "{n} de {size} · $ {amount}",
+        "slots": "Tu flight",
+        "emptySlot": "Hueco libre",
+        "removeSlot": "Quitar del flight: {name}",
+        "addMore": "{n, plural, =0 {Listo para pedir} one {Añade uno más} other {Añade # más}}",
+        "addToFlight": "Añadir al flight: {name}",
+        "missing": "{n, plural, one {Falta # para pedir} other {Faltan # para pedir}}",
+        "order": "Pedir flight · $ {amount}",
+        "allChosen": "Ya elegiste todo lo de esta categoría."
       }
     },
     "status": {

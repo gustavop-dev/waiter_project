@@ -19,6 +19,15 @@ import { FamilyBCart } from '@/components/templates/families/B/FamilyBCart'
 import { FamilyBPay } from '@/components/templates/families/B/FamilyBPay'
 import { CardsHistory } from '@/components/templates/patterns/CardsHistory'
 // --- fin familia B
+// --- familia E
+import { E1Menu } from '@/components/templates/families/E/E1Menu'
+import { E2Menu } from '@/components/templates/families/E/E2Menu'
+import { E3Menu } from '@/components/templates/families/E/E3Menu'
+import { E4Menu } from '@/components/templates/families/E/E4Menu'
+import { E5Menu } from '@/components/templates/families/E/E5Menu'
+import { FamilyECart } from '@/components/templates/families/E/FamilyECart'
+import { FamilyEPay } from '@/components/templates/families/E/FamilyEPay'
+// --- fin familia E
 import type { CartLayoutProps, CodeProps, HistoryProps, MenuLayoutProps, PayLayoutProps, SignupProps } from '@/components/templates/types'
 import type { CodePattern, HistoryPattern, SignupPattern, TemplateFamily } from '@/lib/types'
 // --- familia A
@@ -98,6 +107,14 @@ Object.assign(MENU_LAYOUTS, { D1: D1Menu, D2: D2Menu, D3: D3Menu, D4: D4Menu, D5
 CART_LAYOUTS.D = FamilyDCart
 PAY_LAYOUTS.D = FamilyDPay
 // --- fin familia D
+// --- familia E
+// Bar y cervecería: cinco menús por código y el carrito y pago de la familia (ramifican por template.codigo: E2, E3 y E5 difieren
+// del base E1/E4). Sus patrones de cuenta (banner5/portada/beneficios, casillas/revisaCorreo/canal, tarjetas/tablaCufe/porMes) no
+// son propios de la familia: los registran otras familias o caen al genérico.
+Object.assign(MENU_LAYOUTS, { E1: E1Menu, E2: E2Menu, E3: E3Menu, E4: E4Menu, E5: E5Menu })
+CART_LAYOUTS.E = FamilyECart
+PAY_LAYOUTS.E = FamilyEPay
+// --- fin familia E
 
 export const menuLayout = (code: string | undefined): ComponentType<MenuLayoutProps> => (code && MENU_LAYOUTS[code.toUpperCase()]) || GenericMenu
 export const cartLayout = (familia: TemplateFamily | string | undefined): ComponentType<CartLayoutProps> => CART_LAYOUTS[familia as TemplateFamily] ?? GenericCart
