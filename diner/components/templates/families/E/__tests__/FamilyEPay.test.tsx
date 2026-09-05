@@ -12,8 +12,8 @@ const base = (codigo: string, over: Partial<PayLayoutProps> = {}): PayLayoutProp
   onRetry: jest.fn(), onPayAtTable: jest.fn(), onSignup: jest.fn(), goMenu: jest.fn(), ...over,
 })
 
-// Falla si E1 pierde «¿Cómo dividen?» con las tres opciones reales (lo mío, en N, todo), si el CTA no cobra la parte elegida, o si
-// onPay lleva algo más que el método.
+// Falla si E1 pierde «¿Cómo dividen?» con las tres opciones reales (lo mío, en N, todo), si el CTA no cobra la parte elegida, si
+// onPay lleva algo más que el método, o si pinta el formulario de tarjeta, la nota de tokenización o la línea de mesa que su marco no tiene.
 it('E1: offers the split options with real amounts and pays the chosen part with the method only', () => {
   const props = base('E1')
   wrap(<FamilyEPay {...props} />)
@@ -24,13 +24,13 @@ it('E1: offers the split options with real amounts and pays the chosen part with
   expect(within(split).getByRole('radio', { name: /Pagar todo/, checked: true })).toHaveClass('border-t-acento')
   fireEvent.click(within(split).getByRole('radio', { name: /Dividir en 4/ }))
   expect(screen.getByRole('button', { name: 'Pagar $ 15.750' })).toBeInTheDocument()
-  const number = screen.getByPlaceholderText('4242 4242 4242 4242')
-  fireEvent.change(number, { target: { value: '4111111111111111xx' } })
-  expect(number).toHaveValue('4111 1111 1111 1111')
+  expect(screen.queryByPlaceholderText('4242 4242 4242 4242')).toBeNull()
+  expect(screen.queryByText(/Tokenizado por la pasarela/)).toBeNull()
+  expect(screen.queryByText('Mesa 6')).toBeNull()
   expect(screen.getByText('Demo · sin cobro real')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Pagar $ 15.750' }))
   expect(props.onPay).toHaveBeenCalledWith('tarjeta')
-  expect(JSON.stringify((props.onPay as jest.Mock).mock.calls)).not.toContain('4111')
+  expect(props.onPay).toHaveBeenCalledTimes(1)
 })
 
 // Falla si el método elegido no va como tarjeta con check, si «Usar otra forma de pago →» no despliega el resto, o si efectivo no
@@ -50,18 +50,21 @@ it('E1: shows the chosen method as a checked card, unfolds the others and sends 
   expect(props.onPay).not.toHaveBeenCalled()
 })
 
-// Falla si sin más de una parte se ofrece «Dividir en 1», o si sin cuenta no se invita al 5 %.
+// Falla si sin más de una parte se ofrece «Dividir en 1», si sin cuenta no se invita al 5 %, o si E4 pinta formulario o nota.
 it('hides the split-in-N option for a single part and invites to identify for the discount', () => {
   const props = base('E4', { bill: { ...bill, partes: 1, porParte: 63000, descuento: { porcentaje: 5, monto: 0, aplicable: true, aplicado: false } } })
   wrap(<FamilyEPay {...props} />)
   expect(screen.queryByRole('radio', { name: /Dividir en/ })).toBeNull()
+  expect(screen.queryByPlaceholderText('4242 4242 4242 4242')).toBeNull()
+  expect(screen.queryByText(/Tokenizado por la pasarela/)).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: /Identifícate y ahorra 5%/ }))
   expect(props.onSignup).toHaveBeenCalledTimes(1)
 })
 
-// Falla si E2 pierde «Pagar» en la voz serif con el monto 22 o la nota corta de tokenización.
+// Falla si E2 pierde «Pagar» en la voz serif con el monto 22 o la nota corta de tokenización, o si pinta el formulario que su marco no tiene.
 it('E2: pays with the serif header and the short tokenized note', () => {
   wrap(<FamilyEPay {...base('E2')} />)
+  expect(screen.queryByPlaceholderText('4242 4242 4242 4242')).toBeNull()
   expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Pagar')
   expect(screen.getByRole('heading', { level: 1 })).toHaveClass('t-title', 'text-[21px]')
   expect(screen.getByText('$ 63.000')).toHaveClass('text-[22px]')
@@ -78,6 +81,7 @@ it('E3: accent header, method rows without a card form and the 64 px CTA', () =>
   expect(screen.getByText('$ 63.000')).toHaveClass('text-[28px]')
   expect(screen.getByRole('radio', { name: 'Tarjeta crédito o débito', checked: true })).toHaveClass('h-[62px]')
   expect(screen.queryByPlaceholderText('4242 4242 4242 4242')).toBeNull()
+  expect(screen.queryByText(/Tokenizado por la pasarela/)).toBeNull()
   fireEvent.click(screen.getByRole('radio', { name: 'PSE · desde tu banco' }))
   const cta = screen.getByRole('button', { name: 'Pagar $ 63.000' })
   expect(cta).toHaveClass('h-[64px]')
@@ -85,18 +89,29 @@ it('E3: accent header, method rows without a card form and the 64 px CTA', () =>
   expect(props.onPay).toHaveBeenCalledWith('pse')
 })
 
-// Falla si E5 pierde «Confirmar y pagar» con la mesa, la caja resumen con productos / descuento / total, el formulario en mono o la nota de factura.
+// Falla si E5 pierde «Confirmar y pagar» con la mesa, la caja resumen con productos / descuento / total, el formulario en mono o la
+// nota de factura; si vuelve a pintar píldoras de método (el spec las excluye), o si el número de tarjeta sale del componente.
 it('E5: confirm header, summary box, mono card form and invoice note', () => {
-  wrap(<FamilyEPay {...base('E5')} />)
+  const props = base('E5')
+  wrap(<FamilyEPay {...props} />)
   expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Confirmar y pagar')
   expect(screen.getByText('Mesa 6')).toBeInTheDocument()
   expect(screen.getByText('Productos').nextSibling).toHaveTextContent('66.000')
   expect(screen.getByText('Ahorraste').nextSibling).toHaveTextContent('−3.000')
   expect(screen.getByText('Total').nextSibling).toHaveTextContent('63.000')
-  expect(screen.getByPlaceholderText('4242 4242 4242 4242')).toHaveClass('font-t-mono')
+  const number = screen.getByPlaceholderText('4242 4242 4242 4242')
+  expect(number).toHaveClass('font-t-mono')
+  fireEvent.change(number, { target: { value: '4111111111111111xx' } })
+  expect(number).toHaveValue('4111 1111 1111 1111')
   expect(screen.getByText('Enviaremos la factura electrónica a tu correo al confirmar el pago.')).toBeInTheDocument()
-  expect(screen.getByRole('radio', { name: 'Tarjeta', checked: true })).toBeInTheDocument()
-  expect(screen.getByRole('button', { name: 'Pagar $ 63.000' })).toHaveClass('h-[64px]')
+  expect(screen.queryByText(/Tokenizado por la pasarela/)).toBeNull()
+  expect(screen.queryByRole('radiogroup', { name: 'Formas de pago' })).toBeNull()
+  expect(screen.queryByRole('radio')).toBeNull()
+  const cta = screen.getByRole('button', { name: 'Pagar $ 63.000' })
+  expect(cta).toHaveClass('h-[64px]')
+  fireEvent.click(cta)
+  expect(props.onPay).toHaveBeenCalledWith('tarjeta')
+  expect(JSON.stringify((props.onPay as jest.Mock).mock.calls)).not.toContain('4111')
 })
 
 // Falla si «Autorizando» deja un spinner solo, «Pagado» pierde la cabecera verde / el ahorro / la demo, o «Rechazada» no ofrece las tres salidas.

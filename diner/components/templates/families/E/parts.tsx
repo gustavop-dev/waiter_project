@@ -77,7 +77,8 @@ export function Avatar({ label, name, color, className = '' }: { label: string; 
 }
 
 // Quién pidió cada línea: «Yo» (o las iniciales de la cuenta) para lo mío; «C1», «C2»… para los demás comensales de la mesa (id real
-// `comensal` del carrito; su nombre no viene en los datos). El color rota por comensal como en el marco.
+// `comensal` del carrito; su nombre no viene en los datos). El acento es solo de «Yo»: los demás alternan cocina / libre, así el
+// tercer, sexto… comensal nunca se confunde conmigo.
 export function useDinerLabels(cart: Cart | null, account: Account | null) {
   const t = useTranslations('diner.templates.familiaE')
   return useMemo(() => {
@@ -86,7 +87,7 @@ export function useDinerLabels(cart: Cart | null, account: Account | null) {
     const of = (line: Pick<CartLine, 'mio' | 'comensal'>) => {
       if (line.mio) return { label: mineLabel, name: t('you'), color: AVATAR[0] }
       const i = others.indexOf(line.comensal)
-      return { label: `C${i + 1}`, name: t('diner', { n: i + 1 }), color: AVATAR[(i + 1) % AVATAR.length] }
+      return { label: `C${i + 1}`, name: t('diner', { n: i + 1 }), color: AVATAR[1 + (i % (AVATAR.length - 1))] }
     }
     return { of, others }
   }, [cart, account, t])
@@ -216,3 +217,14 @@ export function PayStates({ state, total, discount, result, order, merchant, tab
 
 // Cuenta ligada al comensal (para las iniciales del avatar): el layout no la recibe en sus props de menú/carrito.
 export const useAccount = () => useDinerStore().account
+// Cuenta de la mesa pedida al salón (partes y cifra por parte): la misma que usa el pago, para que el menú de E4 no ofrezca una
+// división que el pago luego no tenga. Es null hasta que el comensal pide la cuenta; el menú no la pide (avisaría al salón).
+export const useBill = () => useDinerStore().bill
+
+// Rótulo «Agotado» fuera de la zona atenuada, para que siga legible: rojo claro del diseño (#F08A84, el de «barril vacío» de E1)
+// sobre las pieles oscuras y la tinta de ocupado sobre la clara. `chip` lo pinta como chip de 28 px (fichas de E2).
+export function SoldOut({ dark, chip = false, className = '' }: { dark: boolean; chip?: boolean; className?: string }) {
+  const t = useTranslations('diner.common')
+  const tone = dark ? 'text-[#F08A84]' : 'text-busy-ink'
+  return <span data-testid="sold-out-badge" className={`shrink-0 whitespace-nowrap font-medium ${tone} ${chip ? 'inline-flex items-center h-[28px] px-2.5 rounded-t-chip bg-t-borde text-[12px]' : 'text-[12px]'} ${className}`}>{t('soldOut')}</span>
+}

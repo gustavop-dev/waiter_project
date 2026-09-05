@@ -5,8 +5,9 @@ import { cartOf, entryOf, grifos, line, menuProps, wrap } from '@/components/tem
 
 jest.mock('@/lib/stores/dinerStore', () => ({ useDinerStore: () => ({ account: null }) }))
 
-// Falla si la cabecera no lleva la marca en la voz de la plantilla con su lema, si las fichas pierden ingredientes o chips de perfil,
-// o si una ficha sin etiquetas deja chips vacíos.
+// Falla si la cabecera no lleva la marca en la voz de la plantilla con su lema (es la cabecera del marco: la página no pinta otra),
+// si las fichas pierden ingredientes o chips de perfil, si una ficha sin etiquetas deja una fila de chips vacía bajo el nombre, o si
+// el agotado atenúa la insignia.
 it('renders the brand header and cards with ingredients and profile chips only when present', () => {
   wrap(<E2Menu {...menuProps('E2')} />)
   expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Cervecería Norte')
@@ -18,8 +19,15 @@ it('renders the brand header and cards with ingredients and profile chips only w
   expect(within(humo).getByText('34.000')).toHaveClass('font-t-mono')
   const papas = screen.getByText('Papas rústicas').closest('li') as HTMLElement
   expect(within(papas).queryAllByText(/./).filter((el) => el.classList.contains('rounded-t-chip'))).toHaveLength(0)
-  expect(screen.getByText('Sour de maracuyá').closest('li')).toHaveClass('opacity-55')
-  expect(screen.getByTestId('sold-out-badge')).toHaveTextContent('Agotado')
+  // Sin descripción ni chips la ficha es solo su primera línea (nombre · precio · ＋): ninguna banda vacía debajo.
+  expect(papas.children).toHaveLength(1)
+  expect(within(papas).getByRole('button', { name: 'Agregar: Papas rústicas' })).toHaveClass('h-[44px]')
+  const sour = screen.getByText('Sour de maracuyá')
+  expect(sour.closest('button')).toHaveClass('opacity-55')
+  expect(sour.closest('li')).not.toHaveClass('opacity-55')
+  const badge = screen.getByTestId('sold-out-badge')
+  expect(badge).toHaveTextContent('Agotado')
+  expect(badge.closest('.opacity-55')).toBeNull()
   expect(screen.getByText('Sour de maracuyá').closest('li')?.querySelector('img')).toBeNull()
 })
 

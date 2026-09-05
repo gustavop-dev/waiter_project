@@ -1,6 +1,6 @@
 import { fireEvent, screen, within } from '@testing-library/react'
 
-import { E5Menu } from '@/components/templates/families/E/E5Menu'
+import { E5Menu, shortName } from '@/components/templates/families/E/E5Menu'
 import { cartOf, line, menuProps, wrap } from '@/components/templates/families/E/__tests__/fixtures'
 
 jest.mock('@/lib/stores/dinerStore', () => ({ useDinerStore: () => ({ account: null }) }))
@@ -18,6 +18,8 @@ it('fills the four slots from the rows and counts what is missing', () => {
   expect(screen.getAllByLabelText('Hueco libre')).toHaveLength(4)
   expect(screen.getByText('Añade 4 más')).toHaveClass('uppercase')
   expect(screen.getByRole('button', { name: 'Faltan 4 para pedir' })).toBeDisabled()
+  // Radio 12 del marco del menú (radioBoton 8 es solo de carrito y pago).
+  expect(screen.getByRole('button', { name: 'Faltan 4 para pedir' })).toHaveClass('rounded-[12px]', 'h-[56px]')
   fireEvent.click(screen.getByRole('button', { name: 'Añadir al flight: Golden Ale' }))
   expect(screen.getByRole('button', { name: 'Quitar del flight: Golden Ale' })).toHaveTextContent('Golden')
   expect(screen.getByRole('button', { name: 'Quitar del flight: Golden Ale' })).toHaveClass('bg-t-acento')
@@ -38,7 +40,7 @@ it('unlocks the CTA with the real sum when complete and adds the four dishes', (
   expect(screen.getByText('Listo para pedir')).toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'Añadir al flight: Papas rústicas' })).toBeDisabled()
   const cta = screen.getByRole('link', { name: /Pedir flight · \$ 92\.000/ })
-  expect(cta).toHaveClass('bg-t-acento')
+  expect(cta).toHaveClass('bg-t-acento', 'rounded-[12px]')
   expect(cta).toHaveAttribute('href', '/norte/centro/t/Z2XUVG/pedido')
   fireEvent.click(cta)
   expect(props.onAdd).toHaveBeenCalledTimes(4)
@@ -53,7 +55,10 @@ it('keeps the whole menu: opens from the name, hides ＋ on sold out, shows attr
   fireEvent.click(screen.getByText('IPA de la casa'))
   expect(props.onOpen).toHaveBeenCalledWith(expect.objectContaining({ id: 2 }))
   expect(screen.queryByRole('button', { name: 'Añadir al flight: Sour de maracuyá' })).toBeNull()
-  expect(screen.getByText('Sour de maracuyá').closest('li')).toHaveClass('opacity-45')
+  const sour = screen.getByText('Sour de maracuyá')
+  expect(sour.closest('button')).toHaveClass('opacity-55')
+  expect(sour.closest('li')).not.toHaveClass('opacity-55')
+  expect(screen.getByTestId('sold-out-badge').closest('.opacity-55')).toBeNull()
   expect(screen.getByText('4.8% · 22 IBU · ligera')).toHaveClass('font-t-mono')
   expect(within(screen.getByText('Papas rústicas').closest('li') as HTMLElement).queryByText(/IBU|%/)).toBeNull()
   fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'ipa' } })
@@ -67,4 +72,15 @@ it('offers the order with its total above the locked CTA', () => {
   wrap(<E5Menu {...menuProps('E5', { cart: cartOf([line({ id: 1, cantidad: 2, subtotal: 28000 })]) })} />)
   expect(screen.getByRole('link', { name: 'Ver pedido · $ 28.000' })).toHaveAttribute('href', '/norte/centro/t/Z2XUVG/pedido')
   expect(screen.getByRole('button', { name: 'Faltan 4 para pedir' })).toBeDisabled()
+})
+
+// Falla si el nombre corto del hueco vuelve a ser la primera palabra recortada («Hamburg…»): debe caber y distinguir el producto.
+it('shortName picks a word that fits the slot and tells the dishes apart', () => {
+  expect(shortName('Golden Ale')).toBe('Golden')
+  expect(shortName('IPA de la casa')).toBe('IPA')
+  expect(shortName('Hamburguesa Angus')).toBe('Angus')
+  expect(shortName('Hamburguesa Clásica')).toBe('Clásica')
+  expect(shortName('Limonada de Coco')).toBe('Limonada')
+  expect(shortName('Hamburguesa')).toBe('Hamburguesa')
+  expect(shortName('de la')).toBe('de la')
 })
