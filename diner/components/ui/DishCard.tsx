@@ -11,8 +11,10 @@ export function DishCard({ dish, onOpen, onAdd }: { dish: Dish; onOpen: (d: Dish
   return (
     <article className="border border-[#EFE9E0] rounded-rest bg-surface overflow-hidden flex flex-col">
       <button type="button" onClick={() => onOpen(dish)} className="text-left flex-1 flex flex-col">
-        <div className="h-[88px] bg-muted grid place-items-center text-[11px] tracking-[0.08em] uppercase text-ink-3 overflow-hidden">
-          {dish.foto ? <img src={dish.foto} alt="" className="w-full h-full object-cover" /> : t('home.photo')}
+        {/* Agotado (espec. de imágenes): la foto se queda al 55 % con la insignia encima; el plato no se oculta. */}
+        <div className="relative h-[88px] bg-muted grid place-items-center text-[11px] tracking-[0.08em] uppercase text-ink-3 overflow-hidden">
+          {dish.foto ? <img src={dish.foto} alt="" className={dish.agotado ? 'w-full h-full object-cover opacity-55' : 'w-full h-full object-cover'} /> : t('home.photo')}
+          {dish.agotado && dish.foto && <span data-testid="sold-out-badge" className="absolute top-2 right-2 rounded-full bg-surface/90 px-2 py-0.5 text-[11px] font-medium tracking-[0.04em] normal-case text-busy-ink">{t('common.soldOut')}</span>}
         </div>
         <div className="px-3 pt-2.5 flex flex-col gap-0.5">
           <span className="text-[15px] font-medium leading-snug">{dish.nombre}</span>
