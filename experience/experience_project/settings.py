@@ -81,3 +81,13 @@ LOGGING = {
     'handlers': {'console': {'class': 'logging.StreamHandler', 'formatter': 'verbose'}},
     'root': {'handlers': ['console'], 'level': LOG_LEVEL},
 }
+
+# ---------------------------------------------------------------------------
+# Bloque 3 — experiencia del comensal
+# ---------------------------------------------------------------------------
+REGISTRY_URL = os.getenv('REGISTRY_URL', 'http://192.168.56.10:8002').rstrip('/')
+REGISTRY_INTERNAL_KEY = os.getenv('REGISTRY_INTERNAL_KEY', '')
+EXPERIENCE_INTERNAL_KEY = os.getenv('EXPERIENCE_INTERNAL_KEY', '')
+MENU_CACHE_SECONDS = int(os.getenv('MENU_CACHE_SECONDS', '60'))
+TENANT_CACHE_SECONDS = int(os.getenv('TENANT_CACHE_SECONDS', '120'))
+ODOO_TIMEOUT_SECONDS = int(os.getenv('ODOO_TIMEOUT_SECONDS', '20'))
