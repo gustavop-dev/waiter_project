@@ -23,7 +23,12 @@ export function DishCard({ dish, onOpen, onAdd }: { dish: Dish; onOpen: (d: Dish
         <span className="font-mono tabular text-[15px]">{formatCop(dish.precio)}</span>
         {dish.agotado
           ? <span className="text-[12px] font-medium text-busy-ink">{t('common.soldOut')}</span>
-          : <button type="button" aria-label={`${t('common.add')}: ${dish.nombre}`} onClick={() => onAdd(dish)} className="w-[34px] h-[34px] rounded-full bg-brand text-brand-ink grid place-items-center text-[17px] leading-none">＋</button>}
+          : (
+            // Área de toque de 48px (§03) sin agrandar el dibujo de 34px del mock: el margen negativo la extiende 7px hacia fuera y el pie no crece.
+            <button type="button" aria-label={`${t('common.add')}: ${dish.nombre}`} onClick={() => onAdd(dish)} className="w-tap-min h-tap-min -m-[7px] grid place-items-center">
+              <span aria-hidden="true" className="w-[34px] h-[34px] rounded-full bg-brand text-brand-ink grid place-items-center text-[17px] leading-none">＋</span>
+            </button>
+          )}
       </div>
     </article>
   )

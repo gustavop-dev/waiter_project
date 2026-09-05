@@ -13,10 +13,12 @@ import type { Dish, Entry } from '@/lib/types'
 const fold = (s: string) => s.normalize('NFD').replace(/\p{Mn}/gu, '').toLowerCase().trim()
 // Un plato puede vivir en varias categorías; en "Todo" se muestra una sola vez.
 const unique = (dishes: Dish[]) => Array.from(new Map(dishes.map((d) => [d.id, d])).values())
+// null es "Todo"; el id enlaza cada pestaña con el panel (aria-labelledby).
+const tabId = (category: number | null) => (category === null ? 'cat-all' : `cat-${category}`)
 
 // Carta (sistema de diseño §06): título en la serif del restaurante, buscador, chips de categoría y rejilla de tarjetas.
 export function Menu({ entry, rest, venue, token }: { entry: Entry; rest: string; venue: string; token: string | null; id: string | null }) {
-  const t = useTranslations('diner.menu')
+  const t = useTranslations('diner')
   const router = useRouter()
   const { add } = useDinerStore()
   const [query, setQuery] = useState('')
@@ -27,21 +29,45 @@ export function Menu({ entry, rest, venue, token }: { entry: Entry; rest: string
     const needle = fold(query)
     return needle ? pool.filter((d) => fold(d.nombre).includes(needle)) : pool
   }, [categories, category, query])
-  // El chip activo lleva el color del restaurante; el estado también va en aria-pressed, no solo en el color.
+  // Estado vacío honesto: solo habla de búsqueda si el comensal buscó; si no, es la categoría (o la carta entera) la que no tiene platos.
+  const emptyText = query ? t('menu.empty') : category === null ? t('menu.emptyMenu') : t('menu.emptyCategory')
+  const filtered = query !== '' || category !== null
+  const showAll = () => { setQuery(''); setCategory(null) }
+  // Los chips son pestañas excluyentes (una sola activa): el lector de pantalla anuncia "pestaña, seleccionada, 2 de 3" y el foco rota con ←/→.
+  const values: (number | null)[] = [null, ...categories.map((c) => c.id)]
+  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const index = values.indexOf(category)
+    const target = e.key === 'ArrowRight' ? index + 1 : e.key === 'ArrowLeft' ? index - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? values.length - 1 : null
+    if (target === null) return
+    e.preventDefault()
+    const next = values[(target + values.length) % values.length] ?? null
+    setCategory(next)
+    document.getElementById(tabId(next))?.focus()
+  }
+  // El chip activo lleva el color del restaurante; el estado también va en aria-selected, no solo en el color.
   const chip = (active: boolean) => `shrink-0 h-tap-min px-4 rounded-rest text-[15px] font-medium whitespace-nowrap ${active ? 'bg-brand text-brand-ink' : 'bg-surface border border-border text-ink'}`
+  const tab = (value: number | null, label: string) => {
+    const active = category === value
+    return <button key={tabId(value)} type="button" role="tab" id={tabId(value)} aria-selected={active} tabIndex={active ? 0 : -1} onClick={() => setCategory(value)} className={chip(active)}>{label}</button>
+  }
   return (
     <div className="flex flex-col gap-4 pt-[22px]">
       <section className="px-[18px] flex flex-col gap-3">
-        <h1 className="font-display text-[32px] leading-tight">{t('title')}</h1>
-        <input type="search" aria-label={t('search')} placeholder={t('search')} value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" className="h-tap-min w-full rounded-rest bg-surface border border-border px-4 text-base placeholder:text-ink-3" />
+        <h1 className="font-display text-[32px] leading-tight">{t('menu.title')}</h1>
+        <input type="search" aria-label={t('menu.search')} placeholder={t('menu.search')} value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" className="h-tap-min w-full rounded-rest bg-surface border border-border px-4 text-base placeholder:text-ink-3" />
       </section>
-      <div className="flex gap-2 overflow-x-auto px-[18px] pb-1 [scrollbar-width:none]">
-        <button type="button" aria-pressed={category === null} onClick={() => setCategory(null)} className={chip(category === null)}>{t('all')}</button>
-        {categories.map((c) => <button key={c.id} type="button" aria-pressed={category === c.id} onClick={() => setCategory(c.id)} className={chip(category === c.id)}>{c.nombre}</button>)}
+      <div role="tablist" aria-label={t('menu.categories')} onKeyDown={onKeyDown} className="flex gap-2 overflow-x-auto px-[18px] pb-1 [scrollbar-width:none]">
+        {tab(null, t('menu.all'))}
+        {categories.map((c) => tab(c.id, c.nombre))}
       </div>
-      <section className="px-[18px]">
+      <section role="tabpanel" aria-labelledby={tabId(category)} className="px-[18px]">
         {dishes.length === 0
-          ? <p role="status" className="py-10 text-center text-base text-soft">{t('empty')}</p>
+          ? (
+            <div className="py-10 flex flex-col items-center gap-4 text-center">
+              <p role="status" className="text-base text-soft">{emptyText}</p>
+              {filtered && <button type="button" onClick={showAll} className="h-tap-min px-[18px] rounded-rest bg-surface border border-border text-[15px] font-medium">{t('home.seeAll')}</button>}
+            </div>
+          )
           : <div className="grid grid-cols-2 gap-3">{dishes.map((d) => <DishCard key={d.id} dish={d} onOpen={(x) => router.push(pathFor(rest, venue, token, 'plato', x.id))} onAdd={(x) => void add(x.id, 1, '')} />)}</div>}
       </section>
     </div>
