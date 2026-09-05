@@ -27,6 +27,8 @@ La descripción completa del producto está en
 - **Backoffice del operador** en `pos/`: operación en vivo (1e), ROI (1d),
   ventas, catálogo, inventario, clientes, facturación normal y configuración.
   Plan C. Sonidos del sistema Waiter sintetizados en el navegador.
+- **`diner/`**: la app del comensal (PWA móvil, marca del restaurante). Solo
+  habla con `experience/`; nada suyo toca Odoo ni `pos/`. Plan F.
 - Diseño y decisiones en `docs/`; planes ejecutados en `docs/planes/`.
 
 ## Levantar el entorno de desarrollo
@@ -48,6 +50,9 @@ cd registry && python3 -m venv venv && venv/bin/pip install -r requirements.txt 
 cd experience && python3 -m venv venv && venv/bin/pip install -r requirements.txt \
   && cp .env.example .env && venv/bin/python manage.py migrate \
   && venv/bin/python manage.py runserver 192.168.56.10:8001
+
+# App del comensal
+cd diner && npm ci && npm run dev                                          # :3001 · /burger-house/poblado/t/<token>
 
 # Recorrido del comensal por curl (mesa 8 de la demo)
 scripts/demo-comensal.sh

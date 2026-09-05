@@ -1,0 +1,12 @@
+{
+  "diner": {
+    "common": { "table": "Mesa {n}", "delivery": "Domicilio", "back": "Volver", "seal": "Waiter by ProjectApp", "retry": "Intentar de nuevo", "loading": "Cargando…", "offline": "El restaurante no responde. Tu pedido se conserva.", "unavailable": "Esta mesa no está disponible", "soldOut": "Agotado", "add": "Agregar", "close": "Cerrar" },
+    "home": { "waiterLine": "Soy {name}, tu mesero. {welcome}", "waiterLineNoName": "{welcome}", "seeMenu": "Ver la carta", "recommended": "Recomendado para ti", "seeAll": "Ver todos", "callWaiter": "Llamar al mesero", "called": "Listo, ya viene alguien.", "photo": "Foto del plato" },
+    "orderBar": { "yourOrder": "Tu pedido", "seeOrder": "Ver pedido →", "items": "{n, plural, one {# ítem} other {# ítems}}" },
+    "menu": { "title": "Carta", "search": "Buscar un plato", "all": "Todo", "empty": "Nada coincide con tu búsqueda" },
+    "dish": { "note": "Nota para la cocina (sin cebolla, término medio…)", "qty": "Cantidad", "addFor": "Agregar · {amount}", "added": "Agregado a tu pedido", "fewer": "Menos", "more": "Más" },
+    "cart": { "title": "Tu pedido", "mine": "Lo mío", "table": "La mesa", "empty": "Todavía no has agregado nada.", "goMenu": "Ver la carta", "others": "Pedido por otros en la mesa", "confirm": "Enviar a cocina · {amount}", "confirming": "Enviando…", "sentAlready": "Ya enviado", "remove": "Quitar", "note": "Nota", "subtotalMine": "Lo mío", "subtotalTable": "Total de la mesa" },
+    "status": { "title": "Tu pedido", "enviado": "Recibido", "en_cocina": "En cocina", "listo": "Listo para salir", "servido": "Servido", "pagado": "Pagado", "fallido": "No se pudo enviar", "hint": { "enviado": "El restaurante ya lo tiene.", "en_cocina": "Lo están preparando.", "listo": "Sale en un momento.", "servido": "¡Buen provecho!", "pagado": "Gracias por tu visita.", "fallido": "Tu pedido se conserva. Intenta enviarlo de nuevo." }, "orderMore": "Pedir algo más", "askBill": "Pedir la cuenta", "callWaiter": "Llamar al mesero" },
+    "bill": { "title": "La cuenta", "all": "Todo", "mine": "Lo mío", "split": "Dividir", "parts": "{n} partes de {amount}", "requested": "Listo. Un mesero trae la cuenta a la mesa.", "payPhone": "Pagar desde el celular", "soon": "pronto", "back": "Volver al pedido", "nothing": "Todavía no hay nada confirmado que cobrar." }
+  }
+}

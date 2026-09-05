@@ -40,6 +40,20 @@ bill (+ `waiter_call_at`), leído en cada refresco del salón; alimenta los
 estados **Pidiendo**, **Asistencia**, **En cuenta** y la alerta "Mesa pide
 mesero" de operación en vivo. Cobrar la mesa o atender la alerta lo limpia.
 
+## Notas de ejecución (2026-09-05)
+
+- El proxy `/api` de Next conserva la barra final (Django la exige) con dos
+  rewrites; `trailingSlash: true` en `diner/`. Las URL del NFC funcionan con o
+  sin barra.
+- El tema del restaurante se declara con `@theme inline` en Tailwind 4 para
+  que las utilidades apunten a `--r-*` y el override por `<main style>` surta
+  efecto (con `@theme` normal el valor se congela en `:root`).
+- Tareas 3 a 5 se construyen en paralelo por agentes en worktrees (una rama
+  por pantalla) con revisión adversarial de dos lentes antes de fusionar.
+- La E2E `pos/e2e/comensal-salon.spec.ts` prueba de punta a punta que
+  "llamar al mesero" desde el celular llega al salón (*Asistencia*) y a
+  operación en vivo, y que "Voy yo" lo limpia.
+
 ## Tareas
 
 1. ✅ Plan, ADR, contrato. Addon: `restaurant.table.waiter_call/_at`.
@@ -47,7 +61,7 @@ mesero" de operación en vivo. Cobrar la mesa o atender la alerta lo limpia.
    `marca` en el contexto, `llamar/`, `cuenta/`, `ordering` al abrir sesión,
    limpieza al confirmar; adaptador `set_table_call`. POS: lee las llamadas
    y las pinta; alerta "Mesa pide mesero"; cobrar/atender las limpia.
-2. `diner/`: andamiaje (proxy a `experience`, tokens `--w-*` fijos + `--r-*`
+2. ✅ `diner/`: andamiaje (proxy a `experience`, tokens `--w-*` fijos + `--r-*`
    por restaurante, i18n es, PWA), cliente de API, stores, componentes base
    (`Header`, `OrderBar`, `DishCard`, sello Waiter) y **Portada**.
 3. **Carta** (categorías, búsqueda, tarjetas) y **Plato** (detalle, nota,
