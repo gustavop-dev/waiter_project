@@ -1,0 +1,100 @@
+from dataclasses import replace
+from unittest.mock import patch
+
+from django.urls import reverse
+
+from experience_app.adapters.odoo.client import OdooUnavailable
+from experience_app.tests.conftest import DELIVERY, UNTOUCHED_COMPANY
+
+LOGO = reverse('company-logo', args=['burger-house', 'poblado'])
+ENTRY = reverse('entry-table', args=['burger-house', 'poblado', '8H2KQ7'])
+READ = 'experience_app.services.brand.pos.read_company_brand'
+FETCH = 'experience_app.services.brand.pos.fetch_company_logo'
+RESOLVE = 'experience_app.views.logo.resolve'
+WITH_LOGO = replace(UNTOUCHED_COMPANY, has_logo=True)
+PNG = (b'\x89PNG\r\n\x1a\n', 'image/png')
+
+
+@patch(FETCH, return_value=PNG)
+@patch(READ, return_value=WITH_LOGO)
+@patch(RESOLVE, return_value=DELIVERY)
+def test_logo_streams_the_raster_with_the_same_headers_as_photos(resolve, read, fetch, api_client):
+    """Atrapa un logo sin nosniff/CSP (un binario que el navegador interprete), sin caché pública, o con el tipo equivocado."""
+    response = api_client.get(f'{LOGO}?v=20260905010203')
+    assert response.status_code == 200
+    assert response.content == b'\x89PNG\r\n\x1a\n'
+    assert response['Content-Type'] == 'image/png'
+    assert response['Cache-Control'] == 'public, max-age=86400, immutable'
+    assert response['X-Content-Type-Options'] == 'nosniff'
+    assert response['Content-Security-Policy'] == "default-src 'none'; sandbox"
+    assert response['Content-Disposition'] == 'inline; filename="logo"'
+    assert fetch.call_args.args[0].creds == DELIVERY.odoo
+
+
+@patch(FETCH, return_value=PNG)
+@patch(READ, return_value=WITH_LOGO)
+@patch(RESOLVE, return_value=DELIVERY)
+def test_logo_with_a_stale_version_is_served_but_never_promised_immutable(resolve, read, fetch, api_client):
+    """Atrapa una URL vieja (marca en caché de otro comensal) cacheada un día como si fuera la versión actual."""
+    response = api_client.get(f'{LOGO}?v=19990101000000')
+    assert response.status_code == 200
+    assert response['Cache-Control'] == 'no-store'
+
+
+@patch(FETCH, return_value=PNG)
+@patch(READ, return_value=WITH_LOGO)
+@patch(RESOLVE, return_value=DELIVERY)
+def test_logo_is_served_from_cache_on_the_second_request(resolve, read, fetch, api_client):
+    """Atrapa una segunda petición del logo que vuelve a Odoo (un login por comensal)."""
+    api_client.get(LOGO)
+    assert api_client.get(LOGO).status_code == 200
+    assert fetch.call_count == 1 and read.call_count == 1
+
+
+@patch(FETCH)
+@patch(READ, return_value=UNTOUCHED_COMPANY)
+@patch(RESOLVE, return_value=DELIVERY)
+def test_logo_is_404_without_touching_odoo_when_the_company_has_none(resolve, read, fetch, api_client):
+    """Atrapa una ida a Odoo (o un placeholder suyo) por cada comensal en un restaurante sin logo."""
+    response = api_client.get(LOGO)
+    assert response.status_code == 404
+    assert response.json() == {'detail': 'sin logo'}
+    assert fetch.call_count == 0
+
+
+@patch(FETCH, return_value=None)
+@patch(READ, return_value=WITH_LOGO)
+@patch(RESOLVE, return_value=DELIVERY)
+def test_logo_is_404_when_the_binary_is_not_a_raster(resolve, read, fetch, api_client):
+    """Atrapa un SVG servido como logo: el adaptador devuelve None y la ruta debe negarlo, no servir bytes vacíos."""
+    assert api_client.get(LOGO).status_code == 404
+    response = api_client.get(LOGO)
+    assert response.status_code == 404
+    assert response.json() == {'detail': 'sin logo'}
+    assert fetch.call_count == 1
+
+
+@patch(FETCH)
+@patch(READ, side_effect=OdooUnavailable('down'))
+@patch(RESOLVE, return_value=DELIVERY)
+def test_logo_is_404_not_500_when_odoo_is_down(resolve, read, fetch, api_client):
+    """Atrapa un 500 (o un 503 con JSON) en un <img>: el navegador solo entiende "no hay imagen"."""
+    response = api_client.get(LOGO)
+    assert response.status_code == 404
+    assert fetch.call_count == 0
+
+
+def test_entry_points_the_logo_to_the_experience_route_with_its_version(api_client, table_tenant, catalog_stub, company_brand_stub):
+    """Atrapa una marca con la URL de Odoo en el logo, sin versión, o el logo del registro cuando Odoo ya tiene uno."""
+    company_brand_stub.return_value = WITH_LOGO
+    marca = api_client.get(ENTRY).json()['contexto']['marca']
+    assert marca['logo'] == '/api/v1/burger-house/poblado/logo/?v=20260905010203'
+    assert marca['color'] == '#7A2E2A'
+
+
+def test_entry_keeps_the_registry_logo_when_odoo_has_none(api_client, table_tenant, catalog_stub):
+    """Atrapa un logo del onboarding perdido porque Odoo dijo "sin logo"."""
+    tenant = table_tenant
+    with patch('experience_app.views.context.resolve', return_value=replace(tenant, brand={**tenant.brand, 'logo': 'https://cdn/logo.png'})):
+        marca = api_client.get(ENTRY).json()['contexto']['marca']
+    assert marca['logo'] == 'https://cdn/logo.png'

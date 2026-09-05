@@ -7,15 +7,14 @@ GET /api/v1/<rest>/<sede>/fotos/<id>/?v=<versión>&tam=tarjeta|plato
 - `tam`: `tarjeta` (por defecto, para la carta) o `plato` (más grande, para la pantalla del plato). Otro valor → 400.
 - 404 `sin foto` si el producto no está en la carta, no tiene foto, u Odoo ya no la tiene.
 """
-from django.http import HttpResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from experience_app.adapters.registry.client import resolve
 from experience_app.services import catalog
 from experience_app.utils.errors import ProductNotFound
+from experience_app.utils.images import image_response
 
-CACHE_CONTROL = 'public, max-age=86400, immutable'
 NO_PHOTO = {'detail': 'sin foto'}
 BAD_SIZE = {'detail': f"tamaño de foto inválido; usa {' o '.join(sorted(catalog.PHOTO_SIZES))}"}
 
@@ -37,11 +36,5 @@ def photo(request, restaurant, venue, product_id):
     if found is None:
         return Response(NO_PHOTO, status=404)
     data, content_type = found
-    response = HttpResponse(data, content_type=content_type)
     requested = request.GET.get('v')
-    response['Cache-Control'] = CACHE_CONTROL if not requested or requested == product.image_version else 'no-store'
-    # Defensa en profundidad: la foto es un binario que se pinta en <img>, nunca un documento que ejecute nada.
-    response['X-Content-Type-Options'] = 'nosniff'
-    response['Content-Security-Policy'] = "default-src 'none'; sandbox"
-    response['Content-Disposition'] = 'inline; filename="foto"'
-    return response
+    return image_response(data, content_type, immutable=not requested or requested == product.image_version, filename='foto')

@@ -5,13 +5,16 @@ from django.core.cache import cache
 from rest_framework.test import APIClient
 
 from experience_app.adapters.odoo.client import OdooCredentials
-from experience_app.adapters.odoo.pos import Catalog, Category, Product
+from experience_app.adapters.odoo.pos import Catalog, Category, CompanyBrand, Product
 from experience_app.adapters.registry.client import Tenant
 
 ODOO = OdooCredentials(url='http://odoo', db='bh', login='svc', password='x', pos_config_id=1)
 BRAND = {'color': '#7A2E2A', 'colorTexto': '#FFFFFF', 'colorSuave': '#F2EAEA', 'fuente': 'Fraunces', 'radio': 14, 'lema': 'Cocina de barrio', 'saludo': '', 'mesero': 'Alex', 'bienvenida': '¿Qué te provoca hoy?', 'logo': None}
 TABLE = Tenant('burger-house', 'Burger House', 'poblado', 'Poblado', '8H2KQ7', 8, 9, ODOO, BRAND)
 DELIVERY = Tenant('burger-house', 'Burger House', 'poblado', 'Poblado', None, None, None, ODOO)
+# Odoo sin nada editado: todo vacío, así que la marca del comensal es la del registro (BRAND).
+UNTOUCHED_COMPANY = CompanyBrand(name='', color='', font='', radius=None, tagline='', greeting='', waiter_name='', welcome='',
+                                 has_logo=False, version='20260905010203')
 # template_id distinto del id: atrapa a quien pida la foto con el id del producto en vez del de la plantilla.
 # final_price distinto de price: atrapa a quien muestre o sume la base gravable en vez de lo que se paga.
 ANGUS = Product(id=3, name='Hamburguesa Angus', price=36900.0, category_ids=[2], tax_ids=[5], template_id=21,
@@ -33,7 +36,14 @@ def api_client():
 
 
 @pytest.fixture
-def table_tenant():
+def company_brand_stub():
+    """Odoo responde la marca sin nada editado: la entrada no sale a la red por la marca y el registro manda."""
+    with patch('experience_app.services.brand.pos.read_company_brand', return_value=UNTOUCHED_COMPANY) as read:
+        yield read
+
+
+@pytest.fixture
+def table_tenant(company_brand_stub):
     with patch('experience_app.views.sessions.resolve', return_value=TABLE), patch('experience_app.views.context.resolve', return_value=TABLE):
         yield TABLE
 
