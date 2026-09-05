@@ -15,6 +15,7 @@ load_dotenv(BASE_DIR / '.env')
 
 DJANGO_ENV = os.getenv('DJANGO_ENV', 'development')
 IS_PRODUCTION = DJANGO_ENV == 'production'
+DINER_DEMO_ENABLED = not IS_PRODUCTION and os.getenv('DINER_DEMO_ENABLED', 'true').lower() in {'1', 'true', 'yes', 'on'}
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'change-me')
 DEBUG = os.getenv('DJANGO_DEBUG', 'false' if IS_PRODUCTION else 'true').lower() in {'1', 'true', 'yes', 'on'}
 # Falla cerrado: en producción no arranca con el secreto de ejemplo ni con DEBUG.

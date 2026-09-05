@@ -77,10 +77,10 @@ def call_waiter(request, session_id):
     return Response({'ok': sessions.table_call(tenant, session, 'assist')})
 
 
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 def request_bill(request, session_id):
     session = get_object_or_404(TableSession, id=session_id, state__in=TableSession.OPEN_STATES)
     diner = diner_for(request, session)
     tenant = resolve(session.restaurant_slug, session.venue_slug, session.table_token)
-    ok = sessions.table_call(tenant, session, 'bill')
-    return Response({'ok': ok, **sessions.bill_summary(session, diner, discount.percent_for(tenant))})
+    ok = sessions.table_call(tenant, session, 'bill') if request.method == 'POST' else False
+    return Response({'ok': ok, **sessions.bill_summary(session, diner, discount.percent_for(tenant), include_open=request.method == 'GET')})

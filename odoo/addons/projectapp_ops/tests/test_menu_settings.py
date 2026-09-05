@@ -6,6 +6,7 @@ import json
 from unittest.mock import patch
 
 from odoo.tests import HttpCase, TransactionCase, tagged
+from odoo.tests.common import new_test_user
 
 PARAMS = {"projectapp.experience_url": "http://experience.test", "projectapp.experience_internal_key": "k",
           "projectapp.restaurant_slug": "burger-house", "projectapp.venue_slug": "poblado", "projectapp.diner_url": "http://diner.test"}
@@ -17,7 +18,7 @@ class TestLoadData(TransactionCase):
         """Atrapa un campo fuera de _load_pos_data_fields: la experiencia del comensal no lo vería nunca."""
         config = self.env["pos.config"].search([], limit=1)
         self.assertTrue(config, "hace falta un pos.config (demo)")
-        session = self.env["pos.session"].create({"config_id": config.id, "user_id": self.env.uid})
+        session = config.current_session_id or self.env["pos.session"].create({"config_id": config.id, "user_id": self.env.uid})
         raw = session.load_data([])
         self.assertIn("signup_discount_percent", raw["pos.config"][0])
         self.assertEqual(raw["pos.config"][0]["signup_discount_percent"], 5.0)
@@ -33,11 +34,10 @@ class TestMenuSettingsGateway(HttpCase):
         icp = self.env["ir.config_parameter"].sudo()
         for key, value in PARAMS.items():
             icp.set_param(key, value)
-        groups = lambda *xids: [(6, 0, [self.env.ref(x).id for x in xids])]  # noqa: E731
-        self.env["res.users"].create({"name": "Mesero de prueba", "login": "mesero_plantillas", "password": "Waiter-2026-mesero",
-                                      "group_ids": groups("base.group_user", "point_of_sale.group_pos_user")})
-        self.env["res.users"].create({"name": "Admin de prueba", "login": "admin_plantillas", "password": "Waiter-2026-admin",
-                                      "group_ids": groups("base.group_user", "point_of_sale.group_pos_manager")})
+        new_test_user(self.env, login="mesero_plantillas", password="Waiter-2026-mesero", groups="base.group_user,point_of_sale.group_pos_user")
+        manager = new_test_user(self.env, login="admin_plantillas", password="Waiter-2026-admin", waiter_role="admin", groups="base.group_user,point_of_sale.group_pos_manager")
+        self.env.flush_all()
+        self.assertTrue(manager.has_group("point_of_sale.group_pos_manager"))
 
     def _rpc(self, params):
         response = self.url_open("/waiter/admin/menu_settings", data=json.dumps({"jsonrpc": "2.0", "method": "call", "params": params}),
@@ -95,3 +95,20 @@ class TestMenuSettingsGateway(HttpCase):
         body = self._rpc({"action": "get"})
         self.assertEqual(body["error"]["data"]["name"], "odoo.exceptions.UserError")
         self.assertIn("projectapp.experience_internal_key", body["error"]["data"]["message"])
+
+    def test_preview_url_is_required_and_malformed_urls_are_user_errors(self):
+        self.authenticate("admin_plantillas", "Waiter-2026-admin")
+        icp = self.env["ir.config_parameter"].sudo()
+        for key, value in [("projectapp.diner_url", ""), ("projectapp.diner_url", "localhost:3001"), ("projectapp.diner_url", "http://[broken")]:
+            icp.set_param(key, value)
+            body = self._rpc({"action": "get"})
+            self.assertEqual(body["error"]["data"]["name"], "odoo.exceptions.UserError")
+            self.assertIn(key, body["error"]["data"]["message"])
+
+    def test_request_exception_is_a_user_error(self):
+        import requests
+        self.authenticate("admin_plantillas", "Waiter-2026-admin")
+        with patch("odoo.addons.projectapp_ops.controllers.admin.requests.request", side_effect=requests.exceptions.InvalidURL("bad URL")):
+            body = self._rpc({"action": "get"})
+        self.assertEqual(body["error"]["data"]["name"], "odoo.exceptions.UserError")
+        self.assertIn("No se pudo contactar", body["error"]["data"]["message"])

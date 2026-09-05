@@ -21,7 +21,7 @@ export type DiscountView = { kind: 'line'; amount: number } | { kind: 'hint' } |
 export function discountView(discount: Discount | null, account: Account | null): DiscountView {
   if (!discount || discount.porcentaje <= 0) return null
   if (discount.aplicado || discount.aplicable) return { kind: 'line', amount: discount.monto }
-  if (account?.verificada) return { kind: 'used' }
+  if (discount.registrado || account?.verificada) return { kind: 'used' }
   return { kind: 'hint' }
 }
 

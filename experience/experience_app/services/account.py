@@ -1,16 +1,22 @@
 """Cuenta del comensal (Plan H): registro en tres campos, verificación por código y el historial de sus pedidos.
 
-Maquetada con datos reales: la cuenta, la verificación y el descuento se guardan y se aplican de verdad; lo que falta es
-el proveedor del código. `verify` acepta en demo cualquier código de seis dígitos: AQUÍ va el proveedor real (correo o
-SMS): `register` le pide el envío y `verify` le pregunta si el código es válido y vigente, sin cambiar los endpoints.
+El proveedor de códigos aún no está integrado. En demo, seis dígitos ASCII verifican solo
+la cuenta pendiente solicitada por esta cookie, durante diez minutos y una sola vez.
+Nunca se recuperan cuentas existentes por correo. En producción se rechaza el flujo.
 """
 import re
 
+from django.conf import settings
+from django.db import transaction
 from django.utils import timezone
+
+from experience_app.adapters.registry.client import resolve, RegistryUnavailable, TenantNotFound
+from experience_app.adapters.odoo.client import OdooClient, OdooError
+from experience_app.services.sessions import close_paid, PAID_STATES
 
 from experience_app.models import CartLine, Diner, DinerAccount, Order, TableSession
 
-CODE_RE = re.compile(r'^\d{6}$')
+CODE_RE = re.compile(r'[0-9]{6}')
 EMAIL_RE = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
 PHONE_RE = re.compile(r'^\+?[\d\s\-]{7,20}$')
 
@@ -38,26 +44,42 @@ def _clean(data: dict) -> dict:
     return {'name': name, 'email': email, 'phone': phone, 'accepts_data': True, 'marketing': bool(data.get('novedades'))}
 
 
-def register(data: dict) -> DinerAccount:
-    """Crea la cuenta pendiente. Un correo ya verificado devuelve SU cuenta (así «Ya tengo cuenta» es el mismo camino):
-    en demo cualquiera podría verificarla; con el proveedor real solo quien reciba el código en ese correo."""
+def require_demo() -> None:
+    if settings.IS_PRODUCTION or not settings.DINER_DEMO_ENABLED:
+        raise DemoUnavailable()
+
+
+class DemoUnavailable(Exception):
+    pass
+
+
+def register(data: dict, diner: Diner) -> DinerAccount:
+    """Una cuenta nueva vinculada al dispositivo; demo nunca recupera identidades por correo."""
+    require_demo()
     fields = _clean(data)
-    existing = DinerAccount.objects.filter(email=fields['email'], verified=True).order_by('created_at').first()
-    if existing is not None:
-        return existing
-    return DinerAccount.objects.create(**fields)
+    pending = DinerAccount.objects.filter(email=fields['email'], verified=False, registration_key=diner.key).first()
+    if pending:
+        pending.created_at = timezone.now()
+        pending.save(update_fields=['created_at'])
+        return pending
+    if DinerAccount.objects.filter(email=fields['email']).exists():
+        raise InvalidRegistration('Este correo no está disponible para un registro demo.')
+    return DinerAccount.objects.create(**fields, registration_key=diner.key)
 
 
+@transaction.atomic
 def verify(account: DinerAccount, diner: Diner, code) -> DinerAccount:
-    """Demo: cualquier código de seis dígitos verifica. Liga la cuenta a la cookie del comensal."""
-    if not CODE_RE.match(str(code or '').strip()):
+    require_demo()
+    if not CODE_RE.fullmatch(str(code or '').strip()):
         raise InvalidCode()
-    if not account.verified:
-        account.verified, account.verified_at = True, timezone.now()
-        account.save(update_fields=['verified', 'verified_at'])
-    if diner.account_id != account.id:
-        diner.account = account
-        diner.save(update_fields=['account'])
+    updated = DinerAccount.objects.filter(id=account.id, registration_key=diner.key, verified=False,
+                                         created_at__gte=timezone.now() - timezone.timedelta(minutes=10)).update(
+        verified=True, verified_at=timezone.now(), registration_key='')
+    if not updated:
+        raise InvalidCode()
+    account.refresh_from_db()
+    diner.account = account
+    diner.save(update_fields=['account'])
     return account
 
 
@@ -82,6 +104,21 @@ def history(account: DinerAccount) -> list[dict]:
     """
     orders = (Order.objects.filter(state=Order.SENT, session__diners__account=account)
               .distinct().select_related('session').order_by('-created_at'))
+    orders = list(orders)
+    groups = {}
+    for order in orders:
+        if order.session.state != TableSession.PAID and order.odoo_order_id:
+            groups.setdefault((order.session.restaurant_slug, order.session.venue_slug), []).append(order)
+    for (restaurant, venue), pending in groups.items():
+        try:
+            client = OdooClient(resolve(restaurant, venue).odoo)
+            states = client.call_kw('pos.order', 'read', [[o.odoo_order_id for o in pending], ['state']])
+            paid = {row['id'] for row in states if row['state'] in PAID_STATES}
+            for order in pending:
+                if order.odoo_order_id in paid:
+                    close_paid(order.session)
+        except (OdooError, RegistryUnavailable, TenantNotFound):
+            pass  # Historial disponible con el último estado conocido si el salón no responde.
     diner_ids = set(account.diners.values_list('id', flat=True))
     lines = CartLine.objects.filter(order__in=orders, diner_id__in=diner_ids).order_by('created_at')
     mine_by_order: dict = {}
@@ -96,7 +133,7 @@ def history(account: DinerAccount) -> list[dict]:
         mine, saved = mine_by_order.get(order.id, (0, 0))
         mine_lines = lines_by_order.get(order.id, [])
         # `local` es el nombre legible del restaurante; la sesión solo guarda slugs (el nombre real llega con el contexto).
-        out.append({'id': str(order.id), 'fecha': order.created_at.isoformat(), 'total': float(order.total or 0),
+        out.append({'id': str(order.id), 'fecha': order.created_at.isoformat(), 'total': float(mine), 'totalMesa': float(order.total or 0),
                     'mio': float(mine), 'descuento': float(saved), 'mesa': order.session.table_number,
                     'estado': 'pagado' if order.session.state == TableSession.PAID else 'enviado',
                     'restaurante': order.session.restaurant_slug, 'sede': order.session.venue_slug,

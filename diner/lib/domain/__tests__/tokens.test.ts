@@ -73,3 +73,14 @@ it('keeps the template components on template tokens, never on brand ones', () =
   const offenders = walk(dir).filter((f) => /\b(bg-brand|text-brand|font-display|rounded-rest|bg-canvas)\b/.test(readFileSync(f, 'utf8')))
   expect(offenders).toEqual([])
 })
+
+
+// Falla si plato, cuenta o estado vuelven a usar superficies claras con tinta de una plantilla oscura.
+it('compiles untemplated screens with the active template colors', async () => {
+  const css = await build(['bg-surface', 'bg-canvas', 'text-ink', 'text-soft', 'border-border'])
+  expect(rule(css, 'bg-surface')).toBe('background-color: var(--t-superficie);')
+  expect(rule(css, 'bg-canvas')).toBe('background-color: var(--t-fondo);')
+  expect(rule(css, 'text-ink')).toBe('color: var(--t-tinta);')
+  expect(rule(css, 'text-soft')).toBe('color: var(--t-tinta-suave);')
+  expect(rule(css, 'border-border')).toBe('border-color: var(--t-borde);')
+})

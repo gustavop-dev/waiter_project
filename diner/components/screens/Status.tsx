@@ -1,5 +1,7 @@
 'use client'
 
+import { DemoPaymentNotice } from '@/components/ui/DemoPaymentNotice'
+
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
@@ -58,6 +60,8 @@ export function Status({ entry, rest, venue, token, id }: { entry: Entry; rest: 
   const reached = reachedSteps(estado)
   return (
     <div className="px-[18px] pt-[22px] pb-[18px] flex flex-col gap-4">
+      <DemoPaymentNotice />
+      {order.descuento?.aplicado && <p>{t('discount', { pct: order.descuento.porcentaje, amount: formatCop(order.descuento.monto) })}</p>}
       <div className="flex items-baseline justify-between">
         <span className="text-[13px] tracking-[0.12em] uppercase text-soft">{t('title')}</span>
         <span className="font-mono tabular text-[17px]">$ {formatCop(order.total)}</span>
@@ -91,7 +95,7 @@ export function Status({ entry, rest, venue, token, id }: { entry: Entry; rest: 
         {atTable && !failed && estado !== 'pagado' && (
           <button type="button" onClick={() => go('la-cuenta')} className={secondary}>{t('askBill')}</button>
         )}
-        {called && <p role="status" className="text-center text-[15px] text-free-ink">{th('called')}</p>}
+        {called && <p role="status" className="text-center text-[15px] text-free-ink bg-free-soft rounded-rest">{th('called')}</p>}
       </div>
     </div>
   )

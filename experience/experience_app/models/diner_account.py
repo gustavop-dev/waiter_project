@@ -19,6 +19,9 @@ class DinerAccount(models.Model):
     verified = models.BooleanField(default=False)
     verified_at = models.DateTimeField(null=True, blank=True)
     discount_used_at = models.DateTimeField(null=True, blank=True)
+    registration_key = models.CharField(max_length=64, blank=True)
+    discount_order = models.ForeignKey('experience_app.Order', on_delete=models.PROTECT, null=True, blank=True,
+                                       related_name='discount_accounts')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -26,4 +29,9 @@ class DinerAccount(models.Model):
 
     @property
     def discount_available(self) -> bool:
-        return self.verified and self.discount_used_at is None
+        return self.verified and self.discount_used_at is None and self.discount_order_id is None
+
+
+class SignupDiscountClaim(models.Model):
+    key = models.CharField(max_length=64, unique=True)
+    order = models.ForeignKey('experience_app.Order', on_delete=models.PROTECT)

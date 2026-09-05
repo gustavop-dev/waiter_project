@@ -12,7 +12,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from experience_app.models import Diner, DinerAccount
-from experience_app.services import account as accounts
+from experience_app.services import account as accounts, discount
 from experience_app.views.sessions import COOKIE
 
 NO_ACCOUNT = {'detail': 'No hay una cuenta en este dispositivo'}
@@ -25,9 +25,11 @@ def _diner(request) -> Diner:
 
 @api_view(['POST'])
 def register(request):
-    _diner(request)
+    diner = _diner(request)
     try:
-        account = accounts.register(request.data if isinstance(request.data, dict) else {})
+        account = accounts.register(request.data if isinstance(request.data, dict) else {}, diner)
+    except accounts.DemoUnavailable:
+        return Response({'detail': 'El registro demo no está disponible'}, status=503)
     except accounts.InvalidRegistration as exc:
         return Response({'detail': str(exc)}, status=400)
     # codigoDemo: no se envió ningún código; el comensal puede escribir cualquiera de seis dígitos (ver services/account.py).
@@ -37,6 +39,8 @@ def register(request):
 @api_view(['POST'])
 def verify(request):
     diner = _diner(request)
+    if not isinstance(request.data, dict):
+        return Response({'detail': 'El cuerpo debe ser un objeto'}, status=400)
     raw_id = str(request.data.get('id') or '')
     try:
         account_id = uuid.UUID(raw_id)
@@ -45,8 +49,10 @@ def verify(request):
     account = get_object_or_404(DinerAccount, id=account_id)
     try:
         accounts.verify(account, diner, request.data.get('codigo'))
+    except accounts.DemoUnavailable:
+        return Response({'detail': 'La verificación demo no está disponible'}, status=503)
     except accounts.InvalidCode:
-        return Response({'detail': 'El código debe tener seis dígitos'}, status=400)
+        return Response({'detail': 'Código inválido, vencido o solicitado desde otro dispositivo'}, status=400)
     return Response({'cuenta': accounts.profile_view(account)})
 
 
@@ -56,7 +62,9 @@ def profile(request):
     if diner.account is None or not diner.account.verified:
         return Response(NO_ACCOUNT, status=404)
     # `pedidos` es la clave que consume el comensal (Contrato 3 / diner AccountSummary).
-    return Response({'cuenta': accounts.profile_view(diner.account), 'pedidos': accounts.history(diner.account)})
+    profile = accounts.profile_view(diner.account)
+    profile['descuentoDisponible'] = discount.applicable(diner)
+    return Response({'cuenta': profile, 'pedidos': accounts.history(diner.account)})
 
 
 @api_view(['POST'])

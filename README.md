@@ -35,7 +35,12 @@ La descripción completa del producto está en
   habla con `experience/`; nada suyo toca Odoo ni `pos/`. Plan F. La marca
   que pinta la sirve `experience/` (Odoo > registro, caché
   `BRAND_CACHE_SECONDS`, 60 s por defecto en `experience/.env`).
-- Diseño y decisiones en `docs/`; planes ejecutados en `docs/planes/`.
+- **Plan H / PR #14**: 30 plantillas con catálogo y ajustes por sede en `experience/`,
+  galería y personalización desde el POS, motor del comensal y pago/registro demo.
+  La revisión añade verificación ligada a cookie, reserva atómica del descuento,
+  subtotales coherentes en Odoo y confirmación antes del pago con importe del servidor.
+  [Estado y evidencia del cierre](docs/revisiones/2026-09-05-cierre-H-pr14.md).
+- [Índice y contexto de documentación](docs/README.md); planes en `docs/planes/`.
 
 ## Levantar el entorno de desarrollo
 
@@ -73,7 +78,9 @@ scripts/demo-comensal.sh
 1. Pasarela de pago en el bloque 3: hoy el pago del comensal está maquetado
    (`pago/simulado/`, insignia «Demo · sin cobro real»); al `pago aprobado`,
    registrar el pago en Odoo y emitir el evento para facturación. Verificación real
-   del registro del comensal (hoy cualquier código de seis dígitos).
+   del registro del comensal: demo solo verifica cuentas pendientes creadas desde la
+   misma cookie, con caducidad y uso único; no recupera cuentas por correo. Registro,
+   verificación y pago simulados se rechazan en producción.
 2. Mesero IA sobre la API del bloque 3 (la PWA del comensal ya existe, Plan F;
    la marca se edita desde el POS, Plan G; las 30 plantillas de menú, pago y cuenta
    con almacén propio en el módulo 3, Plan H).

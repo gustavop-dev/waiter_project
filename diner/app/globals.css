@@ -2,8 +2,6 @@
 
 /* Base fija de Waiter (bloqueada) + tema del restaurante (--r-*, seis variables). Sistema de diseño §06. */
 @theme {
-  --color-surface: #FFFFFF; --color-canvas: #FDFBF7; --color-muted: #F2EEE8; --color-border: #E4DED4;
-  --color-ink: #1A1815; --color-soft: #6B6259; --color-ink-3: #9A8F7E;
   --color-free: #2F7A4F; --color-free-soft: #E6F1EA; --color-free-ink: #216239;
   --color-busy: #B4342F; --color-busy-soft: #FBEAE8; --color-busy-ink: #96241F;
   --color-kitchen: #5B4BC4; --color-kitchen-soft: #ECEAFB; --color-kitchen-ink: #40339B;
@@ -16,6 +14,8 @@
 
 /* Tema del restaurante: "inline" para que las utilidades apunten a --r-* y el override por restaurante (en <main>) surta efecto. */
 @theme inline {
+  --color-surface: var(--t-superficie); --color-canvas: var(--t-fondo); --color-muted: var(--t-superficie); --color-border: var(--t-borde);
+  --color-ink: var(--t-tinta); --color-soft: var(--t-tinta-suave); --color-ink-3: var(--t-tinta-terciaria);
   --color-brand: var(--r-brand); --color-brand-ink: var(--r-brand-ink); --color-brand-soft: var(--r-brand-soft);
   --font-display: var(--r-display), 'Instrument Serif', Georgia, serif;
   --radius-rest: var(--r-radius);
@@ -52,5 +52,5 @@
   --t-cuerpo: 'Ubuntu', system-ui, sans-serif; --t-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --t-radio-tarjeta: 14px; --t-radio-boton: 12px; --t-radio-chip: 999px;
 }
-html { font-family: var(--font-ui); background: var(--color-canvas); color: var(--color-ink); -webkit-font-smoothing: antialiased; }
+html { font-family: var(--font-ui); background: var(--t-fondo); color: var(--t-tinta); -webkit-font-smoothing: antialiased; }
 .tabular { font-variant-numeric: tabular-nums; }

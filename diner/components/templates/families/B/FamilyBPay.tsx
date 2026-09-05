@@ -74,7 +74,7 @@ export function FamilyBPay({ bill, template, methods, onPay, state, demo, goBack
         </header>
         <div className="px-[18px] flex flex-col gap-4">
           <dl className="flex flex-col divide-y divide-t-borde text-[15px]">
-            {discount && discount.aplicado && <div className="py-2.5 flex justify-between gap-3"><dt className="text-t-tinta-suave">{t('saved')}</dt><dd className="font-t-mono tabular text-free-ink">$ {formatCop(discount.monto)}</dd></div>}
+            {discount && (discount.aplicado || discount.aplicable) && <div className="py-2.5 flex justify-between gap-3"><dt className="text-t-tinta-suave">{t('saved')}</dt><dd className="font-t-mono tabular text-free-ink">$ {formatCop(discount.monto)}</dd></div>}
             <div className="py-2.5 flex justify-between gap-3"><dt className="text-t-tinta-suave">{t('paidWith')}</dt><dd className="font-medium">{t(`method.${result?.metodo ?? method}`)}{result?.referencia ? <span className="font-t-mono tabular text-t-tinta-suave"> · {result.referencia}</span> : null}</dd></div>
             <div className="py-2.5 flex justify-between gap-3"><dt className="text-t-tinta-suave">{t('invoice')}</dt><dd className="text-free-ink font-medium">{t('invoiceSent')}</dd></div>
           </dl>
@@ -164,7 +164,7 @@ export function FamilyBPay({ bill, template, methods, onPay, state, demo, goBack
       <span className="text-[13px] leading-[1.4] text-t-tinta-suave">{variant === 'B1' || variant === 'B5' ? t('tokenized') : tb('tokenizedShort')}</span>
     </div>
   )
-  const hook = !account && discount && discount.aplicable && !discount.aplicado && (
+  const hook = !account && discount && discount.porcentaje > 0 && !discount.registrado && !discount.aplicable && !discount.aplicado && (
     <button type="button" onClick={onSignup} className="px-3.5 py-2.5 rounded-t-boton bg-t-acento-suave text-left text-[14px] font-medium text-t-tinta">{t('signupHook', { pct })}</button>
   )
   const head = (title: string, amountClass: string) => (
@@ -224,7 +224,7 @@ export function FamilyBPay({ bill, template, methods, onPay, state, demo, goBack
       <div className="sticky bottom-0 px-[18px] py-3.5 border-t border-t-borde bg-t-superficie flex flex-col gap-2.5">
         {method === 'efectivo'
           ? <button type="button" onClick={onPayAtTable} className={money}>{t('payAtTable')}</button>
-          : <button type="button" onClick={() => onPay(method)} className={money}>{before}<span className="font-t-mono tabular">{amount}</span>{after}</button>}
+          : <button type="button" onClick={() => onPay(method, variant === 'B3' ? split : 'all')} className={money}>{before}<span className="font-t-mono tabular">{amount}</span>{after}</button>}
         <button type="button" onClick={goBack} className="self-center h-[44px] text-[15px] font-medium text-t-acento">{t('back')}</button>
       </div>
     </div>

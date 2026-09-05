@@ -23,13 +23,13 @@ const PREVIEW_HEIGHT = 720
 type Palette = Partial<Record<ColorToken, string>>
 const errorMessage = (e: unknown) => (e instanceof Error && e.message ? e.message : String(e))
 
-// Ajustes que se envían y se previsualizan: solo los colores válidos que difieren de la plantilla y la fuente
-// si no es la de la plantilla. Así "Volver al de la plantilla" deja de pisar el valor en vez de fijarlo.
+// El catálogo recibido ya incorpora la marca de la sede. Conservar los colores explícitos,
+// aunque coincidan con ese catálogo; borrar una clave restaura la misma base que se previsualiza.
 function toSettings(spec: TemplateSpec, palette: Palette, font: string): MenuSettings {
   const paleta: Palette = {}
   for (const token of spec.personalizable.colores) {
     const raw = palette[token]
-    if (raw !== undefined && isHex(raw) && raw.toUpperCase() !== spec.tokens[token].toUpperCase()) paleta[token] = raw.toUpperCase()
+    if (raw !== undefined && isHex(raw)) paleta[token] = raw.toUpperCase()
   }
   return { plantilla: spec.codigo, paleta, tipografia: font && font !== spec.tokens.displayFont ? { display: font } : {} }
 }
@@ -55,7 +55,7 @@ export function MenuTemplateForm() {
   useEffect(() => {
     let alive = true
     void gateway('get').then(async (c) => {
-      const cat = await listTemplates(c.experienceUrl)
+      const cat = await listTemplates(c.experienceUrl, c.restaurante, c.sede)
       if (!alive) return
       const saved = c.ajustes
       const initial = cat.plantillas.find((p) => p.codigo === saved?.plantilla) ?? cat.plantillas.find((p) => p.codigo === DEFAULT_TEMPLATE) ?? cat.plantillas[0]

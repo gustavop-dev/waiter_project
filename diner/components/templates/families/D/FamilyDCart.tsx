@@ -84,12 +84,12 @@ function BaseCart({ cart, template, busy, error, setQty, remove, confirm, goPay,
               <dt className="text-[18px] font-bold tracking-[-0.02em] leading-[1.15]">{t('cart.subtotalTable')}</dt>
               <dd className="flex items-center gap-2">
                 {mode === 'chip' && view?.kind === 'line' && <span className="inline-flex items-center h-[26px] px-[9px] rounded-[7px] bg-free-soft text-free-ink text-[13px] font-medium">{tf('discountChip', { pct })}</span>}
-                <span className="font-t-mono tabular text-[25px] whitespace-nowrap">$ {formatCop(cart.total)}</span>
+                <span className="font-t-mono tabular text-[25px] whitespace-nowrap">$ {formatCop(Math.max(0, cart.total - (discount?.monto ?? 0)))}</span>
               </dd>
             </div>
           </dl>
           <div className="px-[18px] py-3.5 border-t border-t-borde bg-t-superficie">
-            <CartActions amount={cart.total} busy={busy} confirm={confirm} goPay={goPay} hrefs={hrefs} primary={primary} secondary={secondary} link="text-[14px] text-t-tinta-suave" />
+            <CartActions amount={Math.max(0, cart.total - (discount?.monto ?? 0))} busy={busy} confirm={confirm} goPay={goPay} hrefs={hrefs} primary={primary} secondary={secondary} link="text-[14px] text-t-tinta-suave" />
           </div>
         </>
       )}

@@ -14,7 +14,7 @@ const props = (codigo: string, over: Partial<CartLayoutProps> = {}): CartLayoutP
   template: templateOf(codigo), busy: false, error: null, setQty: jest.fn(), remove: jest.fn(), confirm: jest.fn().mockResolvedValue('ord-1'), goPay: jest.fn(), goMenu: jest.fn(),
   discount: { porcentaje: 5, monto: 5045, aplicable: true, aplicado: true }, retry: jest.fn(), hrefs, ...over,
 })
-const discounted = (codigo: string, over: Partial<CartLayoutProps> = {}) => props(codigo, { cart: cartOf([line({ nota: 'tomate confitado' }), line({ id: 2, producto_id: 3, nombre: 'Cordero de Boyacá', precio: 68000, cantidad: 1, subtotal: 68000 })], { total: 95855, mio: 95855 }), ...over })
+const discounted = (codigo: string, over: Partial<CartLayoutProps> = {}) => props(codigo, { cart: cartOf([line({ nota: 'tomate confitado' }), line({ id: 2, producto_id: 3, nombre: 'Cordero de Boyacá', precio: 68000, cantidad: 1, subtotal: 68000 })], { total: 100900, mio: 100900 }), ...over })
 
 beforeEach(() => { mockState.entry = entryOf() })
 
@@ -63,7 +63,7 @@ it('A2 paints the discount banner under the header and the signup invitation whe
   wrap(<FamilyACart {...discounted('A2')} />)
   expect(screen.getByText('Primera compra: descuento aplicado.')).toBeInTheDocument()
   expect(screen.getByRole('button', { name: /Enviar a cocina/ })).not.toHaveClass('font-t-display')
-  wrap(<FamilyACart {...props('A2', { discount: { porcentaje: 5, monto: 0, aplicable: true, aplicado: false } })} />)
+  wrap(<FamilyACart {...props('A2', { discount: { porcentaje: 5, monto: 0, aplicable: false, aplicado: false, registrado: false } })} />)
   expect(screen.getByRole('link', { name: /Regístrate y ahorra 5%/ })).toHaveAttribute('href', '/s')
 })
 

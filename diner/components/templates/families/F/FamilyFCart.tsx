@@ -76,7 +76,7 @@ export function FamilyFCart(props: CartLayoutProps) {
 
   const own = mine(cart)
   const theirs = others(cart)
-  const amount = formatCop(cart.total)
+  const amount = formatCop(Math.max(0, cart.total - (discount?.monto ?? 0)))
   const [before, after] = t('cart.confirm', { amount }).split(amount)
   const pct = discount?.porcentaje ?? 0
   // «5% ya usado» (modo «usado» de F3) solo con cuenta verificada: sin cuenta, «no aplicable» significa que aún no se identificó.
@@ -111,7 +111,7 @@ export function FamilyFCart(props: CartLayoutProps) {
         )}
       <div className="px-[18px] py-3 flex flex-col gap-3">
         <Link href={hrefs.menu} className="self-start inline-flex items-center h-11 text-[15px] font-medium text-t-acento">{t('cart.addMore')}</Link>
-        {discount && discount.aplicable && !discount.aplicado && (
+        {discount && discount.porcentaje > 0 && !discount.registrado && !discount.aplicable && !discount.aplicado && (
           <Link href={hrefs.signup} className="px-3.5 py-2.5 rounded-t-boton bg-t-acento-suave border border-t-borde text-[14px] font-medium text-t-tinta">{t('cart.discountHint', { pct })}</Link>
         )}
       </div>
@@ -131,12 +131,12 @@ export function FamilyFCart(props: CartLayoutProps) {
       )}
       <dl className="px-[18px] py-4 border-t border-t-borde bg-t-superficie">
         <div className={row}><dt>{t('cart.subtotal')}</dt><dd className={money}>{formatCop(cart.total)}</dd></div>
-        {discount?.aplicado && <div className={`${row} text-free`}><dt>{t('cart.discountLine', { pct })}</dt><dd className={money}>−{formatCop(discount.monto)}</dd></div>}
+        {(discount?.aplicado || discount?.aplicable) && <div className={`${row} text-free`}><dt>{t('cart.discountLine', { pct })}</dt><dd className={money}>−{formatCop(discount.monto)}</dd></div>}
         {used && <div className={row}><dt>{tf('cart.discountUsed', { pct })}</dt><dd className={money}>—</dd></div>}
         <div className={`flex justify-between items-baseline gap-2.5 pt-2.5 mt-2 border-t border-t-borde ${dark ? 'border-dotted' : ''}`}>
           <dt className={dark ? 't-title text-[21px] leading-[1.1]' : 'text-[18px] font-bold tracking-[-0.02em] leading-[1.15]'}>{tf('cart.total')}</dt>
           <dd className="flex items-center gap-2">
-            {chipMode && discount?.aplicado && <span className="h-[26px] px-[9px] rounded-t-chip bg-free-soft text-free-ink text-[13px] font-medium grid place-items-center">{tf('cart.discountApplied', { pct })}</span>}
+            {chipMode && (discount?.aplicado || discount?.aplicable) && <span className="h-[26px] px-[9px] rounded-t-chip bg-free-soft text-free-ink text-[13px] font-medium grid place-items-center">{tf('cart.discountApplied', { pct })}</span>}
             <span className={`${money} text-[25px]`}>$ {amount}</span>
           </dd>
         </div>

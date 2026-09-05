@@ -24,8 +24,9 @@ afterEach(() => { jest.useRealTimers() })
 
 // Falla si la pantalla no pide el pedido por su id, muestra otro estado o pierde el total en mono.
 it('fetches the order by id and shows its state and total', () => {
-  mockOrder = base
+  mockOrder = { ...base, descuento: { porcentaje: 5, monto: 4391.1, aplicado: true } }
   wrap(status())
+  expect(screen.getByText('Descuento de primera compra (5%): −$ 4.391')).toBeInTheDocument()
   expect(mockRefreshOrder).toHaveBeenCalledWith('p1')
   expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('En cocina')
   expect(screen.getByText('Lo están preparando.')).toBeInTheDocument()

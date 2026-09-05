@@ -1,6 +1,6 @@
 # pos — POS del operador
 
-App Next.js para mesero y cajero. Habla con Odoo por su API externa JSON-RPC a
+App Next.js para mesero, cajero y administrador. Habla con Odoo por su API externa JSON-RPC a
 través del proxy same-origin `/odoo/*`; **nunca usa la interfaz de Odoo**.
 Diseño: `docs/diseno/waiter-pantallas.dc.html` (pantallas 1a y 1b).
 
@@ -26,8 +26,13 @@ Cada test: ≤50 líneas, ≤7 asserts, sin condicionales, y un comentario
 `// Falla si …` que nombre el bug que atrapa. Los E2E llevan `@flow:` y
 `@outcome:`.
 
-## Fuera de Plan A (y dónde vive)
+## Alcance actual
 
-KDS de cocina → Plan B · Dashboard de ROI y operación en vivo → Plan C ·
-modo sin conexión, propina real, impresión de comanda, sugerencias del Mesero
-IA, modificadores por atributo y agotados por inventario → siguientes planes.
+A: salón y pedidos; B: KDS; C: backoffice y ROI; E: cobro, caja y roles;
+G: configuración de marca; H: galería, personalización y vista previa de 30 plantillas.
+El catálogo y los ajustes de plantillas viven en `experience/`; el POS los administra
+mediante `/waiter/admin/menu_settings`, autorizado por Odoo. Los secretos permanecen en
+el servidor. El comensal usa la app independiente `diner/`.
+
+El pago móvil de H es demo. El cobro real, incluidos pedidos del comensal con descuento,
+sigue en este POS. [Contexto y revisión de H](../docs/revisiones/2026-09-05-cierre-H-pr14.md).

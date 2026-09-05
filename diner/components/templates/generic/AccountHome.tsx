@@ -10,7 +10,7 @@ import type { Account, AccountOrder } from '@/lib/types'
 // (pedidos, ahorrado); filas (Mis pedidos, Mis datos y privacidad); «Cerrar sesión». Sin cuenta: invitación a crearla.
 export function AccountHome({ account, orders, discountPct, discountUsed, onSignup, onLogout, busy }: { account: Account | null; orders: AccountOrder[]; discountPct: number; discountUsed: boolean; onSignup: () => void; onLogout: () => void; busy: boolean }) {
   const t = useTranslations('diner.account')
-  const saved = orders.reduce((a, o) => a + (o.descuento > 0 ? Math.round((o.total * o.descuento) / (100 - o.descuento)) : 0), 0)
+  const saved = orders.reduce((a, o) => a + Math.max(0, o.descuento), 0)
   if (!account) {
     return (
       <section className="px-[18px] pt-[22px] flex flex-col gap-4 text-t-tinta">

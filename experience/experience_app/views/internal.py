@@ -13,7 +13,7 @@ INVALID_KEY = {'detail': 'clave interna inválida'}
 
 def key_is_valid(request) -> bool:
     key = request.headers.get('X-Internal-Key', '')
-    return bool(settings.EXPERIENCE_INTERNAL_KEY) and hmac.compare_digest(key, settings.EXPERIENCE_INTERNAL_KEY)
+    return bool(settings.EXPERIENCE_INTERNAL_KEY) and hmac.compare_digest(key.encode('utf-8'), settings.EXPERIENCE_INTERNAL_KEY.encode('utf-8'))
 
 
 @api_view(['POST'])

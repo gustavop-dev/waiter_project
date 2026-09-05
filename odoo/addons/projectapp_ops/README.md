@@ -62,7 +62,10 @@ junto a los demás campos de `product.template`, así que lo ven el POS y `exper
 Plan H. `Float`, por defecto `5.0`; `0` lo apaga. Viaja en `pos.session.load_data` (añadido en
 `_load_pos_data_fields`, `models/config.py`), así que `experience/` lo lee con la carta y lo aplica
 **de verdad** al confirmar: las líneas del comensal con cuenta verificada llegan a Odoo con
-`pos.order.line.discount = <porcentaje>`, una sola vez por cuenta (`DinerAccount.discount_used_at`).
+`pos.order.line.discount = <porcentaje>`, una sola vez por cuenta (reserva atómica en `DinerAccount.discount_order` antes de RPC,
+marca final en `discount_used_at`). El addon corrige `_compute_line_subtotals` para que
+`price_subtotal` y `price_subtotal_incl` incluyan el descuento, como `amount_total`.
+Depende explícitamente de `pos_self_order`; actualizar y reiniciar Odoo al desplegar.
 Si el campo no existe aún (`-u projectapp_ops` pendiente) `experience/` asume el 5 % del diseño.
 
 ## Atributos por plato (`product.template.diner_attributes`)

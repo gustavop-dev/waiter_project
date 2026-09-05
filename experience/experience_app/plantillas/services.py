@@ -39,7 +39,7 @@ MIN_CONTRAST = 4.5
 # Un radio de 100 px o más es una píldora (999 en los specs): no se escala con el redondeo de la marca.
 PILL_RADIUS = 100
 # Claves del spec que no salen en el catálogo público: son notas para quien implementa el layout, no datos del comensal.
-PRIVATE_SCREEN_KEYS = ('resumen', 'estructura')
+PRIVATE_SCREEN_KEYS = ('resumen', 'estructura', 'motivo', 'reconstruido')
 
 
 class InvalidSettings(Exception):
@@ -118,7 +118,7 @@ def final_tokens(spec: dict, brand_inputs: dict, palette: dict, typography: dict
     display = typography.get('display')
     if display and customizable.get('tipografiaDisplay', True):
         tokens['displayFont'] = display
-    if tokens['acento'] != spec['tokens']['acento']:
+    if tokens['acento'] != spec['tokens']['acento'] or 'acento' in palette or 'fondo' in palette:
         tokens['acentoTinta'] = ink_for(tokens['acento'])
         tokens['acentoSuave'] = _mix_over(tokens['acento'], tokens.get('fondo', '#FFFFFF'))
     return tokens

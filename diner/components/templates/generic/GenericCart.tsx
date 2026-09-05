@@ -74,7 +74,7 @@ export function GenericCart({ cart, busy, error, setQty, remove, confirm, goPay,
   const own = mine(cart)
   const theirs = others(cart)
   // El total del botón va en mono: se parte el copy alrededor de la cifra para no duplicar el texto en es.json.
-  const amount = formatCop(cart.total)
+  const amount = formatCop(Math.max(0, cart.total - (discount?.monto ?? 0)))
   const [before, after] = t('cart.confirm', { amount }).split(amount)
   const pct = discount?.porcentaje ?? 0
   return (
@@ -118,14 +118,14 @@ export function GenericCart({ cart, busy, error, setQty, remove, confirm, goPay,
       </div>
       <Link href={hrefs.menu} className="self-start inline-flex items-center h-tap-min text-[15px] font-medium text-t-acento">{t('cart.addMore')}</Link>
       {/* El comensal ve el ahorro tres veces (carrito, factura, confirmación): aquí como línea propia si ya aplica, o como invitación si aún no se identificó. */}
-      {discount && discount.aplicable && !discount.aplicado && (
+      {discount && discount.porcentaje > 0 && !discount.registrado && !discount.aplicable && !discount.aplicado && (
         <Link href={hrefs.signup} className="px-3.5 py-2.5 rounded-t-boton bg-t-acento-suave text-[14px] font-medium text-t-tinta">{t('cart.discountHint', { pct })}</Link>
       )}
       {/* Pie pegado abajo: la lista scrollea por encima y lo que se va a pagar nunca sale del viewport (§06). */}
       <div className="sticky bottom-0 bg-t-fondo pt-3 pb-[18px] flex flex-col gap-4">
         <dl className="flex flex-col gap-1.5">
           <div className="flex items-baseline justify-between"><dt className="text-[15px] text-t-tinta-suave">{t('cart.subtotalMine')}</dt><dd className="font-t-mono tabular text-[15px]">$ {formatCop(cart.mio)}</dd></div>
-          {discount && discount.aplicado && (
+          {discount && (discount.aplicado || discount.aplicable) && (
             <div className="flex items-baseline justify-between text-free-ink"><dt className="text-[15px]">{t('cart.discountLine', { pct })}</dt><dd className="font-t-mono tabular text-[15px]">−{formatCop(discount.monto)}</dd></div>
           )}
           <div className="flex items-baseline justify-between"><dt className="text-lg font-medium">{t('cart.subtotalTable')}</dt><dd className="font-t-mono tabular text-[24px]">$ {amount}</dd></div>

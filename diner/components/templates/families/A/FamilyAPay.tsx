@@ -175,7 +175,7 @@ export function FamilyAPay({ bill, template, methods, onPay, state, demo, goBack
               <span className="text-[13px] leading-[1.4] text-t-tinta-suave">{tf('pay.tokenized')}</span>
             </div>
           )}
-        {!account && discount && discount.aplicable && !discount.aplicado && (
+        {!account && discount && discount.porcentaje > 0 && !discount.registrado && !discount.aplicable && !discount.aplicado && (
           <button type="button" onClick={onSignup} className="px-3.5 py-2.5 rounded-t-boton bg-t-acento-suave text-left text-[14px] font-medium text-t-tinta">{t('signupHook', { pct })}</button>
         )}
         {demoBadge}

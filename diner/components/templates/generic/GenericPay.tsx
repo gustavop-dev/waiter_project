@@ -62,7 +62,7 @@ export function GenericPay({ bill, methods, onPay, state, demo, goBack, result, 
         </header>
         <div className="px-[18px] flex flex-col gap-4">
           <dl className="flex flex-col divide-y divide-t-borde text-[15px]">
-            {discount && discount.aplicado && <div className="py-2.5 flex justify-between gap-3"><dt className="text-t-tinta-suave">{t('saved')}</dt><dd className="font-t-mono tabular text-free-ink">$ {formatCop(discount.monto)}</dd></div>}
+            {discount && (discount.aplicado || discount.aplicable) && <div className="py-2.5 flex justify-between gap-3"><dt className="text-t-tinta-suave">{t('saved')}</dt><dd className="font-t-mono tabular text-free-ink">$ {formatCop(discount.monto)}</dd></div>}
             <div className="py-2.5 flex justify-between gap-3"><dt className="text-t-tinta-suave">{t('paidWith')}</dt><dd className="font-medium">{t(`method.${result?.metodo ?? method}`)}{result?.referencia ? <span className="font-t-mono tabular text-t-tinta-suave"> · {result.referencia}</span> : null}</dd></div>
             <div className="py-2.5 flex justify-between gap-3"><dt className="text-t-tinta-suave">{t('invoice')}</dt><dd className="text-free-ink font-medium">{t('invoiceSent')}</dd></div>
           </dl>
@@ -149,7 +149,7 @@ export function GenericPay({ bill, methods, onPay, state, demo, goBack, result, 
         <span aria-hidden="true" className="w-[22px] h-[22px] shrink-0 rounded-md bg-free text-white grid place-items-center text-[11px] font-bold">✓</span>
         <span className="text-[13px] leading-snug text-t-tinta-suave">{t('tokenized')}</span>
       </div>
-      {!account && discount && discount.aplicable && !discount.aplicado && (
+      {!account && discount && discount.porcentaje > 0 && !discount.registrado && !discount.aplicable && !discount.aplicado && (
         <button type="button" onClick={onSignup} className="px-3.5 py-2.5 rounded-t-boton bg-t-acento-suave text-left text-[14px] font-medium text-t-tinta">{t('signupHook', { pct })}</button>
       )}
       {demoBadge}

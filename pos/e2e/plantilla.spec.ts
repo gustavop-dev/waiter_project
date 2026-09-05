@@ -25,8 +25,15 @@ test('the admin picks a menu template and the diner entry resolves it', async ({
     await page.getByRole('tab', { name: /Alta cocina/ }).click()
     await page.getByRole('button', { name: /Carta editorial/ }).click()
     await expect(page.getByRole('button', { name: /Carta editorial/ })).toHaveAttribute('aria-pressed', 'true')
-    await expect(page.getByLabel('Hex · Color de acción')).toHaveValue('#1A1815')
+    const context = await (await request.get(EXPERIENCE + '/api/v1/burger-house/poblado/')).json()
+    await expect(page.getByLabel('Hex · Color de acción')).toHaveValue(context.contexto.marca.color)
     await expect(page.getByTitle('Vista previa del menú')).toHaveAttribute('src', /\/burger-house\/poblado\/carta\/\?vista_previa=/)
+    const frame = page.frameLocator('iframe[title="Vista previa del menú"]')
+    await expect(frame.getByText(/Vista previa.*A1/)).toBeVisible()
+    const preview = await frame.locator('main').evaluate((node) => {
+      const css = getComputedStyle(node)
+      return { accent: css.getPropertyValue('--t-acento').trim(), font: css.getPropertyValue('--t-display').trim(), radius: css.getPropertyValue('--t-radio-tarjeta').trim() }
+    })
     await page.getByRole('button', { name: 'Guardar' }).click()
     await expect(page.getByRole('status')).toHaveText(/Guardado/)
     // experience invalida su caché al guardar; el poll cubre el reenvío Odoo → experience.
@@ -34,6 +41,10 @@ test('the admin picks a menu template and the diner entry resolves it', async ({
       const body = await (await request.get(EXPERIENCE + '/api/v1/burger-house/poblado/')).json()
       return body.contexto.plantilla.codigo
     }, { timeout: 20_000, intervals: [1_000] }).toBe('A1')
+    const saved = (await (await request.get(EXPERIENCE + '/api/v1/burger-house/poblado/')).json()).contexto.plantilla.tokens
+    expect(preview.accent).toBe(saved.acento)
+    expect(preview.font).toContain(saved.displayFont)
+    expect(preview.radius).toBe(`${saved.radioTarjeta}px`)
   } finally {
     // Vuelve a lo que había (B1, la plantilla por defecto, si la sede no había elegido).
     await gateway({ action: 'set', plantilla: before?.plantilla || 'B1', paleta: before?.paleta ?? {}, tipografia: before?.tipografia ?? {} })

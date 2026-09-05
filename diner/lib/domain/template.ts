@@ -92,12 +92,29 @@ export function parsePreview(raw: string | null | undefined): PreviewPayload | n
   }
 }
 
+
+function luminance(hex: string): number {
+  const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4)
+  return c[0] * .2126 + c[1] * .7152 + c[2] * .0722
+}
+function accentTokens(accent: string, background: string) {
+  const l = luminance(accent), ink = luminance('#1A1815')
+  const whiteRatio = 1.05 / (l + .05), inkRatio = (Math.max(l, ink) + .05) / (Math.min(l, ink) + .05)
+  const roundEven = (v: number) => v % 1 === .5 ? 2 * Math.round(v / 2) : Math.round(v)
+  const soft = '#' + [1, 3, 5].map((i) => {
+    const a = parseInt(accent.slice(i, i + 2), 16), b = parseInt(background.slice(i, i + 2), 16)
+    return roundEven(b + (a - b) * .1).toString(16).padStart(2, '0')
+  }).join('').toUpperCase()
+  return { acentoTinta: whiteRatio >= inkRatio ? '#FFFFFF' : '#1A1815', acentoSuave: soft }
+}
+
 // Aplica la paleta (solo tokens de color, solo hex válidos) y la tipografía de títulos sobre una plantilla del catálogo.
 export function applyPreview(base: Template, preview: PreviewPayload): Template {
   const tokens: TemplateTokens = { ...base.tokens }
   for (const [key, val] of Object.entries(preview.paleta ?? {})) {
     if ((COLOR_TOKENS as readonly string[]).includes(key) && HEX.test(val)) tokens[key as ColorToken] = val.toUpperCase()
   }
+  if ((preview.paleta?.acento && HEX.test(preview.paleta.acento)) || (preview.paleta?.fondo && HEX.test(preview.paleta.fondo))) Object.assign(tokens, accentTokens(tokens.acento, tokens.fondo))
   const fonts = [...base.fuentesGoogle]
   const display = preview.tipografia?.display
   if (display) { tokens.displayFont = display; if (!fonts.includes(display)) fonts.push(display) }

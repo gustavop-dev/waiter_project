@@ -28,9 +28,9 @@ it('E1: draws owner avatars, mono amounts, the discount chip by the total and Pa
   expect(screen.getByText('Lo mío').nextSibling).toHaveTextContent('28.000')
   expect(screen.getByText('2 · bien fría')).toBeInTheDocument()
   expect(screen.getByText('−5% aplicado')).toHaveClass('text-[#A9E0C0]')
-  expect(screen.getByText('$ 62.000')).toHaveClass('text-[25px]')
+  expect(screen.getByText('$ 58.900')).toHaveClass('text-[25px]')
   expect(screen.getByText('Descuento primera compra 5%').nextSibling).toHaveTextContent('−3.100')
-  expect(screen.getByText('Subtotal').nextSibling).toHaveTextContent('65.100')
+  expect(screen.getByText('Subtotal').nextSibling).toHaveTextContent('62.000')
   expect(screen.getByRole('button', { name: 'Pagar lo mío' })).toBeInTheDocument()
   expect(screen.queryByRole('button', { name: 'Editar Humo de páramo' })).toBeNull()
   expect(screen.getByText('Humo de páramo').closest('li')).toHaveClass('bg-t-superficie')
@@ -56,8 +56,8 @@ it('sends to the kitchen once, goes to pay and keeps the pay-at-table way out', 
   let finish!: (id: string) => void
   const props = base('E2', { confirm: jest.fn().mockReturnValue(new Promise<string>((r) => { finish = r })) })
   wrap(<FamilyECart {...props} />)
-  const send = screen.getByRole('button', { name: /Enviar a cocina · \$ 62\.000/ })
-  expect(within(send).getByText('62.000')).toHaveClass('font-t-mono')
+  const send = screen.getByRole('button', { name: /Enviar a cocina · \$ 58\.900/ })
+  expect(within(send).getByText('58.900')).toHaveClass('font-t-mono')
   fireEvent.click(send)
   expect(await screen.findByRole('button', { name: 'Enviando…' })).toBeDisabled()
   finish('ord-1')
@@ -95,7 +95,7 @@ it('E3 shows the discount banner, numbered lines and the tall CTA', () => {
 
 // Falla si E3 no invita a registrarse desde la banda cuando el descuento aún no aplica.
 it('E3 turns the banner into the signup invitation while the discount is pending', () => {
-  wrap(<FamilyECart {...base('E3', { discount: { porcentaje: 5, monto: 0, aplicable: true, aplicado: false } })} />)
+  wrap(<FamilyECart {...base('E3', { discount: { porcentaje: 5, monto: 0, aplicable: false, aplicado: false, registrado: false } })} />)
   expect(screen.getByRole('link', { name: /Primera compra: regístrate y ahorra 5%/ })).toHaveAttribute('href', hrefs.signup)
 })
 

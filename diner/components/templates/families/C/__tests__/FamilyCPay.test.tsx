@@ -39,7 +39,7 @@ it('base skin: total band, method rows, local card form, demo badge and the mone
 // tiene (el total solo va en el CTA; el título queda para el lector de pantalla), si efectivo no manda al mesero, o si sin cuenta no
 // invita al 5 %.
 it('C3 skin: method chips over the card form, no visible header, cash goes to the table and the signup hook shows without account', () => {
-  const p = props('C3', { bill: { ...bill, descuento: { porcentaje: 5, monto: 0, aplicable: true, aplicado: false } } })
+  const p = props('C3', { bill: { ...bill, descuento: { porcentaje: 5, monto: 0, aplicable: false, aplicado: false, registrado: false } } })
   wrap(<FamilyCPay {...p} />)
   expect(screen.getByRole('radio', { name: 'Tarjeta', checked: true })).toHaveClass('rounded-t-chip')
   expect(screen.getByRole('heading', { level: 1 })).toHaveClass('sr-only')

@@ -76,7 +76,7 @@ export function FamilyDPay({ bill, template, methods, onPay, state, demo, goBack
         </header>
         <div className="px-[18px] flex flex-col gap-4">
           <dl className="flex flex-col divide-y divide-t-borde text-[15px]">
-            {discount && discount.aplicado && <div className="py-2.5 flex justify-between gap-3"><dt className="text-t-tinta-suave">{t('saved')}</dt><dd className="font-t-mono tabular text-free">$ {formatCop(discount.monto)}</dd></div>}
+            {discount && (discount.aplicado || discount.aplicable) && <div className="py-2.5 flex justify-between gap-3"><dt className="text-t-tinta-suave">{t('saved')}</dt><dd className="font-t-mono tabular text-free">$ {formatCop(discount.monto)}</dd></div>}
             <div className="py-2.5 flex justify-between gap-3"><dt className="text-t-tinta-suave">{t('paidWith')}</dt><dd className="font-medium">{t(`method.${result?.metodo ?? method}`)}{result?.referencia ? <span className="font-t-mono tabular text-t-tinta-suave"> · {result.referencia}</span> : null}</dd></div>
             <div className="py-2.5 flex justify-between gap-3"><dt className="text-t-tinta-suave">{t('invoice')}</dt><dd className="text-free font-medium">{t('invoiceSent')}</dd></div>
           </dl>
@@ -166,7 +166,7 @@ export function FamilyDPay({ bill, template, methods, onPay, state, demo, goBack
       <span className="text-[13px] leading-snug text-t-tinta-suave">{skin === 'pizarra' ? tf('tokenizedShort') : t('tokenized')}</span>
     </div>
   )
-  const hook = !account && discount && discount.aplicable && !discount.aplicado && (
+  const hook = !account && discount && discount.porcentaje > 0 && !discount.registrado && !discount.aplicable && !discount.aplicado && (
     <button type="button" onClick={onSignup} className="px-3.5 py-2.5 rounded-t-boton bg-t-acento-suave text-left text-[14px] font-medium text-t-tinta">{t('signupHook', { pct })}</button>
   )
   const cta = method === 'efectivo'

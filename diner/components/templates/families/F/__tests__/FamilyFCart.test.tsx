@@ -26,9 +26,9 @@ it('F1: header with pieces, chips per line, discount as a green line and the acc
   expect(within(items[1]).queryByText(/piezas/)).toBeNull()
   expect(screen.getByText('Descuento primera compra 5%').parentElement).toHaveClass('text-free')
   expect(screen.getByText('−3.250')).toHaveClass('font-t-mono')
-  expect(screen.getByText('$ 65.000')).toHaveClass('font-t-mono', 'text-[25px]')
+  expect(screen.getByText('$ 61.750')).toHaveClass('font-t-mono', 'text-[25px]')
   expect(screen.queryByText('−5% aplicado')).toBeNull()
-  const send = screen.getByRole('button', { name: /Enviar a cocina · \$ 65\.000/ })
+  const send = screen.getByRole('button', { name: /Enviar a cocina · \$ 61\.750/ })
   expect(send).toHaveClass('bg-t-acento')
   fireEvent.click(send)
   await waitFor(() => expect(props.confirm).toHaveBeenCalledTimes(1))
@@ -108,8 +108,8 @@ it('F5: avatars per diner, no duplicated table row, the tip outside the totals a
   expect(within(tipSection).getByRole('radio', { name: '10%', checked: true })).toHaveClass('bg-t-acento')
   expect(within(tipSection).getByTestId('tip-info')).toHaveTextContent('Propina 10% · se entrega en la mesa · 16.900')
   expect(within(tipSection).getByText('La propina se entrega en la mesa: no suma al total.')).toBeInTheDocument()
-  expect(within(totals).getByText('$ 169.000')).toBeInTheDocument()
-  expect(screen.getByRole('button', { name: /Enviar a cocina · \$ 169\.000/ })).toBeInTheDocument()
+  expect(within(totals).getByText('$ 165.750')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /Enviar a cocina · \$ 165\.750/ })).toBeInTheDocument()
   fireEvent.click(within(tipSection).getByRole('radio', { name: 'Sin propina' }))
   expect(screen.queryByText(/Propina 10%/)).toBeNull()
   expect(screen.getByText('−5% aplicado')).toBeInTheDocument()
@@ -119,7 +119,7 @@ it('F5: avatars per diner, no duplicated table row, the tip outside the totals a
 
 // Falla si sin cuenta el carrito no invita a registrarse para el 5 % (o dice «ya usado» sin cuenta verificada), o si los tres estados (cargando, error, vacío) se confunden.
 it('invites to sign up when the discount is still available and tells the three empty states apart', () => {
-  const { unmount } = wrap(<FamilyFCart {...base('F4', { discount: { porcentaje: 5, monto: 0, aplicable: true, aplicado: false } })} />)
+  const { unmount } = wrap(<FamilyFCart {...base('F4', { discount: { porcentaje: 5, monto: 0, aplicable: false, aplicado: false, registrado: false } })} />)
   expect(screen.getByRole('link', { name: /Regístrate y ahorra 5%/ })).toHaveAttribute('href', '/k/c/cuenta/registro')
   expect(screen.queryByText(/Descuento primera compra/)).toBeNull()
   unmount()

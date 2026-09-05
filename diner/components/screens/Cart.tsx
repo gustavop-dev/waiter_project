@@ -1,5 +1,7 @@
 'use client'
 
+import { DemoPaymentNotice } from '@/components/ui/DemoPaymentNotice'
+
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
@@ -24,11 +26,14 @@ export function Cart({ rest, venue, token }: { entry: Entry; rest: string; venue
   // Idempotente en el servidor. Si el envío entró, se va al estado del pedido devuelto; si no, el store guarda el detalle y la página lo pinta.
   const onConfirm = async () => { const id = await confirm(); if (id) router.push(pathFor(rest, venue, token, 'estado', id)); return id }
   return (
+    <>
+    <DemoPaymentNotice />
     <Layout
       cart={cart ?? null} template={template} busy={busy} error={error ?? null}
       setQty={(lineId, qty) => void setQty(lineId, qty)} remove={(lineId) => void remove(lineId)} confirm={onConfirm}
       goPay={() => go('pago')} goMenu={() => go('carta')} discount={cart?.descuento ?? null} retry={() => void refreshCart()}
       hrefs={{ home: pathFor(rest, venue, token, 'portada'), menu: pathFor(rest, venue, token, 'carta'), pay: pathFor(rest, venue, token, 'pago'), table: pathFor(rest, venue, token, 'la-cuenta'), signup: pathFor(rest, venue, token, 'cuenta/registro') }}
     />
+    </>
   )
 }

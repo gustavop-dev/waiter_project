@@ -15,6 +15,8 @@ Acciones:
   get  → {restaurante, sede, experienceUrl, dinerUrl, ajustes: GET interno (plantilla, paleta, tipografia, …)}
   set  {plantilla, paleta, tipografia} → PUT interno; devuelve {plantilla: la resuelta que verá el comensal}
 """
+from urllib.parse import urlsplit
+
 import requests
 from odoo import _, http
 from odoo.exceptions import AccessError, UserError
@@ -28,7 +30,7 @@ PARAMS = {
     "venue": "projectapp.venue_slug",
     "diner_url": "projectapp.diner_url",
 }
-REQUIRED = ("experience_url", "internal_key", "restaurant", "venue")
+REQUIRED = ("experience_url", "internal_key", "restaurant", "venue", "diner_url")
 
 
 def _params():
@@ -37,13 +39,23 @@ def _params():
     missing = [PARAMS[name] for name in REQUIRED if not values[name]]
     if missing:
         raise UserError(_("Falta configurar en Odoo: %s. Siémbralos con env.set_param (ver README del addon).") % ", ".join(missing))
+    for name in ("experience_url", "diner_url"):
+        try:
+            url = urlsplit(values[name])
+            valid = url.scheme in ("http", "https") and bool(url.hostname) and not url.username and not url.password
+            port = url.port
+            valid = valid and (port is None or port > 0)
+        except ValueError:
+            valid = False
+        if not valid:
+            raise UserError("URL inválida en %s: usa http:// o https:// con un servidor válido." % PARAMS[name])
     return values
 
 
 def _call(method, url, key, json=None):
     try:
         response = requests.request(method, url, headers={"X-Internal-Key": key}, json=json, timeout=TIMEOUT)
-    except (requests.ConnectionError, requests.Timeout) as exc:
+    except requests.RequestException as exc:
         raise UserError(_("No se pudo contactar la experiencia del comensal (%s). Revisa projectapp.experience_url y que el servicio esté arriba.") % exc.__class__.__name__) from exc
     if response.status_code == 401:
         raise UserError(_("La experiencia del comensal rechazó la clave interna: projectapp.experience_internal_key no coincide con EXPERIENCE_INTERNAL_KEY."))

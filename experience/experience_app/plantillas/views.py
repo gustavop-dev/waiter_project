@@ -12,6 +12,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from experience_app.adapters.registry.client import resolve
+from experience_app.services import brand
 from experience_app.plantillas import services
 from experience_app.plantillas.seed import thumbnail_path
 from experience_app.utils.images import image_response
@@ -23,8 +24,14 @@ CATALOG_CACHE_CONTROL = 'public, max-age=3600'
 
 @api_view(['GET'])
 def catalog(request):
-    response = Response(services.catalog_view())
-    response['Cache-Control'] = CATALOG_CACHE_CONTROL
+    data = services.catalog_view()
+    restaurant, venue = request.query_params.get('restaurante'), request.query_params.get('sede')
+    if restaurant and venue:
+        inputs = brand.brand_inputs(resolve(restaurant, venue))
+        for spec in data['plantillas']:
+            spec['tokens'] = services.final_tokens(spec, inputs, {}, {})
+    response = Response(data)
+    response['Cache-Control'] = 'no-store' if restaurant and venue else CATALOG_CACHE_CONTROL
     return response
 
 

@@ -131,7 +131,8 @@
         "number": "Número",
         "seats": "Puestos",
         "create": "Crear mesa"
-      }
+      },
+      "discountIncluded": "Descuento incluido (antes de IVA)"
     },
     "order": {
       "back": "Salón",
@@ -722,7 +723,8 @@
         "change": "Cambio",
         "thanks": "Gracias por su visita",
         "print": "Imprimir",
-        "close": "Cerrar"
+        "close": "Cerrar",
+        "discountIncluded": "Descuento incluido (antes de IVA)"
       }
     },
     "cash": {

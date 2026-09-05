@@ -1,5 +1,12 @@
 # ADR · Las plantillas del menú viven en el módulo 3, no en el POS ni en la app del comensal
 
+> Contexto posterior (Plan H, 2026-09-05): `experience/` guarda las 30 plantillas y los
+> ajustes por sede; `diner/` renderiza y el POS administra. Descuento real con reserva
+> atómica; pago simulado después de confirmar; cuenta demo ligada al desafío de la
+> misma cookie, sin recuperación de cuentas existentes y deshabilitada en producción.
+> El diseño y los planes anteriores conservan su alcance histórico; el estado ejecutado
+> y sus límites están en [la revisión de H](../revisiones/2026-09-05-cierre-H-pr14.md).
+
 **Fecha:** 2026-09-05 · **Estado:** aceptada · **Plan:** `docs/planes/2026-09-05-plan-H-plantillas.md`
 
 ## Contexto

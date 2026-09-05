@@ -57,11 +57,11 @@ export function D3Cart({ cart, busy, error, setQty, remove, confirm, goPay, goMe
             {view?.kind === 'line' && <div className={`${row} text-free`}><dt>{t('cart.discountLine', { pct })}</dt><dd className="font-t-mono tabular">−{formatCop(view.amount)}</dd></div>}
             <div className="flex items-baseline justify-between gap-2.5 pt-2.5 mt-2 border-t border-t-borde">
               <dt className="text-[18px] font-bold tracking-[-0.02em] leading-[1.15]">{t('cart.subtotalTable')}</dt>
-              <dd className="font-t-mono tabular text-[25px] whitespace-nowrap">$ {formatCop(cart.total)}</dd>
+              <dd className="font-t-mono tabular text-[25px] whitespace-nowrap">$ {formatCop(Math.max(0, cart.total - (discount?.monto ?? 0)))}</dd>
             </div>
           </dl>
           <div className="px-[18px] py-3.5 border-t border-t-borde bg-t-superficie">
-            <CartActions amount={cart.total} busy={busy} confirm={confirm} goPay={goPay} hrefs={hrefs} primary={primary} secondary={secondary} link="text-[14px] text-t-tinta-suave" />
+            <CartActions amount={Math.max(0, cart.total - (discount?.monto ?? 0))} busy={busy} confirm={confirm} goPay={goPay} hrefs={hrefs} primary={primary} secondary={secondary} link="text-[14px] text-t-tinta-suave" />
           </div>
         </>
       )}

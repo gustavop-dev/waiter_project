@@ -71,10 +71,10 @@ export function FamilyECart({ cart, template, busy, error, setQty, remove, confi
 
   const own = mine(cart)
   const theirs = others(cart)
-  const amount = formatCop(cart.total)
+  const amount = formatCop(Math.max(0, cart.total - (discount?.monto ?? 0)))
   const [before, after] = t('cart.confirm', { amount }).split(amount)
-  const subtotal = cart.total + (discount?.aplicado ? discount.monto : 0)
-  const showBanner = variant === 'E3' && discount && (discount.aplicado || discount.aplicable)
+  const subtotal = cart.total
+  const showBanner = variant === 'E3' && discount && (discount.porcentaje > 0 && (discount.aplicado || discount.aplicable || !discount.registrado))
   const line = (l: CartLine, index: number) => {
     const open = l.mio && editing === l.id
     const note = l.nota ? tc('lineNote', { qty: l.cantidad, note: l.nota }) : tc('lineQty', { qty: l.cantidad })
@@ -128,7 +128,7 @@ export function FamilyECart({ cart, template, busy, error, setQty, remove, confi
   return (
     <div className="flex flex-col text-t-tinta">
       {head}
-      {showBanner && (discount.aplicado
+      {showBanner && ((discount.aplicado || discount.aplicable)
         ? <div className="px-[18px] py-[13px] bg-t-acento-suave border-b border-t-borde flex items-center gap-2.5"><span className="text-[22px] font-bold tracking-[-0.02em] text-[#E4B879]">{pct}%</span><span className="text-[14px] leading-[1.35] text-[#E4B879]">{tc('discountBanner')}</span></div>
         : <Link href={hrefs.signup} className="px-[18px] py-[13px] bg-t-acento-suave border-b border-t-borde flex items-center gap-2.5"><span className="text-[22px] font-bold tracking-[-0.02em] text-[#E4B879]">{pct}%</span><span className="text-[14px] leading-[1.35] text-[#E4B879]">{tc('discountBannerPending', { pct })}</span></Link>)}
       <ul className="flex flex-col">{own.map(line)}</ul>
@@ -140,17 +140,17 @@ export function FamilyECart({ cart, template, busy, error, setQty, remove, confi
         </section>
       )}
       <Link href={hrefs.menu} className="self-start mx-[18px] inline-flex items-center h-[44px] text-[15px] font-medium text-t-acento">{t('cart.addMore')}</Link>
-      {variant !== 'E3' && discount && discount.aplicable && !discount.aplicado && (
+      {variant !== 'E3' && discount && discount.porcentaje > 0 && !discount.registrado && !discount.aplicable && !discount.aplicado && (
         <Link href={hrefs.signup} className="mx-[18px] mb-3 px-3.5 py-2.5 rounded-t-boton bg-t-acento-suave text-[14px] font-medium text-t-tinta">{t('cart.discountHint', { pct })}</Link>
       )}
       <dl className="px-[18px] py-4 border-t border-t-borde bg-t-superficie flex flex-col">
         {theirs.length > 0 && <TotalRow label={tc('mine')} value={formatCop(cart.mio)} />}
         <TotalRow label={tc('subtotal')} value={formatCop(subtotal)} />
-        {discount && discount.aplicado && <TotalRow label={t('cart.discountLine', { pct })} value={`−${formatCop(discount.monto)}`} className="text-free" />}
+        {discount && (discount.aplicado || discount.aplicable) && <TotalRow label={t('cart.discountLine', { pct })} value={`−${formatCop(discount.monto)}`} className="text-free" />}
         <div className={`flex justify-between items-baseline gap-2.5 pt-2.5 mt-2 border-t border-t-borde ${variant === 'E2' ? 'border-dotted' : ''}`}>
           <dt className={variant === 'E2' ? 't-title text-[21px] leading-[1.1]' : 'text-[18px] font-bold tracking-[-0.02em] leading-[1.15]'}>{theirs.length > 0 ? tc('totalTable') : tc('total')}</dt>
           <dd className="flex items-center gap-2">
-            {variant === 'E1' && discount && discount.aplicado && <span className="inline-flex items-center h-[26px] px-[9px] rounded-[7px] bg-free/[0.22] text-[#A9E0C0] text-[13px] font-medium">{tc('discountChip', { pct })}</span>}
+            {variant === 'E1' && discount && (discount.aplicado || discount.aplicable) && <span className="inline-flex items-center h-[26px] px-[9px] rounded-[7px] bg-free/[0.22] text-[#A9E0C0] text-[13px] font-medium">{tc('discountChip', { pct })}</span>}
             <span className="font-t-mono tabular text-[25px] whitespace-nowrap">$ {amount}</span>
           </dd>
         </div>
@@ -160,7 +160,7 @@ export function FamilyECart({ cart, template, busy, error, setQty, remove, confi
           {sending ? t('cart.confirming') : <>{before}<span className="font-t-mono tabular">{amount}</span>{after}</>}
         </button>
         <button type="button" disabled={busy || sending} onClick={goPay} className={secondary}>{variant === 'E1' || variant === 'E4' ? tc('payMine') : t('cart.goPay')}</button>
-        {variant === 'E5' && discount && discount.aplicado && <p className="text-center text-[13px] text-free">{tc('discountIncluded', { pct })}</p>}
+        {variant === 'E5' && discount && (discount.aplicado || discount.aplicable) && <p className="text-center text-[13px] text-free">{tc('discountIncluded', { pct })}</p>}
         <Link href={hrefs.table} className="self-center inline-flex items-center h-[44px] text-[14px] text-t-tinta-suave">{t('cart.payAtTable')}</Link>
       </div>
     </div>

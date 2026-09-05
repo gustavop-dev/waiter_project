@@ -79,7 +79,7 @@ it('covers authorizing, paid, declined and the signup hook', () => {
   expect(declined.onRetry).toHaveBeenCalledTimes(1)
   expect(declined.onPayAtTable).toHaveBeenCalledTimes(1)
   declinedView.unmount()
-  const hook = payProps({ bill: { ...bill, descuento: { porcentaje: 5, monto: 0, aplicable: true, aplicado: false } } })
+  const hook = payProps({ bill: { ...bill, descuento: { porcentaje: 5, monto: 0, aplicable: false, aplicado: false, registrado: false } } })
   wrap(<FamilyDPay {...hook} />)
   fireEvent.click(screen.getByRole('button', { name: /Identifícate y ahorra 5%/ }))
   expect(hook.onSignup).toHaveBeenCalledTimes(1)

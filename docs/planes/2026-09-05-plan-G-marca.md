@@ -1,5 +1,12 @@
 # Plan G — Marca del restaurante editable desde el POS
 
+> Contexto posterior (Plan H, 2026-09-05): `experience/` guarda las 30 plantillas y los
+> ajustes por sede; `diner/` renderiza y el POS administra. Descuento real con reserva
+> atómica; pago simulado después de confirmar; cuenta demo ligada al desafío de la
+> misma cookie, sin recuperación de cuentas existentes y deshabilitada en producción.
+> El diseño y los planes anteriores conservan su alcance histórico; el estado ejecutado
+> y sus límites están en [la revisión de H](../revisiones/2026-09-05-cierre-H-pr14.md).
+
 > **Para agentes:** ejecutar tarea por tarea con el ciclo completo (test que
 > falla → implementación mínima → test que pasa → commit). Reglas duras: el
 > addon no lleva vistas; `diner/` no se toca (ya lee `contexto.marca`); el

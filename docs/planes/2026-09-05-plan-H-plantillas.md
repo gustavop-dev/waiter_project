@@ -1,5 +1,9 @@
 # Plan H · Plantillas de menú, pago y cuenta (30) con almacén propio
 
+**Estado de la revisión (2026-09-05):** listado original recuperado y cotejado, con
+correcciones y evidencia individual en el [informe de cierre](../revisiones/2026-09-05-cierre-H-pr14.md).
+El informe conserva los 23 hallazgos originales, sus duplicados y los límites explícitos del modo demo.
+
 **Objetivo.** El administrador elige en el POS una de las 30 plantillas del catálogo
 (`docs/diseno/plantillas/`), personaliza su paleta, su tipografía y su logo, y la app del
 comensal muestra la carta real del POS con esa plantilla, de punta a punta: entra por el
@@ -95,14 +99,23 @@ pinta si existe y lo omite si no; nunca inventa datos.
 - Cuenta (maquetada pero con datos reales): `POST /api/v1/cuenta/registro/` `{nombre,
   correo, celular, aceptaDatos, novedades}` → crea `DinerAccount` (pendiente) y devuelve
   `{ id, codigoDemo: true }`; `POST /api/v1/cuenta/verificar/` `{ id, codigo }` → en demo
-  acepta cualquier código de 6 dígitos, marca verificada, liga la cuenta a la cookie del
-  comensal; `GET /api/v1/cuenta/` → perfil + historial (pedidos de esta cuenta en
+  acepta seis dígitos ASCII solo para la cuenta pendiente solicitada por esa cookie,
+  durante diez minutos y una sola vez. Demo rechaza recuperar cuentas existentes por
+  correo; registro y verificación fallan cerrado en producción (también si se fuerza
+  `DINER_DEMO_ENABLED=true`); `GET /api/v1/cuenta/` → perfil + historial (pedidos de esta cuenta en
   experience); `POST /api/v1/cuenta/salir/`. El **descuento** (5 % por defecto,
   `pos.config.signup_discount_percent`) se aplica de verdad al confirmar: líneas con
   `discount` en Odoo si la cuenta está verificada y es su primer pedido; aparece como línea
-  propia en carrito, estado y cuenta.
-- Pago (maquetado): `POST /api/v1/sesiones/<id>/pago/simulado/` `{ metodo, monto }` → no
-  toca Odoo; devuelve `{ estado: "aprobado", referencia, demo: true }`. La UI muestra
+  propia en carrito, estado y cuenta. `discount_order` reserva la cuenta atómicamente
+  antes del RPC y conserva el porcentaje de las líneas ante un timeout; `discount_used_at`
+  se marca al completar el envío. Las líneas en envío quedan ligadas al pedido y no se
+  pueden editar/borrar hasta resolver el reintento.
+- Pago (maquetado): `POST /api/v1/sesiones/<id>/pago/simulado/` `{ metodo, reparto?: "all"|"mine"|"parts" }` → no
+  toca Odoo; exige un pedido enviado sin líneas abiertas y toma el monto de los datos
+  confirmados del servidor (ignora `monto` del cliente). Devuelve
+  `{ estado: "aprobado", referencia, demo: true, metodo, monto, reparto }`.
+  El cliente confirma primero, incluso al pasar a cobro en mesa; si falla, no simula pago.
+  Fuera de demo, y siempre en producción, responde 503. La UI muestra
   "Autorizando" → "Pagado" con la insignia «Demo · sin cobro real»; el POS sigue cobrando en
   la mesa. Cuando llegue la pasarela, este endpoint se reemplaza por el adaptador real.
 
@@ -118,7 +131,7 @@ pinta si existe y lo omite si no; nunca inventa datos.
     onAdd(dish), cart, orderBarHref }` (la búsqueda y el filtro son de Waiter; cada layout
     decide dónde los pinta).
   - `CartLayoutProps { cart, template, busy, error, setQty, remove, confirm, goPay, goMenu,
-    discount }`, `PayLayoutProps { bill, template, methods, onPay(method), state:
+    discount }`, `PayLayoutProps { bill, template, methods, onPay(method, reparto?), state:
     'idle'|'authorizing'|'paid'|'declined', demo: true, goBack }`.
   - `SignupProps { template, onSubmit, onSkip }`, `CodeProps { template, email, onVerify,
     onResend, onOtherChannel }`, `HistoryProps { template, account, orders, onReorder }`.
@@ -150,8 +163,9 @@ al controller del addon (misma sesión de Odoo). Servicio `pos/lib/services/menu
    (catálogo sembrado en `migrate` por `post_migrate` y con `seed_templates`; miniaturas por
    `tools/diseno/sincronizar_catalogo.py`), `DinerAccount`, `CartLine.discount`,
    `projectapp_ops` (`signup_discount_percent`, `diner_attributes`, `/waiter/admin/menu_settings`),
-   parámetros del sistema en `odoo/provisioning/seed-menu-params.sh`. Pendiente de integración:
-   `migrate` en experience, `-u projectapp_ops`, sembrar parámetros, contratos `-m contract`.
+   parámetros del sistema en `odoo/provisioning/seed-menu-params.sh`. Integración original
+   completada en la tarea 6. La revisión añade migraciones 0004–0007 y la corrección del
+   recálculo de subtotales en `projectapp_ops`; véase el procedimiento del informe.
 3. [x] **POS**: sección Plantilla del menú con galería, personalización y vista previa.
 4. [x] **Motor del comensal**: tokens, registro de layouts, rutas y store de pago/cuenta,
    pantallas base (carrito/pago/cuenta genéricos), modo vista previa.
@@ -159,12 +173,17 @@ al controller del addon (misma sesión de Odoo). Servicio `pos/lib/services/menu
    de la familia, fieles a los marcos; tests; captura propia con `next dev` en puerto propio.
 6. [x] **Integración**: migraciones, `-u projectapp_ops`, miniaturas, E2E (admin elige →
    comensal la ve → carrito → pago simulado → registro), capturas de las 30.
-7. [ ] **Revisión adversarial** por lentes, correcciones, docs, PR.
+7. [x] **Revisión técnica**: identidad demo, reserva y reintentos,
+   subtotales de Odoo, pago con confirmación y monto del servidor, estilos oscuros y docs.
+8. [x] **Cotejo de los 23 hallazgos originales**: matriz H01–H23, fuente original y
+   regresiones en el informe; publicación de las correcciones en la rama del PR #14.
 
 ## Supuestos tomados sin el usuario (2026-09-05, noche)
 
 - Pago: se simula la aprobación con insignia «Demo · sin cobro real»; el pedido queda
-  pendiente de cobro en el POS. Registro: cualquier código de seis dígitos verifica en demo.
+  pendiente de cobro en el POS. Registro demo: seis dígitos solo para un desafío nuevo
+  solicitado por la misma cookie; vence a los diez minutos, se consume una vez y no sirve
+  para recuperar cuentas existentes. Producción rechaza ambos flujos.
 - Cuenta de F2–F5: el catálogo llegó cortado; se reconstruyen con la rotación de patrones de
   la familia F y la piel de su pago. Pedir al usuario el archivo completo o los patrones.
 - Atributos por producto (piezas, picante, ABV…): campo JSON en Odoo, sembrado en la demo

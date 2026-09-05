@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-import type { Account, AccountSummary, Bill, Cart, Entry, OrderStatus, PayMethod, PayResult, RegisterForm, Session, TemplateCatalog } from '@/lib/types'
+import type { Account, AccountSummary, Bill, Cart, Entry, OrderStatus, PayMethod, PayScope, PayResult, RegisterForm, Session, TemplateCatalog } from '@/lib/types'
 
 // Único punto de I/O del comensal: la API pública del bloque 3, por el proxy same-origin (/api → experience).
 export const http = axios.create({ baseURL: '', withCredentials: true, timeout: 15_000 })
@@ -35,7 +35,7 @@ export async function updateLine(sessionId: string, lineId: number, patch: { can
 export async function removeLine(sessionId: string, lineId: number): Promise<Cart> {
   return (await http.delete<Cart>(`/api/v1/sesiones/${sessionId}/lineas/${lineId}/`)).data
 }
-export async function confirmOrder(sessionId: string): Promise<{ pedido: string; estado: string; total: number }> {
+export async function confirmOrder(sessionId: string): Promise<{ pedido: string; estado: string; total: number; cuenta: Bill }> {
   return (await http.post(`/api/v1/sesiones/${sessionId}/confirmar/`)).data
 }
 export async function getOrder(orderId: string): Promise<OrderStatus> {
@@ -44,13 +44,16 @@ export async function getOrder(orderId: string): Promise<OrderStatus> {
 export async function callWaiter(sessionId: string): Promise<boolean> {
   return (await http.post<{ ok: boolean }>(`/api/v1/sesiones/${sessionId}/llamar/`)).data.ok
 }
+export async function quoteBill(sessionId: string): Promise<Bill> {
+  return (await http.get<Bill>(`/api/v1/sesiones/${sessionId}/cuenta/`)).data
+}
 export async function requestBill(sessionId: string): Promise<Bill> {
   return (await http.post<Bill>(`/api/v1/sesiones/${sessionId}/cuenta/`)).data
 }
 
 // ---- Plan H: plantillas, cuenta y pago maquetado (contrato 3). Si experience aún no expone estos endpoints, fallan con ApiError. ----
-export async function getTemplates(): Promise<TemplateCatalog> {
-  return (await http.get<TemplateCatalog>('/api/v1/plantillas/')).data
+export async function getTemplates(restaurante?: string, sede?: string): Promise<TemplateCatalog> {
+  return (await http.get<TemplateCatalog>('/api/v1/plantillas/', { params: { restaurante, sede } })).data
 }
 export async function registerAccount(form: RegisterForm): Promise<{ id: string; codigoDemo: boolean }> {
   return (await http.post('/api/v1/cuenta/registro/', form)).data
@@ -66,6 +69,6 @@ export async function logoutAccount(): Promise<void> {
   await http.post('/api/v1/cuenta/salir/')
 }
 // No toca Odoo: devuelve { estado: 'aprobado', referencia, demo: true }. El POS sigue cobrando en la mesa.
-export async function simulatePayment(sessionId: string, metodo: PayMethod, monto: number): Promise<PayResult> {
-  return (await http.post<PayResult>(`/api/v1/sesiones/${sessionId}/pago/simulado/`, { metodo, monto })).data
+export async function simulatePayment(sessionId: string, metodo: PayMethod, reparto: PayScope = 'all'): Promise<PayResult> {
+  return (await http.post<PayResult>(`/api/v1/sesiones/${sessionId}/pago/simulado/`, { metodo, reparto })).data
 }

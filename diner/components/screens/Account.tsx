@@ -22,7 +22,7 @@ export function Account({ rest, venue, token }: { entry: Entry; rest: string; ve
   const go = (screen: Parameters<typeof pathFor>[3]) => router.push(pathFor(rest, venue, token, screen))
   const pct = template.descuento?.porcentaje ?? 5
   const orders = accountOrders ?? []
-  const discountUsed = orders.some((o) => o.descuento > 0)
+  const discountUsed = account?.descuentoDisponible === false || orders.some((o) => o.descuento > 0)
   const History = HISTORY_PATTERNS[template.layouts?.historial] ?? GenericHistory
   // Volver a pedir: las mismas líneas al carrito de esta mesa, una a una (el servidor recalcula), y se abre el pedido.
   const reorder = async (order: AccountOrder) => {

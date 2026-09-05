@@ -14,7 +14,7 @@ const props = (codigo: string, over: Partial<PayLayoutProps> = {}): PayLayoutPro
 
 // Falla si la base B1 pierde las píldoras excluyentes, si el número de tarjeta sale del componente, si efectivo no manda al mesero,
 // o si falta la insignia «Demo · sin cobro real».
-it('B1: method pills, local card form, demo badge and pays with the method only', () => {
+it('B1: method pills, local card form, demo badge and pays with the method and server-calculated split', () => {
   const p = props('B1')
   wrap(<FamilyBPay {...p} />)
   expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Pagar')
@@ -27,7 +27,7 @@ it('B1: method pills, local card form, demo badge and pays with the method only'
   expect(screen.getByText('Demo · sin cobro real')).toBeInTheDocument()
   expect(screen.getByText('Mesa 9')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Pagar $ 97.812' }))
-  expect(p.onPay).toHaveBeenCalledWith('tarjeta')
+  expect(p.onPay).toHaveBeenCalledWith('tarjeta', 'all')
   expect(JSON.stringify((p.onPay as jest.Mock).mock.calls)).not.toContain('4111')
   fireEvent.click(screen.getByRole('radio', { name: 'PSE' }))
   expect(screen.queryByPlaceholderText('4242 4242 4242 4242')).toBeNull()
@@ -43,7 +43,7 @@ it('B1: method pills, local card form, demo badge and pays with the method only'
 
 // Falla si sin cuenta y con el 5 % disponible no se invita a identificarse.
 it('invites to identify for the discount when there is no account', () => {
-  const p = props('B5', { bill: { ...bill, descuento: { porcentaje: 5, monto: 0, aplicable: true, aplicado: false } } })
+  const p = props('B5', { bill: { ...bill, descuento: { porcentaje: 5, monto: 0, aplicable: false, aplicado: false, registrado: false } } })
   wrap(<FamilyBPay {...p} />)
   fireEvent.click(screen.getByRole('button', { name: /Identifícate y ahorra 5%/ }))
   expect(p.onSignup).toHaveBeenCalledTimes(1)
@@ -61,7 +61,7 @@ it('B2: the active method as a selected card and the others behind a row', () =>
   expect(screen.getAllByRole('radio')).toHaveLength(1)
   expect(screen.getByText(/notificación en tu app de Nequi/)).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Pagar $ 97.812' }))
-  expect(p.onPay).toHaveBeenCalledWith('nequi')
+  expect(p.onPay).toHaveBeenCalledWith('nequi', 'all')
 })
 
 // Falla si B3 no ofrece dividir con los montos reales de la cuenta (lo mío, por parte, todo) o si el CTA no sigue la parte elegida.
@@ -74,7 +74,7 @@ it('B3: split options from the real bill drive the CTA amount', () => {
   expect(within(group).getByRole('radio', { name: /Pagar todo/, checked: true })).toBeInTheDocument()
   fireEvent.click(within(group).getByRole('radio', { name: /Pagar lo mío/ }))
   fireEvent.click(screen.getByRole('button', { name: 'Pagar $ 24.000' }))
-  expect(p.onPay).toHaveBeenCalledWith('tarjeta')
+  expect(p.onPay).toHaveBeenCalledWith('tarjeta', 'mine')
 })
 
 // Falla si con una sola parte B3 ofrece «Dividir en 1».

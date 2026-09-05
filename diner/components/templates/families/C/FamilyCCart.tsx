@@ -84,9 +84,9 @@ export function FamilyCCart({ cart, template, busy, error, setQty, remove, confi
   const own = mine(cart)
   const theirs = others(cart)
   const pct = discount?.porcentaje ?? 0
-  const applied = Boolean(discount?.aplicado)
-  const pending = Boolean(discount && discount.aplicable && !discount.aplicado)
-  const subtotal = cart.total + (applied ? discount?.monto ?? 0 : 0)
+  const applied = Boolean(discount?.aplicado || discount?.aplicable)
+  const pending = Boolean(discount && discount.porcentaje > 0 && !discount.registrado && !discount.aplicable && !discount.aplicado)
+  const subtotal = cart.total
   // La propina de C5 es informativa: se confirma al pagar y no entra en el Total, que es el mismo que verá el pago.
   const tipAmount = Math.round((cart.total * tip) / 100)
   const closing = code === 'C3' && entry ? extrasOf(entry.carta.categorias, cart.lineas.map((l) => l.producto_id))[0] : undefined
@@ -138,7 +138,7 @@ export function FamilyCCart({ cart, template, busy, error, setQty, remove, confi
           <dt className={dark ? 't-title text-[25px] leading-none' : 'text-[18px] font-bold tracking-[-0.02em]'}>{tc('total')}</dt>
           <dd className="flex items-center gap-2">
             {code === 'C4' && applied && <span className="h-[26px] px-[9px] rounded-[7px] bg-free/22 text-free-soft text-[13px] font-medium grid place-items-center">{tc('chipApplied', { pct })}</span>}
-            <span className="font-t-mono tabular text-[25px] whitespace-nowrap">{money(cart.total)}</span>
+            <span className="font-t-mono tabular text-[25px] whitespace-nowrap">{money(Math.max(0, cart.total - (discount?.monto ?? 0)))}</span>
           </dd>
         </div>
       </dl>
@@ -177,8 +177,8 @@ function Banner({ code, discount, href }: { code: FamilyCCode; discount: Discoun
   const cls = `px-[18px] py-[13px] border-b border-t-borde flex items-center gap-2.5 ${dark ? 'bg-t-acento/16' : 'bg-t-acento-suave'}`
   const big = `text-[22px] font-bold tracking-[-0.02em] ${dark ? 'text-[#E4B879]' : 'text-[#A06E2C]'}`
   const text = `text-[14px] leading-[1.35] ${dark ? 'text-[#E4B879]' : 'text-[#6B4A05]'}`
-  if (discount.aplicado) return <div className={cls}><span className={big}>{pct}%</span><span className={text}>{tc('firstPurchaseApplied')}</span></div>
-  if (discount.aplicable) return <Link href={href} className={cls}><span className={big}>{pct}%</span><span className={text}>{t('cart.discountHint', { pct })}</span></Link>
+  if (discount.aplicado || discount.aplicable) return <div className={cls}><span className={big}>{pct}%</span><span className={text}>{tc('firstPurchaseApplied')}</span></div>
+  if (!discount.registrado && discount.porcentaje > 0) return <Link href={href} className={cls}><span className={big}>{pct}%</span><span className={text}>{t('cart.discountHint', { pct })}</span></Link>
   return null
 }
 

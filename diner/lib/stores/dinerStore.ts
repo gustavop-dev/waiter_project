@@ -3,8 +3,8 @@
 import { create } from 'zustand'
 
 import { DEFAULT_TEMPLATE, applyPreview, parsePreview, templateFromSpec } from '@/lib/domain/template'
-import { ApiError, addLine, callWaiter, confirmOrder, getAccount, getCart, getEntry, getOrder, getTemplates, logoutAccount, openSession, registerAccount, removeLine, requestBill, simulatePayment, updateLine, verifyAccount } from '@/lib/services/api'
-import type { Account, AccountOrder, Bill, Cart, Entry, OrderStatus, PayMethod, PayResult, PayState, RegisterForm, Session, Template } from '@/lib/types'
+import { ApiError, addLine, callWaiter, confirmOrder, getAccount, getCart, getEntry, getOrder, getTemplates, logoutAccount, openSession, registerAccount, removeLine, quoteBill, requestBill, simulatePayment, updateLine, verifyAccount } from '@/lib/services/api'
+import type { Account, AccountOrder, Bill, Cart, Entry, OrderStatus, PayMethod, PayScope, PayResult, PayState, RegisterForm, Session, Template } from '@/lib/types'
 
 interface Keys { rest: string; venue: string; token: string | null }
 // Registro pendiente de verificar: el id que devolvió experience y el formulario, por si hay que reenviar el código.
@@ -35,6 +35,8 @@ interface DinerState {
   applyPreviewParam: (raw: string | null | undefined) => Promise<void>
   ensureSession: () => Promise<Session | null>
   refreshCart: () => Promise<void>
+  refreshBill: () => Promise<void>
+  demoSession: string | null
   add: (productId: number, qty: number, note: string) => Promise<void>
   setQty: (lineId: number, qty: number) => Promise<void>
   remove: (lineId: number) => Promise<void>
@@ -47,14 +49,14 @@ interface DinerState {
   verify: (code: string) => Promise<boolean>
   loadAccount: () => Promise<void>
   logout: () => Promise<void>
-  simulatePay: (metodo: PayMethod) => Promise<PayResult | null>
+  simulatePay: (metodo: PayMethod, reparto?: PayScope) => Promise<PayResult | null>
   resetPay: () => void
 }
 
 const message = (e: unknown) => (e instanceof ApiError ? e.message : e instanceof Error ? e.message : String(e))
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
-// Monto a pagar desde el celular: la cuenta si ya se pidió, si no el pedido confirmado, si no lo que hay en el carrito.
-export const payableTotal = (s: Pick<DinerState, 'bill' | 'order' | 'cart'>) => s.bill?.total ?? s.order?.total ?? s.cart?.total ?? 0
+// Proyección: lo confirmado más el carrito pendiente con su descuento; la autorización usa la respuesta del servidor.
+export const payableTotal = (s: Pick<DinerState, 'bill' | 'order' | 'cart'>) => (s.order?.total ?? s.bill?.total ?? 0) + Math.max(0, (s.cart?.total ?? 0) - (s.cart?.descuento?.monto ?? 0))
 const resolveTemplate = (preview: Template | null, entry: Entry | null) => preview ?? entry?.contexto.plantilla ?? DEFAULT_TEMPLATE
 
 export const useDinerStore = create<DinerState>((set, get) => {
@@ -66,7 +68,7 @@ export const useDinerStore = create<DinerState>((set, get) => {
     keys: null, entry: null, session: null, cart: null, order: null, bill: null, error: null, busy: false,
     template: DEFAULT_TEMPLATE, preview: null,
     account: null, accountOrders: [], pendingAccount: null,
-    payState: 'idle', payResult: null,
+    payState: 'idle', payResult: null, demoSession: null,
     // Entrada: contexto + carta (+ plantilla resuelta). La sesión (cookie del comensal) se abre al primer gesto que la necesite.
     load: async (keys) => {
       const same = get().keys && JSON.stringify(get().keys) === JSON.stringify(keys)
@@ -75,7 +77,7 @@ export const useDinerStore = create<DinerState>((set, get) => {
       if (!same) set({ keys, entry: null, session: null, cart: null, order: null, bill: null, preview: sameVenue ? get().preview : null })
       await run(async () => { const entry = await getEntry(keys.rest, keys.venue, keys.token); set({ entry, template: resolveTemplate(get().preview, entry) }) })
     },
-    // Vista previa sin guardar (la usa el POS por iframe): parte de los tokens del catálogo para el código pedido, no de los de la sede.
+    // Vista previa sin guardar (la usa el POS por iframe): parte del catálogo del código pedido resuelto con la marca de la sede.
     // Si el catálogo no responde, se previsualiza sobre la plantilla actual; sin parámetro se vuelve a lo guardado.
     applyPreviewParam: async (raw) => {
       const payload = parsePreview(raw)
@@ -84,7 +86,7 @@ export const useDinerStore = create<DinerState>((set, get) => {
       let base = current
       if (payload.plantilla) {
         try {
-          const spec = (await getTemplates()).plantillas.find((s) => s.codigo === payload.plantilla)
+          const spec = (await getTemplates(get().keys?.rest, get().keys?.venue)).plantillas.find((s) => s.codigo === payload.plantilla)
           if (spec) base = templateFromSpec(spec, current.descuento)
         } catch { /* sin catálogo: se previsualiza sobre la plantilla actual */ }
       }
@@ -95,6 +97,11 @@ export const useDinerStore = create<DinerState>((set, get) => {
       const { session, keys } = get()
       if (session || !keys) return session
       return run(async () => { const r = await openSession(keys.rest, keys.venue, keys.token); set({ session: r.sesion }); return r.sesion })
+    },
+    refreshBill: async () => {
+      set({ bill: null })
+      const session = await get().ensureSession()
+      if (session) await run(async () => set({ bill: await quoteBill(session.id) }))
     },
     refreshCart: async () => {
       const session = await get().ensureSession()
@@ -125,7 +132,7 @@ export const useDinerStore = create<DinerState>((set, get) => {
         try {
           const r = await confirmOrder(session.id)
           const order = await getOrder(r.pedido)
-          set({ order, cart: await getCart(session.id) })
+          set({ order, bill: r.cuenta ?? null, cart: await getCart(session.id) })
           return r.pedido
         } catch (e) {
           // 409: el salón ya cobró la cuenta de esta visita. La sesión terminó; se abre otra limpia y se avisa.
@@ -186,18 +193,18 @@ export const useDinerStore = create<DinerState>((set, get) => {
       await run(async () => { await logoutAccount(); set({ account: null, accountOrders: [], pendingAccount: null }) })
     },
     // Pago maquetado: «Autorizando» al menos AUTHORIZING_MS, luego pagado o rechazado. Nunca sale el número de la tarjeta de aquí.
-    simulatePay: async (metodo) => {
-      const session = await get().ensureSession()
-      if (!session) return null
-      const monto = payableTotal(get())
+    simulatePay: async (metodo, reparto = 'all') => {
+      if (get().payState === 'authorizing') return null
       set({ payState: 'authorizing', payResult: null, error: null })
       try {
-        const [result] = await Promise.all([simulatePayment(session.id, metodo, monto), sleep(AUTHORIZING_MS)])
-        const payResult: PayResult = { ...result, metodo, monto }
-        set({ payState: payResult.estado === 'aprobado' ? 'paid' : 'declined', payResult })
+        const session = await get().ensureSession()
+        if (!session) throw new Error(get().error ?? 'No se pudo abrir la sesión')
+        if (!await get().confirm()) throw new Error(get().error ?? 'No se pudo confirmar el pedido')
+        const [payResult] = await Promise.all([simulatePayment(session.id, metodo, reparto), sleep(AUTHORIZING_MS)])
+        set({ payState: payResult.estado === 'aprobado' ? 'paid' : 'declined', payResult, demoSession: payResult.demo && payResult.estado === 'aprobado' ? session.id : get().demoSession })
         return payResult
       } catch (e) {
-        set({ payState: 'declined', payResult: null, error: message(e) })
+        set({ payState: 'idle', payResult: null, error: message(e) })
         return null
       }
     },

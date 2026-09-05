@@ -1,5 +1,12 @@
 # Flujos base de pago y cuenta (Waiter Pago · Waiter Cuenta)
 
+> Contexto posterior (Plan H, 2026-09-05): `experience/` guarda las 30 plantillas y los
+> ajustes por sede; `diner/` renderiza y el POS administra. Descuento real con reserva
+> atómica; pago simulado después de confirmar; cuenta demo ligada al desafío de la
+> misma cookie, sin recuperación de cuentas existentes y deshabilitada en producción.
+> El diseño y los planes anteriores conservan su alcance histórico; el estado ejecutado
+> y sus límites están en [la revisión de H](../revisiones/2026-09-05-cierre-H-pr14.md).
+
 Fuente: Claude Design, archivos «Waiter Pago.dc.html» (3a El flujo completo, 3b Los estados que
 sí ocurren) y «Waiter Cuenta.dc.html» (4a Entrar, 4b Mi cuenta e historial). Estas pantallas son
 **iguales para las 30 plantillas** salvo la piel (tokens); las 30 variantes de carrito, pago,

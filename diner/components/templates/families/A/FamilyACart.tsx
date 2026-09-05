@@ -56,11 +56,11 @@ export function FamilyACart({ cart, template, busy, error, setQty, remove, confi
   if (cart.lineas.length === 0) return stateBox(t('cart.empty'), <button type="button" onClick={goMenu} className={`${primaryCta(skin)} px-6`}>{t('cart.goMenu')}</button>)
 
   const pct = discount?.porcentaje ?? 0
-  const applied = Boolean(discount?.aplicado)
-  const offer = Boolean(discount && discount.aplicable && !discount.aplicado)
-  const subtotal = cart.total + (applied ? discount?.monto ?? 0 : 0)
+  const applied = Boolean(discount?.aplicado || discount?.aplicable)
+  const offer = Boolean(discount && discount.porcentaje > 0 && !discount.registrado && !discount.aplicable && !discount.aplicado)
+  const subtotal = cart.total
   const shared = cart.mio !== cart.total
-  const amount = formatCop(cart.total)
+  const amount = formatCop(Math.max(0, cart.total - (discount?.monto ?? 0)))
   const [before, after] = t('cart.confirm', { amount }).split(amount)
   const upsell = skin.code === 'A1' ? suggestion(entry) : null
   const controls = (l: CartLine) => (

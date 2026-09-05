@@ -14,7 +14,7 @@ const base = (codigo: string, over: Partial<PayLayoutProps> = {}): PayLayoutProp
 
 // Falla si E1 pierde «¿Cómo dividen?» con las tres opciones reales (lo mío, en N, todo), si el CTA no cobra la parte elegida, si
 // onPay lleva algo más que el método, o si pinta el formulario de tarjeta, la nota de tokenización o la línea de mesa que su marco no tiene.
-it('E1: offers the split options with real amounts and pays the chosen part with the method only', () => {
+it('E1: offers the split options with real amounts and pays the chosen part with the method and server-calculated split', () => {
   const props = base('E1')
   wrap(<FamilyEPay {...props} />)
   expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('¿Cómo dividen?')
@@ -29,7 +29,7 @@ it('E1: offers the split options with real amounts and pays the chosen part with
   expect(screen.queryByText('Mesa 6')).toBeNull()
   expect(screen.getByText('Demo · sin cobro real')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Pagar $ 15.750' }))
-  expect(props.onPay).toHaveBeenCalledWith('tarjeta')
+  expect(props.onPay).toHaveBeenCalledWith('tarjeta', 'parts')
   expect(props.onPay).toHaveBeenCalledTimes(1)
 })
 
@@ -52,7 +52,7 @@ it('E1: shows the chosen method as a checked card, unfolds the others and sends 
 
 // Falla si sin más de una parte se ofrece «Dividir en 1», si sin cuenta no se invita al 5 %, o si E4 pinta formulario o nota.
 it('hides the split-in-N option for a single part and invites to identify for the discount', () => {
-  const props = base('E4', { bill: { ...bill, partes: 1, porParte: 63000, descuento: { porcentaje: 5, monto: 0, aplicable: true, aplicado: false } } })
+  const props = base('E4', { bill: { ...bill, partes: 1, porParte: 63000, descuento: { porcentaje: 5, monto: 0, aplicable: false, aplicado: false, registrado: false } } })
   wrap(<FamilyEPay {...props} />)
   expect(screen.queryByRole('radio', { name: /Dividir en/ })).toBeNull()
   expect(screen.queryByPlaceholderText('4242 4242 4242 4242')).toBeNull()
@@ -86,7 +86,7 @@ it('E3: accent header, method rows without a card form and the 64 px CTA', () =>
   const cta = screen.getByRole('button', { name: 'Pagar $ 63.000' })
   expect(cta).toHaveClass('h-[64px]')
   fireEvent.click(cta)
-  expect(props.onPay).toHaveBeenCalledWith('pse')
+  expect(props.onPay).toHaveBeenCalledWith('pse', 'all')
 })
 
 // Falla si E5 pierde «Confirmar y pagar» con la mesa, la caja resumen con productos / descuento / total, el formulario en mono o la
@@ -110,7 +110,7 @@ it('E5: confirm header, summary box, mono card form and invoice note', () => {
   const cta = screen.getByRole('button', { name: 'Pagar $ 63.000' })
   expect(cta).toHaveClass('h-[64px]')
   fireEvent.click(cta)
-  expect(props.onPay).toHaveBeenCalledWith('tarjeta')
+  expect(props.onPay).toHaveBeenCalledWith('tarjeta', 'all')
   expect(JSON.stringify((props.onPay as jest.Mock).mock.calls)).not.toContain('4111')
 })
 

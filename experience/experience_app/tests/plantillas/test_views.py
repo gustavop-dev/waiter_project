@@ -83,3 +83,24 @@ def test_entry_context_carries_the_resolved_template(api_client, table_tenant, c
     assert plantilla['layouts']['menu'] == 'B1'
     assert plantilla['tokens']['acento'] == '#7A2E2A'  # la marca del registro (conftest.BRAND)
     assert plantilla['descuento'] == {'porcentaje': 5.0, 'activo': True}  # pos.config no lo fijó: el 5 % del diseño
+
+
+@pytest.mark.django_db
+def test_non_ascii_internal_key_is_unauthorized_not_server_error(api_client, settings):
+    settings.EXPERIENCE_INTERNAL_KEY = 'secret'
+    assert api_client.get(SETTINGS, HTTP_X_INTERNAL_KEY='ñ').status_code == 401
+
+
+@pytest.mark.django_db
+def test_catalog_for_venue_matches_saved_brand_and_hides_implementation_notes(api_client):
+    from experience_app.plantillas.services import final_tokens
+    from experience_app.models import MenuTemplate
+    inputs = {'color': '#000000', 'fuente': 'Lora', 'radio': 24}
+    with patch('experience_app.plantillas.views.resolve', return_value=TABLE), patch('experience_app.plantillas.views.brand.brand_inputs', return_value=inputs):
+        response = api_client.get(CATALOG, {'restaurante': 'burger-house', 'sede': 'poblado'})
+    assert response['Cache-Control'] == 'no-store'
+    for spec in response.json()['plantillas']:
+        original = MenuTemplate.objects.get(code=spec['codigo']).spec
+        assert spec['tokens'] == final_tokens(original, inputs, {}, {})
+        for screen in spec['pantallas'].values():
+            assert not {'resumen', 'estructura', 'motivo', 'reconstruido'}.intersection(screen)

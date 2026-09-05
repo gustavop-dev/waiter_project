@@ -7,16 +7,16 @@ pos.order: Odoo actualiza en vez de duplicar, así que reintentar es seguro.
 import uuid
 from decimal import Decimal
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from experience_app.adapters.odoo import pos
 from experience_app.adapters.odoo.client import OdooClient, OdooError
 from experience_app.adapters.registry.client import resolve
-from experience_app.models import CartLine, Diner, Order, TableSession
+from experience_app.models import CartLine, Diner, DinerAccount, Order, TableSession, SignupDiscountClaim
 from experience_app.services import discount
 from experience_app.services.sessions import PAID_STATES, close_paid, open_lines
-from experience_app.utils.errors import NothingToConfirm, SessionAlreadyPaid
+from experience_app.utils.errors import ConfirmationBusy, NothingToConfirm, SessionAlreadyPaid
 
 STATUS_BY_KITCHEN = {'none': 'enviado', 'cooking': 'en_cocina', 'ready': 'listo', 'served': 'servido'}
 
@@ -31,39 +31,71 @@ def _to_odoo_lines(order: Order, lines: list[CartLine]) -> list[pos.OrderLine]:
                           qty=line.qty, note=line.note, tax_ids=list(line.tax_ids), discount=float(line.discount)) for line in lines]
 
 
-def _first_purchase_discount(tenant, diner: Diner | None, new_lines: list[CartLine]) -> tuple[Decimal, list[CartLine]]:
-    """(porcentaje, líneas nuevas del comensal que lo llevan). Vacío si no tiene cuenta verificada o ya lo usó."""
-    if diner is None or not discount.applicable(diner):
+def _first_purchase_discount(tenant, diner: Diner | None, new_lines: list[CartLine], order: Order) -> tuple[Decimal, list[CartLine]]:
+    """Reserva atómica antes de RPC; un resultado remoto incierto conserva las líneas del reintento."""
+    if diner is None or diner.account_id is None:
         return Decimal(0), []
+    reserved = [line for line in new_lines if line.discount and line.diner_id == diner.id]
+    if reserved:
+        return reserved[0].discount, reserved
     percent = Decimal(str(discount.percent_for(tenant)))
-    if percent <= 0:
-        return Decimal(0), []
     mine = [line for line in new_lines if line.diner_id == diner.id]
+    if not mine or percent <= 0:
+        return Decimal(0), []
+    try:
+        with transaction.atomic():
+            SignupDiscountClaim.objects.bulk_create([SignupDiscountClaim(key=key, order=order) for key in discount.claim_keys(diner)])
+            return _reserve_account_discount(diner, mine, order, percent)
+    except IntegrityError:
+        return Decimal(0), []
+
+
+def _reserve_account_discount(diner, mine, order, percent):
+    with transaction.atomic():
+        claimed = DinerAccount.objects.filter(id=diner.account_id, verified=True, discount_used_at=None,
+                                              discount_order=None).update(discount_order=order)
+        if not claimed:
+            raise IntegrityError('beneficio no disponible')
+        CartLine.objects.filter(id__in=[line.id for line in mine]).update(discount=percent)
     for line in mine:
-        line.discount = percent  # en memoria: viaja a Odoo ahora y se guarda solo si Odoo aceptó el pedido
+        line.discount = percent
     return percent, mine
 
 
 def confirm(session: TableSession, diner: Diner | None = None) -> tuple[Order, bool]:
-    """Devuelve (pedido, hubo_algo_nuevo). Sin líneas nuevas, devuelve el pedido tal cual sin tocar Odoo.
+    # CAS persistente: serializa confirmaciones de una mesa incluso en SQLite.
+    if not TableSession.objects.filter(id=session.id, confirming=False, state__in=TableSession.OPEN_STATES).update(confirming=True):
+        raise ConfirmationBusy()
+    try:
+        return _confirm(session, diner)
+    finally:
+        TableSession.objects.filter(id=session.id).update(confirming=False)
+
+
+def _confirm(session: TableSession, diner: Diner | None = None) -> tuple[Order, bool]:
+    """Devuelve (pedido, hubo_algo_nuevo). Sin líneas nuevas, comprueba en Odoo que sigue abierto y devuelve el pedido.
 
     `diner` es quien confirma: si tiene cuenta verificada con el descuento de primera compra sin usar, SUS líneas nuevas
     van a Odoo con `discount` y la cuenta queda marcada; las de los demás comensales de la mesa no.
     """
     new_lines = list(open_lines(session))
     order = session.orders.order_by('created_at').first()
-    if not new_lines:
-        if order is None or order.state != Order.SENT:
-            raise NothingToConfirm()
-        return order, False
+    if not new_lines and (order is None or order.state != Order.SENT):
+        raise NothingToConfirm()
     tenant = resolve(session.restaurant_slug, session.venue_slug, session.table_token)
     client = OdooClient(tenant.odoo)
-    # Si el salón ya cobró el pedido de esta visita, la visita terminó: no se le agregan líneas a un pedido pagado.
+    # También se verifica al pagar sin líneas nuevas: el POS puede haber cobrado entretanto.
     if order is not None and order.state == Order.SENT and order.odoo_order_id and pos.read_order_status(client, order.odoo_order_id).state in PAID_STATES:
         close_paid(session)
         raise SessionAlreadyPaid()
+    if not new_lines:
+        return order, False
     order = order or Order.objects.create(session=session)
-    percent, discounted = _first_purchase_discount(tenant, diner, new_lines)
+    with transaction.atomic():
+        session.lines.filter(id__in=[line.id for line in new_lines]).update(order=order)
+        # Releer después de reservar: PATCH/DELETE solo pueden tocar líneas sin pedido.
+        new_lines = list(open_lines(session).filter(order=order))
+        _first_purchase_discount(tenant, diner, new_lines, order)
     all_lines = list(session.lines.filter(status=CartLine.CONFIRMED).order_by('created_at')) + new_lines
     try:
         pos_session_id = pos.ensure_open_session(client, tenant.odoo.pos_config_id)
@@ -76,17 +108,16 @@ def confirm(session: TableSession, diner: Diner | None = None) -> tuple[Order, b
         order.save(update_fields=['state', 'attempts', 'last_error'])
         raise
     if session.odoo_table_id is not None:
-        pos.set_table_call(client, session.odoo_table_id, 'none')  # ya no está "pidiendo": el salón ve el pedido en cocina
+        try:
+            pos.set_table_call(client, session.odoo_table_id, 'none')
+        except OdooError:
+            pass  # La comanda ya llegó; un fallo al limpiar la llamada no invalida la confirmación.
     with transaction.atomic():
         order.state, order.attempts, order.last_error = Order.SENT, order.attempts + 1, ''
         order.odoo_order_id, order.total, order.tax, order.sent_at = odoo_order.id, Decimal(str(odoo_order.total)), Decimal(str(odoo_order.tax)), timezone.now()
         order.save()
         session.lines.filter(id__in=[line.id for line in new_lines]).update(status=CartLine.CONFIRMED, order=order)
-        if discounted:
-            session.lines.filter(id__in=[line.id for line in discounted]).update(discount=percent)
-            # Una sola vez por cuenta: Odoo ya aceptó las líneas con descuento, así que aquí se marca como usado.
-            diner.account.discount_used_at = timezone.now()
-            diner.account.save(update_fields=['discount_used_at'])
+        DinerAccount.objects.filter(discount_order=order, discount_used_at=None).update(discount_used_at=timezone.now())
         session.state = TableSession.CONFIRMED
         session.save(update_fields=['state'])
     return order, True

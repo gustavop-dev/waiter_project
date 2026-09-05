@@ -11,7 +11,7 @@ jest.mock('@/lib/services/api', () => {
     confirmOrder: jest.fn(),
     openSession: jest.fn(),
     getCart: jest.fn(),
-    getOrder: jest.fn(), getEntry: jest.fn(), addLine: jest.fn(), updateLine: jest.fn(), removeLine: jest.fn(), callWaiter: jest.fn(), requestBill: jest.fn(),
+    getOrder: jest.fn(), getEntry: jest.fn(), addLine: jest.fn(), updateLine: jest.fn(), removeLine: jest.fn(), callWaiter: jest.fn(), requestBill: jest.fn(), quoteBill: jest.fn(),
     getTemplates: jest.fn(), registerAccount: jest.fn(), verifyAccount: jest.fn(), getAccount: jest.fn(), logoutAccount: jest.fn(), simulatePayment: jest.fn(),
   }
 })
@@ -24,7 +24,7 @@ const venueTemplate: Template = { ...DEFAULT_TEMPLATE, codigo: 'C2', familia: 'C
 const entryOf = (plantilla?: Template): Entry => ({ contexto: { restaurante: { slug: 'la-provincia', nombre: 'La Provincia' }, sede: { slug: 'centro', nombre: 'Centro' }, mesa: null, marca: brand, plantilla }, carta: { restaurante: 'la-provincia', categorias: [] } })
 const a1Spec: TemplateSpec = { codigo: 'A1', nombre: 'Carta editorial', familia: 'A', fotos: { requiere: 'ninguna', recorte: 'ninguno' }, tokens: { ...DEFAULT_TEMPLATE.tokens, acento: '#7A2E2A' }, pantallas: { menu: { layout: 'A1' }, carrito: { layout: 'familia-A' }, pago: { layout: 'familia-A' }, registro: { patron: 'portada' }, codigo: { patron: 'revisaCorreo' }, historial: { patron: 'tablaCufe' } } }
 
-beforeEach(() => { jest.clearAllMocks(); useDinerStore.setState(initial, true) })
+beforeEach(() => { jest.resetAllMocks(); useDinerStore.setState(initial, true) })
 afterEach(() => { jest.useRealTimers() })
 
 // Falla si, cuando el salón ya cobró la cuenta (409), el comensal se queda pegado a la sesión vieja en vez de
@@ -136,17 +136,22 @@ test('simulatePay authorizes for a while, then lands on paid or declined, never 
   jest.useFakeTimers()
   useDinerStore.setState({ keys, session: { id: 's1', estado: 'abierta', mesa: 14 }, cart: { sesion: 's1', lineas: [], total: 97812, mio: 97812, por_comensal: [] } })
   expect(payableTotal(useDinerStore.getState())).toBe(97812)
-  api.simulatePayment.mockResolvedValue({ estado: 'aprobado', referencia: 'DEMO-1', demo: true })
+  api.confirmOrder.mockResolvedValue({ pedido: 'p1', cuenta: { total: 90000 } })
+  api.getOrder.mockResolvedValue({ id: 'p1', total: 90000 })
+  api.getCart.mockResolvedValue({ lineas: [], total: 0 })
+  api.simulatePayment.mockResolvedValue({ estado: 'aprobado', referencia: 'DEMO-1', demo: true, metodo: 'tarjeta', monto: 90000 })
   const pending = useDinerStore.getState().simulatePay('tarjeta')
   await Promise.resolve()
   expect(useDinerStore.getState().payState).toBe('authorizing')
-  expect(api.simulatePayment).toHaveBeenCalledWith('s1', 'tarjeta', 97812)
+  await jest.advanceTimersByTimeAsync(0)
+  expect(api.simulatePayment).toHaveBeenCalledWith('s1', 'tarjeta', 'all')
+  expect(api.confirmOrder.mock.invocationCallOrder[0]).toBeLessThan(api.simulatePayment.mock.invocationCallOrder[0])
   await jest.advanceTimersByTimeAsync(AUTHORIZING_MS - 100)
   expect(useDinerStore.getState().payState).toBe('authorizing')
   await jest.advanceTimersByTimeAsync(200)
   expect((await pending)?.estado).toBe('aprobado')
   expect(useDinerStore.getState().payState).toBe('paid')
-  expect(useDinerStore.getState().payResult).toEqual({ estado: 'aprobado', referencia: 'DEMO-1', demo: true, metodo: 'tarjeta', monto: 97812 })
+  expect(useDinerStore.getState().payResult).toEqual({ estado: 'aprobado', referencia: 'DEMO-1', demo: true, metodo: 'tarjeta', monto: 90000 })
 
   useDinerStore.getState().resetPay()
   expect(useDinerStore.getState().payState).toBe('idle')
@@ -160,6 +165,36 @@ test('simulatePay authorizes for a while, then lands on paid or declined, never 
   const failed = useDinerStore.getState().simulatePay('nequi')
   await jest.advanceTimersByTimeAsync(AUTHORIZING_MS + 10)
   expect(await failed).toBeNull()
-  expect(useDinerStore.getState().payState).toBe('declined')
+  expect(useDinerStore.getState().payState).toBe('idle')
   expect(useDinerStore.getState().error).toBe('Sin conexión')
+})
+
+
+// Falla si se llama a la pasarela cuando confirmar falló o un doble toque duplica el pago.
+test('failed confirmation prevents payment and concurrent taps are ignored', async () => {
+  useDinerStore.setState({ keys, session: { id: 's1' } as never })
+  api.confirmOrder.mockRejectedValue(new ApiError('Odoo no responde', 503))
+  const pending = useDinerStore.getState().simulatePay('tarjeta')
+  expect(await useDinerStore.getState().simulatePay('tarjeta')).toBeNull()
+  expect(await pending).toBeNull()
+  expect(api.simulatePayment).not.toHaveBeenCalled()
+  expect(useDinerStore.getState().payState).toBe('idle')
+})
+
+test('demo notice survives leaving payment but stays tied to the visit', async () => {
+  useDinerStore.setState({ demoSession: 's1', payState: 'paid', payResult: { demo: true } as never })
+  useDinerStore.getState().resetPay()
+  expect(useDinerStore.getState().demoSession).toBe('s1')
+  expect(useDinerStore.getState().payResult).toBeNull()
+})
+
+
+test('refreshBill reads a fresh personal split without calling the waiter or confirming', async () => {
+  useDinerStore.setState({ keys, session: { id: 's1' } as never, bill: { total: 99999 } as never })
+  api.quoteBill.mockResolvedValue({ total: 20000, mio: 5000, partes: 4, porParte: 5000 })
+  await useDinerStore.getState().refreshBill()
+  expect(api.quoteBill).toHaveBeenCalledWith('s1')
+  expect(useDinerStore.getState().bill?.mio).toBe(5000)
+  expect(api.requestBill).not.toHaveBeenCalled()
+  expect(api.confirmOrder).not.toHaveBeenCalled()
 })

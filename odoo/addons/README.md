@@ -1,39 +1,20 @@
 # Addons propios de ProjectApp
 
-Módulos de Odoo escritos por nosotros. Se montan en el contenedor como
-`/mnt/extra-addons`.
+Odoo Community 19 funciona como motor operativo. La interfaz del operador es `pos/`,
+el KDS está en `/kds` y el comensal usa `diner/` a través de `experience/`.
+Los addons se montan en `/mnt/extra-addons`.
 
-| Módulo | Para qué |
+| Módulo | Responsabilidad |
 |---|---|
-| `projectapp_ui` | Deja la barra superior de Odoo reducida al punto de venta. |
+| `projectapp_kitchen` | Cursos de cocina, listo, entregado y estación; sin interfaz. |
+| `projectapp_ops` | Roles, operación, ROI, marca, atributos de productos, descuento y pasarela de ajustes de plantillas. |
+| `projectapp_pos_design` | Estilos del POS nativo usados en el spike; referencia histórica, no interfaz del producto. |
 
-## Por qué existe `projectapp_ui`
+H añade una corrección al recálculo de subtotales de `pos_self_order`: cada línea
+incluye su descuento y cuadra con el total del pedido. `projectapp_ops` declara esa
+dependencia. Al actualizar código: `-u projectapp_ops --stop-after-init` y reiniciar
+Odoo; los contratos de experience comprueban el cálculo en la base demo.
 
-Los módulos que meten ruido en la barra superior (`mail`, `web`) **no se pueden
-desinstalar**: `point_of_sale` depende de ellos por la cadena
-`stock_account → account → mail`. Y los iconos de Mensajes, Actividades y el
-menú de aplicaciones no vienen de un módulo opcional, sino del armazón web.
-
-La única vía es ocultarlos. Se hace por CSS, con selectores de **clase** y nunca
-de `aria-label`, porque las etiquetas están traducidas y cambian con el idioma.
-
-## Qué interfaz ve cada quién
-
-Odoo tiene **dos interfaces distintas**, y conviene no confundirlas:
-
-| Público | Interfaz | Estado |
-|---|---|---|
-| Comensal | Nuestra PWA (bloque 3) | Por construir. **Nunca ve Odoo.** |
-| Mesero / cajero | Interfaz POS de Odoo (`/pos/ui`) | Ya existe. Pantalla completa y táctil, sin nada del backoffice. No hay que reconstruirla. |
-| Administrador | Backoffice de Odoo | Ya reducido a dos menús. Es lo que limpia este módulo. |
-| Cocina | Comanda impresa (`pos.printer`) o KDS propio | **Pendiente de decidir.** El KDS de Odoo es Enterprise. |
-
-Este módulo solo afecta al **backoffice**. La interfaz POS ya viene limpia:
-verificado que en `/pos/ui` no existen ni `.o_main_navbar`, ni el menú de
-aplicaciones, ni Discuss.
-
-## Advertencia
-
-Es una solución de transición. Cada versión nueva de Odoo puede mover o
-renombrar estas clases de CSS, así que el módulo hay que revisarlo en cada
-actualización.
+[Detalle del addon](projectapp_ops/README.md) ·
+[Arquitectura](../../docs/arquitectura/2026-09-04-arquitectura-modular.md) ·
+[Revisión H](../../docs/revisiones/2026-09-05-cierre-H-pr14.md).

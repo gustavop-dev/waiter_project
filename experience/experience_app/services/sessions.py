@@ -9,7 +9,7 @@ from experience_app.adapters.odoo.pos import Product
 from experience_app.adapters.registry.client import Tenant
 from experience_app.models import CartLine, Diner, Order, TableSession
 from experience_app.services import discount
-from experience_app.utils.errors import NotOwner
+from experience_app.utils.errors import ConfirmationBusy, NotOwner
 
 PAID_STATES = {'paid', 'done', 'invoiced'}
 
@@ -55,7 +55,9 @@ def open_session(tenant: Tenant, diner_key: str | None) -> tuple[TableSession, D
         session = TableSession.objects.create(restaurant_slug=tenant.restaurant_slug, venue_slug=tenant.venue_slug)
     if diner is None or diner.session_id != session.id:
         # La cuenta verificada (Plan H) viaja con la cookie: otra visita es otro comensal, pero la misma persona.
-        diner = Diner.objects.create(session=session, account=diner.account if diner else None)
+        previous = diner
+        diner = Diner.objects.create(session=session, account=previous.account if previous else None,
+                                     **({'benefit_key': previous.benefit_key} if previous else {}))
     return session, diner
 
 
@@ -72,14 +74,17 @@ def update_line(line: CartLine, diner: Diner, qty: int | None = None, note: str 
         line.qty = qty
     if note is not None:
         line.note = note
-    line.save(update_fields=['qty', 'note'])
+    if not CartLine.objects.filter(id=line.id, order=None, status=CartLine.OPEN).update(qty=line.qty, note=line.note):
+        raise ConfirmationBusy()
     return line
 
 
 def remove_line(line: CartLine, diner: Diner) -> None:
     if line.diner_id != diner.id:
         raise NotOwner()
-    line.delete()
+    deleted, _ = CartLine.objects.filter(id=line.id, order=None, status=CartLine.OPEN).delete()
+    if not deleted:
+        raise ConfirmationBusy()
 
 
 def open_lines(session: TableSession):
@@ -118,13 +123,17 @@ def table_call(tenant: Tenant, session: TableSession, kind: str) -> bool:
         return False
 
 
-def bill_summary(session: TableSession, diner: Diner, discount_percent: float = discount.DEFAULT_PERCENT) -> dict:
+def bill_summary(session: TableSession, diner: Diner, discount_percent: float = discount.DEFAULT_PERCENT, include_open: bool = False) -> dict:
     """Todo / lo mío / dividir sobre lo ya confirmado (lo abierto aún no es cuenta). Los totales son netos: ya restan el
     descuento que viajó a Odoo con cada línea; `descuento` dice cuánto fue (aplicado) y si aún puede aplicarse (aplicable)."""
-    lines = list(session.lines.filter(status=CartLine.CONFIRMED).select_related('diner'))
+    lines = list(session.lines.filter(status__in=[CartLine.CONFIRMED, CartLine.OPEN] if include_open else [CartLine.CONFIRMED]).select_related('diner'))
     per: dict[str, Decimal] = {}
     for line in lines:
         per[str(line.diner_id)] = per.get(str(line.diner_id), Decimal(0)) + line.net_subtotal
+    discount_view = discount.view(lines, diner, discount_percent)
+    if include_open and discount_view['aplicable']:
+        projected = sum((line.subtotal for line in lines if line.diner_id == diner.id and line.status == CartLine.OPEN and not line.discount), Decimal(0)) * Decimal(str(discount_percent)) / 100
+        per[str(diner.id)] = per.get(str(diner.id), Decimal(0)) - projected.quantize(Decimal('0.01'))
     total = sum(per.values(), Decimal(0))
     diners = max(1, session.diners.count())
     return {'total': float(total), 'mio': float(per.get(str(diner.id), Decimal(0))),

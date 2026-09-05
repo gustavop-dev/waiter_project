@@ -51,4 +51,7 @@ def test_a_line_with_discount_is_accepted_and_reduces_the_total(client):
     line = pos.OrderLine(uuid=str(uuid.uuid4()), product_id=angus.id, name=angus.name, unit_price=angus.price, qty=2, note='', tax_ids=angus.tax_ids, discount=5.0)
     order = pos.create_order(client, pos_session_id=session_id, table_id=None, order_uuid=str(uuid.uuid4()), guests=1, lines=[line], date_order='2026-09-05 01:00:00')
     assert order.total == round(87822 * 0.95, 2)
+    [stored] = client.call_kw('pos.order.line', 'search_read', [[['order_id', '=', order.id]], ['price_subtotal', 'price_subtotal_incl', 'discount']])
+    assert stored['price_subtotal_incl'] == order.total
+    assert stored['price_subtotal'] == round(order.total - order.tax, 2)
     pos.pay_order(client, order.id, pos.cash_payment_method_id(client), order.total)

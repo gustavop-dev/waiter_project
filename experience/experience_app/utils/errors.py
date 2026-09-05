@@ -14,6 +14,10 @@ class ProductNotFound(Exception):
     pass
 
 
+class ConfirmationBusy(Exception):
+    pass
+
+
 class NothingToConfirm(Exception):
     pass
 
@@ -23,6 +27,7 @@ class SessionAlreadyPaid(Exception):
 
 
 MAPPING = [
+    (ConfirmationBusy, 423, 'El pedido se está confirmando; espera y vuelve a intentar'),
     (TenantNotFound, 404, 'Esta mesa no está disponible'),
     (ProductNotFound, 400, 'Ese producto no está en la carta'),
     (NotOwner, 403, 'Solo quien agregó el plato puede cambiarlo'),

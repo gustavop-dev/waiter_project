@@ -24,3 +24,18 @@ familia, nueve patrones de cuenta). Una plantilla se previsualiza sin guardar co
 `?vista_previa=<base64url {"plantilla":"A1","paleta":{...},"tipografia":{...}}>` (así la
 embebe el POS en Configuración › Plantilla del menú). Las capturas de referencia de cada
 plantilla viven en `public/plantillas-capturas/`.
+
+
+## Revisión de H
+
+El pago confirma el pedido antes de simular la autorización y usa el monto de la
+respuesta del servidor. Las variantes que permiten reparto envían la opción, nunca
+un importe confiado al navegador. Un fallo de confirmación impide continuar al pago.
+Las pantallas sin layout específico (plato, estado y cuenta de mesa) también toman
+superficies y tinta de la plantilla activa.
+
+El registro demo solo verifica el desafío de esta cookie (diez minutos, uso único),
+no permite recuperar una cuenta existente por correo y falla cerrado en producción.
+El pago sigue llevando «Demo · sin cobro real»; no cobra ni factura.
+
+Ver [evidencia y pasos de integración](../docs/revisiones/2026-09-05-cierre-H-pr14.md).

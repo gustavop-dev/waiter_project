@@ -6,10 +6,12 @@ Se aplica de verdad al confirmar (services/orders.py): las líneas viajan a Odoo
 `discount_used_at`. El carrito y la cuenta lo exponen como `descuento: {porcentaje, monto, aplicable, aplicado}`.
 """
 from decimal import Decimal
+import hashlib
+import re
 
 from experience_app.adapters.odoo.client import OdooError
 from experience_app.adapters.registry.client import RegistryUnavailable, Tenant
-from experience_app.models import CartLine, Diner
+from experience_app.models import CartLine, Diner, DinerAccount, SignupDiscountClaim
 from experience_app.services import catalog
 
 DEFAULT_PERCENT = 5.0
@@ -22,10 +24,20 @@ def percent_for(tenant: Tenant) -> float:
         return DEFAULT_PERCENT
 
 
+def claim_keys(diner: Diner) -> list[str]:
+    identities = ['cookie:' + diner.benefit_key]
+    if diner.account_id and diner.account.phone:
+        phone = re.sub(r'[^0-9]', '', diner.account.phone)
+        if len(phone) == 10 and phone.startswith('3'):
+            phone = '57' + phone
+        identities.append('phone:' + phone)
+    return [hashlib.sha256(value.encode()).hexdigest() for value in identities]
+
+
 def applicable(diner: Diner) -> bool:
     """El comensal tiene una cuenta verificada que aún no usó su descuento."""
-    account = diner.account
-    return account is not None and account.discount_available
+    return diner.account_id is not None and DinerAccount.objects.filter(
+        id=diner.account_id, verified=True, discount_used_at=None, discount_order=None).exists() and not SignupDiscountClaim.objects.filter(key__in=claim_keys(diner)).exists()
 
 
 def view(lines: list[CartLine], diner: Diner, percent: float) -> dict:
@@ -37,4 +49,4 @@ def view(lines: list[CartLine], diner: Diner, percent: float) -> dict:
     if can_apply:
         pending = sum((line.subtotal for line in mine if line.status == CartLine.OPEN and not line.discount), Decimal(0))
         projected = (pending * Decimal(str(percent)) / 100).quantize(Decimal('0.01'))
-    return {'porcentaje': percent, 'monto': float(applied + projected), 'aplicable': can_apply, 'aplicado': applied > 0}
+    return {'porcentaje': percent, 'monto': float(applied + projected), 'aplicable': can_apply, 'aplicado': applied > 0, 'registrado': bool(diner.account_id and diner.account.verified)}

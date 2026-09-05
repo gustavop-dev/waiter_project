@@ -14,7 +14,7 @@ const props = (codigo: string, over: Partial<CartLayoutProps> = {}): CartLayoutP
   cart: cartOf([line({ nota: 'una sin cebolla' })]), template: templateOf(codigo), busy: false, error: null, setQty: jest.fn(), remove: jest.fn(),
   confirm: jest.fn().mockResolvedValue('o1'), goPay: jest.fn(), goMenu: jest.fn(), discount, retry: jest.fn(), hrefs, ...over,
 })
-const send = () => screen.getByRole('button', { name: /Enviar a cocina · \$ 76\.160/ })
+const send = () => screen.getByRole('button', { name: /Enviar a cocina · \$ 72\.352/ })
 
 // Falla si la base B1 pierde la miniatura, el stepper visible, «Quitar», la línea de descuento en verde, el total en mono,
 // «Enviar a cocina» como acción principal, «Ir a pagar» o «o pagar en la mesa con el mesero».
@@ -29,10 +29,10 @@ it('B1: thumbnail, visible stepper, discount line and the three actions', () => 
   expect(p.setQty).toHaveBeenCalledWith(1, 3)
   fireEvent.click(screen.getByRole('button', { name: 'Quitar: Hamburguesa Clásica' }))
   expect(p.remove).toHaveBeenCalledWith(1)
-  expect(screen.getByText('Subtotal').nextSibling).toHaveTextContent('79.968')
+  expect(screen.getByText('Subtotal').nextSibling).toHaveTextContent('76.160')
   expect(screen.getByText('Descuento primera compra 5%').parentElement).toHaveClass('text-free')
   expect(screen.getByText('Descuento primera compra 5%').nextSibling).toHaveTextContent('−3.808')
-  expect(screen.getByText('$ 76.160')).toHaveClass('font-t-mono')
+  expect(screen.getByText('$ 72.352')).toHaveClass('font-t-mono')
   fireEvent.click(screen.getByRole('button', { name: 'Ir a pagar' }))
   expect(p.goPay).toHaveBeenCalledTimes(1)
   fireEvent.click(send())
@@ -45,7 +45,7 @@ it('B1: thumbnail, visible stepper, discount line and the three actions', () => 
 
 // Falla si bajar de 1 no quita la línea, o si sin descuento aplicado no se invita a registrarse (descuento5: linea).
 it('B1: removing below one and the signup hint when the discount is still available', () => {
-  const p = props('B1', { cart: cartOf([line({ cantidad: 1, subtotal: 38080 })]), discount: { ...discount, aplicado: false } })
+  const p = props('B1', { cart: cartOf([line({ cantidad: 1, subtotal: 38080 })]), discount: { ...discount, monto: 0, aplicable: false, aplicado: false, registrado: false } })
   wrap(<FamilyBCart {...p} />)
   fireEvent.click(screen.getByRole('button', { name: 'Menos' }))
   expect(p.remove).toHaveBeenCalledWith(1)
@@ -71,7 +71,7 @@ it('B2: discount banner and tap-to-edit lines', () => {
 
 // Falla si B2 sin descuento aplicado no enlaza al registro desde la banda.
 it('B2: the banner invites to sign up while the discount is still available', () => {
-  wrap(<FamilyBCart {...props('B2', { discount: { ...discount, aplicado: false } })} />)
+  wrap(<FamilyBCart {...props('B2', { discount: { ...discount, monto: 0, aplicable: false, aplicado: false, registrado: false } })} />)
   expect(screen.getByRole('link', { name: /Primera compra: regístrate y ahorra 5% →/ })).toHaveAttribute('href', '/s')
 })
 
@@ -84,8 +84,8 @@ it('B3: diner avatars, the −5% chip next to the total and «Pagar lo mío»', 
   expect(screen.getByText('Pedido por otros en la mesa').parentElement).toHaveTextContent('Limonada de Coco')
   expect(screen.getByText('−5% aplicado')).toBeInTheDocument()
   expect(screen.queryByText('Descuento primera compra 5%')).toBeNull()
-  expect(screen.getByText('Lo mío').nextSibling).toHaveTextContent('76.160')
-  expect(screen.getByText('Total de la mesa').nextSibling).toHaveTextContent('$ 87.941')
+  expect(screen.getByText('Lo mío').nextSibling).toHaveTextContent('72.352')
+  expect(screen.getByText('Total de la mesa').nextSibling).toHaveTextContent('$ 84.133')
   fireEvent.click(screen.getByRole('button', { name: 'Pagar lo mío' }))
   expect(p.goPay).toHaveBeenCalledTimes(1)
   expect(screen.queryByRole('button', { name: /Editar Limonada/ })).toBeNull()

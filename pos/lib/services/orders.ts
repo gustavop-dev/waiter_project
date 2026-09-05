@@ -7,12 +7,12 @@ import { callKw } from '@/lib/services/odoo'
 
 export interface SavedOrder { id: number; reference: string; state: 'draft' | 'paid'; total: number; tax: number; paid: number }
 export interface OpenOrder { id: number; tableId: number; total: number; tax: number; state: 'draft' | 'paid'; lineCount: number; startedAt: string; waiter: string; kitchen: KitchenPhase }
-export interface OrderLineView { uuid: string; name: string; qty: number; unitPrice: number; note: string }
+export interface OrderLineView { uuid: string; name: string; qty: number; unitPrice: number; note: string; discount?: number; subtotal?: number; total?: number }
 export interface ShiftSummary { sales: number; orders: number; waiters: number }
 
 interface RawOrder { id: number; pos_reference: string; state: SavedOrder['state']; amount_total: number; amount_tax: number; amount_paid: number }
 interface RawOpen { id: number; table_id: [number, string] | false; amount_total: number; amount_tax: number; state: SavedOrder['state']; lines: number[]; date_order: string; user_id: [number, string] | false }
-interface RawLine { uuid: string; full_product_name: string; qty: number; price_unit: number; customer_note: string | false }
+interface RawLine { uuid: string; full_product_name: string; qty: number; price_unit: number; customer_note: string | false; discount: number; price_subtotal: number; price_subtotal_incl: number }
 interface RawPaid { amount_total: number; user_id: [number, string] | false }
 
 const READ_FIELDS = ['pos_reference', 'state', 'amount_total', 'amount_tax', 'amount_paid']
@@ -70,8 +70,8 @@ export async function listOpenOrders(sessionId: number): Promise<OpenOrder[]> {
 // Líneas de un pedido que vive en Odoo pero no se compuso en este dispositivo (otra tablet, el comensal).
 export async function getOrderLines(orderId: number): Promise<OrderLineView[]> {
   const rows = await callKw<RawLine[]>('pos.order.line', 'search_read',
-    [[['order_id', '=', orderId]], ['uuid', 'full_product_name', 'qty', 'price_unit', 'customer_note']])
-  return rows.map((r) => ({ uuid: r.uuid, name: r.full_product_name, qty: r.qty, unitPrice: r.price_unit, note: r.customer_note || '' }))
+    [[['order_id', '=', orderId]], ['uuid', 'full_product_name', 'qty', 'price_unit', 'customer_note', 'discount', 'price_subtotal', 'price_subtotal_incl']])
+  return rows.map((r) => ({ uuid: r.uuid, name: r.full_product_name, qty: r.qty, unitPrice: r.price_unit, note: r.customer_note || '', discount: r.discount ?? 0, subtotal: r.price_subtotal, total: r.price_subtotal_incl }))
 }
 
 // Ventas del turno: lo pagado en la sesión, cuántos pedidos y cuántos meseros distintos.

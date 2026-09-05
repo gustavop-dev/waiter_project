@@ -76,12 +76,14 @@ def test_account_endpoints_need_the_diner_cookie(api_client, table_tenant):
 
 
 @pytest.mark.django_db
-def test_a_verified_email_returns_its_own_account_instead_of_a_second_one(api_client, diner):
-    """Atrapa un descuento repetible registrándose otra vez con el mismo correo ("Ya tengo cuenta" es el mismo camino)."""
+def test_demo_never_recovers_an_existing_account(api_client, diner):
+    """Falla si otro dispositivo puede recuperar el perfil con un correo y seis dígitos."""
     first = signup(api_client).json()['cuenta']['id']
     other = api_client.__class__()
     other.post(reverse('open-session'), PAYLOAD, format='json')
-    assert other.post(REGISTER, {**SIGNUP, 'nombre': 'Otra'}, format='json').json()['id'] == first
+    assert other.post(REGISTER, SIGNUP, format='json').status_code == 400
+    assert other.post(VERIFY, {'id': first, 'codigo': '123456'}, format='json').status_code == 400
+    assert other.get(PROFILE).status_code == 404
     assert DinerAccount.objects.count() == 1
 
 
@@ -115,10 +117,12 @@ def test_history_lists_the_orders_of_every_session_the_account_took_part_in(api_
             patch('experience_app.services.orders.pos.create_order', return_value=SENT), \
             patch('experience_app.services.orders.pos.fire_course', return_value=21), patch('experience_app.services.orders.pos.set_table_call'):
         order_id = api_client.post(reverse('confirm', args=[sid]), format='json').json()['pedido']
-    history = api_client.get(PROFILE).json()['pedidos']
+    with patch('experience_app.services.account.OdooClient') as client:
+        client.return_value.call_kw.return_value = []
+        history = api_client.get(PROFILE).json()['pedidos']
     assert len(history) == 1
     entry = history[0]
-    assert (entry['id'], entry['total'], entry['mesa'], entry['estado'], entry['sede']) == (order_id, 87822.0, 8, 'enviado', 'poblado')
+    assert (entry['id'], entry['total'], entry['mesa'], entry['estado'], entry['sede']) == (order_id, 83430.9, 8, 'enviado', 'poblado')
     assert (entry['mio'], entry['descuento']) == (83430.9, 4391.1)  # 5 % sobre mis 87.822
     TableSession.objects.filter(id=sid).update(state=TableSession.PAID)
     assert api_client.get(PROFILE).json()['pedidos'][0]['estado'] == 'pagado'
@@ -126,3 +130,55 @@ def test_history_lists_the_orders_of_every_session_the_account_took_part_in(api_
     stranger.post(reverse('open-session'), PAYLOAD, format='json')
     signup(stranger, correo='otro@correo.com')
     assert stranger.get(PROFILE).json()['pedidos'] == []  # misma mesa, otra cuenta: sin líneas suyas no es su pedido
+
+
+@pytest.mark.django_db
+def test_pending_code_is_bound_to_requesting_cookie_and_single_use(api_client, diner):
+    """Falla si conocer el UUID permite verificar desde otra cookie o reutilizar el código."""
+    pending = api_client.post(REGISTER, SIGNUP, format='json').json()['id']
+    other = api_client.__class__()
+    other.post(reverse('open-session'), PAYLOAD, format='json')
+    data = {'id': pending, 'codigo': '123456'}
+    assert other.post(VERIFY, data, format='json').status_code == 400
+    assert api_client.post(VERIFY, data, format='json').status_code == 200
+    assert api_client.post(VERIFY, data, format='json').status_code == 400
+
+
+@pytest.mark.django_db
+def test_demo_fails_closed_in_production(api_client, diner, settings):
+    """Falla si habilitar demo permite registro o verificación en producción."""
+    pending = api_client.post(REGISTER, SIGNUP, format='json').json()['id']
+    settings.IS_PRODUCTION = True
+    settings.DINER_DEMO_ENABLED = True
+    assert api_client.post(REGISTER, SIGNUP, format='json').status_code == 503
+    assert api_client.post(VERIFY, {'id': pending, 'codigo': '123456'}, format='json').status_code == 503
+    assert not DinerAccount.objects.get(id=pending).verified
+
+
+@pytest.mark.django_db
+def test_demo_code_expires(api_client, diner):
+    """Falla si el desafío puede usarse indefinidamente."""
+    from django.utils import timezone
+    pending = api_client.post(REGISTER, SIGNUP, format='json').json()['id']
+    DinerAccount.objects.filter(id=pending).update(created_at=timezone.now() - timezone.timedelta(minutes=11))
+    assert api_client.post(VERIFY, {'id': pending, 'codigo': '123456'}, format='json').status_code == 400
+
+
+@pytest.mark.django_db
+def test_history_refreshes_paid_orders_in_one_call_and_reports_only_own_total(api_client, diner, catalog_stub):
+    from experience_app.models import Order, TableSession, Diner, CartLine
+    from experience_app.services import account
+    signup(api_client)
+    person = Diner.objects.get(id=diner['comensal']['id'])
+    session = person.session
+    order = Order.objects.create(session=session, state=Order.SENT, odoo_order_id=900, total=50000)
+    CartLine.objects.create(session=session, diner=person, order=order, status=CartLine.CONFIRMED, product_id=3, name='Mi plato', qty=1, unit_price=10000, discount=5)
+    with patch('experience_app.services.account.resolve', return_value=TABLE), patch('experience_app.services.account.OdooClient') as client:
+        client.return_value.call_kw.return_value = [{'id': 900, 'state': 'paid'}]
+        rows = account.history(person.account)
+        client.return_value.call_kw.assert_called_once_with('pos.order', 'read', [[900], ['state']])
+        assert (rows[0]['estado'], rows[0]['total'], rows[0]['totalMesa'], rows[0]['descuento']) == ('pagado', 9500, 50000, 500)
+        session.refresh_from_db()
+        assert session.state == TableSession.PAID
+        account.history(person.account)
+        assert client.return_value.call_kw.call_count == 1

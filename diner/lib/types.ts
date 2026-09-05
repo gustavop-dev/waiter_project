@@ -50,20 +50,23 @@ export interface Entry { contexto: Context; carta: Menu }
 export interface Session { id: string; estado: string; mesa: number | null }
 export interface CartLine { id: number; comensal: string; mio: boolean; producto_id: number; nombre: string; precio: number; cantidad: number; nota: string; subtotal: number }
 // Descuento de primera compra (5 % por defecto): aplicable = la cuenta verificada aún no lo usó; aplicado = ya va en las líneas.
-export interface Discount { porcentaje: number; monto: number; aplicable: boolean; aplicado: boolean }
+export interface Discount {
+  registrado?: boolean; porcentaje: number; monto: number; aplicable: boolean; aplicado: boolean }
 export interface Cart { sesion: string; lineas: CartLine[]; total: number; mio: number; por_comensal: { comensal: string; total: number }[]; descuento?: Discount }
 export type OrderState = 'enviado' | 'en_cocina' | 'listo' | 'servido' | 'pagado' | 'fallido'
-export interface OrderStatus { id: string; sesion: string; estado: OrderState; total: number; impuestos: number; intentos: number; detalle?: string }
+export interface OrderStatus {
+  descuento?: Pick<Discount, 'porcentaje' | 'monto' | 'aplicado'>; id: string; sesion: string; estado: OrderState; total: number; impuestos: number; intentos: number; detalle?: string }
 export interface Bill { ok: boolean; total: number; mio: number; porComensal: { comensal: string; total: number }[]; partes: number; porParte: number; descuento?: Discount }
 
 // ---- Cuenta del comensal (maquetada con datos reales; contrato 3) ---------------------------------------------
-export interface Account { id: string; nombre: string; correo: string; celular?: string; verificada: boolean }
+export interface Account { descuentoDisponible?: boolean; id: string; nombre: string; correo: string; celular?: string; verificada: boolean }
 export interface RegisterForm { nombre: string; correo: string; celular: string; aceptaDatos: boolean; novedades: boolean }
 export interface AccountOrderLine { producto_id: number; nombre: string; cantidad: number; precio: number }
 export interface AccountOrder { id: string; fecha: string; local: string; mesa: number | null; items: number; total: number; estado: OrderState; descuento: number; lineas?: AccountOrderLine[] }
 export interface AccountSummary { cuenta: Account | null; pedidos: AccountOrder[] }
 
 // ---- Pago (maquetado detrás de un endpoint con la forma final; contrato 3) ------------------------------------
+export type PayScope = 'all' | 'mine' | 'parts'
 export type PayMethod = 'tarjeta' | 'pse' | 'nequi' | 'efectivo'
 export type PayState = 'idle' | 'authorizing' | 'paid' | 'declined'
 export interface PayResult { estado: 'aprobado' | 'rechazado'; referencia: string; demo: boolean; metodo?: PayMethod; monto?: number }

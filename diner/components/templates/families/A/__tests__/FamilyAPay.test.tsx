@@ -37,7 +37,7 @@ it('A1 paints the centered total, the methods, the card form, the tokenized note
 
 // Falla si, sin cuenta y con el descuento aún aplicable, el pago no ofrece identificarse (onSignup).
 it('offers the signup hook while the discount is still applicable', () => {
-  const p = base('A1', { bill: { ...bill, descuento: { porcentaje: 5, monto: 0, aplicable: true, aplicado: false } } })
+  const p = base('A1', { bill: { ...bill, descuento: { porcentaje: 5, monto: 0, aplicable: false, aplicado: false, registrado: false } } })
   wrap(<FamilyAPay {...p} />)
   fireEvent.click(screen.getByRole('button', { name: 'Identifícate y ahorra 5% en tu primera compra →' }))
   expect(p.onSignup).toHaveBeenCalledTimes(1)

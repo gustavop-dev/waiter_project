@@ -91,3 +91,10 @@ it('builds avatar initials from the first two words', () => {
   expect(initials('  ana ')).toBe('A')
   expect(initials('Juan Pablo Pérez')).toBe('JP')
 })
+
+test('preview derives readable accent ink and soft color over the chosen dark canvas', () => {
+  const dark = applyPreview(DEFAULT_TEMPLATE, { paleta: { acento: '#000000', fondo: '#202020' } })
+  expect(dark.tokens.acentoTinta).toBe('#FFFFFF')
+  expect(dark.tokens.acentoSuave).toBe('#1D1D1D')
+  expect(applyPreview(DEFAULT_TEMPLATE, { paleta: { acento: '#FFFFFF' } }).tokens.acentoTinta).toBe('#1A1815')
+})

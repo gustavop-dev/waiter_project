@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from experience_app.models import Order, TableSession
-from experience_app.services import orders
+from experience_app.services import orders, sessions
 from experience_app.views.sessions import diner_for
 
 
@@ -11,8 +11,9 @@ from experience_app.views.sessions import diner_for
 def confirm(request, session_id):
     session = get_object_or_404(TableSession, id=session_id, state__in=TableSession.OPEN_STATES)
     # Quien confirma es quien puede llevar el descuento de primera compra (sobre SUS líneas).
-    order, created = orders.confirm(session, diner_for(request, session))
-    return Response({'pedido': str(order.id), 'estado': 'enviado', 'total': float(order.total or 0)}, status=201 if created else 200)
+    diner = diner_for(request, session)
+    order, created = orders.confirm(session, diner)
+    return Response({'pedido': str(order.id), 'estado': 'enviado', 'total': float(order.total or 0), 'cuenta': {'ok': False, **sessions.bill_summary(session, diner)}}, status=201 if created else 200)
 
 
 @api_view(['GET'])

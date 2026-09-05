@@ -55,6 +55,7 @@ def test_confirming_with_a_verified_account_discounts_only_my_lines_and_uses_it_
     assert sent_lines(odoo) == {'Hamburguesa Angus': 5.0, 'Limonada de Coco': 0.0}
     account.refresh_from_db()
     assert account.discount_used_at is not None
+    assert not discount.applicable(ana)  # la cuenta cacheada antes de reservar no habilita otra proyección
     assert CartLine.objects.get(diner=ana).discount == Decimal('5.00')
     # Segunda ronda: la misma cuenta ya no descuenta, y la línea vieja viaja de nuevo CON su descuento (mismo uuid).
     sessions.add_line(session, ana, LIMONADA, 1)
@@ -107,7 +108,8 @@ def test_when_odoo_is_down_the_discount_is_not_marked_used(table, odoo):
         orders.confirm(session, ana)
     account.refresh_from_db()
     assert account.discount_used_at is None
-    assert CartLine.objects.get(diner=ana).discount == 0
+    assert CartLine.objects.get(diner=ana).discount == 5
+    assert account.discount_order_id is not None
     orders.confirm(session, ana)
     assert sent_lines(odoo)['Hamburguesa Angus'] == 5.0
     account.refresh_from_db()
@@ -120,19 +122,19 @@ def test_cart_and_bill_expose_the_discount_block(table, odoo):
     from experience_app.services import orders
     session, ana, beto = table
     cart = sessions.cart_view(session, ana, 5.0)
-    assert cart['descuento'] == {'porcentaje': 5.0, 'monto': 0.0, 'aplicable': False, 'aplicado': False}
+    assert cart['descuento'] == {'porcentaje': 5.0, 'monto': 0.0, 'aplicable': False, 'aplicado': False, 'registrado': False}
     verified_account(ana)
     ana.refresh_from_db()
     cart = sessions.cart_view(session, ana, 5.0)
-    assert cart['descuento'] == {'porcentaje': 5.0, 'monto': 4391.1, 'aplicable': True, 'aplicado': False}
+    assert cart['descuento'] == {'porcentaje': 5.0, 'monto': 4391.1, 'aplicable': True, 'aplicado': False, 'registrado': True}
     assert cart['total'] == 87822.0 + 9900.0  # aún sin aplicar: los totales son a precio de lista
     assert sessions.cart_view(session, beto, 5.0)['descuento']['aplicable'] is False
     orders.confirm(session, ana)
     ana.refresh_from_db()
     bill = sessions.bill_summary(session, ana, 5.0)
-    assert bill['descuento'] == {'porcentaje': 5.0, 'monto': 4391.1, 'aplicable': False, 'aplicado': True}
+    assert bill['descuento'] == {'porcentaje': 5.0, 'monto': 4391.1, 'aplicable': False, 'aplicado': True, 'registrado': True}
     assert (bill['mio'], bill['total']) == (83430.9, 83430.9 + 9900.0)  # netos: lo que Odoo cobra
-    assert sessions.bill_summary(session, beto, 5.0)['descuento'] == {'porcentaje': 5.0, 'monto': 0.0, 'aplicable': False, 'aplicado': False}
+    assert sessions.bill_summary(session, beto, 5.0)['descuento'] == {'porcentaje': 5.0, 'monto': 0.0, 'aplicable': False, 'aplicado': False, 'registrado': False}
 
 
 @pytest.mark.django_db
@@ -151,3 +153,96 @@ def test_percent_falls_back_to_the_design_when_odoo_or_the_registry_fail():
     """Atrapa un carrito roto (5xx) solo por no poder leer el porcentaje del descuento."""
     with patch('experience_app.services.catalog.get_catalog', side_effect=OdooUnavailable('down')):
         assert discount.percent_for(TABLE) == 5.0
+
+
+@pytest.mark.django_db
+def test_reservation_blocks_another_session_even_with_a_stale_account(table, odoo):
+    """Falla si un timeout deja reutilizar el descuento desde otra mesa/cookie."""
+    from experience_app.models import Diner, TableSession
+    from experience_app.services import orders
+    session, ana, _ = table
+    account = verified_account(ana)
+    other = TableSession.objects.create(restaurant_slug='burger-house', venue_slug='poblado')
+    clone = Diner.objects.create(session=other, account=account)
+    sessions.add_line(other, clone, ANGUS, 1)
+    odoo.side_effect = [OdooUnavailable('timeout'), SENT, SENT]
+    with pytest.raises(OdooUnavailable):
+        orders.confirm(session, ana)
+    orders.confirm(other, clone)
+    assert all(line.discount == 0 for line in odoo.call_args.kwargs['lines'])
+    orders.confirm(session, ana)
+    assert sent_lines(odoo)['Hamburguesa Angus'] == 5.0
+
+
+@pytest.mark.django_db
+def test_uncertain_lines_cannot_be_edited_before_retry(table, odoo):
+    """Falla si cambia la cantidad después de un envío remoto con resultado incierto."""
+    from experience_app.services import orders
+    from experience_app.utils.errors import ConfirmationBusy
+    session, ana, _ = table
+    stale_line = CartLine.objects.get(diner=ana)
+    odoo.side_effect = OdooUnavailable('timeout')
+    with pytest.raises(OdooUnavailable):
+        orders.confirm(session, ana)
+    with pytest.raises(ConfirmationBusy):
+        sessions.update_line(stale_line, ana, qty=8)
+    with pytest.raises(ConfirmationBusy):
+        sessions.remove_line(stale_line, ana)
+
+
+@pytest.mark.django_db
+def test_overlapping_confirmation_of_same_session_is_rejected(table, odoo):
+    """Falla si dos confirmaciones simultáneas envían snapshots distintos a Odoo."""
+    from experience_app.services import orders
+    from experience_app.utils.errors import ConfirmationBusy
+    session, ana, _ = table
+    def while_sending(*args, **kwargs):
+        with pytest.raises(ConfirmationBusy):
+            orders.confirm(session, ana)
+        return SENT
+    odoo.side_effect = while_sending
+    orders.confirm(session, ana)
+    assert odoo.call_count == 1
+    session.refresh_from_db()
+    assert not session.confirming
+
+
+@pytest.mark.django_db
+def test_confirmation_without_new_lines_detects_a_pos_payment(table, odoo):
+    """Falla si pagar desde el celular acepta un pedido que el POS ya cobró."""
+    from experience_app.adapters.odoo.pos import OrderStatus
+    from experience_app.services import orders
+    from experience_app.utils.errors import SessionAlreadyPaid
+    session, ana, _ = table
+    orders.confirm(session, ana)
+    with patch('experience_app.services.orders.pos.read_order_status', return_value=OrderStatus('paid', 'served')):
+        with pytest.raises(SessionAlreadyPaid):
+            orders.confirm(session, ana)
+    assert odoo.call_count == 1
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('same_device', [True, False])
+def test_new_email_cannot_repeat_benefit_on_device_or_normalized_phone(table, odoo, same_device):
+    from experience_app.services import orders
+    session, ana, beto = table
+    verified_account(ana, phone='+57 310 555 4821')
+    orders.confirm(session, ana)
+    next_diner = ana if same_device else beto
+    verified_account(next_diner, email='new@example.com', phone='' if same_device else '310-555-4821')
+    sessions.add_line(session, next_diner, LIMONADA, 1)
+    assert not discount.applicable(next_diner)
+    orders.confirm(session, next_diner)
+    assert odoo.call_args.kwargs['lines'][-1].discount == 0
+
+
+@pytest.mark.django_db
+def test_quote_includes_open_items_and_discount_without_sending_to_kitchen(table):
+    session, ana, beto = table
+    verified_account(ana)
+    quote = sessions.bill_summary(session, ana, 5, include_open=True)
+    assert quote['mio'] == 83430.9
+    assert quote['total'] == 93330.9
+    assert quote['partes'] == 2
+    assert session.orders.count() == 0
+    assert session.lines.filter(status=CartLine.OPEN).count() == 2

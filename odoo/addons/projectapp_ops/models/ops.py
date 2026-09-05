@@ -17,6 +17,15 @@ class PosOrder(models.Model):
         string="Origen del pedido", default="waiter", index=True)
 
 
+    def _compute_line_subtotals(self, line):
+        # pos_self_order recalcula el total con descuento, pero sus subtotales omiten discount.
+        product = line.product_id.with_context(line.product_id._get_product_price_context(line.attribute_value_ids))
+        taxes = line.tax_ids_after_fiscal_position.compute_all(
+            line.price_unit * (1 - (line.discount or 0.0) / 100.0), self.currency_id,
+            line.qty, product=product, partner=self.partner_id)
+        line.update({'price_subtotal': taxes['total_excluded'], 'price_subtotal_incl': taxes['total_included']})
+
+
 class PosConfig(models.Model):
     _inherit = "pos.config"
 

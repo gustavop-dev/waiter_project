@@ -119,7 +119,7 @@ it('shows the discount line, goes to pay and links paying at the table', () => {
 
 // Falla si un descuento aún no aplicado (sin cuenta) no invita a registrarse, o si la invitación no enlaza con el registro.
 it('invites to sign up when the discount is available but not applied yet', () => {
-  mockStore.cart = { ...cartOf([line({})]), descuento: { porcentaje: 5, monto: 0, aplicable: true, aplicado: false } }
+  mockStore.cart = { ...cartOf([line({})]), descuento: { porcentaje: 5, monto: 0, aplicable: false, aplicado: false, registrado: false } }
   render(tree())
   expect(screen.queryByText('Descuento primera compra 5%')).toBeNull()
   expect(screen.getByRole('link', { name: /Regístrate y ahorra 5%/ })).toHaveAttribute('href', '/la-provincia/centro/t/8H2KQ7/cuenta/registro')

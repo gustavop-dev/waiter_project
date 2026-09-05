@@ -5,7 +5,7 @@
     "license": "LGPL-3",
     "author": "ProjectApp",
     "category": "Point of Sale",
-    "depends": ["pos_restaurant", "account", "product", "stock", "mail"],
+    "depends": ["pos_restaurant", "pos_self_order", "account", "product", "stock", "mail"],
     "data": [],
     "installable": True,
     "auto_install": False,

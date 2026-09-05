@@ -9,7 +9,7 @@ import { formatCop } from '@/lib/domain/money'
 import { elapsedMinutes, formatElapsed } from '@/lib/domain/tableState'
 import type { TableView } from '@/lib/domain/tableState'
 
-export interface BillLine { uuid: string; name: string; qty: number; unitPrice: number; note: string }
+export interface BillLine { uuid: string; name: string; qty: number; unitPrice: number; note: string; discount?: number; subtotal?: number; total?: number }
 interface BillPanelProps { view: TableView | null; lines: BillLine[]; onCharge: () => void; onOpenOrder: () => void; now: number }
 
 export function BillPanel({ view, lines, onCharge, onOpenOrder, now }: BillPanelProps) {
@@ -17,7 +17,8 @@ export function BillPanel({ view, lines, onCharge, onOpenOrder, now }: BillPanel
   if (!view) {
     return <aside className="w-panel shrink-0 border-l border-border bg-surface grid place-items-center text-soft text-[15px] p-6 text-center">{t('emptyPanel')}</aside>
   }
-  const subtotal = lines.reduce((a, l) => a + l.unitPrice * l.qty, 0)
+  const subtotal = view.total ? view.total - view.tax : lines.reduce((a, l) => a + (l.subtotal ?? l.unitPrice * l.qty * (1 - (l.discount ?? 0) / 100)), 0)
+  const saving = lines.reduce((a, l) => a + l.unitPrice * l.qty * (l.discount ?? 0) / 100, 0)
   const total = view.total || subtotal
   const tax = view.total ? view.tax : 0
   const tip = Math.round(subtotal * 0.1)
@@ -39,7 +40,7 @@ export function BillPanel({ view, lines, onCharge, onOpenOrder, now }: BillPanel
         {lines.map((l) => (
           <div key={l.uuid} className="py-3.5 border-b border-muted flex flex-col gap-1.5">
             <div className="grid grid-cols-[26px_1fr_auto] gap-3 text-[17px]">
-              <span className="font-mono text-ink-3">{l.qty}</span><span>{l.name}</span><Money amount={l.unitPrice * l.qty} />
+              <span className="font-mono text-ink-3">{l.qty}</span><span>{l.name}</span><Money amount={l.total ?? l.unitPrice * l.qty * (1 - (l.discount ?? 0) / 100)} />
             </div>
             {l.note && <span className="pl-9 text-sm text-soft">{l.note}</span>}
           </div>
@@ -49,6 +50,7 @@ export function BillPanel({ view, lines, onCharge, onOpenOrder, now }: BillPanel
         <div className="p-4.5 border-t border-muted bg-canvas">
           {/* El total de Odoo ya incluye IVA: la suma cuadra. La propina es sugerida, no se suma. */}
           <div className="flex justify-between text-[15px] text-soft py-0.5"><span>{t('subtotal')}</span><Money amount={subtotal} /></div>
+        {saving > 0 && <div className="flex justify-between text-free-ink"><span>{t('discountIncluded')}</span><Money amount={saving} /></div>}
           <div className="flex justify-between text-[15px] text-soft py-0.5"><span>{t('tax')}</span><Money amount={tax} /></div>
           <div className="flex justify-between items-baseline pt-3 mt-2 border-t border-border">
             <span className="text-xl font-bold">{t('total')}</span><Money amount={total} withSymbol className="text-4xl" />

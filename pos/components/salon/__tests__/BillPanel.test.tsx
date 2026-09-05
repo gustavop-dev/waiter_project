@@ -41,3 +41,11 @@ it('renders the empty hint when no table is selected', () => {
   wrap(<BillPanel view={null} lines={[]} onCharge={jest.fn()} onOpenOrder={jest.fn()} now={NOW} />)
   expect(screen.getByText('Toca una mesa para ver su cuenta')).toBeInTheDocument()
 })
+
+it('uses discounted server lines and a subtotal that adds to the server tax and total', () => {
+  wrap(<BillPanel view={{ ...view, total: 11305, tax: 1805 }} lines={[{ uuid: 'd', name: 'Plato', qty: 1, unitPrice: 10000, note: '', discount: 5, subtotal: 9500, total: 11305 }]} onCharge={jest.fn()} onOpenOrder={jest.fn()} now={NOW} />)
+  expect(screen.getByText('Subtotal').nextSibling).toHaveTextContent('9.500')
+  expect(screen.getByText('IVA').nextSibling).toHaveTextContent('1.805')
+  expect(screen.getByText('Descuento incluido (antes de IVA)').nextSibling).toHaveTextContent('500')
+  expect(screen.getByRole('button', { name: 'Cobrar $ 11.305' })).toBeInTheDocument()
+})

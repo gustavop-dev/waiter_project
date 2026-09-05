@@ -87,7 +87,7 @@ export function FamilyEPay({ bill, template, methods, onPay, state, demo, goBack
       </div>
     )
     : variant === 'E5' ? <p className="text-[13px] leading-[1.45] text-t-tinta-suave">{tp('invoiceNote')}</p> : null
-  const hook = !account && discount && discount.aplicable && !discount.aplicado && (
+  const hook = !account && discount && discount.porcentaje > 0 && !discount.registrado && !discount.aplicable && !discount.aplicado && (
     <button type="button" onClick={onSignup} className="px-3.5 py-2.5 rounded-t-boton bg-t-acento-suave text-left text-[14px] font-medium text-t-tinta">{t('signupHook', { pct })}</button>
   )
   const back = <button type="button" onClick={goBack} aria-label={t('back')} className="shrink-0 w-[44px] h-[44px] -ml-2 grid place-items-center text-[18px] text-t-tinta-suave">←</button>
@@ -144,8 +144,8 @@ export function FamilyEPay({ bill, template, methods, onPay, state, demo, goBack
       )
   const summary = variant === 'E5' && (
     <dl className="px-3.5 py-[13px] rounded-t-tarjeta bg-t-superficie border border-t-borde flex flex-col">
-      <TotalRow label={tp('products')} value={formatCop(bill.total + (discount?.aplicado ? discount.monto : 0))} />
-      {discount && discount.aplicado && <TotalRow label={t('saved')} value={`−${formatCop(discount.monto)}`} className="text-free" />}
+      <TotalRow label={tp('products')} value={formatCop(bill.total + (discount?.aplicado || discount?.aplicable ? discount.monto : 0))} />
+      {discount && (discount.aplicado || discount.aplicable) && <TotalRow label={t('saved')} value={`−${formatCop(discount.monto)}`} className="text-free" />}
       <TotalRow label={tp('total')} value={total} className="text-t-tinta font-medium" />
     </dl>
   )
@@ -166,7 +166,7 @@ export function FamilyEPay({ bill, template, methods, onPay, state, demo, goBack
       <div className="sticky bottom-0 px-[18px] py-3.5 border-t border-t-borde bg-t-superficie flex flex-col gap-2.5">
         {method === 'efectivo'
           ? <button type="button" onClick={onPayAtTable} className={money}>{t('payAtTable')}</button>
-          : <button type="button" onClick={() => onPay(method)} className={money}>{before}<span className="font-t-mono tabular">{amount}</span>{after}</button>}
+          : <button type="button" onClick={() => onPay(method, variant === 'E1' || variant === 'E4' ? split : 'all')} className={money}>{before}<span className="font-t-mono tabular">{amount}</span>{after}</button>}
         <button type="button" onClick={goBack} className="self-center h-[44px] text-[15px] font-medium text-t-acento">{t('back')}</button>
       </div>
     </div>

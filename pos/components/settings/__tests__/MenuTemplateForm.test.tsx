@@ -48,7 +48,7 @@ beforeEach(() => {
 it('shows the family tabs, marks the saved template and previews the diner entry for the venue', async () => {
   wrap()
   expect(await screen.findByText(/Elige la plantilla que mejor le queda a tu negocio/)).toBeInTheDocument()
-  expect(mList).toHaveBeenCalledWith('http://192.168.56.10:8001')
+  expect(mList).toHaveBeenCalledWith('http://192.168.56.10:8001', 'burger-house', 'poblado')
   const tabs = screen.getAllByRole('tab')
   expect(tabs.map((x) => x.textContent)).toEqual(['AAlta cocina', 'BCasual de barrio', 'CRápida y food truck', 'DCafé y panadería', 'EBar y cervecería', 'FSushi y especializados'])
   expect(screen.getByRole('tab', { name: /Casual de barrio/ })).toHaveAttribute('aria-selected', 'true')

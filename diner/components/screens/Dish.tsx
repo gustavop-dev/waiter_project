@@ -80,7 +80,7 @@ export function Dish({ entry, rest, venue, token, id }: { entry: Entry; rest: st
               {dish.agotado ? t('common.soldOut') : submitting ? t('dish.adding') : <>{before}<span className="font-mono tabular">{amount}</span>{after}</>}
             </button>
           )}
-        <p role="status" className="min-h-6 text-center text-[15px] font-medium text-free-ink">{added ? t('dish.added') : null}</p>
+        <p role="status" className={`min-h-6 text-center text-[15px] font-medium text-free-ink rounded-rest ${added ? 'bg-free-soft' : ''}`}>{added ? t('dish.added') : null}</p>
       </section>
     </div>
   )

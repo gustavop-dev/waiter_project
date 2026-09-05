@@ -18,7 +18,7 @@ import type { OrderState, PayMethod } from '@/lib/types'
 //    próxima visita», nota de tokenización sobre gris cálido, CTA rojo.
 //  · F5: «¿Cómo dividen?»: Pagar lo mío (bill.mio, si hay más comensales), Dividir en N (bill.partes > 1) y Pagar todo; la elegida
 //    define el monto del CTA. No hay tarjeta guardada en el pago simulado: en su lugar van los campos de tarjeta del pago base.
-//    onPay(method) no lleva monto (contrato 4): el importe elegido es visual hasta que la pasarela lo reciba.
+//    onPay envía la opción de reparto; experience calcula el importe sobre el pedido confirmado.
 // Los métodos de Waiter (Tarjeta / PSE / Nequi / Efectivo) se ofrecen en las cuatro pieles; Efectivo manda al mesero. Los estados
 // «Autorizando», «Pagado» y «Rechazada» llevan la insignia «Demo · sin cobro real» y las tres salidas del flujo base.
 const STEP_BARS: Record<OrderState, number> = { enviado: 1, en_cocina: 2, listo: 2, servido: 3, pagado: 3, fallido: 0 }
@@ -84,7 +84,7 @@ export function FamilyFPay({ bill, template, methods, onPay, state, demo, goBack
         </header>
         <div className="px-[18px] flex flex-col gap-4">
           <dl className="flex flex-col divide-y divide-t-borde text-[15px]">
-            {discount?.aplicado && <div className="py-2.5 flex justify-between gap-3"><dt className="text-t-tinta-suave">{t('saved')}</dt><dd className="font-t-mono tabular text-free">$ {formatCop(discount.monto)}</dd></div>}
+            {(discount?.aplicado || discount?.aplicable) && <div className="py-2.5 flex justify-between gap-3"><dt className="text-t-tinta-suave">{t('saved')}</dt><dd className="font-t-mono tabular text-free">$ {formatCop(discount.monto)}</dd></div>}
             <div className="py-2.5 flex justify-between gap-3"><dt className="text-t-tinta-suave">{t('paidWith')}</dt><dd className="font-medium">{t(`method.${result?.metodo ?? method}`)}{result?.referencia ? <span className="font-t-mono tabular text-t-tinta-suave"> · {result.referencia}</span> : null}</dd></div>
             <div className="py-2.5 flex justify-between gap-3"><dt className="text-t-tinta-suave">{t('invoice')}</dt><dd className="text-free font-medium">{t('invoiceSent')}</dd></div>
           </dl>
@@ -170,12 +170,12 @@ export function FamilyFPay({ bill, template, methods, onPay, state, demo, goBack
       <span className="text-[13px] leading-[1.4] text-t-tinta-suave">{tf('pay.tokenized')}</span>
     </div>
   )
-  const hook = !account && discount && discount.aplicable && !discount.aplicado && (
+  const hook = !account && discount && discount.porcentaje > 0 && !discount.registrado && !discount.aplicable && !discount.aplicado && (
     <button type="button" onClick={onSignup} className="px-3.5 py-2.5 rounded-t-boton bg-t-acento-suave border border-t-borde text-left text-[14px] font-medium text-t-tinta">{t('signupHook', { pct })}</button>
   )
   const payButton = method === 'efectivo'
     ? <button type="button" onClick={onPayAtTable} className={cta}>{t('payAtTable')}</button>
-    : <button type="button" onClick={() => onPay(method)} className={cta}>{before}<span className="font-t-mono tabular">{amount}</span>{after}</button>
+    : <button type="button" onClick={() => onPay(method, code === 'F5' ? (split === 'split' ? 'parts' : split) : 'all')} className={cta}>{before}<span className="font-t-mono tabular">{amount}</span>{after}</button>
   const footer = (
     <div className={foot}>
       {demoBadge}
@@ -265,8 +265,8 @@ export function FamilyFPay({ bill, template, methods, onPay, state, demo, goBack
       </header>
       <div className="px-[18px] py-3.5 flex flex-col gap-3">
         <dl className="px-3.5 py-[13px] rounded-t-tarjeta bg-t-superficie border border-t-borde text-[15px]">
-          <div className="flex justify-between gap-3 py-[3px] text-t-tinta-suave"><dt>{tf('pay.products')}</dt><dd className="font-t-mono tabular whitespace-nowrap">{formatCop(bill.total + (discount?.aplicado ? discount.monto : 0))}</dd></div>
-          {discount?.aplicado && <div className="flex justify-between gap-3 py-[3px] text-free"><dt>{tf('pay.discount', { pct })}</dt><dd className="font-t-mono tabular whitespace-nowrap">−{formatCop(discount.monto)}</dd></div>}
+          <div className="flex justify-between gap-3 py-[3px] text-t-tinta-suave"><dt>{tf('pay.products')}</dt><dd className="font-t-mono tabular whitespace-nowrap">{formatCop(bill.total + (discount?.aplicado || discount?.aplicable ? discount.monto : 0))}</dd></div>
+          {(discount?.aplicado || discount?.aplicable) && <div className="flex justify-between gap-3 py-[3px] text-free"><dt>{tf('pay.discount', { pct })}</dt><dd className="font-t-mono tabular whitespace-nowrap">−{formatCop(discount.monto)}</dd></div>}
           <div className="flex justify-between gap-3 py-[3px] text-t-tinta"><dt>{tf('cart.total')}</dt><dd className="font-t-mono tabular whitespace-nowrap">$ {amount}</dd></div>
         </dl>
         {methodsRow}

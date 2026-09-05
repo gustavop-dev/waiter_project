@@ -43,7 +43,7 @@ interface OrderState {
 }
 
 export interface ReceiptData {
-  company: string; tableNumber: number; reference: string; at: number; lines: { uuid: string; name: string; qty: number; unitPrice: number }[]
+  company: string; tableNumber: number; reference: string; at: number; lines: { uuid: string; name: string; qty: number; unitPrice: number; discount?: number; total?: number }[]
   subtotal: number; tax: number; tip: number; total: number; payments: { method: string; amount: number; reference: string }[]; change: number
 }
 // Lo que el cobro necesita saber además del plan: dónde está el pedido y con qué pintar el recibo.

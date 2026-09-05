@@ -15,9 +15,10 @@ export function Receipt({ data, onClose }: { data: ReceiptData; onClose: () => v
       <div className="receipt flex-1 min-h-0 overflow-y-auto px-[22px] py-5 flex flex-col gap-3 font-mono text-[14px]">
         <div className="text-center flex flex-col gap-0.5"><span className="font-sans font-bold text-lg">{data.company}</span><span className="text-soft">{t('table', { n: data.tableNumber })} · {at.toLocaleDateString('es-CO')} {at.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</span><span className="text-soft">{data.reference}</span></div>
         <hr className="border-dashed border-border" />
-        {data.lines.map((l) => <div key={l.uuid} className="flex justify-between gap-2"><span>{l.qty} × {l.name}</span><span className="tabular">{formatCop(l.qty * l.unitPrice)}</span></div>)}
+        {data.lines.map((l) => <div key={l.uuid} className="flex justify-between gap-2"><span>{l.qty} × {l.name}</span><span className="tabular">{formatCop(l.total ?? l.qty * l.unitPrice * (1 - (l.discount ?? 0) / 100))}</span></div>)}
         <hr className="border-dashed border-border" />
         <div className="flex justify-between"><span>{t('subtotal')}</span><span className="tabular">{formatCop(data.subtotal)}</span></div>
+        {data.lines.some((l) => l.discount) && <div className="flex justify-between"><span>{t('discountIncluded')}</span><span>{formatCop(data.lines.reduce((a, l) => a + l.qty * l.unitPrice * (l.discount ?? 0) / 100, 0))}</span></div>}
         <div className="flex justify-between"><span>{t('tax')}</span><span className="tabular">{formatCop(data.tax)}</span></div>
         {data.tip > 0 && <div className="flex justify-between"><span>{t('tip')}</span><span className="tabular">{formatCop(data.tip)}</span></div>}
         <div className="flex justify-between font-sans font-bold text-lg"><span>{t('total')}</span><span className="font-mono tabular">$ {formatCop(data.total)}</span></div>

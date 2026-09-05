@@ -12,7 +12,7 @@ jest.mock('@/lib/stores/dinerStore', () => ({ useDinerStore: (sel: (s: { entry: 
 
 const hrefs = { home: '/h', menu: '/m', pay: '/p', table: '/t', signup: '/s' }
 const applied: Discount = { porcentaje: 5, monto: 3290, aplicable: true, aplicado: true }
-const pending: Discount = { porcentaje: 5, monto: 0, aplicable: true, aplicado: false }
+const pending: Discount = { porcentaje: 5, monto: 0, aplicable: false, aplicado: false, registrado: false }
 const props = (codigo: string, over: Partial<CartLayoutProps> = {}): CartLayoutProps => ({
   cart: cartOf([line({ nota: 'papas grandes' }), line({ id: 2, producto_id: 5, nombre: 'Limonada', precio: 12900, cantidad: 1, subtotal: 12900 })]),
   template: templateC(codigo), busy: false, error: null, setQty: jest.fn(), remove: jest.fn(), confirm: jest.fn().mockResolvedValue('ord-1'), goPay: jest.fn(), goMenu: jest.fn(), discount: null, retry: jest.fn(), hrefs, ...over,
@@ -28,9 +28,9 @@ it('C1: numbers the lines, shows the applied banner and keeps the three actions'
   expect(screen.getByText('3 ítems')).toBeInTheDocument()
   expect(screen.getByText('Primera compra: descuento aplicado.')).toBeInTheDocument()
   expect(screen.getByText('papas grandes')).toBeInTheDocument()
-  expect(screen.getByText('Subtotal').nextSibling).toHaveTextContent('81.990')
+  expect(screen.getByText('Subtotal').nextSibling).toHaveTextContent('78.700')
   expect(screen.getByText('Descuento primera compra 5%').nextSibling).toHaveTextContent('−3.290')
-  expect(screen.getByText('$ 78.700')).toHaveClass('font-t-mono')
+  expect(screen.getByText('$ 75.410')).toHaveClass('font-t-mono')
   fireEvent.click(screen.getByRole('button', { name: 'Enviar a cocina' }))
   expect(await screen.findByRole('button', { name: 'Enviando…' })).toBeDisabled()
   finish('ord-1')
@@ -104,17 +104,17 @@ it('C5: offers the tip selector as information outside the totals and keeps the 
   wrap(<FamilyCCart {...props('C5', { discount: applied })} />)
   expect(screen.getByRole('radio', { name: '10%' })).toHaveAttribute('aria-checked', 'true')
   expect(screen.getByText('Propina 10%').nextSibling).toHaveTextContent('7.870')
-  expect(screen.getByText('$ 78.700')).toHaveClass('font-t-mono')
+  expect(screen.getByText('$ 75.410')).toHaveClass('font-t-mono')
   expect(screen.queryByText('$ 86.570')).toBeNull()
   const totals = screen.getByText('Subtotal').closest('dl') as HTMLElement
   expect(within(totals).queryByRole('radiogroup')).toBeNull()
   expect(screen.getByRole('region', { name: 'Propina' })).toContainElement(screen.getByRole('radio', { name: '15%' }))
   fireEvent.click(screen.getByRole('radio', { name: '15%' }))
   expect(screen.getByText('Propina 15%').nextSibling).toHaveTextContent('11.805')
-  expect(screen.getByText('$ 78.700')).toBeInTheDocument()
+  expect(screen.getByText('$ 75.410')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('radio', { name: 'Sin propina' }))
   expect(screen.queryByText(/Propina 1\d%/)).toBeNull()
-  expect(screen.getByText('$ 78.700')).toBeInTheDocument()
+  expect(screen.getByText('$ 75.410')).toBeInTheDocument()
   expect(screen.getByText('La propina se confirma al pagar; no entra en el total del pedido.')).toBeInTheDocument()
 })
 

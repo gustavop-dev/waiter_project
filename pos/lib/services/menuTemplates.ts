@@ -59,8 +59,8 @@ export function gateway(action: 'get' | 'set', payload: Partial<MenuSettings> = 
 const trimSlash = (url: string) => url.replace(/\/+$/, '')
 
 // Catálogo público de experience: no pasa por Odoo ni necesita sesión.
-export async function listTemplates(experienceUrl: string): Promise<TemplateCatalog> {
-  const res = await fetch(trimSlash(experienceUrl) + '/api/v1/plantillas/')
+export async function listTemplates(experienceUrl: string, restaurante?: string, sede?: string): Promise<TemplateCatalog> {
+  const res = await fetch(trimSlash(experienceUrl) + '/api/v1/plantillas/' + (restaurante && sede ? '?' + new URLSearchParams({ restaurante, sede }) : ''))
   if (!res.ok) throw new Error(`plantillas: HTTP ${res.status}`)
   return (await res.json()) as TemplateCatalog
 }

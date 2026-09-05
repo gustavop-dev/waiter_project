@@ -123,7 +123,8 @@
       "whatNow": "Qué puedes hacer",
       "retryCard": "Intentar con otra tarjeta",
       "retryOther": "Pagar con PSE o Nequi",
-      "declinedFoot": "Motivo del banco: fondos insuficientes. No lo decimos con código de error."
+      "declinedFoot": "Motivo del banco: fondos insuficientes. No lo decimos con código de error.",
+      "pendingDemo": "Pago demo · pendiente de cobro en caja"
     },
     "account": {
       "title": "Mi cuenta",
@@ -698,7 +699,8 @@
       "askBill": "Pedir la cuenta",
       "callWaiter": "Llamar al mesero",
       "notFound": "No encontramos ese pedido en este celular.",
-      "steps": "Avance del pedido"
+      "steps": "Avance del pedido",
+      "discount": "Descuento de primera compra ({pct}%): −$ {amount}"
     },
     "bill": {
       "title": "La cuenta",

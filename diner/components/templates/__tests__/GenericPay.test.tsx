@@ -39,7 +39,7 @@ it('offers the methods as pills, keeps the card number local and pays with the m
 // Falla si efectivo intenta cobrar por el celular en vez de mandar al mesero, o si sin cuenta no se ofrece el 5 %.
 it('sends cash to the table and invites to identify for the discount', () => {
   const props = base()
-  props.bill = { ...bill, descuento: { porcentaje: 5, monto: 0, aplicable: true, aplicado: false } }
+  props.bill = { ...bill, descuento: { porcentaje: 5, monto: 0, aplicable: false, aplicado: false, registrado: false } }
   wrap(props)
   fireEvent.click(screen.getByRole('button', { name: /Identifícate y ahorra 5%/ }))
   expect(props.onSignup).toHaveBeenCalledTimes(1)
