@@ -459,6 +459,57 @@
           "smsHint": "A tu celular",
           "waiting": "Escribe el código cuando llegue. No cierres esta pantalla."
         }
+      },
+      "familiaD": {
+        "fullMenu": "Toda la carta",
+        "edit": "Editar",
+        "done": "Listo",
+        "total": "Total",
+        "pct": "{pct}%",
+        "discountChip": "−{pct}% aplicado",
+        "discountUsed": "{pct}% ya usado en tu 1ª visita",
+        "discountBanner": "Primera compra: descuento aplicado.",
+        "perUnit": "{n} × {amount}",
+        "attrs": {
+          "pieces": "{n, plural, one {# pieza} other {# piezas}}",
+          "spicy": "Picante {level} de 3",
+          "abv": "{abv} % ABV",
+          "ibu": "IBU {ibu}",
+          "today": "Solo hoy"
+        },
+        "pay": {
+          "totalToPay": "Total a pagar",
+          "tokenizedShort": "Tokenizado por la pasarela. Waiter no ve tu tarjeta."
+        }
+      },
+      "D1": {
+        "orderAtBar": "Pedir en la barra",
+        "orderAtBarWith": "Pedir en la barra · $ {amount}"
+      },
+      "D2": {
+        "subtitle": "Personalízalo como siempre",
+        "size": "Tamaño",
+        "add": "Añadir",
+        "openDish": "Ver ficha completa →",
+        "builder": "Arma tu pedido"
+      },
+      "D3": {
+        "title": "Salió del horno",
+        "count": "{n, plural, one {# pieza} other {# piezas}}",
+        "inventory": "El POS marca al instante lo que se agota: si lo ves, lo hay."
+      },
+      "D4": {
+        "greeting": "Hola de nuevo, {name}",
+        "usual": "¿Lo de siempre?",
+        "timesThisMonth": "Lo pediste {n, plural, one {# vez} other {# veces}} este mes.",
+        "times": "Lo pediste {n, plural, one {# vez} other {# veces}}.",
+        "reorder": "Pedir igual",
+        "change": "O cambia algo",
+        "seeAll": "Ver toda la carta",
+        "hideAll": "Ocultar la carta"
+      },
+      "D5": {
+        "tomorrow": "Vuelve mañana"
       }
     },
     "status": {

@@ -44,6 +44,15 @@ import { FamilyCPay } from '@/components/templates/families/C/FamilyCPay'
 import { BenefitsSignup } from '@/components/templates/patterns/BenefitsSignup'
 import { ChannelCode } from '@/components/templates/patterns/ChannelCode'
 // --- fin familia C
+// --- familia D
+import { D1Menu } from '@/components/templates/families/D/D1Menu'
+import { D2Menu } from '@/components/templates/families/D/D2Menu'
+import { D3Menu } from '@/components/templates/families/D/D3Menu'
+import { D4Menu } from '@/components/templates/families/D/D4Menu'
+import { D5Menu } from '@/components/templates/families/D/D5Menu'
+import { FamilyDCart } from '@/components/templates/families/D/FamilyDCart'
+import { FamilyDPay } from '@/components/templates/families/D/FamilyDPay'
+// --- fin familia D
 
 export type { CartHrefs, CartLayoutProps, CodeProps, HistoryProps, MenuLayoutProps, PayLayoutProps, SignupProps } from '@/components/templates/types'
 
@@ -84,6 +93,11 @@ PAY_LAYOUTS.C = FamilyCPay
 SIGNUP_PATTERNS.beneficios = BenefitsSignup
 CODE_PATTERNS.canal = ChannelCode
 // --- fin familia C
+// --- familia D
+Object.assign(MENU_LAYOUTS, { D1: D1Menu, D2: D2Menu, D3: D3Menu, D4: D4Menu, D5: D5Menu })
+CART_LAYOUTS.D = FamilyDCart
+PAY_LAYOUTS.D = FamilyDPay
+// --- fin familia D
 
 export const menuLayout = (code: string | undefined): ComponentType<MenuLayoutProps> => (code && MENU_LAYOUTS[code.toUpperCase()]) || GenericMenu
 export const cartLayout = (familia: TemplateFamily | string | undefined): ComponentType<CartLayoutProps> => CART_LAYOUTS[familia as TemplateFamily] ?? GenericCart
