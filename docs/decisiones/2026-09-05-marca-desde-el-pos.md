@@ -42,12 +42,15 @@ decisión pendiente del usuario: "quién edita la marca del restaurante".
    `BRAND_CACHE_SECONDS` (60 s por defecto): un cambio se ve en ≤ 1 minuto.
    El logo se sirve por `GET /api/v1/<rest>/<sede>/logo/?v=<versión>` con
    la versión en la URL (`write_date` de la compañía), igual que las fotos.
-4. **El POS la edita en Configuración › Marca, solo para administradores.**
-   Odoo ya restringe `write` sobre `res.company` al grupo *system*, que es el
-   que tiene el rol `admin` del POS; el panel no inventa un permiso nuevo. El
-   POS valida lo mismo que el servidor: color `#RRGGBB` con contraste ≥ 4.5
-   contra su tinta, fuente de la lista de seis, radio 4 | 14 | 24, longitudes
-   de los textos y logo PNG/JPEG.
+4. **El POS la edita en Configuración › Marca, solo para administradores,
+   llamando `res.company.write_brand`** (addon `projectapp_ops`), nunca
+   `write`. `write` sobre `res.company` exige `base.group_erp_manager`, que el
+   rol `admin` del POS no tiene ni debe tener (abriría el resto de Odoo).
+   `write_brand` exige `point_of_sale.group_pos_manager`, acepta solo la lista
+   cerrada de campos `brand_*`, limpia y valida, y escribe con `sudo()` sobre
+   la compañía del usuario. El POS valida lo mismo que el servidor: color
+   `#RRGGBB` con contraste ≥ 4.5 contra su tinta, fuente de la lista de seis,
+   radio 4 | 14 | 24, longitudes de los textos y logo PNG/JPEG de ≤ 2 MB.
 
 ## Alternativas descartadas
 

@@ -41,8 +41,12 @@ brand_logo = fields.Binary(attachment=True)  # PNG/JPEG ráster; NUNCA SVG
 - Todos vacíos por defecto. **Campo vacío en Odoo ⇒ se usa el valor del
   registro** (onboarding de ProjectApp). El nombre del restaurante es
   `res.company.name` (ya editable en Configuración › Restaurante).
-- Escritura: solo administradores. Odoo ya restringe `write` en `res.company`
-  al grupo *system*; el rol `admin` del POS es el que lo tiene.
+- Escritura: solo administradores, por `res.company.write_brand(vals)` (RPC
+  `call_kw('res.company', 'write_brand', [vals])`), nunca por `write`: `write`
+  exige `base.group_erp_manager`, que el rol `admin` del POS no tiene.
+  `write_brand` exige `point_of_sale.group_pos_manager`, acepta solo las claves
+  `brand_*`, recorta textos (vacío ⇒ `False`), valida color/fuente/radio y
+  escribe con `sudo()` sobre la compañía del usuario. Logo ≤ 2 MB.
 - Lectura de la presencia del logo: `search_read` con
   `context={'bin_size': True}` devuelve el tamaño en vez del base64.
 

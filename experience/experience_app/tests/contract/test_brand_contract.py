@@ -25,17 +25,21 @@ ENTRY = reverse('entry-delivery', args=['burger-house', 'poblado'])
 
 @pytest.fixture
 def branded_company():
-    """Escribe color y un PNG de 1 px en la compañía y los retira al salir, pase lo que pase con las aserciones."""
+    """Escribe color y un PNG de 1 px en la compañía y los retira al salir, pase lo que pase con las aserciones.
+
+    Por write_brand, el mismo camino que usa el POS (write exige base.group_erp_manager; write_brand solo el grupo de
+    administrador del POS): así el contrato también prueba el método del addon.
+    """
     client = OdooClient(CREDS)
     # Sin bin_size: el base64 completo del logo previo es lo que hay que restaurar.
     [company] = client.call_kw('res.company', 'search_read', [[], ['id', 'brand_color', 'brand_logo']], {'limit': 1})
     original = {'brand_color': company['brand_color'], 'brand_logo': company['brand_logo']}
-    client.call_kw('res.company', 'write', [[company['id']], {'brand_color': '#7A2E2A', 'brand_logo': PNG_1PX}])
+    client.call_kw('res.company', 'write_brand', [{'brand_color': '#7A2E2A', 'brand_logo': PNG_1PX}])
     brand.invalidate('burger-house', 'poblado')
     try:
         yield company['id']
     finally:
-        client.call_kw('res.company', 'write', [[company['id']], original])
+        client.call_kw('res.company', 'write_brand', [original])
         brand.invalidate('burger-house', 'poblado')
 
 
