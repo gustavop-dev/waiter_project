@@ -28,7 +28,7 @@ it('A1 paints the centered total, the methods, the card form, the tokenized note
   expect(screen.getByText('Tokenizado por la pasarela. Waiter no ve tu tarjeta.')).toBeInTheDocument()
   expect(screen.getByText('Demo · sin cobro real')).toBeInTheDocument()
   const pay = screen.getByRole('button', { name: 'Pagar $ 105.945' })
-  expect(pay).toHaveClass('font-t-display')
+  expect(pay).toHaveClass('font-t-display', 'h-[60px]', 'rounded-t-boton')
   fireEvent.click(pay)
   expect(p.onPay).toHaveBeenCalledWith('tarjeta')
   fireEvent.click(screen.getByRole('button', { name: 'Volver al pedido' }))
@@ -54,10 +54,19 @@ it('A3 and A5 use the confirm header with the summary box and the invoice note',
   expect(screen.getByText('Enviaremos la factura electrónica a tu correo al confirmar el pago.')).toBeInTheDocument()
   expect(screen.queryByText(/Tokenizado/)).toBeNull()
   expect(screen.getByRole('button', { name: 'Pagar $ 105.945' })).not.toHaveClass('font-t-display')
+  expect(screen.getByRole('button', { name: 'Pagar $ 105.945' })).toHaveClass('h-[60px]')
   unmount()
   wrap(<FamilyAPay {...base('A5', { table: null })} />)
   expect(screen.getByText('2 platos')).toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'Pagar $ 105.945' })).toHaveClass('font-t-display')
+})
+
+// Falla si el CTA de pago vuelve a la altura del carrito: el spec de pago pide 60 px en A1–A4 y 64 en A5 (el carrito es 56/60).
+it.each([['A1', 'h-[60px]'], ['A2', 'h-[60px]'], ['A3', 'h-[60px]'], ['A4', 'h-[60px]'], ['A5', 'h-16']])('%s pays with a %s CTA', (code, height) => {
+  wrap(<FamilyAPay {...base(code)} />)
+  const pay = screen.getByRole('button', { name: 'Pagar $ 105.945' })
+  expect(pay).toHaveClass(height)
+  expect(pay.className).not.toMatch(/\bh-14\b|h-\[56px\]/)
 })
 
 // Falla si «Efectivo» no cambia el CTA por «Que el mesero cobre en la mesa», o si «Autorizando» no muestra comercio, referencia y monto con la insignia.
@@ -88,8 +97,13 @@ it('confirms the payment and explains a declined one with its ways out', () => {
   expect(paid.goMenu).toHaveBeenCalledTimes(1)
   unmount()
   const declined = base('A4', { state: 'declined' })
-  wrap(<FamilyAPay {...declined} />)
-  expect(screen.getByRole('alert')).toHaveTextContent('Tu banco no autorizó el pago')
+  const { container } = wrap(<FamilyAPay {...declined} />)
+  const alert = screen.getByRole('alert')
+  expect(alert).toHaveTextContent('Tu banco no autorizó el pago')
+  // La caja de rechazo va con los tokens de ocupado de Waiter, sin hex en duro (heredados del genérico).
+  expect(alert).toHaveClass('bg-busy-soft', 'border-busy/30')
+  expect(screen.getByRole('heading', { level: 1 })).toHaveClass('text-busy-ink')
+  expect(container.innerHTML).not.toMatch(/\[#[0-9A-Fa-f]{6}\]/)
   fireEvent.click(screen.getByRole('button', { name: /Intentar con otra tarjeta/ }))
   fireEvent.click(screen.getByRole('button', { name: /Pagar con PSE o Nequi/ }))
   expect(declined.onRetry).toHaveBeenCalledTimes(2)

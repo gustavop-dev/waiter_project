@@ -1,8 +1,8 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { A3Menu } from '@/components/templates/families/A/A3Menu'
-import { menuProps, wrap } from '@/components/templates/families/A/__tests__/fixtures'
+import { dimmedAncestors, menuProps, wrap } from '@/components/templates/families/A/__tests__/fixtures'
 
 const mockCall = jest.fn()
 jest.mock('@/lib/stores/dinerStore', () => ({ useDinerStore: (selector: (s: { call: () => Promise<boolean>; cart: null; entry: null }) => unknown) => selector({ call: mockCall, cart: null, entry: null }) }))
@@ -28,7 +28,24 @@ it('paints counted pills, grouped rows with a secondary line and wires the row a
   fireEvent.click(screen.getByRole('button', { name: 'Agregar: Tartar de trucha' }))
   expect(props.onAdd).toHaveBeenCalledWith(expect.objectContaining({ id: 2 }))
   expect(screen.queryByRole('button', { name: 'Agregar: Ajiaco' })).toBeNull()
-  expect(screen.getByText('Ajiaco').closest('li')).toHaveClass('opacity-55')
+  expect(dimmedAncestors(screen.getByText('Ajiaco'))).toBe(1)
+  expect(dimmedAncestors(within(screen.getByText('Ajiaco').closest('li') as HTMLElement).getByTestId('sold-out-badge'))).toBe(0)
+})
+
+// Falla si la fila de píldoras pierde sus 18 px de aire, si los botones del pie dejan el radio 10 del marco o si el pie y la línea de pedido
+// no van en un solo bloque pegado (dos «sticky» se encimarían al recorrer la carta).
+it('keeps the frame sizes: 18 px pill row, radius-10 footer buttons in one sticky block with the order line', () => {
+  wrap(<A3Menu {...menuProps('A3')} />)
+  expect(screen.getByRole('tablist')).toHaveClass('py-[18px]')
+  const sommelier = screen.getByRole('button', { name: 'Pedir sumiller' })
+  expect(sommelier).toHaveClass('h-12', 'rounded-[10px]')
+  expect(screen.getByRole('button', { name: 'Filtrar' })).toHaveClass('rounded-[10px]')
+  const line = screen.getByRole('link', { name: /Tu pedido/ })
+  expect(line).not.toHaveClass('sticky')
+  const sticky = line.parentElement as HTMLElement
+  expect(sticky).toHaveClass('sticky')
+  expect(sticky).toContainElement(sommelier)
+  expect(document.querySelectorAll('.sticky')).toHaveLength(1)
 })
 
 // Falla si «Filtrar» no abre la búsqueda de Waiter (y no la cierra limpiando), si «Pedir sumiller» no llama al mesero y lo confirma, o si la

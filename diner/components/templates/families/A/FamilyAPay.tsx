@@ -38,7 +38,8 @@ export function FamilyAPay({ bill, template, methods, onPay, state, demo, goBack
   const applied = Boolean(discount?.aplicado)
   const field = `h-[52px] w-full rounded-[10px] ${skin.input} border border-t-borde px-3.5 font-t-mono text-[16px] text-t-tinta placeholder:text-t-tinta-terciaria focus:outline-none focus:border-t-acento`
   const label = 'text-[14px] font-medium text-t-tinta-suave'
-  const money = `${primaryCta(skin)} w-full`
+  // CTA de pago: 60 px en A1–A4 y 64 en A5 (bloque cta de spec.pantallas.pago); el carrito es el que mide 56/60.
+  const money = `${primaryCta(skin, 'pay')} w-full`
   const demoBadge = demo && <span className="self-start inline-flex items-center h-7 px-2.5 rounded-t-chip bg-pending-soft text-pending-ink text-[12px] font-medium tracking-[0.04em]">{t('demo')}</span>
   const foot = (children: React.ReactNode) => <div className={`sticky bottom-0 px-[18px] py-3.5 border-t border-t-borde ${skin.foot} flex flex-col gap-2.5`}>{children}</div>
 
@@ -82,7 +83,7 @@ export function FamilyAPay({ bill, template, methods, onPay, state, demo, goBack
           </section>
           {account && <p className="px-3.5 py-2.5 rounded-t-boton bg-t-acento-suave text-[14px] text-t-tinta">{t('keepData')}</p>}
         </div>
-        {foot(<button type="button" onClick={goMenu} className={secondaryCta(skin)}>{t('backToMenu')}</button>)}
+        {foot(<button type="button" onClick={goMenu} className={secondaryCta(skin, 'pay')}>{t('backToMenu')}</button>)}
       </div>
     )
   }
@@ -91,10 +92,11 @@ export function FamilyAPay({ bill, template, methods, onPay, state, demo, goBack
     const option = 'h-14 px-4 rounded-t-boton border border-t-borde bg-t-superficie text-left text-base font-medium text-t-tinta flex items-center justify-between'
     return (
       <div className="px-[18px] py-5 flex flex-col gap-3.5 text-t-tinta">
-        <div role="alert" className="rounded-t-tarjeta bg-busy-soft border border-[#EBC7C4] p-4 flex gap-3">
+        {/* Caja de rechazo con los tokens de ocupado de Waiter (busy / busy-soft / busy-ink): los marcos no fijan estos colores. */}
+        <div role="alert" className="rounded-t-tarjeta bg-busy-soft border border-busy/30 p-4 flex gap-3">
           <span aria-hidden="true" className="w-7 h-7 shrink-0 rounded-full bg-busy text-white grid place-items-center font-bold">!</span>
           <div className="flex flex-col gap-1">
-            <h1 className="text-[18px] font-bold text-[#7E1C18] leading-tight">{t('declined')}</h1>
+            <h1 className="text-[18px] font-bold text-busy-ink leading-tight">{t('declined')}</h1>
             <p className="text-[15px] text-busy-ink">{t('declinedHint')}</p>
           </div>
         </div>

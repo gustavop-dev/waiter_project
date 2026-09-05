@@ -8,9 +8,10 @@ import type { MenuLayoutProps } from '@/components/templates/types'
 
 // A1 · Carta editorial (docs/diseno/plantillas/A1). Bloques del spec, en orden: cabecera centrada (marca.nombre o logo + «lema · Mesa N»),
 // cuerpo en una columna sin fotos con rótulos de categoría centrados en versalitas, plato = nombre en serif 21 / descripción larga / precio
-// mono discreto, y la barra «Tu pedido» + píldora «Ver · N». Waiter: el filtro es un índice de categorías en versalitas y la búsqueda va
-// plegada en «Buscar», ambos bajo el subtítulo (el marco no dibuja ninguno). El marco no tiene ＋: tocar la fila abre el plato (onOpen) y
-// un ＋ hueco de 32 px (48 de toque) junto al precio lo agrega (onAdd). A1 no declara atributos opcionales: no se pintan.
+// mono discreto, y la barra «Tu pedido» + píldora «Ver · N». La cabecera y la barra son las del marco y las únicas en pantalla: la página no
+// pinta su BrandHeader ni su OrderBar sobre un layout registrado (ownsChrome). Waiter: el filtro es un índice de categorías en versalitas y la
+// búsqueda va plegada en «Buscar», ambos bajo el subtítulo (el marco no dibuja ninguno). El marco no tiene ＋: tocar la fila abre el plato
+// (onOpen) y un ＋ hueco de 32 px (48 de toque) junto al precio lo agrega (onAdd). A1 no declara atributos opcionales: no se pintan.
 export function A1Menu({ entry, query, setQuery, category, setCategory, onOpen, onAdd, cart, orderBarHref }: MenuLayoutProps) {
   const t = useTranslations('diner')
   const brand = entry.contexto.marca

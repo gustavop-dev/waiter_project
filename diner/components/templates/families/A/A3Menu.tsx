@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
-import { AddButton, EmptyMenu, OrderStrip, SearchToggle, SoldOutBadge, attributeChips, filterSections } from '@/components/templates/families/A/shared'
+import { AddButton, EmptyMenu, OrderStrip, SearchToggle, SoldOutBadge, attributeChips, dimIf, filterSections } from '@/components/templates/families/A/shared'
 import { useCallWaiter } from '@/components/templates/families/A/storeExtras'
 import { tabId } from '@/components/templates/generic/menuParts'
 import type { MenuLayoutProps } from '@/components/templates/types'
@@ -46,7 +46,7 @@ export function A3Menu({ entry, query, setQuery, category, setCategory, onOpen, 
   const sommelier = async () => { setCalled((await call()) ? 'ok' : 'fail') }
   return (
     <div className="flex flex-col">
-      <div role="tablist" aria-label={t('menu.categories')} onKeyDown={onKeyDown} className="px-5 py-3.5 border-b border-t-borde flex gap-1.5 overflow-x-auto [scrollbar-width:none]">
+      <div role="tablist" aria-label={t('menu.categories')} onKeyDown={onKeyDown} className="px-5 py-[18px] border-b border-t-borde flex gap-1.5 overflow-x-auto [scrollbar-width:none]">
         {pill(null, t('menu.all'))}
         {categories.map((c) => pill(c.id, `${c.nombre} ${c.productos.length}`))}
       </div>
@@ -61,12 +61,13 @@ export function A3Menu({ entry, query, setQuery, category, setCategory, onOpen, 
                 {c.productos.map((d) => {
                   const sub = secondary(d)
                   return (
-                    <li key={d.id} className={`px-5 py-3.5 border-b border-t-borde flex items-center justify-between gap-3 ${d.agotado ? 'opacity-55' : ''}`}>
-                      <button type="button" onClick={() => onOpen(d)} className="min-w-0 flex-1 text-left flex flex-col">
+                    <li key={d.id} className="px-5 py-3.5 border-b border-t-borde flex items-center justify-between gap-3">
+                      {/* Agotado: nombre, línea secundaria y precio al 55 %; la insignia queda fuera, entera. */}
+                      <button type="button" onClick={() => onOpen(d)} className={`min-w-0 flex-1 text-left flex flex-col ${dimIf(d)}`}>
                         <span className="text-[16px] font-medium text-t-tinta">{d.nombre}</span>
                         {sub && <span className="text-[13px] text-t-tinta-suave">{sub}</span>}
                       </button>
-                      <span className="font-t-mono tabular text-[15px] whitespace-nowrap text-t-tinta">{formatCop(d.precio)}</span>
+                      <span className={`font-t-mono tabular text-[15px] whitespace-nowrap text-t-tinta ${dimIf(d)}`}>{formatCop(d.precio)}</span>
                       {d.agotado ? <SoldOutBadge /> : <AddButton dish={d} onAdd={onAdd} />}
                     </li>
                   )
@@ -75,12 +76,15 @@ export function A3Menu({ entry, query, setQuery, category, setCategory, onOpen, 
             </div>
           ))}
       </section>
-      <OrderStrip cart={cart} href={orderBarHref} variant="line" />
-      <div className="sticky bottom-0 bg-t-fondo px-5 py-3.5 border-t border-t-borde flex flex-col gap-2">
-        {called !== 'idle' && <p role="status" className={`text-[13px] ${called === 'ok' ? 'text-free-ink' : 'text-busy-ink'}`}>{called === 'ok' ? t('templates.A3.called') : t('templates.A3.callFailed')}</p>}
-        <div className="flex gap-2">
-          <button type="button" aria-pressed={filterOpen} onClick={() => { if (filterOpen) setQuery(''); setFilterOpen((o) => !o) }} className="flex-1 h-12 rounded-t-boton border border-t-borde bg-t-fondo text-[15px] font-medium text-t-tinta">{filterOpen ? t('templates.A3.filterClose') : t('templates.A3.filter')}</button>
-          <button type="button" onClick={() => void sommelier()} className="flex-1 h-12 rounded-t-boton bg-t-acento text-t-acento-tinta text-[15px] font-medium">{t('templates.A3.sommelier')}</button>
+      {/* Un solo bloque pegado abajo: la línea de pedido (solo con algo pedido) y el pie de acciones del marco (botones de 48 px, radio 10 fijo del spec). */}
+      <div className="sticky bottom-0 bg-t-fondo flex flex-col">
+        <OrderStrip cart={cart} href={orderBarHref} variant="line" sticky={false} />
+        <div className="px-5 py-3.5 border-t border-t-borde flex flex-col gap-2">
+          {called !== 'idle' && <p role="status" className={`text-[13px] ${called === 'ok' ? 'text-free-ink' : 'text-busy-ink'}`}>{called === 'ok' ? t('templates.A3.called') : t('templates.A3.callFailed')}</p>}
+          <div className="flex gap-2">
+            <button type="button" aria-pressed={filterOpen} onClick={() => { if (filterOpen) setQuery(''); setFilterOpen((o) => !o) }} className="flex-1 h-12 rounded-[10px] border border-t-borde bg-t-fondo text-[15px] font-medium text-t-tinta">{filterOpen ? t('templates.A3.filterClose') : t('templates.A3.filter')}</button>
+            <button type="button" onClick={() => void sommelier()} className="flex-1 h-12 rounded-[10px] bg-t-acento text-t-acento-tinta text-[15px] font-medium">{t('templates.A3.sommelier')}</button>
+          </div>
         </div>
       </div>
     </div>

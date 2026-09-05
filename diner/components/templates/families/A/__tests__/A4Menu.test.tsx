@@ -1,7 +1,7 @@
 import { fireEvent, screen, within } from '@testing-library/react'
 
 import { A4Menu } from '@/components/templates/families/A/A4Menu'
-import { entryOf, entradas, fuertes, menuProps, wrap } from '@/components/templates/families/A/__tests__/fixtures'
+import { dimmedAncestors, entryOf, entradas, fuertes, menuProps, wrap } from '@/components/templates/families/A/__tests__/fixtures'
 
 // jsdom no implementa scrollIntoView (la ficha se desplaza al elegir una fila).
 beforeAll(() => { Element.prototype.scrollIntoView = jest.fn() })
@@ -40,9 +40,15 @@ it('promotes a row to the hero card, paints attribute chips only when present an
   const plain = screen.getByRole('article', { name: 'Tartar de trucha' })
   expect(within(plain).getByText('Foto del plato')).toBeInTheDocument()
   expect(within(plain).queryByText('Sin gluten')).toBeNull()
+  // En la lista compacta el agotado atenúa una sola vez (texto; la miniatura se atenúa sola) y la insignia queda entera.
+  const row = screen.getByRole('button', { name: 'Ver ficha: Ajiaco' }).closest('li') as HTMLElement
+  expect(dimmedAncestors(within(row).getByText('Ajiaco'))).toBe(1)
+  expect(dimmedAncestors(within(row).getByRole('presentation'))).toBe(1)
+  expect(dimmedAncestors(within(row).getByTestId('sold-out-badge'))).toBe(0)
   fireEvent.click(screen.getByRole('button', { name: 'Ver ficha: Ajiaco' }))
   const sold = screen.getByRole('article', { name: 'Ajiaco' })
   expect(within(sold).getAllByRole('presentation')[0]).toHaveClass('opacity-55')
+  expect(dimmedAncestors(within(sold).getAllByRole('presentation')[0])).toBe(1)
   expect(within(sold).getByRole('button', { name: 'Agotado' })).toBeDisabled()
 })
 
