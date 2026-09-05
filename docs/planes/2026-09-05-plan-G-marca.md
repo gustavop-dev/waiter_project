@@ -76,7 +76,7 @@ La forma de `contexto.marca` no cambia (`diner/lib/types.ts`, interfaz
 
 ## Tareas
 
-1. [ ] **Addon + `experience/`.** `projectapp_ops/models/company.py` con los
+1. [x] **Addon + `experience/`.** `projectapp_ops/models/company.py` con los
    campos del contrato (sin vistas; test de que el manifiesto no declara
    vistas). Adaptador de Odoo: leer `brand_*` y `write_date` de la compañía,
    `bin_size` para la presencia del logo, lectura del binario para `logo/`.
@@ -84,7 +84,7 @@ La forma de `contexto.marca` no cambia (`diner/lib/types.ts`, interfaz
    del tema con las reglas de `utils/brand.py`, caché `BRAND_CACHE_SECONDS`.
    Endpoint `logo/` con las defensas de `fotos/` (test: un SVG devuelve 404).
    Test de paridad de la derivación contra `registry/registry_app/utils/brand.py`.
-2. [ ] **POS — Configuración › Marca** (solo `admin`; los demás roles no ven
+2. [x] **POS — Configuración › Marca** (solo `admin`; los demás roles no ven
    la entrada). Formulario con logo (PNG/JPEG, vista previa, quitar), color
    con contraste calculado y aviso si < 4.5, tipografía de la lista de seis
    con muestra, redondeo (recto / suave / muy redondeado), lema, saludo,
@@ -92,7 +92,7 @@ La forma de `contexto.marca` no cambia (`diner/lib/types.ts`, interfaz
    valor de ProjectApp" por campo (vacía el campo en Odoo). Guardar escribe
    en `res.company`; leer usa `bin_size`. Heroicons, next-intl, Zustand; copy
    según §07 (Voz). Tests unitarios de validación y del formulario.
-3. [ ] **Docs.** ADR `2026-09-05-marca-desde-el-pos.md`, este plan, bloque 3
+3. [x] **Docs.** ADR `2026-09-05-marca-desde-el-pos.md`, este plan, bloque 3
    (endpoint `logo/`, precedencia, `BRAND_CACHE_SECONDS`), README raíz,
    aclaración en el ADR del comensal de que el registro guarda el valor
    inicial.

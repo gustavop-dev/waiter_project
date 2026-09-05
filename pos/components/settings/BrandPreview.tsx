@@ -27,9 +27,11 @@ export function BrandPreview({ theme, name, logo, tagline, greeting, waiterName,
       </div>
       <div className="px-[18px] pb-[18px] pt-[22px]">
         <div className="text-[32px] leading-[1.1]" style={serif}>{greeting || t('greeting')}</div>
-        <div className="mt-1.5 text-[16px] leading-[1.45] text-soft">{welcome || t('line', { name: waiterName || t('waiter') })}</div>
-        <div className="mt-4 flex h-14 items-center justify-between px-[18px] text-[16px] font-bold" style={{ background: theme.color, color: theme.colorTexto, borderRadius: theme.radio }}>
-          <span>{t('cta')}</span><span>→</span>
+        {/* Igual que la portada real (diner Home): la bienvenida va después de la línea del mesero, no la reemplaza. */}
+        <div className="mt-1.5 text-[16px] leading-[1.45] text-soft">{waiterName || !welcome ? t('line', { name: waiterName || t('waiter'), welcome: welcome || t('welcome') }) : welcome}</div>
+        {/* "Ver la carta" es blanco con borde (DS §06); el color de acción va en "Ver todos", los "＋" y la barra de pedido. */}
+        <div className="mt-4 flex h-14 items-center justify-between border border-[#E4DED4] bg-surface px-[18px] text-[16px] font-bold" style={{ borderRadius: theme.radio }}>
+          <span>{t('cta')}</span><span className="text-ink-3">→</span>
         </div>
       </div>
       <div className="px-[18px] pb-[18px]">
