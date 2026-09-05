@@ -21,6 +21,38 @@ export async function saveCompany(c: CompanyInfo): Promise<void> {
   await callKw('res.company', 'write', [[c.id], { name: c.name, vat: c.vat || false, phone: c.phone || false, email: c.email || false, street: c.street || false, city: c.city || false }])
 }
 
+// Marca del comensal (Configuración › Marca). Vacío en Odoo significa "usar lo del registro", así que los
+// strings vacíos viajan como false y los false vuelven como ''. El nombre del restaurante es res.company.name.
+export type BrandRadius = '' | '4' | '14' | '24'
+export interface BrandInfo { companyId: number; color: string; font: string; radius: BrandRadius; tagline: string; greeting: string; waiterName: string; welcome: string; hasLogo: boolean }
+export type LogoChange = { base64: string } | { remove: true }
+interface RawBrand { id: number; brand_color: string | false; brand_font: string | false; brand_radius: BrandRadius | false; brand_tagline: string | false; brand_greeting: string | false; brand_waiter_name: string | false; brand_welcome: string | false; brand_logo: string | number | false }
+const BRAND_FIELDS = ['brand_color', 'brand_font', 'brand_radius', 'brand_tagline', 'brand_greeting', 'brand_waiter_name', 'brand_welcome', 'brand_logo']
+
+// bin_size: Odoo devuelve el tamaño del binario en vez del base64; solo hace falta saber si hay logo.
+export async function getBrand(): Promise<BrandInfo> {
+  const [c] = await callKw<RawBrand[]>('res.company', 'search_read', [[], BRAND_FIELDS], { limit: 1, context: { bin_size: true } })
+  return {
+    companyId: c.id, color: c.brand_color || '', font: c.brand_font || '', radius: c.brand_radius || '', tagline: c.brand_tagline || '',
+    greeting: c.brand_greeting || '', waiterName: c.brand_waiter_name || '', welcome: c.brand_welcome || '', hasLogo: Boolean(c.brand_logo),
+  }
+}
+
+export async function getBrandLogo(companyId: number): Promise<string | null> {
+  const [c] = await callKw<{ id: number; brand_logo: string | false }[]>('res.company', 'read', [[companyId], ['brand_logo']])
+  return c?.brand_logo || null
+}
+
+// logo: base64 si se subió uno nuevo, remove si se quita; undefined no toca el campo.
+export async function saveBrand(b: BrandInfo, logo?: LogoChange): Promise<void> {
+  const values: Record<string, string | false> = {
+    brand_color: b.color ? b.color.toUpperCase() : false, brand_font: b.font || false, brand_radius: b.radius || false, brand_tagline: b.tagline || false,
+    brand_greeting: b.greeting || false, brand_waiter_name: b.waiterName || false, brand_welcome: b.welcome || false,
+  }
+  if (logo) values.brand_logo = 'remove' in logo ? false : logo.base64
+  await callKw('res.company', 'write', [[b.companyId], values])
+}
+
 export async function listFloors(): Promise<FloorInfo[]> {
   const [floors, tables] = await Promise.all([
     callKw<RawFloor[]>('restaurant.floor', 'search_read', [[], ['name', 'table_ids']], { order: 'sequence asc, id asc' }),
