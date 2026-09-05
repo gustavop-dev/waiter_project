@@ -1,7 +1,7 @@
 import { metrics, monthsOfUse, pctChange, periodRange } from '@/lib/domain/roi'
 import type { PaidOrder } from '@/lib/services/roi'
 
-const SETTINGS = { configId: 1, configName: 'Salón', alertLateMinutes: 18, alertBillMinutes: 10, roiHourCost: 20000, roiMinutesPerOrder: 12, roiBaselineHoursPer100: 18.4, roiMonthlyCost: 3000000, roiStartDate: '2026-05-01' }
+const SETTINGS = { configId: 1, configName: 'Salón', alertLateMinutes: 18, alertBillMinutes: 10, roiHourCost: 20000, roiMinutesPerOrder: 12, roiBaselineHoursPer100: 18.4, roiMonthlyCost: 3000000, roiStartDate: '2026-05-01', tipProductId: 1 }
 const order = (id: number, origin: PaidOrder['origin'], total = 50000): PaidOrder => ({ id, total, origin, paidAt: '2026-09-05 01:00:00' })
 
 // Falla si el ROI cuenta pedidos de mesero como autónomos o si el coste no se prorratea al periodo.

@@ -6,7 +6,7 @@ import messages from '@/lib/i18n/messages/es.json'
 
 const wrap = (ui: React.ReactElement) => render(<NextIntlClientProvider locale="es" messages={messages}>{ui}</NextIntlClientProvider>)
 const NOW = Date.parse('2026-09-05T02:10:40Z')
-const ticket = { id: 8, orderId: 9, tableId: 2, tracking: '125', waiter: 'Julián', firedAt: '2026-09-05 02:00:00', readyAt: '2026-09-05 02:10:00',
+const ticket = { id: 8, orderId: 9, tableId: 2, tracking: '125', waiter: 'Julián', note: '', firedAt: '2026-09-05 02:00:00', readyAt: '2026-09-05 02:10:00',
   lines: [{ id: 1, name: 'Costillas BBQ', qty: 1, note: '', station: 'Parrilla' }, { id: 2, name: 'Risotto', qty: 1, note: '', station: null }] }
 
 // Falla si la fila no dice mesa y platos, o si el tiempo cuenta desde el envío en vez de desde "listo".

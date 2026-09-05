@@ -25,7 +25,7 @@ export function ticketMinutes(t: KitchenTicket, now: number): number {
 export function ticketMood(t: KitchenTicket, now: number): TicketMood {
   const min = ticketMinutes(t, now)
   if (min >= LATE_MIN) return 'late'
-  if (t.lines.some((l) => l.note !== '')) return 'attention'
+  if (t.note !== '' || t.lines.some((l) => l.note !== '')) return 'attention'
   if (min < FRESH_MIN) return 'fresh'
   return 'normal'
 }

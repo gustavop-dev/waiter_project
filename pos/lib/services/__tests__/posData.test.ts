@@ -13,9 +13,9 @@ const RAW = {
     { id: 9, product_tmpl_id: 9, display_name: 'Tips', lst_price: 1 },
   ],
   'product.template': [
-    { id: 3, name: 'Hamburguesa Angus', list_price: 36900, pos_categ_ids: [1], taxes_id: [55], available_in_pos: true, active: true, is_favorite: true, is_storable: false },
-    { id: 6, name: 'Club Colombia', list_price: 14000, pos_categ_ids: [2], taxes_id: [55], available_in_pos: true, active: true, is_favorite: false, is_storable: true },
-    { id: 9, name: 'Tips', list_price: 1, pos_categ_ids: [], taxes_id: [], available_in_pos: false, active: true, is_favorite: false, is_storable: false },
+    { id: 3, name: 'Hamburguesa Angus', list_price: 36900, pos_categ_ids: [1], taxes_id: [55], available_in_pos: true, active: true, is_favorite: true, is_storable: false, image_128: false },
+    { id: 6, name: 'Club Colombia', list_price: 14000, pos_categ_ids: [2], taxes_id: [55], available_in_pos: true, active: true, is_favorite: false, is_storable: true, image_128: false },
+    { id: 9, name: 'Tips', list_price: 1, pos_categ_ids: [], taxes_id: [], available_in_pos: false, active: true, is_favorite: false, is_storable: false, image_128: false },
   ],
   'pos.category': [{ id: 1, name: 'Hamburguesas', sequence: 0 }],
   'restaurant.floor': [{ id: 2, name: 'Terraza', table_ids: [6] }],

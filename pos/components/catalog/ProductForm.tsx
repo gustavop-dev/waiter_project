@@ -8,9 +8,9 @@ import { Drawer } from '@/components/ui/Drawer'
 import { Select, TextInput, Toggle } from '@/components/ui/Field'
 import type { AdminCategory, ProductInput, Tax } from '@/lib/services/catalogAdmin'
 
-interface ProductFormProps { initial: ProductInput; isNew: boolean; categories: AdminCategory[]; taxes: Tax[]; onSave: (p: ProductInput) => Promise<void>; onClose: () => void }
+interface ProductFormProps { initial: ProductInput; hasImage?: boolean; templateId?: number | null; isNew: boolean; categories: AdminCategory[]; taxes: Tax[]; onSave: (p: ProductInput) => Promise<void>; onClose: () => void }
 
-export function ProductForm({ initial, isNew, categories, taxes, onSave, onClose }: ProductFormProps) {
+export function ProductForm({ initial, hasImage = false, templateId = null, isNew, categories, taxes, onSave, onClose }: ProductFormProps) {
   const t = useTranslations('pos.catalog.form')
   const ui = useTranslations('pos.ui')
   const [p, setP] = useState(initial)
@@ -36,6 +36,14 @@ export function ProductForm({ initial, isNew, categories, taxes, onSave, onClose
         ))}</div>
       </fieldset>
       <TextInput label={t('description')} value={p.description} onChange={(e) => patch({ description: e.target.value })} />
+      <div className="flex items-center gap-3">
+        <div className="w-24 h-[72px] rounded-[10px] bg-muted overflow-hidden grid place-items-center text-[11px] uppercase tracking-[0.08em] text-ink-3">
+          {p.image ? <img src={`data:image/*;base64,${p.image}`} alt="" className="w-full h-full object-cover" /> : hasImage && templateId ? <img src={`/odoo/web/image/product.template/${templateId}/image_256`} alt="" className="w-full h-full object-cover" /> : t('noImage')}
+        </div>
+        <label className="flex flex-col gap-1.5 text-[15px] font-medium">{t('image')}
+          <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (!f) return; const r = new FileReader(); r.onload = () => patch({ image: String(r.result).split(',')[1] }); r.readAsDataURL(f) }} className="text-sm font-normal" />
+        </label>
+      </div>
       <Toggle label={t('available')} checked={p.available} onChange={(v) => patch({ available: v })} onLabel={t('availableOn')} offLabel={t('availableOff')} />
       <Toggle label={t('favorite')} checked={p.favorite} onChange={(v) => patch({ favorite: v })} onLabel={t('favoriteOn')} offLabel={t('favoriteOff')} />
       <Toggle label={t('storable')} checked={p.storable} onChange={(v) => patch({ storable: v })} onLabel={t('storableOn')} offLabel={t('storableOff')} />

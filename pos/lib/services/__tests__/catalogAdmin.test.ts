@@ -16,7 +16,7 @@ it('creates a product with many2many commands and returns its id', async () => {
 
 // Falla si la lista pierde el "agotado por stock" o la descripción vacía llega como false al formulario.
 it('maps templates to admin products', async () => {
-  m.mockResolvedValueOnce([{ id: 3, name: 'Angus', list_price: 36900, pos_categ_ids: [2], taxes_id: [55], available_in_pos: true, is_storable: true, is_favorite: false, description_sale: false }])
+  m.mockResolvedValueOnce([{ id: 3, name: 'Angus', list_price: 36900, pos_categ_ids: [2], taxes_id: [55], available_in_pos: true, is_storable: true, is_favorite: false, description_sale: false, image_128: false }])
   const [p] = await listProducts()
-  expect(p).toEqual({ id: 3, name: 'Angus', price: 36900, categoryIds: [2], taxIds: [55], available: true, storable: true, favorite: false, description: '' })
+  expect(p).toEqual({ id: 3, name: 'Angus', price: 36900, categoryIds: [2], taxIds: [55], available: true, storable: true, favorite: false, description: '', hasImage: false })
 })

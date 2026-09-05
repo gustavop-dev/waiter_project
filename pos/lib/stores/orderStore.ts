@@ -2,7 +2,7 @@
 
 import { create } from 'zustand'
 
-import { addProduct, createDraft, removeLine, setNote, setQty } from '@/lib/domain/order'
+import { addProduct, createDraft, removeLine, setNote, setOrderNote, setQty } from '@/lib/domain/order'
 import type { DraftOrder } from '@/lib/domain/order'
 import type { LocalFlags } from '@/lib/domain/tableState'
 import { play } from '@/lib/audio/sounds'
@@ -25,6 +25,7 @@ interface OrderState {
   add: (product: Product) => void
   changeQty: (lineUuid: string, qty: number) => void
   note: (lineUuid: string, note: string) => void
+  orderNote: (note: string) => void
   remove: (lineUuid: string) => void
   save: () => Promise<void>
   sendToKitchen: () => Promise<void>
@@ -79,6 +80,7 @@ export const useOrderStore = create<OrderState>((set, get) => {
     add: (p) => { play('tap'); update((d) => addProduct(d, p)) },
     changeQty: (u, q) => update((d) => setQty(d, u, q)),
     note: (u, n) => update((d) => setNote(d, u, n)),
+    orderNote: (n) => update((d) => setOrderNote(d, n)),
     remove: (u) => update((d) => removeLine(d, u)),
     save: async () => { await persist() },
     // La comanda vive en Odoo (un curso disparado); el salón la verá al refrescar. Nada local.

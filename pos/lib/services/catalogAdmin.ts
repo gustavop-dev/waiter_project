@@ -1,23 +1,24 @@
 import { callKw } from '@/lib/services/odoo'
 
-export interface AdminProduct { id: number; name: string; price: number; categoryIds: number[]; taxIds: number[]; available: boolean; storable: boolean; favorite: boolean; description: string }
+export interface AdminProduct { id: number; name: string; price: number; categoryIds: number[]; taxIds: number[]; available: boolean; storable: boolean; favorite: boolean; description: string; hasImage: boolean }
 export interface AdminCategory { id: number; name: string; sequence: number; station: string | null }
 export interface Tax { id: number; name: string; amount: number }
-export type ProductInput = Omit<AdminProduct, 'id'>
+// image: base64 sin prefijo para subir una foto nueva; undefined deja la que hay.
+export type ProductInput = Omit<AdminProduct, 'id' | 'hasImage'> & { image?: string }
 
-interface RawTemplate { id: number; name: string; list_price: number; pos_categ_ids: number[]; taxes_id: number[]; available_in_pos: boolean; is_storable: boolean; is_favorite: boolean; description_sale: string | false }
+interface RawTemplate { id: number; name: string; list_price: number; pos_categ_ids: number[]; taxes_id: number[]; available_in_pos: boolean; is_storable: boolean; is_favorite: boolean; description_sale: string | false; image_128: string | false }
 interface RawCategory { id: number; name: string; sequence: number; kitchen_station: string | false }
 
-const TEMPLATE_FIELDS = ['name', 'list_price', 'pos_categ_ids', 'taxes_id', 'available_in_pos', 'is_storable', 'is_favorite', 'description_sale']
+const TEMPLATE_FIELDS = ['name', 'list_price', 'pos_categ_ids', 'taxes_id', 'available_in_pos', 'is_storable', 'is_favorite', 'description_sale', 'image_128']
 
 export async function listProducts(): Promise<AdminProduct[]> {
   const rows = await callKw<RawTemplate[]>('product.template', 'search_read', [[['type', '=', 'consu'], ['sale_ok', '=', true]], TEMPLATE_FIELDS], { order: 'name asc' })
   return rows.map((r) => ({ id: r.id, name: r.name, price: r.list_price, categoryIds: r.pos_categ_ids, taxIds: r.taxes_id, available: r.available_in_pos,
-    storable: r.is_storable, favorite: r.is_favorite, description: r.description_sale || '' }))
+    storable: r.is_storable, favorite: r.is_favorite, description: r.description_sale || '', hasImage: Boolean(r.image_128) }))
 }
 
 function toValues(p: ProductInput) {
-  return { name: p.name, list_price: p.price, pos_categ_ids: [[6, 0, p.categoryIds]], taxes_id: [[6, 0, p.taxIds]], available_in_pos: p.available,
+  return { ...(p.image !== undefined ? { image_1920: p.image } : {}), name: p.name, list_price: p.price, pos_categ_ids: [[6, 0, p.categoryIds]], taxes_id: [[6, 0, p.taxIds]], available_in_pos: p.available,
     is_storable: p.storable, is_favorite: p.favorite, description_sale: p.description || false, type: 'consu', sale_ok: true }
 }
 

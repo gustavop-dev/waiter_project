@@ -53,6 +53,10 @@ cd experience && python3 -m venv venv && venv/bin/pip install -r requirements.tx
 scripts/demo-comensal.sh
 ```
 
+- **POS cerrado (Plan E)**: cobro completo (pagos mixtos, datáfono manual, propina,
+  dividir, recibo), caja con arqueo, roles (mesero / cajero / administrador),
+  buscar plato, nota a cocina, fotos, buscar mesa. `pos/` es PWA instalable.
+
 ## Próximos pasos
 
 1. Pasarela de pago en el bloque 3 (`experience/pagos`): al `pago aprobado`,
