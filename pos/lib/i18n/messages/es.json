@@ -327,6 +327,65 @@
         "new": "Nueva categoría",
         "save": "Guardar"
       }
+    },
+    "inventory": {
+      "title": "Inventario",
+      "subtitle": "{n} productos con control de existencias",
+      "hint": "Activa «Controla existencias» en Catálogo para que un plato entre aquí.",
+      "kpi": {
+        "tracked": "Con existencias",
+        "low": "Bajo stock",
+        "out": "Agotados"
+      },
+      "cols": {
+        "product": "Producto",
+        "category": "Categoría",
+        "qty": "Existencias",
+        "state": "Estado"
+      },
+      "status": {
+        "out": "Agotado",
+        "low": "Bajo",
+        "ok": "OK"
+      },
+      "empty": "Ningún producto controla existencias todavía",
+      "form": {
+        "title": "Ajustar existencias",
+        "current": "Existencias actuales",
+        "qty": "Cantidad contada",
+        "apply": "Aplicar conteo",
+        "applied": "Existencias actualizadas.",
+        "goCatalog": "Ir al catálogo"
+      }
+    },
+    "customers": {
+      "title": "Clientes",
+      "subtitle": "{n} clientes",
+      "search": "Buscar por nombre, documento o teléfono",
+      "new": "Nuevo cliente",
+      "cols": {
+        "name": "Cliente",
+        "doc": "Documento",
+        "phone": "Teléfono",
+        "orders": "Pedidos",
+        "invoiced": "Facturado"
+      },
+      "empty": "Ningún cliente coincide",
+      "form": {
+        "title": "Editar cliente",
+        "newTitle": "Nuevo cliente",
+        "name": "Nombre",
+        "idType": "Tipo de documento",
+        "vat": "Número de documento",
+        "phone": "Teléfono",
+        "email": "Correo",
+        "street": "Dirección",
+        "city": "Ciudad",
+        "save": "Guardar",
+        "saved": "Cliente guardado.",
+        "history": "Últimos pedidos",
+        "noHistory": "Sin pedidos a su nombre todavía"
+      }
     }
   }
 }
