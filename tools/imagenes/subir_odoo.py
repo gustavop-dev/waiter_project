@@ -5,7 +5,11 @@ La especificación fija que la fuente de verdad es Odoo (nunca una carpeta suelt
 marcada (`image_origin = ai`) para poder listarla y reemplazarla cuando lleguen las fotos reales.
 
 Uso:
-  python3 subir_odoo.py [--finales ../../assets/demo/imagenes] [--lote lote.json] [--solo SKU,SKU] [--dry-run]
+  python3 subir_odoo.py [--finales ../../assets/demo/imagenes] [--lote lote.json] [--solo SKU,SKU] [--dry-run] [--crear]
+
+Con --crear, las tomas que no existen en Odoo se crean como productos de la carta demo (nombre, categoría POS —creada si
+falta—, precio de lista, IVA 19 % de venta, disponibles en el POS). Así la carta demo queda completa para probar las
+plantillas de menú con fotos.
 
 Lee ODOO_URL, ODOO_DB, ODOO_LOGIN y ODOO_PASSWORD de tools/imagenes/.env (o del entorno). Solo sube las tomas cuyo
 `lote.json` trae `"odoo": {"producto": "<nombre exacto en Odoo>"}`; el recorte que va a la ficha es el 4x3 (o el 1x1
@@ -60,12 +64,24 @@ class Odoo:
         return self._rpc('object', 'execute_kw', [self.db, self.uid, self.password, model, method, args, kwargs or {}])
 
 
+def crear_producto(odoo: Odoo, spec: dict) -> int:
+    """Producto de la carta demo: categoría POS (creada si falta), IVA 19 % de venta y disponible en el POS."""
+    categoria = spec.get('categoria') or 'Carta'
+    cat_ids = odoo.call('pos.category', 'search', [[['name', '=', categoria]]], {'limit': 1})
+    cat_id = cat_ids[0] if cat_ids else odoo.call('pos.category', 'create', [{'name': categoria}])
+    iva = odoo.call('account.tax', 'search', [[['type_tax_use', '=', 'sale'], ['amount', '=', 19.0], ['amount_type', '=', 'percent']]], {'limit': 1})
+    valores = {'name': spec['producto'], 'list_price': spec.get('precio', 0), 'available_in_pos': True, 'type': 'consu',
+               'pos_categ_ids': [[6, 0, [cat_id]]], 'taxes_id': [[6, 0, iva]]}
+    return odoo.call('product.template', 'create', [valores])
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--finales', default=str(AQUI.parents[1] / 'assets' / 'demo' / 'imagenes'))
     p.add_argument('--lote', default=str(AQUI / 'lote.json'))
     p.add_argument('--solo', help='SKU separados por coma')
     p.add_argument('--dry-run', action='store_true')
+    p.add_argument('--crear', action='store_true', help='crea en Odoo los productos del lote que no existan')
     args = p.parse_args()
 
     tomas = [t for t in json.loads(Path(args.lote).read_text())['tomas'] if t.get('odoo', {}).get('producto')]
@@ -91,8 +107,11 @@ def main() -> None:
             continue
         nombre = t['odoo']['producto']
         ids = odoo.call('product.template', 'search', [[['name', '=', nombre]]], {'limit': 2})
+        if not ids and args.crear and not args.dry_run:
+            ids = [crear_producto(odoo, t['odoo'])]
+            print(f"  + creado «{nombre}» (id {ids[0]}) en «{t['odoo'].get('categoria', '')}»")
         if len(ids) != 1:
-            print(f"  ✗ {t['sku']}: {len(ids)} productos llamados «{nombre}» en Odoo; se esperaba exactamente 1")
+            print(f"  ✗ {t['sku']}: {len(ids)} productos llamados «{nombre}» en Odoo; se esperaba exactamente 1" + ('' if ids else ' (usa --crear)'))
             continue
         valores = {'image_1920': base64.b64encode(archivo.read_bytes()).decode()}
         if marca_origen:
