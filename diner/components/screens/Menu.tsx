@@ -60,6 +60,8 @@ export function Menu({ entry, rest, venue, token }: { entry: Entry; rest: string
         {tab(null, t('menu.all'))}
         {categories.map((c) => tab(c.id, c.nombre))}
       </div>
+      {/* Límite legal: si algún plato lleva foto generada con IA, la carta lo dice una vez, antes de la rejilla. Es de la carta entera, no del filtro. */}
+      {entry.carta.imagenesDeReferencia && <p className="px-[18px] text-[13px] text-soft">{t('menu.referenceImages')}</p>}
       <section role="tabpanel" aria-labelledby={tabId(category)} className="px-[18px]">
         {dishes.length === 0
           ? (

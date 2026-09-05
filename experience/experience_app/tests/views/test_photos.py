@@ -77,8 +77,10 @@ def test_photo_is_404_for_a_product_not_in_the_menu(resolve, fetch, api_client, 
 
 
 def test_entry_menu_points_photos_to_the_experience_route(api_client, table_tenant, catalog_stub):
-    """Atrapa una carta con la URL de Odoo (o sin URL, o sin versión) en la foto de un plato."""
+    """Atrapa una carta con la URL de Odoo (o sin URL, o sin versión) en la foto de un plato, o sin el origen y el aviso legal."""
     body = api_client.get(reverse('entry-table', args=['burger-house', 'poblado', '8H2KQ7'])).json()
     bebidas, hamburguesas = body['carta']['categorias']
     assert hamburguesas['productos'][0]['foto'] == '/api/v1/burger-house/poblado/fotos/3/?v=20260905010203'
     assert bebidas['productos'][0]['foto'] is None
+    assert (hamburguesas['productos'][0]['fotoOrigen'], bebidas['productos'][0]['fotoOrigen']) == ('ia', None)
+    assert body['carta']['imagenesDeReferencia'] is True

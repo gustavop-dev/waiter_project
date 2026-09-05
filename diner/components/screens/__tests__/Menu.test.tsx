@@ -16,8 +16,9 @@ const dish = (id: number, nombre: string, categorias: number[], agotado = false)
 const entradas = { id: 1, nombre: 'Entradas', productos: [dish(1, 'Ají de la casa', [1]), dish(2, 'Empanadas', [1])] }
 const fuertes = { id: 2, nombre: 'Fuertes', productos: [dish(3, 'Lomo al trapo', [2]), dish(4, 'Ajiaco', [2], true)] }
 const postres: Category = { id: 3, nombre: 'Postres', productos: [] }
-const entryOf = (categorias: Category[]): Entry => ({ contexto: { restaurante: { slug: 'prov', nombre: 'La Provincia' }, sede: { slug: 'centro', nombre: 'Centro' }, mesa: null, marca: brand }, carta: { restaurante: 'prov', categorias } })
-const wrap = (categorias: Category[] = [entradas, fuertes]) => render(<NextIntlClientProvider locale="es" messages={messages}><Menu entry={entryOf(categorias)} rest="prov" venue="centro" token={null} id={null} /></NextIntlClientProvider>)
+const entryOf = (categorias: Category[], imagenesDeReferencia?: boolean): Entry => ({ contexto: { restaurante: { slug: 'prov', nombre: 'La Provincia' }, sede: { slug: 'centro', nombre: 'Centro' }, mesa: null, marca: brand }, carta: { restaurante: 'prov', categorias, imagenesDeReferencia } })
+const wrap = (categorias: Category[] = [entradas, fuertes], imagenesDeReferencia?: boolean) => render(<NextIntlClientProvider locale="es" messages={messages}><Menu entry={entryOf(categorias, imagenesDeReferencia)} rest="prov" venue="centro" token={null} id={null} /></NextIntlClientProvider>)
+const NOTE = 'Imágenes de referencia: la porción servida puede variar.'
 
 beforeEach(() => { mockPush.mockClear(); mockAdd.mockClear() })
 
@@ -106,4 +107,21 @@ it('adds one unit without note from the card', async () => {
   wrap()
   await user.click(screen.getByRole('button', { name: 'Agregar: Empanadas' }))
   expect(mockAdd).toHaveBeenCalledWith(2, 1, '')
+})
+
+// Falla si una carta con fotos generadas con IA no avisa que son de referencia, si el aviso no va entre las categorías y la rejilla, o si se pierde al filtrar.
+it('says the photos are reference images between the categories and the grid when the menu flags it', async () => {
+  const user = userEvent.setup()
+  wrap([entradas, fuertes], true)
+  const note = screen.getByText(NOTE)
+  expect(screen.getByRole('tablist').compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect(screen.getByRole('tabpanel')).not.toContainElement(note)
+  await user.click(screen.getByRole('tab', { name: 'Fuertes' }))
+  expect(screen.getByText(NOTE)).toBeInTheDocument()
+})
+
+// Falla si el aviso de imágenes de referencia aparece en una carta que no lo pide.
+it('does not mention reference images when the menu does not flag it', () => {
+  wrap()
+  expect(screen.queryByText(NOTE)).toBeNull()
 })

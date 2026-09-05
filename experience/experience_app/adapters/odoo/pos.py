@@ -36,6 +36,9 @@ class Product:
     has_image: bool = False
     # write_date de la plantilla, compactado: cambia con la foto y versiona su URL pública.
     image_version: str = ''
+    # product.template.image_origin (addon projectapp_ops): 'real' | 'ai' | 'placeholder' | '' (sin marcar: Odoo devuelve
+    # False). La carta lo traduce al comensal y con él decide la nota «Imágenes de referencia».
+    image_origin: str = ''
     # Lo que el comensal ve y paga: precio de lista más los impuestos que Odoo suma encima (IVA/INC excluidos del
     # precio). `price` sigue siendo el de lista porque es el que se envía a Odoo, que calcula el impuesto por su lado.
     final_price: float | None = None
@@ -139,12 +142,13 @@ def load_catalog(client: OdooClient, pos_session_id: int) -> Catalog:
     if storable:
         rows = client.call_kw('product.product', 'search_read', [[['id', 'in', storable]], ['qty_available']])
         sold_out = {r['id'] for r in rows if r['qty_available'] <= 0}
-    # description_sale e image_128 llegan como False cuando están vacíos (no como '' ni None).
+    # description_sale, image_128 e image_origin llegan como False cuando están vacíos (no como '' ni None); image_origin
+    # ni siquiera llega si projectapp_ops no se ha actualizado en ese Odoo, y la carta debe salir igual.
     taxes = _taxes_by_id(client, {tid for t in base.values() for tid in t['taxes_id']})
     products = [Product(id=pid, name=t['name'], price=t['list_price'], category_ids=t['pos_categ_ids'], tax_ids=t['taxes_id'],
                         sold_out=pid in sold_out, template_id=t['id'], description=t.get('description_sale') or '',
                         favorite=bool(t.get('is_favorite')), has_image=bool(t.get('image_128')),
-                        image_version=_version(t.get('write_date')),
+                        image_version=_version(t.get('write_date')), image_origin=t.get('image_origin') or '',
                         final_price=price_with_taxes(t['list_price'], [taxes[i] for i in t['taxes_id'] if i in taxes]))
                 for pid, t in base.items()]
     categories = [Category(c['id'], c['name'], c['sequence']) for c in raw['pos.category']]

@@ -2,7 +2,8 @@
 
 Addon **sin interfaz** para el backoffice propio (`pos/`): `pos.order.waiter_origin`
 (mesero / comensal / IA), umbrales de alerta y supuestos del ROI en `pos.config`
-(llegan al cliente por `load_data`). Instalación: `-i projectapp_ops`.
+(llegan al cliente por `load_data`), marca del restaurante en `res.company` y origen de
+la imagen en `product.template`. Instalación: `-i projectapp_ops`.
 
 ## Roles (`res.users.waiter_role`)
 
@@ -38,6 +39,21 @@ nacen vacíos. El nombre del restaurante es `res.company.name`.
 - ¿Hay logo sin descargarlo? `search_read` con `context={'bin_size': True}` devuelve el tamaño en vez del base64.
 - `write_date` de la compañía versiona la URL pública del logo (`/api/v1/<rest>/<sede>/logo/?v=YYYYMMDDhhmmss`).
 - Actualizar en un Odoo ya instalado: `-u projectapp_ops` (agrega las columnas; no hay datos ni vistas).
+
+## Origen de la imagen (`product.template.image_origin`)
+
+Trazabilidad de las fotos de la carta (`docs/diseno/2026-09-05-imagenes-menu.md`, «Trazabilidad»
+y «Límite legal»): `'real'` foto real · `'ai'` generada con IA · `'placeholder'` sin foto.
+**Sin default**: una plantilla sin marcar no afirma nada sobre su foto. Se escribe por RPC (la
+herramienta que genera las imágenes lo marca al cargarlas) y viaja en `pos.session.load_data`
+junto a los demás campos de `product.template`, así que lo ven el POS y `experience/`.
+
+- `experience/` lo traduce a `fotoOrigen` (`'real'` · `'ia'` · `'placeholder'` · `null`) en cada
+  plato y enciende `imagenesDeReferencia` en la carta cuando algún plato con foto está marcado
+  `'ai'`; la app del comensal muestra entonces «Imágenes de referencia: la porción servida puede variar».
+- Límite legal: una imagen generada no representa la porción servida. Marcar el origen no es
+  opcional cuando la foto es generada.
+- Actualizar en un Odoo ya instalado: `-u projectapp_ops` (agrega la columna; no hay datos ni vistas).
 
 ## Invitaciones y códigos
 

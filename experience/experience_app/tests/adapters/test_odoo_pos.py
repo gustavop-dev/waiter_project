@@ -10,14 +10,16 @@ from experience_app.tests.helpers import AUTH, FakeResponse, FakeSession, params
 CREDS = OdooCredentials(url='http://odoo', db='bh', login='svc', password='x', pos_config_id=1)
 LINE = pos.OrderLine(uuid='l1', product_id=3, name='Angus', unit_price=36900, qty=2, note='sin cebolla', tax_ids=[5])
 READ = FakeResponse([{'id': 13, 'pos_reference': '260-1-1', 'state': 'draft', 'amount_total': 87822, 'amount_tax': 14022, 'amount_paid': 0}])
-# Forma real de load_data (Odoo 19): description_sale e image_128 llegan como False cuando están vacíos.
+# Forma real de load_data (Odoo 19): description_sale, image_128 e image_origin llegan como False cuando están vacíos.
 TEMPLATE = {'list_price': 36900, 'pos_categ_ids': [1], 'taxes_id': [55], 'available_in_pos': True, 'active': True,
             'is_storable': False, 'write_date': '2026-09-05 01:02:03'}
 LOAD_DATA = FakeResponse({
     'product.product': [{'id': 3, 'product_tmpl_id': 21}, {'id': 7, 'product_tmpl_id': 22}],
     'product.template': [
-        {**TEMPLATE, 'id': 21, 'name': 'Angus', 'is_favorite': True, 'description_sale': 'Carne 200 g', 'image_128': 'iVBORw0KGgo='},
-        {**TEMPLATE, 'id': 22, 'name': 'Limonada', 'is_favorite': False, 'description_sale': False, 'image_128': False},
+        {**TEMPLATE, 'id': 21, 'name': 'Angus', 'is_favorite': True, 'description_sale': 'Carne 200 g', 'image_128': 'iVBORw0KGgo=',
+         'image_origin': 'ai'},
+        {**TEMPLATE, 'id': 22, 'name': 'Limonada', 'is_favorite': False, 'description_sale': False, 'image_128': False,
+         'image_origin': False},
     ],
     'pos.category': [{'id': 1, 'name': 'Carta', 'sequence': 0}], 'res.company': [{'id': 1, 'name': 'Burger House'}],
 })
@@ -76,7 +78,8 @@ def test_connection_error_becomes_unavailable():
 
 
 def test_load_catalog_reads_template_id_description_favorite_photo_flag_and_version():
-    """Atrapa una descripción False, un favorito perdido, "tiene foto" con image_128 en False o una foto sin versión."""
+    """Atrapa una descripción False, un favorito perdido, "tiene foto" con image_128 en False, una foto sin versión o un origen
+    de foto que llegue como False en vez de vacío."""
     taxes = FakeResponse([{'id': 55, 'amount': 19.0, 'amount_type': 'percent', 'price_include': False}])
     catalog = pos.load_catalog(OdooClient(CREDS, FakeSession([AUTH, LOAD_DATA, taxes])), 4)
     angus, limonada = catalog.products
@@ -86,6 +89,18 @@ def test_load_catalog_reads_template_id_description_favorite_photo_flag_and_vers
     assert (angus.description, angus.favorite, angus.has_image) == ('Carne 200 g', True, True)
     assert (limonada.description, limonada.favorite, limonada.has_image) == ('', False, False)
     assert angus.image_version == '20260905010203'
+    assert (angus.image_origin, limonada.image_origin) == ('ai', '')
+
+
+def test_load_catalog_tolerates_an_odoo_without_the_image_origin_field():
+    """Atrapa un KeyError con un Odoo donde projectapp_ops aún no se actualizó (-u): la carta debe salir igual, sin origen."""
+    raw = FakeResponse({
+        'product.product': [{'id': 3, 'product_tmpl_id': 21}],
+        'product.template': [{**TEMPLATE, 'id': 21, 'name': 'Angus', 'is_favorite': False, 'description_sale': False, 'image_128': False}],
+        'pos.category': [], 'res.company': [],
+    })
+    catalog = pos.load_catalog(OdooClient(CREDS, FakeSession([AUTH, raw, FakeResponse([])])), 4)
+    assert catalog.products[0].image_origin == ''
 
 
 def test_fetch_product_image_reads_the_template_photo_by_json_rpc():
