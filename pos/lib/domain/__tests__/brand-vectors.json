@@ -1,0 +1,134 @@
+{
+  "vectors": [
+    {
+      "color": "#C1873A",
+      "font": "Lora",
+      "radius": 24,
+      "theme": {
+        "color": "#C1873A",
+        "colorTexto": "#1A1815",
+        "colorSuave": "#F9F3EB",
+        "fuente": "Lora",
+        "radio": 24,
+        "contraste": 5.73
+      }
+    },
+    {
+      "color": "#7A2E2A",
+      "font": "Instrument Serif",
+      "radius": 4,
+      "theme": {
+        "color": "#7A2E2A",
+        "colorTexto": "#FFFFFF",
+        "colorSuave": "#F2EAEA",
+        "fuente": "Instrument Serif",
+        "radio": 4,
+        "contraste": 9.33
+      }
+    },
+    {
+      "color": "#1A1815",
+      "font": "Playfair Display",
+      "radius": 14,
+      "theme": {
+        "color": "#1A1815",
+        "colorTexto": "#FFFFFF",
+        "colorSuave": "#E8E8E8",
+        "fuente": "Playfair Display",
+        "radio": 14,
+        "contraste": 17.72
+      }
+    },
+    {
+      "color": "#FFFFFF",
+      "font": "Fraunces",
+      "radius": 24,
+      "theme": {
+        "color": "#FFFFFF",
+        "colorTexto": "#1A1815",
+        "colorSuave": "#FFFFFF",
+        "fuente": "Fraunces",
+        "radio": 24,
+        "contraste": 17.72
+      }
+    },
+    {
+      "color": "#808080",
+      "font": "DM Serif Display",
+      "radius": 4,
+      "theme": {
+        "color": "#808080",
+        "colorTexto": "#1A1815",
+        "colorSuave": "#F2F2F2",
+        "fuente": "DM Serif Display",
+        "radio": 4,
+        "contraste": 4.49
+      }
+    },
+    {
+      "color": "#2F7A4F",
+      "font": "Cormorant Garamond",
+      "radius": 14,
+      "theme": {
+        "color": "#2F7A4F",
+        "colorTexto": "#FFFFFF",
+        "colorSuave": "#EAF2ED",
+        "fuente": "Cormorant Garamond",
+        "radio": 14,
+        "contraste": 5.23
+      }
+    },
+    {
+      "color": "#F2C94C",
+      "font": "Lora",
+      "radius": 24,
+      "theme": {
+        "color": "#F2C94C",
+        "colorTexto": "#1A1815",
+        "colorSuave": "#FEFAED",
+        "fuente": "Lora",
+        "radio": 24,
+        "contraste": 11.16
+      }
+    },
+    {
+      "color": "#3B5BDB",
+      "font": "Lora",
+      "radius": 24,
+      "theme": {
+        "color": "#3B5BDB",
+        "colorTexto": "#FFFFFF",
+        "colorSuave": "#EBEFFB",
+        "fuente": "Lora",
+        "radio": 24,
+        "contraste": 5.67
+      }
+    },
+    {
+      "color": "#0F766E",
+      "font": "Fraunces",
+      "radius": 4,
+      "theme": {
+        "color": "#0F766E",
+        "colorTexto": "#FFFFFF",
+        "colorSuave": "#E7F1F0",
+        "fuente": "Fraunces",
+        "radio": 4,
+        "contraste": 5.47
+      }
+    },
+    {
+      "color": "#E11D48",
+      "font": "Playfair Display",
+      "radius": 24,
+      "theme": {
+        "color": "#E11D48",
+        "colorTexto": "#FFFFFF",
+        "colorSuave": "#FCE8ED",
+        "fuente": "Playfair Display",
+        "radio": 24,
+        "contraste": 4.7
+      }
+    }
+  ]
+}

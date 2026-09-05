@@ -44,13 +44,18 @@ export async function getBrandLogo(companyId: number): Promise<string | null> {
 }
 
 // logo: base64 si se subió uno nuevo, remove si se quita; undefined no toca el campo.
+// Se escribe por write_brand(vals) del addon (no por write): es el que exige el grupo de gerente del POS, admite solo
+// la lista cerrada de campos brand_* y recorta los textos. Aquí se recorta igual para que lo que ve la vista previa
+// sea lo que queda guardado, y el vacío viaja como false ("usar lo del registro").
 export async function saveBrand(b: BrandInfo, logo?: LogoChange): Promise<void> {
+  const text = (value: string): string | false => value.trim() || false
+  const color = b.color.trim()
   const values: Record<string, string | false> = {
-    brand_color: b.color ? b.color.toUpperCase() : false, brand_font: b.font || false, brand_radius: b.radius || false, brand_tagline: b.tagline || false,
-    brand_greeting: b.greeting || false, brand_waiter_name: b.waiterName || false, brand_welcome: b.welcome || false,
+    brand_color: color ? color.toUpperCase() : false, brand_font: b.font || false, brand_radius: b.radius || false, brand_tagline: text(b.tagline),
+    brand_greeting: text(b.greeting), brand_waiter_name: text(b.waiterName), brand_welcome: text(b.welcome),
   }
   if (logo) values.brand_logo = 'remove' in logo ? false : logo.base64
-  await callKw('res.company', 'write', [[b.companyId], values])
+  await callKw('res.company', 'write_brand', [values])
 }
 
 export async function listFloors(): Promise<FloorInfo[]> {

@@ -28,22 +28,31 @@ it('reads the logo base64 without bin_size', async () => {
   await expect(getBrandLogo(1)).resolves.toBeNull()
 })
 
-// Falla si un campo vacío viaja como '' (Odoo lo guardaría como texto vacío en vez de "usar el registro")
-// o si el logo se toca cuando el administrador no lo cambió.
-it('writes empty strings as false, uppercases the color and leaves the logo alone by default', async () => {
+// Falla si la marca se guarda por write (Odoo exigiría el grupo system y no recortaría), si un campo vacío viaja
+// como '' (Odoo lo guardaría como texto vacío en vez de "usar el registro") o si el logo se toca sin haberlo cambiado.
+it('writes through write_brand with empty strings as false, uppercased color and no logo by default', async () => {
   m.mockResolvedValueOnce(true)
   await saveBrand(BRAND)
   const [model, method, args] = m.mock.calls[0]
-  expect([model, method, args[0]]).toEqual(['res.company', 'write', [1]])
-  expect(args[1]).toEqual({ brand_color: '#7A2E2A', brand_font: 'Lora', brand_radius: '14', brand_tagline: 'Cocina de barrio', brand_greeting: false, brand_waiter_name: 'Alex', brand_welcome: false })
-  expect(args[1]).not.toHaveProperty('brand_logo')
+  expect([model, method]).toEqual(['res.company', 'write_brand'])
+  expect(args).toHaveLength(1)
+  expect(args[0]).toEqual({ brand_color: '#7A2E2A', brand_font: 'Lora', brand_radius: '14', brand_tagline: 'Cocina de barrio', brand_greeting: false, brand_waiter_name: 'Alex', brand_welcome: false })
+  expect(args[0]).not.toHaveProperty('brand_logo')
 })
 
 // Falla si subir un logo no manda el base64 o si quitarlo no manda false.
 it('uploads or removes the logo when asked', async () => {
   m.mockResolvedValue(true)
   await saveBrand({ ...BRAND, color: '', radius: '' }, { base64: 'QUJD' })
-  expect(m.mock.calls[0][2][1]).toMatchObject({ brand_color: false, brand_radius: false, brand_logo: 'QUJD' })
+  expect(m.mock.calls[0][2][0]).toMatchObject({ brand_color: false, brand_radius: false, brand_logo: 'QUJD' })
   await saveBrand(BRAND, { remove: true })
-  expect(m.mock.calls[1][2][1].brand_logo).toBe(false)
+  expect(m.mock.calls[1][2][0].brand_logo).toBe(false)
+})
+
+// Falla si un texto de solo espacios se guarda como texto (el comensal vería una línea en blanco) o si los espacios
+// de los bordes llegan a Odoo: el addon recorta igual, y lo guardado debe ser lo que la vista previa mostró.
+it('trims the texts and sends whitespace-only ones as false', async () => {
+  m.mockResolvedValueOnce(true)
+  await saveBrand({ ...BRAND, color: ' #7a2e2a ', tagline: '   ', greeting: ' Buenas ', waiterName: ' Alex ', welcome: '\t' })
+  expect(m.mock.calls[0][2][0]).toEqual({ brand_color: '#7A2E2A', brand_font: 'Lora', brand_radius: '14', brand_tagline: false, brand_greeting: 'Buenas', brand_waiter_name: 'Alex', brand_welcome: false })
 })
