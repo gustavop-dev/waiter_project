@@ -70,9 +70,12 @@ scripts/demo-comensal.sh
 
 ## Próximos pasos
 
-1. Pasarela de pago en el bloque 3 (`experience/pagos`): al `pago aprobado`,
-   registrar el pago en Odoo y emitir el evento para facturación.
+1. Pasarela de pago en el bloque 3: hoy el pago del comensal está maquetado
+   (`pago/simulado/`, insignia «Demo · sin cobro real»); al `pago aprobado`,
+   registrar el pago en Odoo y emitir el evento para facturación. Verificación real
+   del registro del comensal (hoy cualquier código de seis dígitos).
 2. Mesero IA sobre la API del bloque 3 (la PWA del comensal ya existe, Plan F;
-   la marca ya se edita desde el POS, Plan G).
+   la marca se edita desde el POS, Plan G; las 30 plantillas de menú, pago y cuenta
+   con almacén propio en el módulo 3, Plan H).
 3. Fotos de portada del restaurante y varios idiomas del comensal (fuera del
    Plan G a propósito).
