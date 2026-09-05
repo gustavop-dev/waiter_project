@@ -184,6 +184,7 @@ waiter_project/
 │   ├── producto/          visión
 │   ├── decisiones/        ADRs
 │   └── arquitectura/      este documento
+├── pos/                   app Next.js del operador: mesero y cajero (bloque 1, lado cliente)
 ├── registry/              servicio Django: registro central
 ├── experience/            servicio Django: bloque 3 (backend)
 ├── billing/               servicio Django: bloque 2

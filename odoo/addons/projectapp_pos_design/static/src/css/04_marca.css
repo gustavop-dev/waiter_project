@@ -12,16 +12,29 @@
 
 /* ---------- Navbar del POS y salvapantallas ------------------ */
 /* .pos-logo pinta var(--navbar-logo) con el logo de Odoo por
-   defecto. Basta con darle otro valor: sirve para el navbar y
-   para el saver_screen, que reutiliza la misma clase.           */
+   defecto. Se anula y el wordmark "Waiter." se pinta como TEXTO
+   en Ubuntu 700 (v1.1): un SVG en background-image no puede usar
+   las fuentes de la página.                                     */
 .pos {
-  --navbar-logo: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 260 64%22%3E%3Ctext x=%220%22 y=%2247%22 font-family=%22Georgia,&apos;Times New Roman&apos;,serif%22 font-size=%2246%22 fill=%22%25231A1815%22%3EWaiter%3C/text%3E%3C/svg%3E");
+  --navbar-logo: none;
 }
-
-/* Sobre la barra oscura del POS, la marca va en tinta clara. */
-.pos .bg-dark .pos-logo,
-.pos .text-bg-dark .pos-logo {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 260 64%22%3E%3Ctext x=%220%22 y=%2247%22 font-family=%22Georgia,&apos;Times New Roman&apos;,serif%22 font-size=%2246%22 fill=%22%2523F5F1EA%22%3EWaiter%3C/text%3E%3C/svg%3E");
+.pos .pos-logo {
+  background-image: none !important;
+  display: grid;
+  place-items: center;
+}
+.pos .pos-logo::after {
+  content: "Waiter.";
+  font-family: var(--w-font-ui);
+  font-weight: var(--w-weight-bold);
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: var(--w-tracking-wordmark);
+  color: var(--w-ink);
+}
+.pos .bg-dark .pos-logo::after,
+.pos .text-bg-dark .pos-logo::after {
+  color: var(--w-kds-ink);
 }
 
 /* ---------- «Powered by Odoo» -------------------------------- */

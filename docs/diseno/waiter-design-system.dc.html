@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  body { margin: 0; background: #FAF8F5; font-family: "Ubuntu", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #A06E2C; text-decoration: none; }
+  a:hover { color: #7A5320; text-decoration: underline; }
+  * { box-sizing: border-box; }
+</style>
+</helmet>
+<div style="--w-accent: {{ accent }}; --w-accent-strong: {{ accentStrong }}; --w-accent-soft: {{ accentSoft }}; --w-tap: {{ tap }}; --w-pad: {{ pad }}; background: #FAF8F5; color: #1A1815; padding: 0 0 96px;">
+
+  <div style="max-width: 1180px; margin: 0 auto; padding: 0 40px; min-width: 0;">
+
+    <header style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 40px; align-items: end; padding: 72px 0 48px; border-bottom: 1px solid #E4DED4;">
+      <div style="display: flex; flex-direction: column; gap: 20px; min-width: 0;">
+        <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #9A8F7E; font-weight: 600;">
+          <span style="width: 26px; height: 2px; background: var(--w-accent, #C1873A);"></span>
+          <span>Sistema de diseño · v1.1</span>
+        </div>
+        <h1 style="margin: 0; font-family: 'Ubuntu', sans-serif; font-size: 86px; line-height: 0.98; letter-spacing: -0.035em; font-weight: 700;">Waiter<span style="color: var(--w-accent, #C1873A);">.</span></h1>
+        <p style="margin: 0; font-size: 21px; line-height: 1.45; color: #575046; max-width: 44ch; text-wrap: pretty;">La base visual del SaaS de restaurantes de ProjectApp. Una piel que se pone la marca del restaurante frente al comensal, y desaparece detrás del equipo que trabaja.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px;">
+          <span style="display: inline-flex; align-items: center; height: 34px; padding: 0 14px; border-radius: 999px; background: #FFFFFF; border: 1px solid #E4DED4; font-size: 14px; color: #575046;">Sub-marca de ProjectApp</span>
+          <span style="display: inline-flex; align-items: center; height: 34px; padding: 0 14px; border-radius: 999px; background: #FFFFFF; border: 1px solid #E4DED4; font-size: 14px; color: #575046;">Modo claro</span>
+          <span style="display: inline-flex; align-items: center; height: 34px; padding: 0 14px; border-radius: 999px; background: #FFFFFF; border: 1px solid #E4DED4; font-size: 14px; color: #575046;">Táctil primero</span>
+          <span style="display: inline-flex; align-items: center; height: 34px; padding: 0 14px; border-radius: 999px; background: #FFFFFF; border: 1px solid #E4DED4; font-size: 14px; color: #575046;">Español</span>
+          <span style="display: inline-flex; align-items: center; height: 34px; padding: 0 14px; border-radius: 999px; background: #FFFFFF; border: 1px solid #E4DED4; font-size: 14px; color: #575046;">Ubuntu + Plex Mono</span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px; padding: 26px; background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; box-shadow: 0 1px 2px rgba(26,24,21,0.04), 0 12px 32px -18px rgba(26,24,21,0.18);">
+        <div style="font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: #9A8F7E; font-weight: 600;">Dos caras, un sistema</div>
+        <div style="display: flex; gap: 14px; align-items: flex-start;">
+          <div style="width: 44px; height: 44px; flex: none; border-radius: 12px; background: #F2EEE8; display: grid; place-items: center; font-family: 'Ubuntu', sans-serif; font-weight: 700; font-size: 20px; color: var(--w-accent-strong, #A06E2C);">A</div>
+          <div>
+            <div style="font-size: 17px; font-weight: 600;">Operación</div>
+            <div style="font-size: 15px; line-height: 1.5; color: #6B6259;">Mesero, cajero, cocina y administrador. Sin personalización: rápido, igual en todos los restaurantes, aprendible en un turno.</div>
+          </div>
+        </div>
+        <div style="height: 1px; background: #EFE9E0;"></div>
+        <div style="display: flex; gap: 14px; align-items: flex-start;">
+          <div style="width: 44px; height: 44px; flex: none; border-radius: 12px; background: var(--w-accent-soft, #FDF6EA); display: grid; place-items: center; font-family: 'Ubuntu', sans-serif; font-weight: 700; font-size: 20px; color: var(--w-accent-strong, #A06E2C);">B</div>
+          <div>
+            <div style="font-size: 17px; font-weight: 600;">Comensal</div>
+            <div style="font-size: 15px; line-height: 1.5; color: #6B6259;">Menú QR y autoservicio. Aquí manda la marca del restaurante: logo, color, tipografía y fotos son suyos; la estructura es nuestra.</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <nav style="display: flex; flex-wrap: wrap; gap: 6px; padding: 20px 0 0;">
+      <a href="#color" style="padding: 9px 14px; border-radius: 10px; background: #FFFFFF; border: 1px solid #E4DED4; font-size: 15px; color: #3B352E; text-decoration: none;">Color</a>
+      <a href="#tipografia" style="padding: 9px 14px; border-radius: 10px; background: #FFFFFF; border: 1px solid #E4DED4; font-size: 15px; color: #3B352E; text-decoration: none;">Tipografía</a>
+      <a href="#espacio" style="padding: 9px 14px; border-radius: 10px; background: #FFFFFF; border: 1px solid #E4DED4; font-size: 15px; color: #3B352E; text-decoration: none;">Espacio y tacto</a>
+      <a href="#componentes" style="padding: 9px 14px; border-radius: 10px; background: #FFFFFF; border: 1px solid #E4DED4; font-size: 15px; color: #3B352E; text-decoration: none;">Componentes</a>
+      <a href="#operacion" style="padding: 9px 14px; border-radius: 10px; background: #FFFFFF; border: 1px solid #E4DED4; font-size: 15px; color: #3B352E; text-decoration: none;">Piezas de operación</a>
+      <a href="#comensal" style="padding: 9px 14px; border-radius: 10px; background: #FFFFFF; border: 1px solid #E4DED4; font-size: 15px; color: #3B352E; text-decoration: none;">Comensal y white-label</a>
+      <a href="#voz" style="padding: 9px 14px; border-radius: 10px; background: #FFFFFF; border: 1px solid #E4DED4; font-size: 15px; color: #3B352E; text-decoration: none;">Voz</a>
+    </nav>
+
+    <section id="color" style="padding: 64px 0 0;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 62ch; margin-bottom: 28px;">
+        <div style="font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: #9A8F7E; font-weight: 600;">01 · Color</div>
+        <h2 style="margin: 0; font-family: 'Ubuntu', sans-serif; font-size: 34px; line-height: 1.14; font-weight: 700; letter-spacing: -0.025em;">Neutros cálidos, un acento de brasa, semánticos que se leen a tres metros</h2>
+        <p style="margin: 0; font-size: 17px; line-height: 1.55; color: #6B6259; text-wrap: pretty;">Los neutros llevan una gota de tierra: la interfaz vive en salones de luz cálida, no en oficinas. El acento <strong style="font-weight: 600;">Brasa</strong> es lo único que distingue a Waiter de ProjectApp, y se reserva para la acción principal de cada pantalla.</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+        <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 24px;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px;">
+            <h3 style="margin: 0; font-size: 19px; font-weight: 600;">Brasa · acento de marca</h3>
+            <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #9A8F7E;">--w-brand-*</code>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;">
+            <div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 64px; border-radius: 10px; background: #FDF6EA; border: 1px solid #EFE4D2;"></div><div style="font-size: 12px; color: #6B6259;">50</div><code style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #9A8F7E;">FDF6EA</code></div>
+            <div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 64px; border-radius: 10px; background: #F6E4C4;"></div><div style="font-size: 12px; color: #6B6259;">100</div><code style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #9A8F7E;">F6E4C4</code></div>
+            <div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 64px; border-radius: 10px; background: #E4B879;"></div><div style="font-size: 12px; color: #6B6259;">300</div><code style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #9A8F7E;">E4B879</code></div>
+            <div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 64px; border-radius: 10px; background: var(--w-accent, #C1873A);"></div><div style="font-size: 12px; color: #3B352E; font-weight: 600;">500</div><code style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #9A8F7E;">C1873A</code></div>
+            <div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 64px; border-radius: 10px; background: var(--w-accent-strong, #A06E2C);"></div><div style="font-size: 12px; color: #6B6259;">600</div><code style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #9A8F7E;">A06E2C</code></div>
+            <div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 64px; border-radius: 10px; background: #6F4A1C;"></div><div style="font-size: 12px; color: #6B6259;">700</div><code style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #9A8F7E;">6F4A1C</code></div>
+          </div>
+          <p style="margin: 16px 0 0; font-size: 14px; line-height: 1.5; color: #6B6259;">500 para botones y estados activos, 600 para hover y texto sobre claro, 50/100 para fondos de selección. Nunca dos botones Brasa en la misma vista.</p>
+        </div>
+
+        <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 24px;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px;">
+            <h3 style="margin: 0; font-size: 19px; font-weight: 600;">Neutros · piedra tibia</h3>
+            <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #9A8F7E;">--w-ink / --w-surface</code>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;">
+            <div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 64px; border-radius: 10px; background: #FFFFFF; border: 1px solid #E4DED4;"></div><div style="font-size: 12px; color: #6B6259;">surface</div><code style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #9A8F7E;">FFFFFF</code></div>
+            <div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 64px; border-radius: 10px; background: #FAF8F5; border: 1px solid #E4DED4;"></div><div style="font-size: 12px; color: #6B6259;">canvas</div><code style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #9A8F7E;">FAF8F5</code></div>
+            <div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 64px; border-radius: 10px; background: #F2EEE8;"></div><div style="font-size: 12px; color: #6B6259;">muted</div><code style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #9A8F7E;">F2EEE8</code></div>
+            <div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 64px; border-radius: 10px; background: #E4DED4;"></div><div style="font-size: 12px; color: #6B6259;">border</div><code style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #9A8F7E;">E4DED4</code></div>
+            <div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 64px; border-radius: 10px; background: #6B6259;"></div><div style="font-size: 12px; color: #6B6259;">soft</div><code style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #9A8F7E;">6B6259</code></div>
+            <div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 64px; border-radius: 10px; background: #1A1815;"></div><div style="font-size: 12px; color: #6B6259;">ink</div><code style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #9A8F7E;">1A1815</code></div>
+          </div>
+          <p style="margin: 16px 0 0; font-size: 14px; line-height: 1.5; color: #6B6259;">Texto principal <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">ink</code>, secundario <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">soft</code>, terciario <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">#9A8F7E</code>. Tres niveles, ni uno más.</p>
+        </div>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 24px; margin-top: 20px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px;">
+          <h3 style="margin: 0; font-size: 19px; font-weight: 600;">Semánticos de operación</h3>
+          <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #9A8F7E;">--w-state-*</code>
+        </div>
+        <p style="margin: 0 0 18px; font-size: 14px; line-height: 1.5; color: #6B6259; max-width: 76ch;">Estos colores son estado, no decoración: el mesero los lee de reojo, caminando. Cada uno viene en par (sólido para superficies grandes, suave para etiquetas) y siempre carga texto — el color solo nunca comunica.</p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+          <div style="border: 1px solid #E9E2D7; border-radius: 14px; overflow: hidden;">
+            <div style="height: 76px; background: #2F7A4F; color: #FFFFFF; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px;"><span style="font-size: 22px; font-weight: 700;">1</span><span style="font-size: 13px; opacity: 0.9;">Libre</span></div>
+            <div style="padding: 12px;"><div style="font-size: 15px; font-weight: 600;">Libre / éxito</div><code style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #9A8F7E;">2F7A4F · E6F1EA</code></div>
+          </div>
+          <div style="border: 1px solid #E9E2D7; border-radius: 14px; overflow: hidden;">
+            <div style="height: 76px; background: #B4342F; color: #FFFFFF; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px;"><span style="font-size: 22px; font-weight: 700;">4</span><span style="font-size: 13px; opacity: 0.9;">Ocupada</span></div>
+            <div style="padding: 12px;"><div style="font-size: 15px; font-weight: 600;">Ocupada / error</div><code style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #9A8F7E;">B4342F · FBEAE8</code></div>
+          </div>
+          <div style="border: 1px solid #E9E2D7; border-radius: 14px; overflow: hidden;">
+            <div style="height: 76px; background: #5B4BC4; color: #FFFFFF; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px;"><span style="font-size: 22px; font-weight: 700;">6</span><span style="font-size: 13px; opacity: 0.9;">En cocina</span></div>
+            <div style="padding: 12px;"><div style="font-size: 15px; font-weight: 600;">En cocina / info</div><code style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #9A8F7E;">5B4BC4 · ECEAFB</code></div>
+          </div>
+          <div style="border: 1px solid #E9E2D7; border-radius: 14px; overflow: hidden;">
+            <div style="height: 76px; background: #C9820C; color: #FFFFFF; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px;"><span style="font-size: 22px; font-weight: 700;">3</span><span style="font-size: 13px; opacity: 0.9;">Pendiente</span></div>
+            <div style="padding: 12px;"><div style="font-size: 15px; font-weight: 600;">Pendiente / aviso</div><code style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #9A8F7E;">C9820C · FDF2DC</code></div>
+          </div>
+          <div style="border: 1px solid #E9E2D7; border-radius: 14px; overflow: hidden;">
+            <div style="height: 76px; background: #4A5568; color: #FFFFFF; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px;"><span style="font-size: 22px; font-weight: 700;">13</span><span style="font-size: 13px; opacity: 0.9;">Asistencia</span></div>
+            <div style="padding: 12px;"><div style="font-size: 15px; font-weight: 600;">Asistencia / neutro</div><code style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #9A8F7E;">4A5568 · EEF0F3</code></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; margin-top: 20px;">
+        <div style="background: #16130F; border: 1px solid #2C2823; border-radius: 18px; padding: 24px; color: #F5F1EA;">
+          <h3 style="margin: 0 0 6px; font-size: 19px; font-weight: 600;">Superficie oscura · solo cocina</h3>
+          <p style="margin: 0 0 18px; font-size: 14px; line-height: 1.5; color: #A8A096; max-width: 50ch;">La única excepción al modo claro. El KDS vive sobre una pantalla fija a dos metros, entre vapor y grasa: fondo oscuro, tipografía enorme, estados a todo color.</p>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+            <div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 56px; border-radius: 10px; background: #12100E; border: 1px solid #2C2823;"></div><code style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #A8A096;">12100E</code></div>
+            <div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 56px; border-radius: 10px; background: #1C1916; border: 1px solid #2C2823;"></div><code style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #A8A096;">1C1916</code></div>
+            <div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 56px; border-radius: 10px; background: #2C2823;"></div><code style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #A8A096;">2C2823</code></div>
+            <div style="display: flex; flex-direction: column; gap: 6px;"><div style="height: 56px; border-radius: 10px; background: #F5F1EA;"></div><code style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #A8A096;">F5F1EA</code></div>
+          </div>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 24px;">
+          <h3 style="margin: 0 0 6px; font-size: 19px; font-weight: 600;">Reglas que no se rompen</h3>
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 14px;">
+            <div style="display: flex; gap: 10px; align-items: flex-start;"><span style="width: 22px; height: 22px; flex: none; border-radius: 999px; background: #E6F1EA; color: #2F7A4F; display: grid; place-items: center; font-size: 13px; font-weight: 700;">✓</span><span style="font-size: 15px; line-height: 1.5; color: #3B352E;">Contraste mínimo 4.5:1 en texto, 3:1 en iconos y bordes de estado.</span></div>
+            <div style="display: flex; gap: 10px; align-items: flex-start;"><span style="width: 22px; height: 22px; flex: none; border-radius: 999px; background: #E6F1EA; color: #2F7A4F; display: grid; place-items: center; font-size: 13px; font-weight: 700;">✓</span><span style="font-size: 15px; line-height: 1.5; color: #3B352E;">Todo estado lleva etiqueta de texto además del color (8% de los meseros no distingue rojo/verde).</span></div>
+            <div style="display: flex; gap: 10px; align-items: flex-start;"><span style="width: 22px; height: 22px; flex: none; border-radius: 999px; background: #FBEAE8; color: #B4342F; display: grid; place-items: center; font-size: 13px; font-weight: 700;">✕</span><span style="font-size: 15px; line-height: 1.5; color: #3B352E;">Nada de degradados de fondo ni sombras de colores. La superficie es plana; la jerarquía la hace el tamaño.</span></div>
+            <div style="display: flex; gap: 10px; align-items: flex-start;"><span style="width: 22px; height: 22px; flex: none; border-radius: 999px; background: #FBEAE8; color: #B4342F; display: grid; place-items: center; font-size: 13px; font-weight: 700;">✕</span><span style="font-size: 15px; line-height: 1.5; color: #3B352E;">El color del restaurante nunca entra a la operación: ahí solo Brasa y semánticos.</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tipografia" style="padding: 64px 0 0;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 62ch; margin-bottom: 28px;">
+        <div style="font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: #9A8F7E; font-weight: 600;">02 · Tipografía</div>
+        <h2 style="margin: 0; font-family: 'Ubuntu', sans-serif; font-size: 34px; line-height: 1.14; font-weight: 700; letter-spacing: -0.025em;">Ubuntu para todo lo nuestro, un mono para el dinero</h2>
+        <p style="margin: 0; font-size: 17px; line-height: 1.55; color: #6B6259; text-wrap: pretty;">Ubuntu es la tipografía de ProjectApp y ahora también la de Waiter: marca, títulos, botones, tablas y etiquetas. Se ve bien hecha sin ser elegante, que es justo lo que debe transmitir una herramienta de turno. IBM Plex Mono existe solo para cifras alineadas en cuentas, tickets y reportes. La serif no es nuestra: la aporta el restaurante en el lado del comensal.</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px;">
+        <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 28px;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px;"><h3 style="margin: 0; font-size: 19px; font-weight: 600;">Ubuntu</h3><code style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #9A8F7E;">marca + interfaz</code></div>
+          <div style="font-family: 'Ubuntu', sans-serif; font-weight: 700; letter-spacing: -0.03em; font-size: 54px; line-height: 1; margin-bottom: 8px;">Cobrar mesa 9</div>
+          <div style="font-size: 17px; line-height: 1.5; color: #575046;">Tres pesos: 400 regular para texto, 500 medio para etiquetas, 700 bold para títulos y acciones. Nada de 300 ni de 600.</div>
+          <p style="margin: 16px 0 0; font-size: 14px; line-height: 1.5; color: #6B6259;">Tracking: −3,5% en el wordmark, −3% de 34px arriba, 0 en texto corrido. Ubuntu por defecto va suelta y a tamaños grandes se nota.</p>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 28px;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px;"><h3 style="margin: 0; font-size: 19px; font-weight: 600;">La serif es del restaurante</h3><code style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #9A8F7E;">solo comensal</code></div>
+          <div style="font-family: 'Instrument Serif', Georgia, serif; font-size: 44px; line-height: 1.05;">Buenas noches</div>
+          <div style="font-family: 'Instrument Serif', Georgia, serif; font-size: 24px; line-height: 1.2; color: #57504E; font-style: italic; margin-top: 4px;">Lomo a la parrilla</div>
+          <div style="font-size: 15px; color: #6B6259; margin-top: 14px; line-height: 1.5;">Ejemplo con la tipografía de La Provincia. Cada restaurante elige la suya de una lista curada de seis; Waiter nunca usa serif en su propia interfaz.</div>
+          <div style="display: flex; gap: 18px; margin-top: 18px; align-items: baseline;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-variant-numeric: tabular-nums;">$ 80.960</span>
+            <span style="font-size: 14px; color: #6B6259;">IBM Plex Mono, tabular, para toda cifra en columna.</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 28px; margin-top: 20px; display: flex; gap: 32px; align-items: center; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1;">
+          <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+            <span style="font-family: 'Ubuntu', sans-serif; font-weight: 700; letter-spacing: -0.035em; font-size: 44px; line-height: 1;">Waiter<span style="color: var(--w-accent, #C1873A);">.</span></span>
+            <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #9A8F7E;">Ubuntu Bold · solo marca</code>
+          </div>
+          <p style="margin: 0; font-size: 15px; line-height: 1.5; color: #6B6259; max-width: 64ch; text-wrap: pretty;">Ubuntu es la voz tipográfica de ProjectApp y aquí vive únicamente en el logotipo, el monograma <strong style="font-weight: 600;">Wt.</strong> y los lockups. Nunca en la interfaz: en tablas y botones va más ancha y te cuesta densidad. Tracking −3,5% en el wordmark, −5% en el monograma. La serif queda reservada al lado del comensal, donde manda la marca del restaurante.</p>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <div style="width: 56px; height: 56px; border-radius: 13px; background: var(--w-accent, #C1873A); display: grid; place-items: center;"><span style="font-family: 'Ubuntu', sans-serif; font-size: 24px; font-weight: 700; letter-spacing: -0.05em; color: #1A1815;">Wt.</span></div>
+          <div style="width: 40px; height: 40px; border-radius: 10px; background: #1A1815; display: grid; place-items: center;"><span style="font-family: 'Ubuntu', sans-serif; font-size: 17px; font-weight: 700; letter-spacing: -0.05em; color: var(--w-accent, #C1873A);">Wt.</span></div>
+          <div style="width: 28px; height: 28px; border-radius: 7px; background: var(--w-accent, #C1873A); display: grid; place-items: center;"><span style="font-family: 'Ubuntu', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: -0.05em; color: #1A1815;">Wt.</span></div>
+          <span style="font-size: 13px; color: #9A8F7E; line-height: 1.35;">app icon<br />favicon 40 / 28</span>
+        </div>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 28px; margin-top: 20px;">
+        <h3 style="margin: 0 0 4px; font-size: 19px; font-weight: 600;">Escala táctil</h3>
+        <p style="margin: 0 0 20px; font-size: 14px; color: #6B6259;">Piso mínimo de 15px en operación: nada de 12px en una tablet sostenida con una mano y grasa en la pantalla.</p>
+        <div style="display: flex; flex-direction: column;">
+          <div style="display: grid; grid-template-columns: 130px minmax(0, 1fr) 200px; gap: 20px; align-items: baseline; padding: 14px 0; border-top: 1px solid #EFE9E0;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #A06E2C;">display / 56</code><span style="font-family: 'Ubuntu', sans-serif; font-weight: 700; letter-spacing: -0.03em; font-size: 52px; line-height: 1;">Mesa 14</span><span style="font-size: 14px; color: #6B6259;">Portada comensal, número de mesa en KDS</span></div>
+          <div style="display: grid; grid-template-columns: 130px minmax(0, 1fr) 200px; gap: 20px; align-items: baseline; padding: 14px 0; border-top: 1px solid #EFE9E0;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #A06E2C;">h1 / 34</code><span style="font-size: 34px; font-weight: 700; letter-spacing: -0.02em;">Total $ 80.960</span><span style="font-size: 14px; color: #6B6259;">Cifra protagonista de la vista</span></div>
+          <div style="display: grid; grid-template-columns: 130px minmax(0, 1fr) 200px; gap: 20px; align-items: baseline; padding: 14px 0; border-top: 1px solid #EFE9E0;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #A06E2C;">h2 / 24</code><span style="font-size: 24px; font-weight: 600;">Pedidos en cocina</span><span style="font-size: 14px; color: #6B6259;">Título de panel</span></div>
+          <div style="display: grid; grid-template-columns: 130px minmax(0, 1fr) 200px; gap: 20px; align-items: baseline; padding: 14px 0; border-top: 1px solid #EFE9E0;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #A06E2C;">body-lg / 18</code><span style="font-size: 18px;">Hamburguesa Angus, término medio</span><span style="font-size: 14px; color: #6B6259;">Ítems de pedido, listas táctiles</span></div>
+          <div style="display: grid; grid-template-columns: 130px minmax(0, 1fr) 200px; gap: 20px; align-items: baseline; padding: 14px 0; border-top: 1px solid #EFE9E0;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #A06E2C;">body / 16</code><span style="font-size: 16px;">Texto corrido, descripciones, formularios</span><span style="font-size: 14px; color: #6B6259;">Default de la interfaz</span></div>
+          <div style="display: grid; grid-template-columns: 130px minmax(0, 1fr) 200px; gap: 20px; align-items: baseline; padding: 14px 0; border-top: 1px solid #EFE9E0;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #A06E2C;">label / 15</code><span style="font-size: 15px; font-weight: 600;">Método de pago</span><span style="font-size: 14px; color: #6B6259;">Etiquetas, celdas de tabla, chips</span></div>
+          <div style="display: grid; grid-template-columns: 130px minmax(0, 1fr) 200px; gap: 20px; align-items: baseline; padding: 14px 0; border-top: 1px solid #EFE9E0; border-bottom: 1px solid #EFE9E0;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #A06E2C;">eyebrow / 13</code><span style="font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #9A8F7E;">Turno de la noche</span><span style="font-size: 14px; color: #6B6259;">Solo mayúsculas, solo en desktop</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="espacio" style="padding: 64px 0 0;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 62ch; margin-bottom: 28px;">
+        <div style="font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: #9A8F7E; font-weight: 600;">03 · Espacio y tacto</div>
+        <h2 style="margin: 0; font-family: 'Ubuntu', sans-serif; font-size: 34px; line-height: 1.14; font-weight: 700; letter-spacing: -0.025em;">Diseñado para un pulgar que va de prisa</h2>
+        <p style="margin: 0; font-size: 17px; line-height: 1.55; color: #6B6259; text-wrap: pretty;">Rejilla de 4px. Todo lo que se toca mide al menos 48px de alto y tiene 8px de aire alrededor; las acciones que cobran dinero, 64px.</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
+        <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 24px;">
+          <h3 style="margin: 0 0 16px; font-size: 19px; font-weight: 600;">Escala de espacio</h3>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 12px;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #9A8F7E; width: 54px;">4 · xs</code><div style="height: 14px; width: 4px; background: var(--w-accent, #C1873A); border-radius: 2px;"></div><span style="font-size: 14px; color: #6B6259;">icono ↔ texto</span></div>
+            <div style="display: flex; align-items: center; gap: 12px;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #9A8F7E; width: 54px;">8 · sm</code><div style="height: 14px; width: 8px; background: var(--w-accent, #C1873A); border-radius: 2px;"></div><span style="font-size: 14px; color: #6B6259;">entre chips</span></div>
+            <div style="display: flex; align-items: center; gap: 12px;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #9A8F7E; width: 54px;">12 · md</code><div style="height: 14px; width: 12px; background: var(--w-accent, #C1873A); border-radius: 2px;"></div><span style="font-size: 14px; color: #6B6259;">celdas de rejilla</span></div>
+            <div style="display: flex; align-items: center; gap: 12px;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #9A8F7E; width: 54px;">16 · lg</code><div style="height: 14px; width: 16px; background: var(--w-accent, #C1873A); border-radius: 2px;"></div><span style="font-size: 14px; color: #6B6259;">padding de tarjeta</span></div>
+            <div style="display: flex; align-items: center; gap: 12px;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #9A8F7E; width: 54px;">24 · xl</code><div style="height: 14px; width: 24px; background: var(--w-accent, #C1873A); border-radius: 2px;"></div><span style="font-size: 14px; color: #6B6259;">entre paneles</span></div>
+            <div style="display: flex; align-items: center; gap: 12px;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #9A8F7E; width: 54px;">40 · 2xl</code><div style="height: 14px; width: 40px; background: var(--w-accent, #C1873A); border-radius: 2px;"></div><span style="font-size: 14px; color: #6B6259;">margen de pantalla</span></div>
+            <div style="display: flex; align-items: center; gap: 12px;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #9A8F7E; width: 54px;">72 · 3xl</code><div style="height: 14px; width: 72px; background: var(--w-accent, #C1873A); border-radius: 2px;"></div><span style="font-size: 14px; color: #6B6259;">secciones comensal</span></div>
+          </div>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 24px;">
+          <h3 style="margin: 0 0 16px; font-size: 19px; font-weight: 600;">Radios</h3>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 44px; height: 34px; background: #F2EEE8; border: 1px solid #E4DED4; border-radius: 8px;"></div><span style="font-size: 14px; color: #6B6259;">8 — inputs, chips</span></div>
+            <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 44px; height: 34px; background: #F2EEE8; border: 1px solid #E4DED4; border-radius: 12px;"></div><span style="font-size: 14px; color: #6B6259;">12 — botones, celdas</span></div>
+            <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 44px; height: 34px; background: #F2EEE8; border: 1px solid #E4DED4; border-radius: 18px;"></div><span style="font-size: 14px; color: #6B6259;">18 — tarjetas, paneles</span></div>
+            <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 44px; height: 34px; background: #F2EEE8; border: 1px solid #E4DED4; border-radius: 999px;"></div><span style="font-size: 14px; color: #6B6259;">999 — badges, avatares</span></div>
+          </div>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 24px;">
+          <h3 style="margin: 0 0 16px; font-size: 19px; font-weight: 600;">Áreas de toque</h3>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="height: 48px; border-radius: 12px; border: 1px dashed #C9C0B2; display: flex; align-items: center; padding: 0 14px; font-size: 15px; color: #6B6259;">48 — mínimo absoluto, también en densidad Compacta</div>
+            <div style="height: 56px; border-radius: 12px; border: 1px dashed #C9C0B2; display: flex; align-items: center; padding: 0 14px; font-size: 15px; color: #6B6259;">56 — default táctil</div>
+            <div style="height: 64px; border-radius: 12px; background: var(--w-accent, #C1873A); color: #FFFFFF; display: flex; align-items: center; padding: 0 14px; font-size: 16px; font-weight: 600;">64 — cobrar, enviar a cocina</div>
+          </div>
+          <p style="margin: 14px 0 0; font-size: 14px; line-height: 1.5; color: #6B6259;">Las acciones destructivas nunca van pegadas a la principal: mínimo 16px o un cambio de zona.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="componentes" style="padding: 64px 0 0;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 62ch; margin-bottom: 28px;">
+        <div style="font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: #9A8F7E; font-weight: 600;">04 · Componentes</div>
+        <h2 style="margin: 0; font-family: 'Ubuntu', sans-serif; font-size: 34px; line-height: 1.14; font-weight: 700; letter-spacing: -0.025em;">La librería base</h2>
+        <p style="margin: 0; font-size: 17px; line-height: 1.55; color: #6B6259; text-wrap: pretty;">Los ladrillos que se repiten en los siete módulos, cada uno con sus estados: reposo, hover, presionado, deshabilitado.</p>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 28px;">
+        <h3 style="margin: 0 0 20px; font-size: 19px; font-weight: 600;">Botones</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 20px; min-width: 0;">
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #9A8F7E; font-weight: 600;">Primario</div>
+            <button style="height: var(--w-tap, 56px); padding: 0 22px; border: none; border-radius: 12px; background: var(--w-accent, #C1873A); color: #FFFFFF; font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 120ms, transform 80ms;" style-hover="background: var(--w-accent-strong, #A06E2C);" style-active="transform: scale(0.98);">Enviar a cocina</button>
+            <button style="height: var(--w-tap, 56px); padding: 0 22px; border: none; border-radius: 12px; background: #E4DED4; color: #9A8F7E; font-family: inherit; font-size: 16px; font-weight: 600; cursor: not-allowed;">Enviar a cocina</button>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #9A8F7E; font-weight: 600;">Secundario</div>
+            <button style="height: var(--w-tap, 56px); padding: 0 22px; border: 1px solid #D6CEC1; border-radius: 12px; background: #FFFFFF; color: #2E2A25; font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 120ms;" style-hover="background: #F7F4EF; border-color: #C4BAA9;">Imprimir cuenta</button>
+            <button style="height: var(--w-tap, 56px); padding: 0 22px; border: 1px solid transparent; border-radius: 12px; background: transparent; color: #6B6259; font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer;" style-hover="background: #F2EEE8; color: #2E2A25;">Cancelar</button>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #9A8F7E; font-weight: 600;">Destructivo</div>
+            <button style="height: var(--w-tap, 56px); padding: 0 22px; border: none; border-radius: 12px; background: #B4342F; color: #FFFFFF; font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer;" style-hover="background: #96241F;">Anular pedido</button>
+            <button style="height: var(--w-tap, 56px); padding: 0 22px; border: 1px solid #EBC7C4; border-radius: 12px; background: #FBEAE8; color: #96241F; font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer;" style-hover="background: #F7DAD7;">Devolver ítem</button>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #9A8F7E; font-weight: 600;">Tamaños</div>
+            <button style="height: 64px; padding: 0 26px; border: none; border-radius: 12px; background: var(--w-accent, #C1873A); color: #FFFFFF; font-family: inherit; font-size: 18px; font-weight: 600; cursor: pointer;" style-hover="background: var(--w-accent-strong, #A06E2C);">Cobrar $ 80.960</button>
+            <div style="display: flex; gap: 8px;">
+              <button style="height: 48px; padding: 0 16px; border: 1px solid #D6CEC1; border-radius: 12px; background: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 600; color: #2E2A25; cursor: pointer;" style-hover="background: #F7F4EF;">Editar</button>
+              <button style="width: 48px; height: 48px; border: 1px solid #D6CEC1; border-radius: 12px; background: #FFFFFF; font-family: inherit; font-size: 19px; color: #2E2A25; cursor: pointer;" style-hover="background: #F7F4EF;">＋</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; margin-top: 20px;">
+        <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 28px;">
+          <h3 style="margin: 0 0 20px; font-size: 19px; font-weight: 600;">Campos</h3>
+          <div style="display: flex; flex-direction: column; gap: 18px;">
+            <label style="display: flex; flex-direction: column; gap: 7px;">
+              <span style="font-size: 15px; font-weight: 600; color: #2E2A25;">Nombre del plato</span>
+              <input value="Burrata italiana" style="height: var(--w-tap, 56px); padding: 0 14px; border: 1px solid #D6CEC1; border-radius: 8px; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #1A1815; outline: none;" style-focus="border-color: var(--w-accent, #C1873A); box-shadow: 0 0 0 3px var(--w-accent-soft, #FDF6EA);" />
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 7px;">
+              <span style="font-size: 15px; font-weight: 600; color: #2E2A25;">Precio</span>
+              <div style="display: flex; align-items: center; height: var(--w-tap, 56px); border: 1px solid #D6CEC1; border-radius: 8px; background: #FFFFFF; overflow: hidden;">
+                <span style="padding: 0 12px; font-size: 16px; color: #9A8F7E; border-right: 1px solid #EFE9E0; height: 100%; display: flex; align-items: center; background: #FAF8F5;">COP</span>
+                <input value="32.900" style="flex: 1; height: 100%; border: none; padding: 0 14px; font-family: 'IBM Plex Mono', monospace; font-size: 16px; font-variant-numeric: tabular-nums; outline: none; background: transparent;" />
+              </div>
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 7px;">
+              <span style="font-size: 15px; font-weight: 600; color: #2E2A25;">Categoría</span>
+              <div style="display: flex; align-items: center; justify-content: space-between; height: var(--w-tap, 56px); padding: 0 14px; border: 1px solid #D6CEC1; border-radius: 8px; background: #FFFFFF; font-size: 16px; color: #1A1815;"><span>Entradas</span><span style="color: #9A8F7E;">▾</span></div>
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 7px;">
+              <span style="font-size: 15px; font-weight: 600; color: #B4342F;">Stock inicial</span>
+              <input value="-4" style="height: var(--w-tap, 56px); padding: 0 14px; border: 1px solid #B4342F; border-radius: 8px; background: #FFFEFE; font-family: 'IBM Plex Mono', monospace; font-size: 16px; color: #1A1815; outline: none;" />
+              <span style="font-size: 14px; color: #B4342F;">El inventario no puede empezar en negativo.</span>
+            </label>
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <span style="font-size: 15px; font-weight: 600; color: #2E2A25;">Disponible hoy</span>
+              <div style="width: 56px; height: 32px; border-radius: 999px; background: var(--w-accent, #C1873A); padding: 3px; display: flex; justify-content: flex-end; cursor: pointer;"><div style="width: 26px; height: 26px; border-radius: 999px; background: #FFFFFF;"></div></div>
+              <div style="width: 56px; height: 32px; border-radius: 999px; background: #DDD6C9; padding: 3px; display: flex; cursor: pointer;"><div style="width: 26px; height: 26px; border-radius: 999px; background: #FFFFFF;"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 20px; min-width: 0;">
+          <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 28px;">
+            <h3 style="margin: 0 0 18px; font-size: 19px; font-weight: 600;">Pestañas y chips</h3>
+            <div style="display: inline-flex; gap: 4px; padding: 4px; background: #F2EEE8; border-radius: 12px; margin-bottom: 18px;">
+              <span style="padding: 11px 18px; border-radius: 9px; background: #FFFFFF; font-size: 15px; font-weight: 600; color: #1A1815; box-shadow: 0 1px 2px rgba(26,24,21,0.08);">Salón</span>
+              <span style="padding: 11px 18px; border-radius: 9px; font-size: 15px; font-weight: 500; color: #6B6259; cursor: pointer;">Pedidos</span>
+              <span style="padding: 11px 18px; border-radius: 9px; font-size: 15px; font-weight: 500; color: #6B6259; cursor: pointer;">Cocina</span>
+              <span style="padding: 11px 18px; border-radius: 9px; font-size: 15px; font-weight: 500; color: #6B6259; cursor: pointer;">Pagos</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+              <span style="display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px; border-radius: 999px; background: var(--w-accent, #C1873A); color: #FFFFFF; font-size: 15px; font-weight: 600;">Todos <span style="opacity: 0.75;">64</span></span>
+              <span style="display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px; border-radius: 999px; background: #FFFFFF; border: 1px solid #D6CEC1; font-size: 15px; color: #3B352E;">Entradas <span style="color: #9A8F7E;">12</span></span>
+              <span style="display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px; border-radius: 999px; background: #FFFFFF; border: 1px solid #D6CEC1; font-size: 15px; color: #3B352E;">Fuertes <span style="color: #9A8F7E;">21</span></span>
+              <span style="display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px; border-radius: 999px; background: #F2EEE8; border: 1px dashed #C9C0B2; font-size: 15px; color: #9A8F7E;">Agotados <span>3</span></span>
+            </div>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 28px;">
+            <h3 style="margin: 0 0 18px; font-size: 19px; font-weight: 600;">Insignias de estado</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+              <span style="display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border-radius: 8px; background: #E6F1EA; color: #216239; font-size: 14px; font-weight: 600;"><span style="width: 7px; height: 7px; border-radius: 999px; background: #2F7A4F;"></span>Pagado</span>
+              <span style="display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border-radius: 8px; background: #FDF2DC; color: #8A5A05; font-size: 14px; font-weight: 600;"><span style="width: 7px; height: 7px; border-radius: 999px; background: #C9820C;"></span>Pendiente</span>
+              <span style="display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border-radius: 8px; background: #ECEAFB; color: #40339B; font-size: 14px; font-weight: 600;"><span style="width: 7px; height: 7px; border-radius: 999px; background: #5B4BC4;"></span>En preparación</span>
+              <span style="display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border-radius: 8px; background: #FBEAE8; color: #96241F; font-size: 14px; font-weight: 600;"><span style="width: 7px; height: 7px; border-radius: 999px; background: #B4342F;"></span>Demorado 18 min</span>
+              <span style="display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border-radius: 8px; background: #EEF0F3; color: #384252; font-size: 14px; font-weight: 600;">Cortesía</span>
+            </div>
+            <div style="height: 1px; background: #EFE9E0; margin: 20px 0;"></div>
+            <h3 style="margin: 0 0 14px; font-size: 19px; font-weight: 600;">Contador de cantidad</h3>
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <div style="display: flex; align-items: center; border: 1px solid #D6CEC1; border-radius: 12px; overflow: hidden; background: #FFFFFF;">
+                <span style="width: 52px; height: 52px; display: grid; place-items: center; font-size: 22px; color: #6B6259; cursor: pointer;" style-hover="background: #F2EEE8;">−</span>
+                <span style="width: 56px; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 19px; font-variant-numeric: tabular-nums;">2</span>
+                <span style="width: 52px; height: 52px; display: grid; place-items: center; font-size: 22px; color: #6B6259; cursor: pointer; border-left: 1px solid #EFE9E0;" style-hover="background: #F2EEE8;">＋</span>
+              </div>
+              <span style="font-size: 14px; color: #6B6259; max-width: 24ch; line-height: 1.4;">52px por lado: se acierta sin mirar.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px; margin-top: 20px;">
+        <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 28px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
+            <h3 style="margin: 0; font-size: 19px; font-weight: 600;">Tabla de datos</h3>
+            <div style="display: flex; align-items: center; height: 44px; padding: 0 14px; border: 1px solid #D6CEC1; border-radius: 8px; gap: 8px; color: #9A8F7E; font-size: 15px;">Buscar pedido</div>
+          </div>
+          <div style="border: 1px solid #EFE9E0; border-radius: 14px; overflow-x: auto;">
+            <div style="display: grid; min-width: 560px; grid-template-columns: 90px minmax(120px, 1fr) 60px 104px 126px; gap: 12px; padding: 14px 18px; background: #FAF8F5; border-bottom: 1px solid #EFE9E0; font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #9A8F7E;">
+              <span>Pedido</span><span>Mesa / mesero</span><span>Ítems</span><span style="text-align: right;">Total</span><span style="text-align: right;">Estado</span>
+            </div>
+            <div style="display: grid; min-width: 560px; grid-template-columns: 90px minmax(120px, 1fr) 60px 104px 126px; gap: 12px; padding: 16px 18px; align-items: center; border-bottom: 1px solid #F3EFE8; font-size: 16px;">
+              <code style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; color: #6B6259;">#124</code><span>Mesa 8 · Alejandra</span><span style="color: #6B6259;">2</span><span style="font-family: 'IBM Plex Mono', monospace; text-align: right; font-variant-numeric: tabular-nums;">74.200</span><span style="text-align: right;"><span style="display: inline-flex; align-items: center; height: 30px; padding: 0 10px; border-radius: 8px; background: #ECEAFB; color: #40339B; font-size: 14px; font-weight: 600;">En cocina</span></span>
+            </div>
+            <div style="display: grid; min-width: 560px; grid-template-columns: 90px minmax(120px, 1fr) 60px 104px 126px; gap: 12px; padding: 16px 18px; align-items: center; border-bottom: 1px solid #F3EFE8; font-size: 16px; background: #FDFCFA;">
+              <code style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; color: #6B6259;">#125</code><span>Mesa 12 · Julián</span><span style="color: #6B6259;">3</span><span style="font-family: 'IBM Plex Mono', monospace; text-align: right; font-variant-numeric: tabular-nums;">120.000</span><span style="text-align: right;"><span style="display: inline-flex; align-items: center; height: 30px; padding: 0 10px; border-radius: 8px; background: #FDF2DC; color: #8A5A05; font-size: 14px; font-weight: 600;">Pendiente</span></span>
+            </div>
+            <div style="display: grid; min-width: 560px; grid-template-columns: 90px minmax(120px, 1fr) 60px 104px 126px; gap: 12px; padding: 16px 18px; align-items: center; border-bottom: 1px solid #F3EFE8; font-size: 16px;">
+              <code style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; color: #6B6259;">#126</code><span>Mesa 4 · Alejandra</span><span style="color: #6B6259;">1</span><span style="font-family: 'IBM Plex Mono', monospace; text-align: right; font-variant-numeric: tabular-nums;">36.900</span><span style="text-align: right;"><span style="display: inline-flex; align-items: center; height: 30px; padding: 0 10px; border-radius: 8px; background: #E6F1EA; color: #216239; font-size: 14px; font-weight: 600;">Pagado</span></span>
+            </div>
+            <div style="display: grid; min-width: 560px; grid-template-columns: 90px minmax(120px, 1fr) 60px 104px 126px; gap: 12px; padding: 16px 18px; align-items: center; font-size: 16px; background: #FDFCFA;">
+              <code style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; color: #6B6259;">#127</code><span>Mesa 7 · Sofía</span><span style="color: #6B6259;">4</span><span style="font-family: 'IBM Plex Mono', monospace; text-align: right; font-variant-numeric: tabular-nums;">91.200</span><span style="text-align: right;"><span style="display: inline-flex; align-items: center; height: 30px; padding: 0 10px; border-radius: 8px; background: #FBEAE8; color: #96241F; font-size: 14px; font-weight: 600;">Demorado</span></span>
+            </div>
+          </div>
+          <p style="margin: 14px 0 0; font-size: 14px; line-height: 1.5; color: #6B6259;">Filas de 56px, cebra tenue (<code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">#FDFCFA</code>), cifras a la derecha en mono tabular, estado siempre en la última columna.</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 20px; min-width: 0;">
+          <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 24px;">
+            <h3 style="margin: 0 0 16px; font-size: 19px; font-weight: 600;">Modal</h3>
+            <div style="background: #F2EEE8; border-radius: 14px; padding: 22px;">
+              <div style="background: #FFFFFF; border-radius: 16px; padding: 22px; box-shadow: 0 1px 2px rgba(26,24,21,0.06), 0 20px 40px -20px rgba(26,24,21,0.35);">
+                <h4 style="margin: 0 0 8px; font-size: 21px; font-weight: 700;">¿Anular el pedido #124?</h4>
+                <p style="margin: 0 0 18px; font-size: 16px; line-height: 1.5; color: #6B6259;">La cocina ya empezó dos platos. Se registrará como merma a nombre de Alejandra.</p>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                  <button style="height: 48px; padding: 0 18px; border: 1px solid #D6CEC1; border-radius: 12px; background: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 600; color: #2E2A25; cursor: pointer;" style-hover="background: #F7F4EF;">Mejor no</button>
+                  <button style="height: 48px; padding: 0 18px; border: none; border-radius: 12px; background: #B4342F; color: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer;" style-hover="background: #96241F;">Sí, anular</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 24px;">
+            <h3 style="margin: 0 0 16px; font-size: 19px; font-weight: 600;">Avisos</h3>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 12px; background: #1A1815; color: #F5F1EA;">
+                <span style="width: 26px; height: 26px; border-radius: 999px; background: #2F7A4F; display: grid; place-items: center; font-size: 14px; flex: none;">✓</span>
+                <span style="font-size: 15px; line-height: 1.4;">Pedido enviado. La cocina ya lo tiene.</span>
+              </div>
+              <div style="display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 12px; background: #FDF2DC; border: 1px solid #F0DDB2;">
+                <span style="width: 26px; height: 26px; border-radius: 999px; background: #C9820C; color: #FFFFFF; display: grid; place-items: center; font-size: 14px; font-weight: 700; flex: none;">!</span>
+                <span style="font-size: 15px; line-height: 1.45; color: #6B4A05;">Quedan 3 burratas. Avísale al mesero antes de que las prometa.</span>
+              </div>
+              <div style="display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 12px; background: #FBEAE8; border: 1px solid #EBC7C4;">
+                <span style="width: 26px; height: 26px; border-radius: 999px; background: #B4342F; color: #FFFFFF; display: grid; place-items: center; font-size: 14px; font-weight: 700; flex: none;">✕</span>
+                <span style="font-size: 15px; line-height: 1.45; color: #7E1C18;">Se cayó el datáfono. Puedes cobrar en efectivo y conciliar después.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="operacion" style="padding: 64px 0 0;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 62ch; margin-bottom: 28px;">
+        <div style="font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: #9A8F7E; font-weight: 600;">05 · Piezas de operación</div>
+        <h2 style="margin: 0; font-family: 'Ubuntu', sans-serif; font-size: 34px; line-height: 1.14; font-weight: 700; letter-spacing: -0.025em;">Los componentes que solo existen en un restaurante</h2>
+        <p style="margin: 0; font-size: 17px; line-height: 1.55; color: #6B6259; text-wrap: pretty;">Mesa, cuenta, ticket de cocina y KPI de turno. Son la firma del producto: si estos cuatro están bien, el resto se acomoda.</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px;">
+        <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 28px;">
+          <h3 style="margin: 0 0 6px; font-size: 19px; font-weight: 600;">Mesa · plano de salón</h3>
+          <p style="margin: 0 0 18px; font-size: 14px; line-height: 1.5; color: #6B6259;">Número gigante, estado en palabra, monto si hay consumo. Celda cuadrada mínima de 104px.</p>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 12px;">
+            <div style="aspect-ratio: 1; border-radius: 14px; background: #2F7A4F; color: #FFFFFF; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;"><span style="font-size: 30px; font-weight: 700;">1</span><span style="font-size: 14px; opacity: 0.92;">Libre</span></div>
+            <div style="aspect-ratio: 1; border-radius: 14px; background: #B4342F; color: #FFFFFF; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;"><span style="font-size: 30px; font-weight: 700;">2</span><span style="display: flex; flex-direction: column;"><span style="font-size: 14px; opacity: 0.92;">Ocupada</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px;">74.200</span></span></div>
+            <div style="aspect-ratio: 1; border-radius: 14px; background: #5B4BC4; color: #FFFFFF; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;"><span style="font-size: 30px; font-weight: 700;">6</span><span style="display: flex; flex-direction: column;"><span style="font-size: 14px; opacity: 0.92;">En cocina</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px;">89.600</span></span></div>
+            <div style="aspect-ratio: 1; border-radius: 14px; background: #FFFFFF; border: 2px solid var(--w-accent, #C1873A); color: #1A1815; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 0 0 4px var(--w-accent-soft, #FDF6EA);"><span style="font-size: 30px; font-weight: 700;">9</span><span style="display: flex; flex-direction: column;"><span style="font-size: 14px; color: var(--w-accent-strong, #A06E2C); font-weight: 600;">En cuenta</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px;">48.800</span></span></div>
+            <div style="aspect-ratio: 1; border-radius: 14px; background: #C9820C; color: #FFFFFF; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;"><span style="font-size: 30px; font-weight: 700;">3</span><span style="font-size: 14px; opacity: 0.92;">Pidiendo</span></div>
+            <div style="aspect-ratio: 1; border-radius: 14px; background: #4A5568; color: #FFFFFF; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;"><span style="font-size: 30px; font-weight: 700;">13</span><span style="font-size: 14px; opacity: 0.92;">Asistencia</span></div>
+            <div style="aspect-ratio: 1; border-radius: 14px; background: #F2EEE8; border: 1px dashed #C9C0B2; color: #9A8F7E; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;"><span style="font-size: 30px; font-weight: 700;">14</span><span style="font-size: 14px;">Cerrada</span></div>
+            <div style="aspect-ratio: 1; border-radius: 14px; background: #2F7A4F; color: #FFFFFF; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;"><span style="font-size: 30px; font-weight: 700;">15</span><span style="font-size: 14px; opacity: 0.92;">Libre</span></div>
+          </div>
+        </div>
+
+        <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 28px;">
+          <h3 style="margin: 0 0 6px; font-size: 19px; font-weight: 600;">Cuenta · panel de cobro</h3>
+          <p style="margin: 0 0 18px; font-size: 14px; line-height: 1.5; color: #6B6259;">El total es lo más grande de la pantalla. Cobrar es Brasa; imprimir es secundario.</p>
+          <div style="border: 1px solid #EFE9E0; border-radius: 16px; overflow: hidden;">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid #EFE9E0;">
+              <span style="font-size: 21px; font-weight: 700;">Mesa 9</span>
+              <span style="display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 11px; border-radius: 8px; background: #FDF2DC; color: #8A5A05; font-size: 14px; font-weight: 600;"><span style="width: 7px; height: 7px; border-radius: 999px; background: #C9820C;"></span>En cuenta</span>
+            </div>
+            <div style="padding: 8px 18px;">
+              <div style="display: grid; grid-template-columns: 28px 1fr auto; gap: 12px; padding: 13px 0; font-size: 16px; border-bottom: 1px solid #F3EFE8;"><span style="color: #9A8F7E; font-family: 'IBM Plex Mono', monospace;">1</span><span>Hamburguesa Angus</span><span style="font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums;">36.900</span></div>
+              <div style="display: grid; grid-template-columns: 28px 1fr auto; gap: 12px; padding: 13px 0; font-size: 16px; border-bottom: 1px solid #F3EFE8;"><span style="color: #9A8F7E; font-family: 'IBM Plex Mono', monospace;">2</span><span>Limonada de coco</span><span style="font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums;">19.800</span></div>
+              <div style="display: grid; grid-template-columns: 28px 1fr auto; gap: 12px; padding: 13px 0; font-size: 16px;"><span style="color: #9A8F7E; font-family: 'IBM Plex Mono', monospace;">1</span><span>Brownie con helado</span><span style="font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums;">16.900</span></div>
+            </div>
+            <div style="padding: 16px 18px; background: #FAF8F5; border-top: 1px solid #EFE9E0;">
+              <div style="display: flex; justify-content: space-between; font-size: 15px; color: #6B6259; padding: 4px 0;"><span>Subtotal</span><span style="font-family: 'IBM Plex Mono', monospace;">73.600</span></div>
+              <div style="display: flex; justify-content: space-between; font-size: 15px; color: #6B6259; padding: 4px 0;"><span>Propina sugerida (10%)</span><span style="font-family: 'IBM Plex Mono', monospace;">7.360</span></div>
+              <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 12px 0 0; margin-top: 8px; border-top: 1px solid #E4DED4;"><span style="font-size: 20px; font-weight: 700;">Total</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 32px; font-variant-numeric: tabular-nums;">$ 80.960</span></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; padding: 16px 18px; border-top: 1px solid #EFE9E0;">
+              <button style="height: 56px; border: 1px solid #D6CEC1; border-radius: 12px; background: #FFFFFF; font-family: inherit; font-size: 16px; font-weight: 600; color: #2E2A25; cursor: pointer;" style-hover="background: #F7F4EF;">Imprimir</button>
+              <button style="height: 56px; border: none; border-radius: 12px; background: var(--w-accent, #C1873A); color: #FFFFFF; font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer;" style-hover="background: var(--w-accent-strong, #A06E2C);">Cobrar mesa</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px; margin-top: 20px;">
+        <div style="background: #16130F; border: 1px solid #2C2823; border-radius: 18px; padding: 28px;">
+          <h3 style="margin: 0 0 6px; font-size: 19px; font-weight: 600; color: #F5F1EA;">Ticket de cocina · KDS</h3>
+          <p style="margin: 0 0 18px; font-size: 14px; line-height: 1.5; color: #A8A096;">Se lee a dos metros: mesa 34px, ítems 19px, cronómetro que cambia de color a los 12 y 18 minutos. Un toque marca listo.</p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div style="background: #1C1916; border: 1px solid #2C2823; border-left: 5px solid #5B4BC4; border-radius: 14px; padding: 16px;">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;">
+                <span style="font-size: 32px; font-weight: 700; color: #F5F1EA; line-height: 1; white-space: nowrap;">Mesa 8</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 20px; color: #A8A096;">5:12</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px; font-size: 19px; color: #EDE7DD;">
+                <span>2 · Hamburguesa Angus <span style="color: #A8A096; font-size: 16px;">(1 sin cebolla)</span></span>
+                <span>1 · Papas rústicas</span>
+              </div>
+              <button style="width: 100%; height: 52px; margin-top: 16px; border: none; border-radius: 10px; background: #2F7A4F; color: #FFFFFF; font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer;" style-hover="background: #256540;">Listo</button>
+            </div>
+            <div style="background: #1C1916; border: 1px solid #2C2823; border-left: 5px solid #B4342F; border-radius: 14px; padding: 16px;">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;">
+                <span style="font-size: 32px; font-weight: 700; color: #F5F1EA; line-height: 1; white-space: nowrap;">Mesa 7</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 20px; color: #F08A84;">18:40</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px; font-size: 19px; color: #EDE7DD;">
+                <span>1 · Lomo a la parrilla <span style="color: #F08A84; font-size: 16px;">(término medio)</span></span>
+                <span>2 · Burrata italiana</span>
+                <span>1 · Limonada de coco</span>
+              </div>
+              <button style="width: 100%; height: 52px; margin-top: 16px; border: none; border-radius: 10px; background: #2F7A4F; color: #FFFFFF; font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer;" style-hover="background: #256540;">Listo</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 28px;">
+          <h3 style="margin: 0 0 6px; font-size: 19px; font-weight: 600;">KPI de turno</h3>
+          <p style="margin: 0 0 18px; font-size: 14px; line-height: 1.5; color: #6B6259;">Cifra en mono, comparativo con signo y color semántico, etiqueta arriba. Sin iconos decorativos.</p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div style="border: 1px solid #EFE9E0; border-radius: 14px; padding: 18px;">
+              <div style="font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #9A8F7E; font-weight: 600; margin-bottom: 10px;">Ventas hoy</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 28px; font-variant-numeric: tabular-nums;">2.890.400</div>
+              <div style="margin-top: 8px; display: inline-flex; align-items: center; height: 26px; padding: 0 9px; border-radius: 7px; background: #E6F1EA; color: #216239; font-size: 14px; font-weight: 600;">↑ 12%</div>
+            </div>
+            <div style="border: 1px solid #EFE9E0; border-radius: 14px; padding: 18px;">
+              <div style="font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #9A8F7E; font-weight: 600; margin-bottom: 10px;">Ticket promedio</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 28px; font-variant-numeric: tabular-nums;">37.600</div>
+              <div style="margin-top: 8px; display: inline-flex; align-items: center; height: 26px; padding: 0 9px; border-radius: 7px; background: #FBEAE8; color: #96241F; font-size: 14px; font-weight: 600;">↓ 4%</div>
+            </div>
+            <div style="border: 1px solid #EFE9E0; border-radius: 14px; padding: 18px;">
+              <div style="font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #9A8F7E; font-weight: 600; margin-bottom: 10px;">Pedidos</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 28px; font-variant-numeric: tabular-nums;">128</div>
+              <div style="margin-top: 8px; display: inline-flex; align-items: center; height: 26px; padding: 0 9px; border-radius: 7px; background: #E6F1EA; color: #216239; font-size: 14px; font-weight: 600;">↑ 18%</div>
+            </div>
+            <div style="border: 1px solid #EFE9E0; border-radius: 14px; padding: 18px;">
+              <div style="font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #9A8F7E; font-weight: 600; margin-bottom: 10px;">Rotación mesa</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 28px; font-variant-numeric: tabular-nums;">1,8 h</div>
+              <div style="margin-top: 8px; display: inline-flex; align-items: center; height: 26px; padding: 0 9px; border-radius: 7px; background: #EEF0F3; color: #384252; font-size: 14px; font-weight: 600;">igual</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; margin-top: 20px; overflow: hidden;">
+        <div style="display: grid; grid-template-columns: minmax(200px, 248px) minmax(0, 1fr);">
+          <aside style="background: #1A1815; padding: 22px 16px; display: flex; flex-direction: column; gap: 22px; min-height: 430px;">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 0 8px;">
+              <div style="height: 30px; padding: 0 8px; border-radius: 8px; background: var(--w-accent, #C1873A); display: grid; place-items: center; font-family: 'Ubuntu', sans-serif; font-weight: 700; letter-spacing: -0.05em; font-size: 17px; line-height: 1; color: #1A1815;">Wt.</div>
+              <div style="display: flex; flex-direction: column; line-height: 1.15;">
+                <span style="font-family: 'Ubuntu', sans-serif; font-weight: 700; letter-spacing: -0.03em; font-size: 19px; color: #F5F1EA;">Waiter<span style="color: var(--w-accent, #C1873A);">.</span></span>
+                <span style="font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #7C736A;">by ProjectApp</span>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 3px;">
+              <div style="padding: 0 8px 8px; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #7C736A; font-weight: 600;">La Provincia</div>
+              <div style="display: flex; align-items: center; height: 48px; padding: 0 12px; border-radius: 10px; background: var(--w-accent, #C1873A); color: #1A1815; font-size: 16px; font-weight: 600;">Operación</div>
+              <div style="display: flex; align-items: center; height: 48px; padding: 0 12px; border-radius: 10px; color: #C4BCB2; font-size: 16px; cursor: pointer;" style-hover="background: #262220; color: #F5F1EA;">Mesas</div>
+              <div style="display: flex; align-items: center; justify-content: space-between; height: 48px; padding: 0 12px; border-radius: 10px; color: #C4BCB2; font-size: 16px; cursor: pointer;" style-hover="background: #262220; color: #F5F1EA;"><span>Pedidos</span><span style="min-width: 24px; height: 24px; padding: 0 7px; border-radius: 999px; background: #B4342F; color: #FFFFFF; font-size: 13px; font-weight: 700; display: grid; place-items: center;">4</span></div>
+              <div style="display: flex; align-items: center; height: 48px; padding: 0 12px; border-radius: 10px; color: #C4BCB2; font-size: 16px; cursor: pointer;" style-hover="background: #262220; color: #F5F1EA;">Cocina</div>
+              <div style="display: flex; align-items: center; height: 48px; padding: 0 12px; border-radius: 10px; color: #C4BCB2; font-size: 16px; cursor: pointer;" style-hover="background: #262220; color: #F5F1EA;">Pagos</div>
+              <div style="display: flex; align-items: center; height: 48px; padding: 0 12px; border-radius: 10px; color: #C4BCB2; font-size: 16px; cursor: pointer;" style-hover="background: #262220; color: #F5F1EA;">Inventario</div>
+              <div style="display: flex; align-items: center; height: 48px; padding: 0 12px; border-radius: 10px; color: #C4BCB2; font-size: 16px; cursor: pointer;" style-hover="background: #262220; color: #F5F1EA;">Reportes</div>
+            </div>
+            <div style="margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 10px; background: #221E1B;">
+              <div style="width: 34px; height: 34px; border-radius: 999px; background: #3A342E; color: #F5F1EA; display: grid; place-items: center; font-size: 14px; font-weight: 600;">CM</div>
+              <div style="display: flex; flex-direction: column; line-height: 1.2;"><span style="font-size: 15px; color: #F5F1EA;">Carlos M.</span><span style="font-size: 13px; color: #7C736A;">Gerente</span></div>
+            </div>
+          </aside>
+          <div style="padding: 28px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 20px; border-bottom: 1px solid #EFE9E0; gap: 16px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <span style="font-size: 15px; color: #6B6259;">Sáb, 16 de nov · 9:41 p.m.</span>
+                <span style="display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 11px; border-radius: 999px; background: #E6F1EA; color: #216239; font-size: 14px; font-weight: 600;"><span style="width: 7px; height: 7px; border-radius: 999px; background: #2F7A4F;"></span>Restaurante operativo</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #E4DED4; display: grid; place-items: center; color: #6B6259; font-size: 15px;">Buscar</span>
+                <span style="height: 44px; padding: 0 18px; border-radius: 10px; background: var(--w-accent, #C1873A); color: #FFFFFF; font-size: 15px; font-weight: 600; display: grid; place-items: center;">Nuevo pedido</span>
+              </div>
+            </div>
+            <div style="padding-top: 22px; display: flex; flex-direction: column; gap: 10px;">
+              <h3 style="margin: 0; font-size: 19px; font-weight: 600;">Estructura de la app de operación</h3>
+              <p style="margin: 0; font-size: 16px; line-height: 1.55; color: #6B6259; max-width: 62ch; text-wrap: pretty;">Barra lateral oscura fija con los módulos y contadores en vivo; barra superior con contexto (fecha, estado del local) y la acción principal a la derecha; el contenido siempre sobre canvas claro. La lateral colapsa a iconos de 56px en tablet y a barra inferior de cinco destinos en el móvil del mesero.</p>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px;">
+                <span style="display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 8px; background: #F2EEE8; font-size: 14px; color: #575046;">Desktop 1280+ · lateral 248px</span>
+                <span style="display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 8px; background: #F2EEE8; font-size: 14px; color: #575046;">Tablet 768–1279 · lateral 72px</span>
+                <span style="display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 8px; background: #F2EEE8; font-size: 14px; color: #575046;">Móvil menor a 768 · barra inferior 72px</span>
+                <span style="display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 8px; background: #F2EEE8; font-size: 14px; color: #575046;">KDS 1920 fijo · oscuro</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="comensal" style="padding: 64px 0 0;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 62ch; margin-bottom: 28px;">
+        <div style="font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: #9A8F7E; font-weight: 600;">06 · Comensal y white-label</div>
+        <h2 style="margin: 0; font-family: 'Ubuntu', sans-serif; font-size: 34px; line-height: 1.14; font-weight: 700; letter-spacing: -0.025em;">Aquí Waiter se quita el nombre</h2>
+        <p style="margin: 0; font-size: 17px; line-height: 1.55; color: #6B6259; text-wrap: pretty;">El comensal debe sentir que está en el restaurante, no en un software. La marca del local ocupa el encabezado, el color de acción y la tipografía de títulos; nosotros conservamos la estructura, los tamaños de toque y el resumen de pedido siempre visible.</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; align-items: start;">
+        <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 20px;">
+          <div style="border-radius: 22px; overflow: hidden; border: 1px solid #E4DED4; background: #FDFBF7;">
+            <div style="padding: 18px 18px 0; display: flex; align-items: center; justify-content: space-between;">
+              <div style="display: flex; flex-direction: column; line-height: 1.1;">
+                <span style="font-family: 'Instrument Serif', serif; font-size: 25px;">La Provincia</span>
+                <span style="font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #9A8F7E;">Cocina de barrio</span>
+              </div>
+              <span style="display: inline-flex; align-items: center; height: 36px; padding: 0 12px; border-radius: 999px; background: #FFFFFF; border: 1px solid #E4DED4; font-size: 14px; font-weight: 600;">Mesa 14</span>
+            </div>
+            <div style="padding: 22px 18px 18px;">
+              <div style="font-family: 'Instrument Serif', serif; font-size: 32px; line-height: 1.1;">Buenas noches</div>
+              <div style="font-size: 16px; line-height: 1.45; color: #6B6259; margin-top: 6px;">Soy Alex, tu mesero. ¿Qué te provoca hoy?</div>
+              <div style="margin-top: 16px; height: 56px; border-radius: 14px; background: #FFFFFF; border: 1px solid #E4DED4; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; font-size: 16px; font-weight: 600;"><span>Ver la carta</span><span style="color: #9A8F7E;">→</span></div>
+            </div>
+            <div style="padding: 0 18px 18px;">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px;"><span style="font-size: 18px; font-weight: 600;">Recomendado para ti</span><span style="font-size: 14px; color: var(--w-accent-strong, #A06E2C);">Ver todos</span></div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div style="border: 1px solid #EFE9E0; border-radius: 14px; overflow: hidden; background: #FFFFFF;">
+                  <div style="height: 88px; background: #F2EEE8; display: grid; place-items: center; font-size: 11px; color: #9A8F7E; letter-spacing: 0.08em; text-transform: uppercase;">Foto del plato</div>
+                  <div style="padding: 10px 12px 12px;">
+                    <div style="font-size: 15px; font-weight: 600; line-height: 1.25;">Lomo a la parrilla</div>
+                    <div style="font-size: 13px; color: #6B6259; line-height: 1.35; margin-top: 3px;">Con vegetales asados</div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px;">38.900</span><span style="width: 34px; height: 34px; border-radius: 999px; background: var(--w-accent, #C1873A); color: #FFFFFF; display: grid; place-items: center; font-size: 17px;">＋</span></div>
+                  </div>
+                </div>
+                <div style="border: 1px solid #EFE9E0; border-radius: 14px; overflow: hidden; background: #FFFFFF;">
+                  <div style="height: 88px; background: #F2EEE8; display: grid; place-items: center; font-size: 11px; color: #9A8F7E; letter-spacing: 0.08em; text-transform: uppercase;">Foto del plato</div>
+                  <div style="padding: 10px 12px 12px;">
+                    <div style="font-size: 15px; font-weight: 600; line-height: 1.25;">Burrata italiana</div>
+                    <div style="font-size: 13px; color: #6B6259; line-height: 1.35; margin-top: 3px;">Tomate, pesto, focaccia</div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px;">32.900</span><span style="width: 34px; height: 34px; border-radius: 999px; background: var(--w-accent, #C1873A); color: #FFFFFF; display: grid; place-items: center; font-size: 17px;">＋</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="margin: 0 14px 14px; padding: 14px 18px; border-radius: 16px; background: #1A1815; color: #F5F1EA; display: flex; align-items: center; justify-content: space-between;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="min-width: 26px; height: 26px; border-radius: 999px; background: var(--w-accent, #C1873A); color: #1A1815; font-size: 14px; font-weight: 700; display: grid; place-items: center;">2</span>
+                <div style="display: flex; flex-direction: column; line-height: 1.2;"><span style="font-size: 15px;">Tu pedido</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 17px;">$ 48.800</span></div>
+              </div>
+              <span style="font-size: 15px; font-weight: 600;">Ver pedido →</span>
+            </div>
+          </div>
+          <p style="margin: 16px 4px 0; font-size: 14px; line-height: 1.5; color: #6B6259;">Vista con una marca de ejemplo. Barra de pedido fija abajo: nunca se pierde de vista lo que va a pagar.</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 20px; min-width: 0;">
+          <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 28px;">
+            <h3 style="margin: 0 0 16px; font-size: 19px; font-weight: 600;">Qué puede cambiar el restaurante</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 22px;">
+              <div>
+                <div style="font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #216239; font-weight: 600; margin-bottom: 10px;">Suyo</div>
+                <div style="display: flex; flex-direction: column; gap: 9px; font-size: 15px; line-height: 1.45; color: #3B352E;">
+                  <div style="display: flex; gap: 9px;"><span style="color: #2F7A4F;">●</span><span>Logo y nombre en el encabezado</span></div>
+                  <div style="display: flex; gap: 9px;"><span style="color: #2F7A4F;">●</span><span>Un color de acción, validado a 4.5:1 automáticamente</span></div>
+                  <div style="display: flex; gap: 9px;"><span style="color: #2F7A4F;">●</span><span>Tipografía de títulos, de una lista curada de seis</span></div>
+                  <div style="display: flex; gap: 9px;"><span style="color: #2F7A4F;">●</span><span>Fotos de platos y portada</span></div>
+                  <div style="display: flex; gap: 9px;"><span style="color: #2F7A4F;">●</span><span>Saludo, nombre del mesero IA y texto de bienvenida</span></div>
+                  <div style="display: flex; gap: 9px;"><span style="color: #2F7A4F;">●</span><span>Redondeo: recto, suave o muy redondeado</span></div>
+                </div>
+              </div>
+              <div>
+                <div style="font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #96241F; font-weight: 600; margin-bottom: 10px;">Nuestro</div>
+                <div style="display: flex; flex-direction: column; gap: 9px; font-size: 15px; line-height: 1.45; color: #3B352E;">
+                  <div style="display: flex; gap: 9px;"><span style="color: #B4342F;">●</span><span>Estructura de navegación y flujo de pedido</span></div>
+                  <div style="display: flex; gap: 9px;"><span style="color: #B4342F;">●</span><span>Tamaños de toque, escala tipográfica y espaciado</span></div>
+                  <div style="display: flex; gap: 9px;"><span style="color: #B4342F;">●</span><span>Colores semánticos y mensajes de error</span></div>
+                  <div style="display: flex; gap: 9px;"><span style="color: #B4342F;">●</span><span>Barra de pedido fija y pantalla de pago</span></div>
+                  <div style="display: flex; gap: 9px;"><span style="color: #B4342F;">●</span><span>Toda la app de operación</span></div>
+                  <div style="display: flex; gap: 9px;"><span style="color: #B4342F;">●</span><span>El sello «Waiter by ProjectApp» al pie</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 28px;">
+            <h3 style="margin: 0 0 6px; font-size: 19px; font-weight: 600;">Cómo se implementa el tema</h3>
+            <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.5; color: #6B6259; max-width: 66ch;">Seis variables por restaurante, derivadas de dos entradas: color y tipografía. El resto del sistema no se toca nunca.</p>
+            <div style="background: #16130F; border-radius: 14px; padding: 20px; font-family: 'IBM Plex Mono', monospace; font-size: 14px; line-height: 1.85; color: #EDE7DD; overflow-x: auto;">
+              <div style="color: #7C736A;">/* tema del restaurante */</div>
+              <div><span style="color: #E4B879;">--r-brand</span>: #7A2E2A; <span style="color: #7C736A;">/* entrada del cliente */</span></div>
+              <div><span style="color: #E4B879;">--r-brand-ink</span>: #FFFFFF; <span style="color: #7C736A;">/* calculado, contraste ≥ 4.5 */</span></div>
+              <div><span style="color: #E4B879;">--r-brand-soft</span>: #F6EBEA; <span style="color: #7C736A;">/* calculado, mezcla 10% */</span></div>
+              <div><span style="color: #E4B879;">--r-display</span>: "Instrument Serif";</div>
+              <div><span style="color: #E4B879;">--r-radius</span>: 14px; <span style="color: #7C736A;">/* 4 | 14 | 24 */</span></div>
+              <div><span style="color: #E4B879;">--r-logo</span>: url(...);</div>
+              <div style="margin-top: 10px; color: #7C736A;">/* heredado de Waiter, bloqueado */</div>
+              <div style="color: #A8A096;">--w-ink · --w-surface · --w-state-* · --w-tap · --w-space-*</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="voz" style="padding: 64px 0 0;">
+      <div style="display: flex; flex-direction: column; gap: 8px; max-width: 62ch; margin-bottom: 28px;">
+        <div style="font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: #9A8F7E; font-weight: 600;">07 · Voz</div>
+        <h2 style="margin: 0; font-family: 'Ubuntu', sans-serif; font-size: 34px; line-height: 1.14; font-weight: 700; letter-spacing: -0.025em;">Habla como un buen mesero: breve, cálido, sin chistes en la caja</h2>
+        <p style="margin: 0; font-size: 17px; line-height: 1.55; color: #6B6259; text-wrap: pretty;">Tuteo siempre, verbos en imperativo para las acciones. La personalidad vive en estados vacíos y confirmaciones; nunca en errores de dinero, donde el tono es plano y útil.</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+        <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 26px;">
+          <div style="font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #9A8F7E; font-weight: 600; margin-bottom: 16px;">Estados vacíos</div>
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div><div style="font-size: 17px; font-weight: 600; margin-bottom: 3px;">Salón vacío</div><div style="font-size: 15px; line-height: 1.5; color: #6B6259;">«Ni un alma todavía. Buen momento para revisar el inventario.»</div></div>
+            <div><div style="font-size: 17px; font-weight: 600; margin-bottom: 3px;">Cocina al día</div><div style="font-size: 15px; line-height: 1.5; color: #6B6259;">«Cero pedidos pendientes. Disfrútalo mientras dure.»</div></div>
+            <div><div style="font-size: 17px; font-weight: 600; margin-bottom: 3px;">Sin resultados</div><div style="font-size: 15px; line-height: 1.5; color: #6B6259;">«Nada con ese nombre. ¿Lo escribimos distinto?»</div></div>
+          </div>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 26px;">
+          <div style="font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #9A8F7E; font-weight: 600; margin-bottom: 16px;">Botones y mensajes</div>
+          <div style="display: flex; flex-direction: column; gap: 12px; font-size: 15px; line-height: 1.5;">
+            <div style="display: flex; gap: 10px;"><span style="color: #2F7A4F; font-weight: 700;">✓</span><span>Enviar a cocina · Cobrar mesa · Cerrar turno</span></div>
+            <div style="display: flex; gap: 10px;"><span style="color: #B4342F; font-weight: 700;">✕</span><span style="color: #6B6259;">Confirmar · Aceptar · Continuar · Submit</span></div>
+            <div style="height: 1px; background: #EFE9E0; margin: 4px 0;"></div>
+            <div style="display: flex; gap: 10px;"><span style="color: #2F7A4F; font-weight: 700;">✓</span><span>Di qué pasa y qué hacer: «Se cayó el datáfono. Cobra en efectivo y conciliamos después.»</span></div>
+            <div style="display: flex; gap: 10px;"><span style="color: #B4342F; font-weight: 700;">✕</span><span style="color: #6B6259;">«Ha ocurrido un error inesperado (código 500).»</span></div>
+          </div>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #E9E2D7; border-radius: 18px; padding: 26px;">
+          <div style="font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #9A8F7E; font-weight: 600; margin-bottom: 16px;">Dónde no bromear</div>
+          <div style="display: flex; flex-direction: column; gap: 12px; font-size: 15px; line-height: 1.5; color: #3B352E;">
+            <div>Totales, propinas y facturación electrónica.</div>
+            <div>Anulaciones, mermas y descuadres de caja.</div>
+            <div>Alergias y restricciones alimentarias.</div>
+            <div>Cualquier cosa que el comensal lea mientras espera comida demorada.</div>
+            <div style="padding: 14px; border-radius: 12px; background: #FAF8F5; border: 1px solid #EFE9E0; font-size: 14px; color: #6B6259; line-height: 1.5;">Regla práctica: si el usuario puede perder plata o un cliente en los próximos 30 segundos, el copy es informativo y punto.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer style="margin-top: 72px; padding-top: 28px; border-top: 1px solid #E4DED4; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="height: 28px; padding: 0 8px; border-radius: 8px; background: var(--w-accent, #C1873A); display: grid; place-items: center; font-family: 'Ubuntu', sans-serif; font-weight: 700; letter-spacing: -0.05em; font-size: 15px; line-height: 1; color: #FFFFFF;">Wt.</div>
+        <span style="font-size: 15px; color: #6B6259;">Waiter by ProjectApp · sistema de diseño v1.1</span>
+      </div>
+      <span style="font-size: 15px; color: #9A8F7E;">Restaurantes que llegan más lejos.</span>
+    </footer>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#C1873A&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#C1873A&quot;,&quot;#B4342F&quot;,&quot;#2F7A4F&quot;,&quot;#5B4BC4&quot;],&quot;section&quot;:&quot;Marca&quot;},&quot;density&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;Amplia&quot;,&quot;options&quot;:[&quot;Compacta&quot;,&quot;Equilibrada&quot;,&quot;Amplia&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Operación&quot;}}">
+class Component extends DCLogic {
+  hexToRgb(h) {
+    const s = String(h || "").replace("#", "");
+    const v = s.length === 3 ? s.split("").map(c => c + c).join("") : s;
+    const n = parseInt(v, 16);
+    return isNaN(n) ? [193, 135, 58] : [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  mix(hex, target, amt) {
+    const a = this.hexToRgb(hex);
+    return "#" + a.map((c, i) => Math.round(c + (target[i] - c) * amt).toString(16).padStart(2, "0")).join("");
+  }
+  renderVals() {
+    const accent = this.props.accent || "#C1873A";
+    const density = this.props.density || "Amplia";
+    const tap = density === "Compacta" ? "48px" : density === "Equilibrada" ? "52px" : "56px";
+    const pad = density === "Compacta" ? "12px" : density === "Equilibrada" ? "16px" : "20px";
+    return {
+      accent,
+      accentStrong: this.mix(accent, [0, 0, 0], 0.22),
+      accentSoft: this.mix(accent, [255, 255, 255], 0.9),
+      tap,
+      pad
+    };
+  }
+}
+</script>
+</body>
+</html>

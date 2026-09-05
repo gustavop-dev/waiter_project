@@ -1,0 +1,89 @@
+{
+  "pos": {
+    "brand": "Waiter",
+    "nav": {
+      "operation": "Operación",
+      "sales": "Ventas",
+      "catalog": "Catálogo",
+      "inventory": "Inventario",
+      "customers": "Clientes",
+      "automation": "Automatización",
+      "billing": "Facturación",
+      "settings": "Configuración",
+      "soon": "Próximamente",
+      "shift": "Turno de hoy",
+      "shiftMeta": "{orders} pedidos · {waiters} meseros",
+      "role": "Mesero"
+    },
+    "rail": {
+      "tables": "Mesas",
+      "orders": "Pedidos",
+      "kitchen": "Cocina",
+      "payments": "Pagos"
+    },
+    "topbar": {
+      "operational": "Restaurante operativo",
+      "search": "Buscar mesa o pedido",
+      "newTable": "Nueva mesa"
+    },
+    "login": {
+      "title": "Entrar al turno",
+      "user": "Usuario",
+      "password": "Contraseña",
+      "submit": "Entrar",
+      "failed": "Usuario o contraseña incorrectos"
+    },
+    "salon": {
+      "legend": {
+        "free": "Libre",
+        "occupied": "Ocupada",
+        "kitchen": "En cocina",
+        "ordering": "Pidiendo",
+        "served": "Servido",
+        "billing": "En cuenta",
+        "paid": "Pagado",
+        "assist": "Asistencia",
+        "closed": "Cerrada"
+      },
+      "pax": "{count} pax",
+      "table": "Mesa {number}",
+      "emptyPanel": "Toca una mesa para ver su cuenta",
+      "subtotal": "Subtotal",
+      "total": "Total",
+      "split": "Dividir",
+      "print": "Imprimir",
+      "charge": "Cobrar {amount}",
+      "confirmTitle": "¿Cobrar mesa {number}?",
+      "confirmBody": "Total {amount} en {method}.",
+      "confirmYes": "Sí, cobrar",
+      "confirmNo": "Mejor no",
+      "emptyFloor": "Ni un alma todavía. Buen momento para revisar el inventario.",
+      "openOrder": "Abrir pedido",
+      "meta": "{pax} pax · {waiter} · {elapsed} h",
+      "tax": "IVA",
+      "tip": "Propina sugerida (10%)"
+    },
+    "order": {
+      "back": "Salón",
+      "header": "Mesa {number}",
+      "meta": "{pax} pax · pedido {ref}",
+      "search": "Buscar plato",
+      "kitchenNote": "Nota a cocina",
+      "panelTitle": "Pedido de mesa {number}",
+      "items": "{count} ítems",
+      "modify": "Modificar",
+      "remove": "Quitar",
+      "notePrompt": "Nota para cocina",
+      "partial": "Total parcial",
+      "save": "Guardar",
+      "bill": "Cuenta",
+      "send": "Enviar a cocina",
+      "sent": "Pedido enviado. La cocina ya lo tiene.",
+      "soldOut": "Agotado",
+      "photo": "Foto 4:3",
+      "menu": "Carta",
+      "favorite": "El favorito",
+      "soldOutChip": "Agotados {count}"
+    }
+  }
+}

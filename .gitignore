@@ -92,3 +92,13 @@ Thumbs.db
 
 # Configuración de Odoo con secretos (las plantillas .example sí se versionan)
 /odoo/compose/odoo.conf
+
+# POS app
+/pos/node_modules/
+/pos/.next/
+/pos/out/
+/pos/.env.local
+/pos/coverage/
+/pos/test-results/
+/pos/playwright-report/
+/pos/e2e-results/

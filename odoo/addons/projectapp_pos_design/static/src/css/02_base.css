@@ -17,15 +17,15 @@
   -webkit-font-smoothing: antialiased;
 }
 
-/* ---------- Serif: solo hospitalidad ------------------------ */
-/* Solo en tamaños ≥ 24px y frases cortas. Nunca en botones,
-   etiquetas, tablas ni nada que el equipo lea con prisa.       */
+/* ---------- Display: Ubuntu 700, apretada ------------------- */
+/* v1.1: la serif no es nuestra. Los títulos grandes van en
+   Ubuntu bold con tracking −3% (≥34px).                        */
 .pos .w-display {
-  font-family: var(--w-font-display);
+  font-family: var(--w-font-ui);
   font-size: var(--w-text-display);
-  line-height: 0.95;
-  letter-spacing: -0.02em;
-  font-weight: var(--w-weight-regular);
+  line-height: 0.98;
+  letter-spacing: var(--w-tracking-title);
+  font-weight: var(--w-weight-bold);
 }
 
 /* ---------- Mono: solo dinero ------------------------------- */
@@ -38,15 +38,15 @@
 }
 
 /* ---------- Jerarquía de texto ------------------------------ */
-.pos .w-h1      { font-size: var(--w-text-h1);      font-weight: var(--w-weight-semibold); line-height: 1.1; }
-.pos .w-h2      { font-size: var(--w-text-h2);      font-weight: var(--w-weight-semibold); line-height: 1.2; }
+.pos .w-h1      { font-size: var(--w-text-h1);      font-weight: var(--w-weight-bold); line-height: 1.14; letter-spacing: var(--w-tracking-title); }
+.pos .w-h2      { font-size: var(--w-text-h2);      font-weight: var(--w-weight-bold); line-height: 1.2; }
 .pos .w-body-lg { font-size: var(--w-text-body-lg); line-height: 1.4; }
 .pos .w-label   { font-size: var(--w-text-label);   font-weight: var(--w-weight-medium); }
 .pos .w-eyebrow {
   font-size: var(--w-text-eyebrow);
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  font-weight: var(--w-weight-semibold);
+  font-weight: var(--w-weight-bold);
   color: var(--w-ink-3);
 }
 
@@ -81,7 +81,7 @@
   border-radius: var(--w-radius-full);
   padding: var(--w-space-xs) var(--w-space-md);
   font-size: var(--w-text-label);
-  font-weight: var(--w-weight-semibold);
+  font-weight: var(--w-weight-bold);
   display: inline-flex;
   align-items: center;
   gap: var(--w-space-xs);
