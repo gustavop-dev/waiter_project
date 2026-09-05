@@ -29,6 +29,10 @@ class PosConfig(models.Model):
     roi_start_date = fields.Date(string="Inicio de uso de ProjectApp")
 
     def _load_pos_data_fields(self, *args, **kwargs):
-        return super()._load_pos_data_fields(*args, **kwargs) + [
-            "alert_late_minutes", "alert_bill_minutes", "roi_hour_cost", "roi_minutes_per_order",
-            "roi_baseline_hours_per_100", "roi_monthly_cost", "roi_start_date"]
+        # Odoo devuelve [] para pos.config: "todos los campos", los nuestros incluidos. Si algún día
+        # devuelve una lista concreta, se agregan los propios; nunca se reemplaza [] por una lista.
+        fields_ = super()._load_pos_data_fields(*args, **kwargs)
+        if not fields_:
+            return fields_
+        return fields_ + ["alert_late_minutes", "alert_bill_minutes", "roi_hour_cost", "roi_minutes_per_order",
+                          "roi_baseline_hours_per_100", "roi_monthly_cost", "roi_start_date"]
