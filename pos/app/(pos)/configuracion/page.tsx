@@ -7,6 +7,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { Shell } from '@/components/layout/Shell'
 import { Topbar } from '@/components/layout/Topbar'
 import { BrandForm } from '@/components/settings/BrandForm'
+import { MenuTemplateForm } from '@/components/settings/MenuTemplateForm'
 import { SaveBar, ThresholdsForm, useSaveState } from '@/components/settings/SettingsForms'
 import { Button } from '@/components/ui/Button'
 import { Select, TextInput, Toggle } from '@/components/ui/Field'
@@ -17,7 +18,7 @@ import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
 import { cn } from '@/lib/utils'
 
-const SECTIONS = ['restaurant', 'brand', 'floors', 'payments', 'taxes', 'users', 'alerts', 'roi', 'display'] as const
+const SECTIONS = ['restaurant', 'brand', 'menuTemplate', 'floors', 'payments', 'taxes', 'users', 'alerts', 'roi', 'display'] as const
 type Section = (typeof SECTIONS)[number]
 const DENSITIES = ['compact', 'balanced', 'wide'] as const
 const readLocal = (key: string, fallback: string) => { try { return localStorage.getItem(key) ?? fallback } catch { return fallback } }
@@ -137,6 +138,7 @@ function ConfiguracionInner() {
           <h2 className="text-[19px] font-bold mb-4">{t(`sections.${section}`)}</h2>
           {section === 'restaurant' && company && <CompanyForm key={company.id} initial={company} />}
           {section === 'brand' && <BrandForm restaurantName={company?.name ?? ''} />}
+          {section === 'menuTemplate' && <MenuTemplateForm />}
           {section === 'floors' && <FloorsForm floors={floors} configId={catalog.settings.configId} onChanged={reloadFloors} />}
           {section === 'payments' && <div className="flex flex-col gap-2 max-w-md"><p className="text-[15px] text-soft">{t('payments.hint')}</p>{methods.map((m) => <div key={m.id} className="flex justify-between px-4 py-3 rounded-[10px] bg-surface border border-border text-[15px]"><span className="font-medium">{m.name}</span><span className="text-soft">{t(`payments.type.${m.type as 'cash' | 'bank' | 'pay_later'}`)}</span></div>)}</div>}
           {section === 'taxes' && <div className="flex flex-col gap-2 max-w-md"><p className="text-[15px] text-soft">{t('taxes.hint')}</p>{taxes.map((x) => <div key={x.id} className="flex justify-between px-4 py-3 rounded-[10px] bg-surface border border-border text-[15px]"><span className="font-medium">{x.name}</span><span className="font-mono tabular text-soft">{x.amount}%</span></div>)}</div>}

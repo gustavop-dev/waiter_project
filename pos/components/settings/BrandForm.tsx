@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 
 import { BrandPreview } from '@/components/settings/BrandPreview'
 import { SaveBar, useSaveState } from '@/components/settings/SettingsForms'
+import { loadBrandFonts } from '@/components/settings/googleFonts'
 import { Button } from '@/components/ui/Button'
 import { Field, Select, TextInput } from '@/components/ui/Field'
 import { DEFAULT_COLOR, FONTS, INK_LIGHT, RADII, RADIUS_LABELS, isHex, meetsContrast, theme } from '@/lib/domain/brand'
@@ -13,10 +14,6 @@ import { LOGO_TYPES, imageDataUrl, resizeImage, validateLogoFile, type LogoFileE
 import { getBrand, getBrandLogo, saveBrand, type BrandInfo, type BrandRadius, type LogoChange } from '@/lib/services/settings'
 import { cn } from '@/lib/utils'
 
-// Las mismas seis familias que carga diner/app/layout.tsx: el select y la vista previa se pintan con la fuente real.
-// Se añade al montar el formulario (no en el layout) para que el resto del POS no descargue fuentes que no usa.
-const FONTS_LINK_ID = 'waiter-brand-fonts'
-const FONTS_URL = 'https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Playfair+Display:wght@400;600&family=Fraunces:wght@400;600&family=DM+Serif+Display&family=Lora:wght@400;600&family=Cormorant+Garamond:wght@500;600&display=swap'
 const LIMITS = { tagline: 60, greeting: 40, waiterName: 40, welcome: 140 } as const
 type TextKey = keyof typeof LIMITS
 
@@ -34,14 +31,7 @@ export function BrandForm({ restaurantName }: { restaurantName: string }) {
   const [state, save] = useSaveState()
   const fileRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    if (document.getElementById(FONTS_LINK_ID)) return
-    const link = document.createElement('link')
-    link.id = FONTS_LINK_ID
-    link.rel = 'stylesheet'
-    link.href = FONTS_URL
-    document.head.appendChild(link)
-  }, [])
+  useEffect(() => { loadBrandFonts() }, [])
 
   useEffect(() => {
     let alive = true

@@ -14,14 +14,15 @@ export function useSaveState(): [State, (fn: () => Promise<void>) => Promise<voi
   return [state, async (fn) => { setState('saving'); try { await fn(); setState('saved') } catch { setState('error') } }]
 }
 
-export function SaveBar({ state, onSave, disabled }: { state: State; onSave: () => void; disabled?: boolean }) {
+// error: mensaje propio del fallo (p. ej. el que devuelve la pasarela del addon); sin él se muestra el genérico.
+export function SaveBar({ state, onSave, disabled, error }: { state: State; onSave: () => void; disabled?: boolean; error?: string | null }) {
   const t = useTranslations('pos.settings')
   const ui = useTranslations('pos.ui')
   return (
     <div className="flex items-center gap-3 pt-2">
       <Button variant="primary" onClick={onSave} disabled={disabled || state === 'saving'}>{t('save')}</Button>
       {state === 'saved' && <span role="status" className="text-[15px] text-free-ink">{t('saved')}</span>}
-      {state === 'error' && <span role="alert" className="text-[15px] text-busy-ink">{ui('error')}</span>}
+      {state === 'error' && <span role="alert" className="text-[15px] text-busy-ink">{error || ui('error')}</span>}
     </div>
   )
 }

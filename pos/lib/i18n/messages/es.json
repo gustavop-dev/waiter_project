@@ -501,6 +501,7 @@
       "sections": {
         "restaurant": "Restaurante",
         "brand": "Marca",
+        "menuTemplate": "Plantilla del menú",
         "floors": "Pisos y mesas",
         "payments": "Métodos de pago",
         "taxes": "Impuestos",
@@ -639,6 +640,43 @@
           "total": "$ 48.800",
           "seeOrder": "Ver pedido →"
         }
+      },
+      "menuTemplate": {
+        "help": "Elige la plantilla que mejor le queda a tu negocio. La carta que ya cargaste en el POS es la que ve el comensal; solo cambia cómo se ve.",
+        "families": "Familias de plantillas",
+        "gallery": "Plantillas de {family}",
+        "current": "Elegida",
+        "photos": "Fotos: {need}",
+        "photoNeed": {
+          "ninguna": "ninguna",
+          "algunas": "algunas",
+          "todas": "todas",
+          "hero": "hero"
+        },
+        "customize": "Personalizar",
+        "customizeHint": "Solo los colores que esta plantilla deja cambiar. Lo demás es del diseño.",
+        "colors": {
+          "acento": "Color de acción",
+          "fondo": "Fondo",
+          "superficie": "Superficie",
+          "tinta": "Texto",
+          "tintaSuave": "Texto suave",
+          "tintaTerciaria": "Texto terciario",
+          "borde": "Borde",
+          "acentoTinta": "Texto sobre la acción",
+          "acentoSuave": "Acción suave"
+        },
+        "hex": "Hex · {color}",
+        "reset": "Volver al de la plantilla",
+        "invalidHex": "Escribe un color como #7A2E2A.",
+        "contrastAction": "Acción y su texto: {ratio}:1",
+        "contrastText": "Texto sobre el fondo: {ratio}:1",
+        "noContrast": "No alcanza 4.5:1; ajusta el color para que cualquiera lo lea.",
+        "font": "Tipografía de títulos",
+        "fontOfTemplate": "{font} · la de la plantilla",
+        "preview": "Vista previa del menú",
+        "previewHint": "Es la app del comensal de verdad, con tu carta y estos ajustes. Se actualiza sola al cambiar algo; nada se guarda hasta que toques Guardar.",
+        "loadFailed": "No se pudo cargar el catálogo de plantillas: {reason}"
       }
     },
     "pay": {
