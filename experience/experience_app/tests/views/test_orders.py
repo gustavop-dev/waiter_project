@@ -72,3 +72,11 @@ def test_order_status_maps_odoo_state_and_kitchen_phase(read, api_client, cart, 
     body = api_client.get(reverse('order-detail', args=[order_id])).json()
     assert body['estado'] == 'listo'
     assert body['total'] == 87822.0
+
+
+@pytest.mark.django_db
+def test_order_detail_requires_a_diner_of_that_table(api_client, cart, odoo):
+    """Atrapa el IDOR: con el uuid del pedido, alguien de otra mesa no debe ver su estado."""
+    order_id = api_client.post(reverse('confirm', args=[cart]), format='json').json()['pedido']
+    stranger = api_client.__class__()
+    assert stranger.get(reverse('order-detail', args=[order_id])).status_code == 404

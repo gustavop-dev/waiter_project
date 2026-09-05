@@ -17,4 +17,7 @@ def confirm(request, session_id):
 
 @api_view(['GET'])
 def detail(request, order_id):
-    return Response(orders.status_view(get_object_or_404(Order, id=order_id)))
+    # Solo un comensal de esa mesa (cookie) puede ver el pedido: el uuid no es la autorización.
+    order = get_object_or_404(Order, id=order_id)
+    diner_for(request, order.session)
+    return Response(orders.status_view(order))
