@@ -11,6 +11,18 @@ import { GenericPay } from '@/components/templates/generic/GenericPay'
 import { GenericSignup } from '@/components/templates/generic/GenericSignup'
 import type { CartLayoutProps, CodeProps, HistoryProps, MenuLayoutProps, PayLayoutProps, SignupProps } from '@/components/templates/types'
 import type { CodePattern, HistoryPattern, SignupPattern, TemplateFamily } from '@/lib/types'
+// --- familia A
+import { A1Menu } from '@/components/templates/families/A/A1Menu'
+import { A2Menu } from '@/components/templates/families/A/A2Menu'
+import { A3Menu } from '@/components/templates/families/A/A3Menu'
+import { A4Menu } from '@/components/templates/families/A/A4Menu'
+import { A5Menu } from '@/components/templates/families/A/A5Menu'
+import { FamilyACart } from '@/components/templates/families/A/FamilyACart'
+import { FamilyAPay } from '@/components/templates/families/A/FamilyAPay'
+import { PortadaSignup } from '@/components/templates/patterns/PortadaSignup'
+import { RevisaCorreoCode } from '@/components/templates/patterns/RevisaCorreoCode'
+import { TablaCufeHistory } from '@/components/templates/patterns/TablaCufeHistory'
+// --- fin familia A
 
 export type { CartHrefs, CartLayoutProps, CodeProps, HistoryProps, MenuLayoutProps, PayLayoutProps, SignupProps } from '@/components/templates/types'
 
@@ -20,6 +32,21 @@ export const PAY_LAYOUTS: Partial<Record<TemplateFamily, ComponentType<PayLayout
 export const SIGNUP_PATTERNS: Partial<Record<SignupPattern, ComponentType<SignupProps>>> = { banner5: GenericSignup }
 export const CODE_PATTERNS: Partial<Record<CodePattern, ComponentType<CodeProps>>> = { casillas: GenericCode }
 export const HISTORY_PATTERNS: Partial<Record<HistoryPattern, ComponentType<HistoryProps>>> = { porMes: GenericHistory }
+
+// --- familia A
+// Alta cocina: cinco menús por código; carrito y pago por familia (A3/A4 y A3/A5 se ramifican dentro por template.codigo, el registro solo
+// admite claves por familia); patrones de cuenta propios de la familia, reutilizables por cualquier plantilla.
+MENU_LAYOUTS.A1 = A1Menu
+MENU_LAYOUTS.A2 = A2Menu
+MENU_LAYOUTS.A3 = A3Menu
+MENU_LAYOUTS.A4 = A4Menu
+MENU_LAYOUTS.A5 = A5Menu
+CART_LAYOUTS.A = FamilyACart
+PAY_LAYOUTS.A = FamilyAPay
+SIGNUP_PATTERNS.portada = PortadaSignup
+CODE_PATTERNS.revisaCorreo = RevisaCorreoCode
+HISTORY_PATTERNS.tablaCufe = TablaCufeHistory
+// --- fin familia A
 
 export const menuLayout = (code: string | undefined): ComponentType<MenuLayoutProps> => (code && MENU_LAYOUTS[code.toUpperCase()]) || GenericMenu
 export const cartLayout = (familia: TemplateFamily | string | undefined): ComponentType<CartLayoutProps> => CART_LAYOUTS[familia as TemplateFamily] ?? GenericCart
