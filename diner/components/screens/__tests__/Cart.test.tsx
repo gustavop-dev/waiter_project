@@ -38,7 +38,7 @@ it('confirms and navigates to the order status with the returned id', async () =
   mockStore.confirm.mockResolvedValue('ord-9')
   const { rerender } = render(tree())
   expect(mockStore.refreshCart).toHaveBeenCalledTimes(1)
-  fireEvent.click(screen.getByRole('button', { name: 'Enviar a cocina · 77.800' }))
+  fireEvent.click(screen.getByRole('button', { name: /Enviar a cocina · \$ 77\.800/ }))
   await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/la-provincia/centro/t/8H2KQ7/estado/ord-9'))
   mockStore.busy = true
   rerender(tree())
