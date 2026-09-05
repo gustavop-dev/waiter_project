@@ -12,6 +12,8 @@ export default function PosLayout({ children }: { children: React.ReactNode }) {
   const load = useCatalogStore((s) => s.load)
 
   useEffect(() => { void hydrate() }, [hydrate])
+  // PWA: registro del service worker (no hace nada más que permitir la instalación).
+  useEffect(() => { if ('serviceWorker' in navigator) void navigator.serviceWorker.register('/sw.js').catch(() => undefined) }, [])
   useEffect(() => {
     if (!hydrated) return
     if (!session) { router.replace('/login'); return }

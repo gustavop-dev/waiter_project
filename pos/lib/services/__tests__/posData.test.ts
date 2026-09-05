@@ -21,7 +21,7 @@ const RAW = {
   'restaurant.floor': [{ id: 2, name: 'Terraza', table_ids: [6] }],
   'restaurant.table': [{ id: 6, table_number: 5, floor_id: 2, seats: 4, active: true }],
   'pos.payment.method': [{ id: 2, name: 'Tarjeta', type: 'bank' }, { id: 1, name: 'Efectivo', type: 'cash' }],
-  'res.company': [{ id: 1, name: 'La Provincia' }], 'pos.config': [{ id: 1, name: 'Salón', alert_late_minutes: 18, alert_bill_minutes: 10, roi_hour_cost: 20000, roi_minutes_per_order: 11, roi_baseline_hours_per_100: 18.4, roi_monthly_cost: 2740000, roi_start_date: false }],
+  'res.company': [{ id: 1, name: 'La Provincia' }], 'pos.config': [{ id: 1, name: 'Salón', alert_late_minutes: 18, alert_bill_minutes: 10, roi_hour_cost: 20000, roi_minutes_per_order: 11, roi_baseline_hours_per_100: 18.4, roi_monthly_cost: 2740000, roi_start_date: false, tip_product_id: 1 }],
 }
 
 beforeEach(() => {

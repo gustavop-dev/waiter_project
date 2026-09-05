@@ -327,6 +327,52 @@
         "new": "Nueva categoría",
         "save": "Guardar"
       }
+    },
+    "pay": {
+      "title": "Cobrar mesa {number}",
+      "subtotalLabel": "Cuenta",
+      "tip": "Propina",
+      "tipNone": "Sin propina",
+      "tipSuggested": "10 % · {amount}",
+      "tipCustom": "Otra",
+      "tipAmount": "Propina (COP)",
+      "split": "Dividir",
+      "fewerParts": "Menos partes",
+      "moreParts": "Más partes",
+      "noSplit": "Una sola cuenta",
+      "partsOf": "{n} partes de {amount}",
+      "payments": "Pagos",
+      "method": "Método",
+      "card": "Datáfono",
+      "amount": "Monto",
+      "receivedLabel": "Recibido en efectivo",
+      "changeHint": "Cambio: {amount}",
+      "received": "recibido",
+      "addPayment": "Agregar pago",
+      "removePayment": "Quitar pago",
+      "remaining": "Restante",
+      "change": "Cambio",
+      "confirm": "Confirmar cobro",
+      "cancel": "Cancelar",
+      "terminal": {
+        "title": "Datáfono",
+        "body": "Digita {amount} en el datáfono. Cuando apruebe, confirma aquí.",
+        "reference": "Voucher o referencia (opcional)",
+        "approved": "Aprobado",
+        "declined": "Rechazado"
+      },
+      "receipt": {
+        "title": "Recibo",
+        "table": "Mesa {n}",
+        "subtotal": "Subtotal",
+        "tax": "IVA",
+        "tip": "Propina",
+        "total": "Total",
+        "change": "Cambio",
+        "thanks": "Gracias por su visita",
+        "print": "Imprimir",
+        "close": "Cerrar"
+      }
     }
   }
 }

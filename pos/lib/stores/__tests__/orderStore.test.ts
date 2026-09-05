@@ -1,10 +1,10 @@
 import { act } from '@testing-library/react'
 
 import { fireUnsentLines } from '@/lib/services/kitchen'
-import { closeOrder, listOpenOrders, payOrder, saveOrder } from '@/lib/services/orders'
+import { addTip, closeOrder, listOpenOrders, payOrder, saveOrder, setChange } from '@/lib/services/orders'
 import { useOrderStore } from '@/lib/stores/orderStore'
 
-jest.mock('@/lib/services/orders', () => ({ saveOrder: jest.fn(), payOrder: jest.fn(), closeOrder: jest.fn(), listOpenOrders: jest.fn(), getShiftSummary: jest.fn() }))
+jest.mock('@/lib/services/orders', () => ({ saveOrder: jest.fn(), payOrder: jest.fn(), closeOrder: jest.fn(), listOpenOrders: jest.fn(), getShiftSummary: jest.fn(), addTip: jest.fn(), setChange: jest.fn() }))
 jest.mock('@/lib/services/kitchen', () => ({ fireUnsentLines: jest.fn() }))
 const mSave = saveOrder as jest.Mock
 const mPay = payOrder as jest.Mock
@@ -16,7 +16,7 @@ const saved = { id: 13, reference: '260-1-000009', state: 'draft' as const, tota
 beforeEach(() => {
   jest.clearAllMocks()
   mList.mockResolvedValue([])
-  useOrderStore.setState({ draft: null, saved: null, openOrders: [], shift: null, flags: {}, busy: false, error: null })
+  useOrderStore.setState({ draft: null, saved: null, openOrders: [], shift: null, flags: {}, busy: false, error: null, receipt: null })
 })
 
 // Falla si enviar a cocina no dispara la comanda en Odoo o la marca solo en memoria (cocina no la vería).
@@ -56,4 +56,19 @@ it('chargeExisting pays and closes an order by id without a local draft', async 
   expect(mPay).toHaveBeenCalledWith(13, 1, 87822)
   expect(mClose).toHaveBeenCalledWith(13)
   expect(useOrderStore.getState().flags[6]).toEqual({})
+})
+
+
+const CTX = { existing: { orderId: 13, tableId: 6 }, tipProductId: 1, tableNumber: 6, company: 'Demo', lines: [], methodName: (id: number) => (id === 1 ? 'Efectivo' : 'Tarjeta') }
+
+// Falla si el cobro mixto no registra cada pago, la propina o el cambio en Odoo, o si no deja recibo.
+it('settle tips, records every payment and the change, closes and leaves a receipt', async () => {
+  mClose.mockResolvedValue({ ...saved, state: 'paid', total: 95822, tax: 14022, paid: 95822 })
+  ;(addTip as jest.Mock).mockResolvedValue({ ...saved, total: 95822 })
+  const ok = await useOrderStore.getState().settle({ tip: 8000, payments: [{ methodId: 2, type: 'bank', amount: 50000, received: 50000, reference: 'A1' }, { methodId: 1, type: 'cash', amount: 45822, received: 50000, reference: '' }] }, CTX)
+  expect(ok).toBe(true)
+  expect(addTip).toHaveBeenCalledWith(13, 1, 8000)
+  expect(mPay.mock.calls.map((c) => c.slice(1))).toEqual([[2, 50000], [1, 45822]])
+  expect(setChange).toHaveBeenCalledWith(13, 4178)
+  expect(useOrderStore.getState().receipt).toMatchObject({ total: 95822, tip: 8000, change: 4178, payments: [{ method: 'Tarjeta', amount: 50000, reference: 'A1' }, { method: 'Efectivo', amount: 45822, reference: '' }] })
 })
