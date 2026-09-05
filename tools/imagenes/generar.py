@@ -7,7 +7,8 @@ Sigue la «Especificación de imágenes para las 30 plantillas de menú» (docs/
 - Cada toma produce UNA imagen base por variante y de ella salen los recortes (4x3, 1x1, 3x2, 3x4, 16x9), como en
   una sesión de fotos real: una toma, varios recortes. Así el lote mínimo son 24 tomas × 3 variantes = 72 llamadas.
 - Postproceso obligatorio: recorte centrado a la proporción, escala a la resolución de la tabla, JPG calidad 85 y
-  menos de 180 KB (si pesa más, baja la calidad de 5 en 5 hasta 60), nombre {sku}_{recorte}.jpg.
+  menos de 180 KB (si pesa más, baja la calidad de 5 en 5 hasta 60), nombre {sku}_{recorte}.jpg, y su gemelo
+  {sku}_{recorte}.webp (calidad 80) para CDN que lo soporten.
 - Hojas de contacto por toma para elegir a mano la variante (se revisan a 400×300, cerca de cómo se verán).
 - Manifiesto con prompt, modelo, calidad y `origen: ia` para trazabilidad.
 
@@ -118,6 +119,17 @@ def recortar(imagen: Image.Image, recorte: str) -> Image.Image:
         nh = round(w / objetivo)
         caja = (0, (h - nh) // 2, w, (h - nh) // 2 + nh)
     return imagen.crop(caja).resize((ancho, alto), Image.LANCZOS)
+
+
+def a_webp(imagen: Image.Image) -> bytes:
+    """WebP calidad 80 (la espec lo pide junto al JPG para CDN que lo soporten); si supera 180 KB baja hasta 60."""
+    calidad = 80
+    while True:
+        buf = io.BytesIO()
+        imagen.convert('RGB').save(buf, 'WEBP', quality=calidad, method=6)
+        if buf.tell() <= PESO_MAXIMO or calidad <= 60:
+            return buf.getvalue()
+        calidad -= 5
 
 
 def a_jpg(imagen: Image.Image) -> bytes:
@@ -243,9 +255,12 @@ def comando_finalizar(args: argparse.Namespace) -> None:
                 sys.exit(f'Falta {origen}; genera primero.')
             final = destino / f"{t['sku']}_{r}.jpg"
             final.write_bytes(origen.read_bytes())
-            manifiesto['imagenes'].append({'sku': t['sku'], 'recorte': r, 'archivo': final.name, 'px': 'x'.join(map(str, RECORTES[r])),
-                                           'peso_kb': round(final.stat().st_size / 1024, 1), 'variante': v, 'modelo': meta['modelo'],
-                                           'calidad': meta['calidad'], 'prompt': meta['prompt'], 'origen': 'ia'})
+            # El WebP sale del recorte ya escalado (no del JPG) para no recomprimir dos veces.
+            webp = destino / f"{t['sku']}_{r}.webp"
+            webp.write_bytes(a_webp(recortar(Image.open(SALIDA / 'base' / f"{t['sku']}_v{v}.png"), r)))
+            manifiesto['imagenes'].append({'sku': t['sku'], 'recorte': r, 'archivo': final.name, 'webp': webp.name, 'px': 'x'.join(map(str, RECORTES[r])),
+                                           'peso_kb': round(final.stat().st_size / 1024, 1), 'peso_webp_kb': round(webp.stat().st_size / 1024, 1),
+                                           'variante': v, 'modelo': meta['modelo'], 'calidad': meta['calidad'], 'prompt': meta['prompt'], 'origen': 'ia'})
     (destino / 'manifest.json').write_text(json.dumps(manifiesto, ensure_ascii=False, indent=2) + '\n')
     pesados = [i for i in manifiesto['imagenes'] if i['peso_kb'] > 180]
     print(f"{len(manifiesto['imagenes'])} imágenes en {destino}; sobre 180 KB: {len(pesados)}")

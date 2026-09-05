@@ -21,7 +21,7 @@ cd tools/imagenes
 python3 generar.py generar                 # 24 tomas × 3 variantes = 72 llamadas, calidad low
 python3 generar.py generar --solo HAMB-ANGUS --variantes 1   # prueba de humo
 python3 generar.py hojas                   # rehace las hojas de contacto (salida/hojas/)
-python3 generar.py finalizar --seleccion seleccion.json      # copia la variante elegida a assets/demo/imagenes/
+python3 generar.py finalizar --seleccion seleccion.json      # copia la variante elegida (JPG + WebP) a assets/demo/imagenes/
 python3 subir_odoo.py                      # carga las finales en product.template y marca image_origin = ai
 ```
 
