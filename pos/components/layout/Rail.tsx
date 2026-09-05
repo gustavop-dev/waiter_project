@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 
 export function Rail({ active, userName = '' }: { active: 'tables' | 'orders' | 'kitchen' | 'payments'; userName?: string }) {
   const t = useTranslations('pos.rail')
-  const items = [['tables', '/salon'], ['orders', null], ['kitchen', '/kds'], ['payments', null]] as const
+  const items = [['tables', '/salon'], ['orders', '/operacion'], ['kitchen', '/kds'], ['payments', '/ventas']] as const
   return (
     <aside className="w-rail shrink-0 bg-sidebar p-3 flex flex-col items-center gap-3">
       <span className="h-[30px] px-2 rounded-sm bg-brand-500 grid place-items-center font-bold text-[17px] tracking-[-0.05em] text-ink">Wt.</span>

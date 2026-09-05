@@ -46,3 +46,10 @@
 body { background: var(--color-canvas); color: var(--color-ink); font-family: var(--font-ui);
   -webkit-font-smoothing: antialiased; }
 .tabular { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
+
+/* Recibo: al imprimir solo se ve .receipt (impresión desde el navegador; térmica llega después). */
+@media print {
+  body * { visibility: hidden; }
+  .receipt, .receipt * { visibility: visible; }
+  .receipt { position: fixed; inset: 0; width: 80mm; padding: 6mm; background: #fff; color: #000; overflow: visible; }
+}

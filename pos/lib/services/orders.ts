@@ -1,5 +1,6 @@
 import { toSyncPayload } from '@/lib/domain/order'
 import { kitchenPhase, type KitchenPhase } from '@/lib/domain/kitchen'
+import { uuid } from '@/lib/domain/uuid'
 import type { DraftOrder } from '@/lib/domain/order'
 import { listCourseSummaries } from '@/lib/services/kitchen'
 import { callKw } from '@/lib/services/odoo'
@@ -32,6 +33,21 @@ export async function saveOrder(draft: DraftOrder): Promise<SavedOrder> {
 export async function payOrder(orderId: number, paymentMethodId: number, amount: number): Promise<SavedOrder> {
   await callKw<void>('pos.order', 'add_payment', [[orderId], { pos_order_id: orderId, payment_method_id: paymentMethodId, amount }])
   return readOrder(orderId)
+}
+
+// La propina en Odoo 19 es una línea del producto de propina (no hay set_tip): se agrega, se recalcula y se anota.
+export async function addTip(orderId: number, tipProductId: number, amount: number): Promise<SavedOrder> {
+  // Sin recompute_prices (pondría el precio de lista del producto de propina) y con amount_total escrito a mano:
+  // en Odoo 19 el total del pedido no se recalcula solo al agregar una línea; lo manda el cliente.
+  const current = await readOrder(orderId)
+  const line = { product_id: tipProductId, qty: 1, price_unit: amount, full_product_name: 'Propina', tax_ids: [[6, 0, []]], price_subtotal: amount, price_subtotal_incl: amount, uuid: uuid() }
+  await callKw('pos.order', 'write', [[orderId], { lines: [[0, 0, line]], tip_amount: amount, is_tipped: true, amount_total: current.total + amount }])
+  return readOrder(orderId)
+}
+
+// Cambio entregado en efectivo: Odoo lo guarda en amount_return.
+export async function setChange(orderId: number, amount: number): Promise<void> {
+  await callKw('pos.order', 'write', [[orderId], { amount_return: amount }])
 }
 
 export async function closeOrder(orderId: number): Promise<SavedOrder> {

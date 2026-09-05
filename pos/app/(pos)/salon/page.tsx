@@ -11,10 +11,10 @@ import { BillPanel } from '@/components/salon/BillPanel'
 import { FloorTabs } from '@/components/salon/FloorTabs'
 import { StateLegend } from '@/components/salon/StateLegend'
 import { TableGrid } from '@/components/salon/TableGrid'
+import { PayPanel } from '@/components/pay/PayPanel'
+import { Receipt } from '@/components/pay/Receipt'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { formatCop } from '@/lib/domain/money'
 import { countByState, deriveTableViews } from '@/lib/domain/tableState'
 import { getOrderLines } from '@/lib/services/orders'
 import type { OrderLineView } from '@/lib/services/orders'
@@ -30,9 +30,9 @@ export default function SalonPage() {
   const session = useAuthStore((s) => s.session)
   const catalog = useCatalogStore((s) => s.catalog)
   const { activeFloorId, selectedTableId, setFloor, selectTable } = useFloorStore()
-  const { openOrders, flags, draft, refreshOpenOrders, refreshShift, charge, chargeExisting, busy } = useOrderStore()
+  const { openOrders, flags, draft, refreshOpenOrders, refreshShift, settle, receipt, closeReceipt, busy } = useOrderStore()
   const [remote, setRemote] = useState<{ orderId: number; lines: OrderLineView[] } | null>(null)
-  const [confirming, setConfirming] = useState(false)
+  const [paying, setPaying] = useState(false)
   const [now, setNow] = useState(() => Date.now())
 
   // Los tiempos de mesa y la barra de 22 min avanzan solos.
@@ -51,7 +51,6 @@ export default function SalonPage() {
     return deriveTableViews(tables, openOrders, flags)
   }, [catalog, activeFloorId, openOrders, flags])
   const selected = views.find((v) => v.table.id === selectedTableId) ?? null
-  const cash = catalog?.paymentMethods.find((m) => m.type === 'cash')
   const isLocal = draft !== null && draft.tableId === selectedTableId
   const remoteOrderId = !isLocal ? (selected?.orderId ?? null) : null
   // Las líneas remotas solo valen para el pedido que las pidió: lo obsoleto se descarta al leer, sin resetear estado en el efecto.
@@ -63,14 +62,18 @@ export default function SalonPage() {
     void getOrderLines(remoteOrderId).then((l) => setRemote({ orderId: remoteOrderId, lines: l }))
   }, [remoteOrderId])
 
-  async function onConfirmCharge() {
-    if (!cash || !selected) return
-    if (isLocal) await charge(cash.id)
-    else if (selected.orderId) await chargeExisting(selected.orderId, selected.table.id, selected.total, cash.id)
-    setConfirming(false)
+  async function onSettle(plan: Parameters<typeof settle>[0]) {
+    if (!selected || !catalog) return
+    const ok = await settle(plan, {
+      existing: isLocal ? null : selected.orderId ? { orderId: selected.orderId, tableId: selected.table.id } : null,
+      tipProductId: catalog.settings.tipProductId, tableNumber: selected.table.number, company: catalog.company.name,
+      lines: lines.map((l) => ({ uuid: l.uuid, name: l.name, qty: l.qty, unitPrice: l.unitPrice })), methodName: (id) => catalog.paymentMethods.find((m) => m.id === id)?.name ?? '',
+    })
+    if (!ok) return
+    setPaying(false)
     if (session) { await refreshOpenOrders(session.id); await refreshShift(session.id) }
-    selectTable(null)
   }
+  function onCloseReceipt() { closeReceipt(); selectTable(null) }
 
   if (!catalog) return null
   return (
@@ -87,11 +90,10 @@ export default function SalonPage() {
           </div>
           {views.length === 0 ? <p className="text-soft text-base">{t('salon.emptyFloor')}</p> : <TableGrid views={views} selectedId={selectedTableId} onSelect={selectTable} now={now} />}
         </section>
-        <BillPanel view={selected} lines={lines} onCharge={() => setConfirming(true)} onOpenOrder={() => selected && router.push(`/mesas/${selected.table.id}`)} now={now} />
+        {receipt ? <Receipt data={receipt} onClose={onCloseReceipt} />
+          : paying && selected ? <PayPanel key={selected.table.id} tableNumber={selected.table.number} total={selected.total} lines={lines} methods={catalog.paymentMethods} busy={busy} onSettle={onSettle} onCancel={() => setPaying(false)} />
+          : <BillPanel view={selected} lines={lines} onCharge={() => setPaying(true)} onOpenOrder={() => selected && router.push(`/mesas/${selected.table.id}`)} now={now} />}
       </div>
-      <ConfirmDialog open={confirming && !!selected} title={t('salon.confirmTitle', { number: selected?.table.number ?? 0 })}
-        body={t('salon.confirmBody', { amount: `$ ${formatCop(selected?.total ?? 0)}`, method: cash?.name ?? '' })}
-        confirmLabel={t('salon.confirmYes')} cancelLabel={t('salon.confirmNo')} onConfirm={onConfirmCharge} onCancel={() => setConfirming(false)} />
       {busy && <span className="sr-only" role="status">…</span>}
     </Shell>
   )
