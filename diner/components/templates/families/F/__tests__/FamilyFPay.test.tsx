@@ -98,6 +98,9 @@ it('renders the authorizing, paid and declined states with the demo badge', () =
   const declined = base('F2', { state: 'declined' })
   wrap(<FamilyFPay {...declined} />)
   expect(screen.getByRole('alert')).toHaveTextContent('Tu banco no autorizó el pago')
+  // Estado rechazado con los semánticos de Waiter (busy), sin hex en duro.
+  expect(screen.getByRole('alert')).toHaveClass('bg-busy-soft', 'border-busy/30')
+  expect(screen.getByRole('heading', { level: 1 })).toHaveClass('text-busy-ink')
   fireEvent.click(screen.getByRole('button', { name: /Intentar con otra tarjeta/ }))
   expect(declined.onRetry).toHaveBeenCalledTimes(1)
   fireEvent.click(screen.getByRole('button', { name: /Que el mesero cobre en la mesa/ }))

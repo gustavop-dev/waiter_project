@@ -19,9 +19,12 @@ import type { CartLine, Dish, Menu } from '@/lib/types'
 //    60 px con radio 8.
 //  · F3: piel oscura de la familia A: cabecera centrada en serif, nombre en serif 20 con guía de puntos, «5% ya usado en tu 1ª
 //    visita —» cuando el descuento ya se consumió, CTA de contorno dorado.
-//  · F5: cuenta compartida: avatar por comensal («Yo» en el acento; los demás numerados), fila «Para la mesa» con lo pedido por
-//    otros, selector de propina (0 / 10 / 15 %, informativo: la propina se entrega en la mesa, el total no cambia), chip «−5%
-//    aplicado» y CTA «Pagar lo mío» (o «Ir a pagar» si nadie más pidió).
+//  · F5: cuenta compartida: avatar de 34 px por comensal («Yo» en el acento; los demás numerados por orden de aparición, con los
+//    tres colores del marco rotando: la sesión no trae nombres, así que no hay iniciales). La fila «Para la mesa» del marco es
+//    para lo compartido sin dueño, que el carrito de Waiter no tiene (toda línea es de alguien): no se pinta, para no sumar dos
+//    veces lo ajeno. Selector de propina (0 / 10 / 15 %) en su propia sección, fuera de la caja de totales: es informativo, se
+//    entrega en la mesa y no entra en el Total ni en el CTA. Chip «−5% aplicado» y CTA «Pagar lo mío» (o «Ir a pagar» si nadie
+//    más pidió).
 // Se conserva la funcionalidad del genérico: «Enviar a cocina» como acción principal, «Ir a pagar», «o pagar en la mesa con el
 // mesero», cantidad / quitar en lo mío, y lo de los demás solo se mira. Las piezas se cuentan con la carta del store.
 export function FamilyFCart(props: CartLayoutProps) {
@@ -89,14 +92,10 @@ export function FamilyFCart(props: CartLayoutProps) {
         ? (
           <ul className="flex flex-col">
             {own.map((l) => <Line key={l.id} line={l} editable {...lineProps} avatar={<span aria-hidden="true" className="w-[34px] h-[34px] rounded-full bg-t-acento text-t-acento-tinta grid place-items-center text-[13px] font-bold shrink-0">{tf('cart.me')}</span>} />)}
-            {theirs.map((l) => <Line key={l.id} line={l} editable={false} {...lineProps} avatar={<span aria-hidden="true" className={`w-[34px] h-[34px] rounded-full text-white grid place-items-center text-[13px] font-bold shrink-0 ${dinerIndex(cart.lineas, l) % 2 ? 'bg-free' : 'bg-kitchen'}`}>{dinerIndex(cart.lineas, l) + 1}</span>} />)}
-            {theirs.length > 0 && (
-              <li className="px-[18px] py-2.5 flex items-center gap-[11px] bg-t-superficie">
-                <span aria-hidden="true" className="w-[34px] h-[34px] rounded-full bg-t-borde text-t-tinta-suave grid place-items-center text-[14px] shrink-0">↔</span>
-                <span className="flex-1 text-[15px]">{tf('cart.forTable')}</span>
-                <span className={`${money} text-[15px]`}>{formatCop(cart.total - cart.mio)}</span>
-              </li>
-            )}
+            {theirs.map((l) => {
+              const i = dinerIndex(cart.lineas, l)
+              return <Line key={l.id} line={l} editable={false} {...lineProps} avatar={<span role="img" aria-label={tf('cart.diner', { n: i + 1 })} className={`w-[34px] h-[34px] rounded-full text-white grid place-items-center text-[13px] font-bold shrink-0 ${DINER_COLORS[i % DINER_COLORS.length]}`}>{i + 1}</span>} />
+            })}
           </ul>
         )
         : (
@@ -116,20 +115,24 @@ export function FamilyFCart(props: CartLayoutProps) {
           <Link href={hrefs.signup} className="px-3.5 py-2.5 rounded-t-boton bg-t-acento-suave border border-t-borde text-[14px] font-medium text-t-tinta">{t('cart.discountHint', { pct })}</Link>
         )}
       </div>
+      {code === 'F5' && (
+        <section aria-label={tf('cart.tip')} className="px-[18px] py-3 border-t border-t-borde flex flex-col gap-2">
+          <div className="flex justify-between items-baseline gap-2.5 text-[14px] text-t-tinta-suave">
+            <span>{tf('cart.tip')}</span>
+            {tip > 0 && <span data-testid="tip-info">{tf('cart.tipAtTable', { pct: tip })} · <span className={money}>{formatCop((cart.total * tip) / 100)}</span></span>}
+          </div>
+          <div role="radiogroup" aria-label={tf('cart.tip')} className="flex gap-[7px]">
+            {([0, 10, 15] as const).map((p) => (
+              <button key={p} type="button" role="radio" aria-checked={tip === p} onClick={() => setTip(p)} className={`flex-1 h-11 rounded-[9px] text-[14px] ${tip === p ? 'bg-t-acento text-t-acento-tinta font-medium' : 'border border-t-borde text-t-tinta-suave'}`}>{p === 0 ? tf('cart.tipNone') : `${p}%`}</button>
+            ))}
+          </div>
+          <p className="text-[12px] text-t-tinta-terciaria">{tf('cart.tipNote')}</p>
+        </section>
+      )}
       <dl className="px-[18px] py-4 border-t border-t-borde bg-t-superficie">
         <div className={row}><dt>{t('cart.subtotal')}</dt><dd className={money}>{formatCop(cart.total)}</dd></div>
         {discount?.aplicado && <div className={`${row} text-free`}><dt>{t('cart.discountLine', { pct })}</dt><dd className={money}>−{formatCop(discount.monto)}</dd></div>}
         {used && <div className={row}><dt>{tf('cart.discountUsed', { pct })}</dt><dd className={money}>—</dd></div>}
-        {code === 'F5' && (
-          <>
-            {tip > 0 && <div className={row}><dt>{tf('cart.tipAtTable', { pct: tip })}</dt><dd className={money}>{formatCop((cart.total * tip) / 100)}</dd></div>}
-            <div role="radiogroup" aria-label={tf('cart.tip')} className="flex gap-[7px] mt-3 mb-1">
-              {([0, 10, 15] as const).map((p) => (
-                <button key={p} type="button" role="radio" aria-checked={tip === p} onClick={() => setTip(p)} className={`flex-1 h-11 rounded-[9px] text-[14px] ${tip === p ? 'bg-t-acento text-t-acento-tinta font-medium' : 'border border-t-borde text-t-tinta-suave'}`}>{p === 0 ? tf('cart.tipNone') : `${p}%`}</button>
-              ))}
-            </div>
-          </>
-        )}
         <div className={`flex justify-between items-baseline gap-2.5 pt-2.5 mt-2 border-t border-t-borde ${dark ? 'border-dotted' : ''}`}>
           <dt className={dark ? 't-title text-[21px] leading-[1.1]' : 'text-[18px] font-bold tracking-[-0.02em] leading-[1.15]'}>{tf('cart.total')}</dt>
           <dd className="flex items-center gap-2">
@@ -149,7 +152,9 @@ export function FamilyFCart(props: CartLayoutProps) {
   )
 }
 
-// Orden de aparición de cada comensal ajeno (para numerar y colorear su avatar en F5).
+// Los tres colores del marco de F5 para los demás comensales (violeta, verde, ámbar de Waiter; el dorado/acento es del «Yo»).
+const DINER_COLORS = ['bg-kitchen', 'bg-free', 'bg-pending']
+// Orden de aparición de cada comensal ajeno (para numerar y colorear su avatar en F5): el mismo comensal, el mismo número.
 function dinerIndex(lines: CartLine[], line: CartLine): number {
   const ids = Array.from(new Set(lines.filter((l) => !l.mio).map((l) => l.comensal)))
   return ids.indexOf(line.comensal)

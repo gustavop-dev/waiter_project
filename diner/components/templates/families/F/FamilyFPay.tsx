@@ -106,10 +106,10 @@ export function FamilyFPay({ bill, template, methods, onPay, state, demo, goBack
   if (state === 'declined') {
     return (
       <div className="px-[18px] py-[22px] flex flex-col gap-4 text-t-tinta">
-        <div role="alert" className="rounded-t-tarjeta bg-busy-soft border border-[#EBC7C4] p-4 flex gap-3">
+        <div role="alert" className="rounded-t-tarjeta bg-busy-soft border border-busy/30 p-4 flex gap-3">
           <span aria-hidden="true" className="w-7 h-7 shrink-0 rounded-full bg-busy text-white grid place-items-center font-bold">!</span>
           <div className="flex flex-col gap-1">
-            <h1 className="text-[18px] font-bold text-[#7E1C18] leading-tight">{t('declined')}</h1>
+            <h1 className="text-[18px] font-bold text-busy-ink leading-tight">{t('declined')}</h1>
             <p className="text-[15px] text-busy-ink">{t('declinedHint')}</p>
           </div>
         </div>

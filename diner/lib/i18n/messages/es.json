@@ -648,16 +648,18 @@
           "compare": "Comparar",
           "best": "Mejor precio por persona",
           "open": "Ver el plato →",
-          "add": "Añadir · {name}"
+          "add": "Añadir · {name}",
+          "addVerb": "Añadir"
         },
         "cart": {
           "total": "Total",
           "taxIncluded": "IVA incluido",
           "me": "Yo",
-          "forTable": "Para la mesa",
+          "diner": "Comensal {n}",
           "tip": "Propina",
           "tipNone": "Sin propina",
           "tipAtTable": "Propina {pct}% · se entrega en la mesa",
+          "tipNote": "La propina se entrega en la mesa: no suma al total.",
           "discountUsed": "{pct}% ya usado en tu 1ª visita",
           "discountApplied": "−{pct}% aplicado",
           "payMine": "Pagar lo mío"

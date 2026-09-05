@@ -1,7 +1,7 @@
 import { fireEvent, screen, within } from '@testing-library/react'
 
 import { F5Menu } from '@/components/templates/families/F/F5Menu'
-import { menuProps, wrap } from '@/components/templates/families/F/__tests__/fixtures'
+import { cartOf, line, menuProps, wrap } from '@/components/templates/families/F/__tests__/fixtures'
 
 // Falla si la tarjeta con foto pierde la franja 3x2, si la línea «por persona» se inventa sin la etiqueta «para N», o si la primera no queda seleccionada con borde de tinta.
 it('paints the set cards with the photo strip, the per-person line only with «para N», and the selection outline', () => {
@@ -26,8 +26,23 @@ it('selects on tap, opens from the selected card and adds the selection from the
   expect(screen.getByRole('article', { name: 'Set 24 piezas' })).toHaveClass('border-t-tinta')
   fireEvent.click(screen.getByRole('button', { name: 'Ver el plato →' }))
   expect(props.onOpen).toHaveBeenCalledWith(expect.objectContaining({ id: 5 }))
-  fireEvent.click(screen.getByRole('button', { name: 'Añadir · Set 24 piezas' }))
+  const add = screen.getByRole('button', { name: 'Añadir · Set 24 piezas' })
+  // El verbo nunca se corta: «Añadir» en 16/700 y el nombre en una segunda línea recortable; el nombre completo va en el aria-label.
+  expect(within(add).getByText('Añadir')).toHaveClass('font-bold')
+  expect(within(add).getByText('Añadir')).not.toHaveClass('truncate')
+  expect(within(add).getByText('Set 24 piezas')).toHaveClass('truncate')
+  expect(add).toHaveClass('h-14', 'rounded-t-boton', 'bg-t-acento', 'text-t-acento-tinta')
+  fireEvent.click(add)
   expect(props.onAdd).toHaveBeenCalledWith(expect.objectContaining({ id: 5 }))
+})
+
+// Falla si la barra de pedido de la familia no va pegada al pie junto a «Comparar» / «Añadir» cuando hay pedido.
+it('sticks the family order bar above the footer when there is an order', () => {
+  wrap(<F5Menu {...menuProps('F5', { category: 2, cart: cartOf([line({ producto_id: 5, nombre: 'Set 24 piezas', cantidad: 1, subtotal: 96000 })]) })} />)
+  const bar = screen.getByRole('link', { name: 'Tu pedido' })
+  expect(bar).toHaveTextContent('24 piezas · 96.000')
+  expect(bar.parentElement).toHaveClass('sticky', 'bottom-0')
+  expect(bar.parentElement).toContainElement(screen.getByRole('button', { name: 'Comparar' }))
 })
 
 // Falla si «Comparar» no ordena por precio por persona ni marca el mejor, o si un agotado seleccionado deja añadir.

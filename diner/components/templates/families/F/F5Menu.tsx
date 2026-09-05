@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
-import { DishPhoto, FTabs, MenuEmpty, ReferenceNote, SearchField, SearchToggle, peopleOf } from '@/components/templates/families/F/parts'
+import { DishPhoto, FOrderBar, FTabs, Foot, MenuEmpty, ReferenceNote, SearchField, SearchToggle, peopleOf } from '@/components/templates/families/F/parts'
 import { tabId, useMenuDishes } from '@/components/templates/generic/menuParts'
 import type { MenuLayoutProps } from '@/components/templates/types'
 import { formatCop } from '@/lib/domain/cart'
@@ -15,8 +15,10 @@ import type { Dish } from '@/lib/types'
 // de 2 px (tinta, no acento); pie con «Comparar» de contorno y «Añadir · {set}» en el acento (texto acentoTinta). «para N» sale
 // de la etiqueta «para N» del producto (atributos.personas no existe): sin ella no hay línea verde. Tocar una tarjeta la
 // selecciona; la seleccionada ofrece «Ver el plato →» (onOpen). «Comparar» ordena por precio por persona y marca el mejor.
-// Añadidos de Waiter: pestañas y lupa bajo la cabecera. Sin barra de pedido en el marco: la barra fija de Waiter cubre el pedido.
-export function F5Menu({ entry, query, setQuery, category, setCategory, onOpen, onAdd }: MenuLayoutProps) {
+// El CTA dice «Añadir» en grande y el nombre del set en una segunda línea recortable (el marco escribe «Añadir set 40»; con
+// nombres largos el verbo nunca se corta y el nombre completo va en el aria-label). Añadidos de Waiter: pestañas y lupa bajo la
+// cabecera y la barra de pedido de la familia sobre el pie (la página no pinta la suya sobre este layout).
+export function F5Menu({ entry, query, setQuery, category, setCategory, onOpen, onAdd, cart, orderBarHref }: MenuLayoutProps) {
   const t = useTranslations('diner')
   const tf = useTranslations('diner.templates.familiaF')
   const [searching, setSearching] = useState(false)
@@ -29,7 +31,7 @@ export function F5Menu({ entry, query, setQuery, category, setCategory, onOpen, 
   const best = comparing ? list.find((d) => perPerson(d) !== null && !d.agotado) ?? null : null
   const selected = dishes.find((d) => d.id === selectedId) ?? dishes[0] ?? null
   const title = category === null ? t('menu.title') : categories.find((c) => c.id === category)?.nombre ?? t('menu.title')
-  const chip = (active: boolean) => `h-[38px] px-3.5 rounded-t-chip text-[14px] ${active ? 'bg-t-acento text-t-acento-tinta font-medium' : 'bg-t-superficie border border-t-borde text-t-tinta'}`
+  const chip = (active: boolean) => `h-[36px] px-3 rounded-t-chip text-[14px] ${active ? 'bg-t-acento text-t-acento-tinta font-medium' : 'bg-t-superficie border border-t-borde text-t-tinta'}`
   return (
     <div className="flex flex-col text-t-tinta">
       <header className="px-5 pt-[18px] pb-3.5">
@@ -73,14 +75,22 @@ export function F5Menu({ entry, query, setQuery, category, setCategory, onOpen, 
             )
           })}
       </section>
-      {selected && (
-        <div className="px-5 py-3.5 border-t border-t-borde flex items-center gap-2.5">
-          <button type="button" aria-pressed={comparing} onClick={() => setComparing((c) => !c)} className={`flex-1 h-14 rounded-t-boton border text-[15px] font-medium ${comparing ? 'border-t-tinta bg-t-superficie' : 'border-t-borde'}`}>{tf('sets.compare')}</button>
-          {selected.agotado
-            ? <span className="flex-[1.4] h-14 rounded-t-boton bg-t-superficie border border-t-borde grid place-items-center text-[15px] font-medium text-busy-ink">{t('common.soldOut')}</span>
-            : <button type="button" onClick={() => onAdd(selected)} className="flex-[1.4] min-w-0 h-14 rounded-t-boton bg-t-acento text-t-acento-tinta text-[16px] font-bold px-3 truncate">{tf('sets.add', { name: selected.nombre })}</button>}
-        </div>
-      )}
+      <Foot>
+        <FOrderBar cart={cart} menu={entry.carta} href={orderBarHref} />
+        {selected && (
+          <div className="px-5 py-3.5 border-t border-t-borde flex items-center gap-2.5">
+            <button type="button" aria-pressed={comparing} onClick={() => setComparing((c) => !c)} className={`flex-1 h-14 rounded-t-boton border text-[15px] font-medium ${comparing ? 'border-t-tinta bg-t-superficie' : 'border-t-borde'}`}>{tf('sets.compare')}</button>
+            {selected.agotado
+              ? <span className="flex-[1.4] h-14 rounded-t-boton bg-t-superficie border border-t-borde grid place-items-center text-[15px] font-medium text-busy-ink">{t('common.soldOut')}</span>
+              : (
+                <button type="button" aria-label={tf('sets.add', { name: selected.nombre })} onClick={() => onAdd(selected)} className="flex-[1.4] min-w-0 h-14 rounded-t-boton bg-t-acento text-t-acento-tinta px-3 flex flex-col items-center justify-center leading-tight">
+                  <span className="text-[16px] font-bold">{tf('sets.addVerb')}</span>
+                  <span className="max-w-full truncate text-[12px] font-medium opacity-85">{selected.nombre}</span>
+                </button>
+              )}
+          </div>
+        )}
+      </Foot>
     </div>
   )
 }
