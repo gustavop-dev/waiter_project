@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
-import { AddButton, DishMeta, FrameOrderBar, Photo, Pills } from '@/components/templates/families/B/parts'
+import { AddButton, DishMeta, FrameOrderBar, Photo, Pills, SEARCH_FIELD, SEARCH_SURFACE } from '@/components/templates/families/B/parts'
 import { tabId, useMenuDishes } from '@/components/templates/generic/menuParts'
 import type { MenuLayoutProps } from '@/components/templates/types'
 import { formatCop } from '@/lib/domain/cart'
@@ -11,8 +11,8 @@ import type { Dish } from '@/lib/types'
 
 // B1 · Rejilla con foto (docs/diseno/plantillas/B1): píldoras de categoría arriba (activa en acento), rejilla de 2 columnas con foto de
 // 82 px, nombre, precio en mono y ＋ redondo en acento; barra oscura de pedido abajo. El marco no dibuja buscador: va plegado tras
-// un botón de 44 px al inicio de las píldoras para no romper el diseño. La barra la pinta el layout (cart.total + orderBarHref);
-// la página aún superpone su OrderBar flotante cuando hay ítems: integración pendiente (quitar 'carta' del OrderBar de la página).
+// un botón de 44 px al inicio de las píldoras para no romper el diseño. La barra oscura la pinta el layout (cart.total + orderBarHref)
+// y es la única de la pantalla: el marco no dibuja cabecera de marca y la página no superpone la suya ni su barra (ownsChrome).
 export function B1Menu({ entry, query, setQuery, category, setCategory, onOpen, onAdd, cart, orderBarHref }: MenuLayoutProps) {
   const t = useTranslations('diner')
   const tb = useTranslations('diner.templates.familiaB')
@@ -30,7 +30,7 @@ export function B1Menu({ entry, query, setQuery, category, setCategory, onOpen, 
       </div>
       {(searching || query) && (
         <div className="px-[18px] pt-3">
-          <input type="search" aria-label={tb('search')} placeholder={tb('search')} value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" autoFocus className="h-[44px] w-full rounded-[10px] bg-muted px-3.5 text-[15px] text-t-tinta placeholder:text-t-tinta-terciaria" />
+          <input type="search" aria-label={tb('search')} placeholder={tb('search')} value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" autoFocus className={`${SEARCH_FIELD} ${SEARCH_SURFACE}`} />
         </div>
       )}
       {entry.carta.imagenesDeReferencia && <p className="px-[18px] pt-3 text-[13px] text-t-tinta-suave">{t('menu.referenceImages')}</p>}

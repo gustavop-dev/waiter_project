@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { useMemo, useState } from 'react'
 
-import { DishMeta, FrameOrderBar, GOLD_TEXT, Pills } from '@/components/templates/families/B/parts'
+import { DishMeta, FrameOrderBar, GOLD_INK, Pills, SEARCH_FIELD } from '@/components/templates/families/B/parts'
 import { fold } from '@/components/templates/generic/menuParts'
 import type { MenuLayoutProps } from '@/components/templates/types'
 import { formatCop } from '@/lib/domain/cart'
@@ -11,8 +11,9 @@ import type { Category, Dish } from '@/lib/types'
 
 // B5 · Carta con secciones plegables (docs/diseno/plantillas/B5): buscador «Buscar en la carta» con botón de filtro ≡ (despliega las
 // píldoras de categoría de Waiter), acordeón de categorías (cerradas sobre superficie con «8 · abrir» en terciario; la abierta con
-// «21 · cerrar» en dorado fijo), filas de plato con nombre, descripción corta y precio en mono, sin ＋ (tocar abre el plato y desde
-// ahí se añade, como manda el spec); barra oscura de pedido abajo. Con búsqueda, se abren solo las secciones con coincidencias.
+// «21 · cerrar» en la tinta ámbar: el dorado del marco sobre blanco da 3,1:1 a 14 px), filas de plato con nombre, descripción corta
+// y precio en mono, sin ＋ (tocar abre el plato y desde ahí se añade, como manda el spec); barra oscura de pedido abajo, la única de
+// la pantalla (la página no superpone la suya). Con búsqueda, se abren solo las secciones con coincidencias.
 export function B5Menu({ entry, query, setQuery, category, setCategory, onOpen, cart, orderBarHref }: MenuLayoutProps) {
   const t = useTranslations('diner')
   const tf = useTranslations('diner.templates.familiaB')
@@ -32,7 +33,7 @@ export function B5Menu({ entry, query, setQuery, category, setCategory, onOpen, 
     <div className="flex flex-col min-h-[60vh]">
       <div className="px-[18px] py-4 border-b border-t-borde flex flex-col gap-3">
         <div className="flex items-center gap-2.5">
-          <input type="search" aria-label={tf('search')} placeholder={tf('search')} value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" className="flex-1 h-[44px] rounded-[10px] bg-muted px-3.5 text-[15px] text-t-tinta placeholder:text-t-tinta-terciaria" />
+          <input type="search" aria-label={tf('search')} placeholder={tf('search')} value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" className={`flex-1 ${SEARCH_FIELD} bg-t-acento-suave`} />
           <button type="button" aria-label={tf('filters')} aria-pressed={filters || category !== null} onClick={() => setFilters((f) => !f)} className={`shrink-0 w-[44px] h-[44px] rounded-[10px] grid place-items-center text-[15px] ${filters || category !== null ? 'bg-t-acento text-t-acento-tinta' : 'border border-t-borde text-t-tinta-suave'}`}>≡</button>
         </div>
         {(filters || category !== null) && <Pills categories={categories} category={category} setCategory={setCategory} />}
@@ -48,7 +49,7 @@ export function B5Menu({ entry, query, setQuery, category, setCategory, onOpen, 
               <h2>
                 <button type="button" aria-expanded={opened} aria-controls={panel} onClick={() => toggle(c)} className={`w-full px-[18px] py-[15px] min-h-[52px] flex justify-between items-center border-b border-t-borde/60 ${opened ? 'bg-t-fondo' : 'bg-t-superficie'}`}>
                   <span className="t-title text-[17px] leading-tight text-t-tinta">{c.nombre}</span>
-                  <span className={`text-[14px] ${opened ? `${GOLD_TEXT} font-medium` : 'text-t-tinta-terciaria'}`}>{tb('sectionState', { n: c.productos.length, state: opened ? tf('close') : tf('open') })}</span>
+                  <span className={`text-[14px] ${opened ? `${GOLD_INK} font-medium` : 'text-t-tinta-terciaria'}`}>{tb('sectionState', { n: c.productos.length, state: opened ? tf('close') : tf('open') })}</span>
                 </button>
               </h2>
               {opened && (

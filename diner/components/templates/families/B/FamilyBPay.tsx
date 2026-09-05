@@ -156,8 +156,10 @@ export function FamilyBPay({ bill, template, methods, onPay, state, demo, goBack
       {method === 'efectivo' && <p className="text-[15px] text-t-tinta-suave">{t('cashHint')}</p>}
     </>
   )
+  // Aviso «Tokenizado por la pasarela» sobre la superficie de la plantilla (el marco pinta #F2EEE8 en claro; en B4 la caja fija clara
+  // dejaba la tinta suave de la pizarra ilegible).
   const tokenized = (
-    <div className="flex gap-[9px] items-center px-[13px] py-[11px] rounded-[10px] bg-muted">
+    <div data-testid="tokenized" className="flex gap-[9px] items-center px-[13px] py-[11px] rounded-[10px] bg-t-superficie">
       <span aria-hidden="true" className="w-[22px] h-[22px] shrink-0 rounded-md bg-free text-white grid place-items-center text-[11px] font-bold">✓</span>
       <span className="text-[13px] leading-[1.4] text-t-tinta-suave">{variant === 'B1' || variant === 'B5' ? t('tokenized') : tb('tokenizedShort')}</span>
     </div>

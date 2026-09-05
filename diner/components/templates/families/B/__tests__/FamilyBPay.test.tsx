@@ -94,6 +94,11 @@ it('B4: cream total band, tall method rows and no card form', () => {
   expect(rows[0]).toHaveClass('h-[62px]', 'border-t-acento')
   expect(screen.queryByPlaceholderText('4242 4242 4242 4242')).toBeNull()
   expect(screen.getByRole('button', { name: 'Pagar $ 97.812' })).toHaveClass('rounded-[8px]', 'h-[64px]')
+  // El aviso «Tokenizado» va sobre la superficie de la plantilla: una caja clara fija (bg-muted) dejaba la tinta suave de la pizarra ilegible.
+  const tokenized = screen.getByTestId('tokenized')
+  expect(tokenized).toHaveClass('bg-t-superficie')
+  expect(tokenized).not.toHaveClass('bg-muted')
+  expect(within(tokenized).getByText(/Tokenizado/)).toHaveClass('text-t-tinta-suave')
 })
 
 // Falla si «Autorizando» deja el spinner solo, si «Pagado» pierde la cabecera verde / el ahorro / la insignia, si «Rechazada» no ofrece
