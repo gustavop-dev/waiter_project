@@ -9,6 +9,8 @@ const mockPush = jest.fn()
 jest.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush }) }))
 const mockStore = { cart: null as CartData | null, busy: false, error: null as string | null, setQty: jest.fn(), remove: jest.fn(), confirm: jest.fn(), refreshCart: jest.fn(), ensureSession: jest.fn() }
 jest.mock('@/lib/stores/dinerStore', () => ({ useDinerStore: () => mockStore }))
+// El contenedor se prueba con el genérico: la familia B registra su propio carrito bajo B (probado en families/B/__tests__).
+jest.mock('@/components/templates/registry', () => ({ CART_LAYOUTS: {} }))
 
 const brand = { nombre: 'La Provincia', lema: '', logo: null, saludo: '', mesero: 'Alex', bienvenida: '', color: '#7A2E2A', colorTexto: '#FFFFFF', colorSuave: '#F6EBEA', fuente: 'Instrument Serif', radio: 14 }
 const entry: Entry = { contexto: { restaurante: { slug: 'la-provincia', nombre: 'La Provincia' }, sede: { slug: 'centro', nombre: 'Centro' }, mesa: { numero: 14, token: '8H2KQ7' }, marca: brand }, carta: { restaurante: 'la-provincia', categorias: [] } }
