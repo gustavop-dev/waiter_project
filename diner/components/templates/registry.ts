@@ -9,6 +9,16 @@ import { GenericHistory } from '@/components/templates/generic/GenericHistory'
 import { GenericMenu } from '@/components/templates/generic/GenericMenu'
 import { GenericPay } from '@/components/templates/generic/GenericPay'
 import { GenericSignup } from '@/components/templates/generic/GenericSignup'
+// --- familia B
+import { B1Menu } from '@/components/templates/families/B/B1Menu'
+import { B2Menu } from '@/components/templates/families/B/B2Menu'
+import { B3Menu } from '@/components/templates/families/B/B3Menu'
+import { B4Menu } from '@/components/templates/families/B/B4Menu'
+import { B5Menu } from '@/components/templates/families/B/B5Menu'
+import { FamilyBCart } from '@/components/templates/families/B/FamilyBCart'
+import { FamilyBPay } from '@/components/templates/families/B/FamilyBPay'
+import { CardsHistory } from '@/components/templates/patterns/CardsHistory'
+// --- fin familia B
 import type { CartLayoutProps, CodeProps, HistoryProps, MenuLayoutProps, PayLayoutProps, SignupProps } from '@/components/templates/types'
 import type { CodePattern, HistoryPattern, SignupPattern, TemplateFamily } from '@/lib/types'
 
@@ -20,6 +30,14 @@ export const PAY_LAYOUTS: Partial<Record<TemplateFamily, ComponentType<PayLayout
 export const SIGNUP_PATTERNS: Partial<Record<SignupPattern, ComponentType<SignupProps>>> = { banner5: GenericSignup }
 export const CODE_PATTERNS: Partial<Record<CodePattern, ComponentType<CodeProps>>> = { casillas: GenericCode }
 export const HISTORY_PATTERNS: Partial<Record<HistoryPattern, ComponentType<HistoryProps>>> = { porMes: GenericHistory }
+
+// --- familia B
+// Casual de barrio: cinco menús por código, carrito y pago de la familia (ramifican por template.codigo) y el patrón «tarjetas».
+Object.assign(MENU_LAYOUTS, { B1: B1Menu, B2: B2Menu, B3: B3Menu, B4: B4Menu, B5: B5Menu })
+CART_LAYOUTS.B = FamilyBCart
+PAY_LAYOUTS.B = FamilyBPay
+HISTORY_PATTERNS.tarjetas = CardsHistory
+// --- fin familia B
 
 export const menuLayout = (code: string | undefined): ComponentType<MenuLayoutProps> => (code && MENU_LAYOUTS[code.toUpperCase()]) || GenericMenu
 export const cartLayout = (familia: TemplateFamily | string | undefined): ComponentType<CartLayoutProps> => CART_LAYOUTS[familia as TemplateFamily] ?? GenericCart

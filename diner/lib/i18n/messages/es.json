@@ -187,7 +187,92 @@
     },
     "templates": {
       "preview": "Vista previa · {code} · sin guardar",
-      "photo": "Foto del plato"
+      "photo": "Foto del plato",
+      "familiaB": {
+        "search": "Buscar en la carta",
+        "searchToggle": "Buscar",
+        "filters": "Filtrar por categoría",
+        "orderBarItems": "{n, plural, one {# ítem} other {# ítems}}",
+        "orderBarEmpty": "Todavía no has agregado nada.",
+        "seeOrder": "Ver pedido →",
+        "photo": "Foto del plato",
+        "thumb": "Foto",
+        "pieces": "{n, plural, one {# pieza} other {# piezas}}",
+        "spicy": "Picante nivel {n} de 3",
+        "abv": "{abv}% alc.",
+        "ibu": "{ibu} IBU",
+        "sizes": "{n, plural, one {# tamaño} other {# tamaños}}",
+        "sizesFrom": "desde {amount}",
+        "todayOnly": "Solo hoy",
+        "allergens": "Alérgenos: {list}",
+        "open": "abrir",
+        "close": "cerrar",
+        "count": "{n, plural, one {# plato} other {# platos}}",
+        "cart": {
+          "items": "{n, plural, one {# ítem} other {# ítems}}",
+          "lineNote": "{qty} · {note}",
+          "lineQty": "{qty, plural, one {# unidad} other {# unidades}}",
+          "editLine": "Editar {name}",
+          "others": "Pedido por otros en la mesa",
+          "subtotal": "Subtotal",
+          "mine": "Lo mío",
+          "total": "Total",
+          "totalTable": "Total de la mesa",
+          "discountBanner": "Primera compra: descuento aplicado.",
+          "discountBannerPending": "Primera compra: regístrate y ahorra {pct}% →",
+          "discountChip": "−{pct}% aplicado",
+          "you": "Yo",
+          "diner": "Comensal {n}",
+          "taxes": "Impuestos incluidos",
+          "payMine": "Pagar lo mío"
+        },
+        "pay": {
+          "methodTarjeta": "Tarjeta crédito o débito",
+          "methodPse": "PSE · desde tu banco",
+          "methodNequi": "Nequi · con QR",
+          "methodEfectivo": "Efectivo en la caja",
+          "otherMethod": "Usar otra forma de pago",
+          "split": "¿Cómo dividen?",
+          "splitMine": "Pagar lo mío",
+          "splitParts": "Dividir en {n}",
+          "splitAll": "Pagar todo",
+          "splitOptions": "Cómo dividir la cuenta",
+          "total": "Total",
+          "tokenizedShort": "Tokenizado por la pasarela. Waiter no ve tu tarjeta."
+        }
+      },
+      "B2": {
+        "kicker": "Lo que más piden",
+        "title": "Los favoritos de la casa",
+        "favorite": "Favorito de la casa",
+        "seeAll": "Ver la carta completa · {n, plural, one {# plato} other {# platos}}",
+        "hideAll": "Ocultar la carta completa",
+        "orderTop": "Pedir el más pedido",
+        "orderTopNamed": "Pedir el más pedido: {name}",
+        "rankingLabel": "Los más pedidos",
+        "fullMenu": "Carta completa"
+      },
+      "B3": {
+        "howMany": "¿Cuántos son?",
+        "groupLabel": "Tamaño del grupo",
+        "perPerson": "{amount} por persona",
+        "addTray": "Añadir bandeja · {amount}",
+        "addTrayNamed": "Añadir bandeja: {name}",
+        "featured": "Recomendada para {n}",
+        "photo": "Foto de la bandeja"
+      },
+      "B4": {
+        "today": "Hoy, {day}",
+        "title": "Menú del día",
+        "pickOne": "Elige una opción por paso",
+        "build": "Armar mi menú",
+        "buildCount": "Armar mi menú · {n, plural, one {# elección} other {# elecciones}}",
+        "seeDish": "Ver plato →",
+        "selected": "Elegido"
+      },
+      "B5": {
+        "sectionState": "{n} · {state}"
+      }
     },
     "status": {
       "title": "Tu pedido",
