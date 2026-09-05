@@ -53,3 +53,12 @@ export async function cashInOut(sessionId: number, type: 'in' | 'out', amount: n
   // Odoo usa extras.translatedType en el mensaje contable; sin él falla con KeyError.
   await callKw('pos.session', 'try_cash_in_out', [[sessionId], type, amount, reason, false, { translatedType: type === 'in' ? 'Entrada' : 'Salida' }])
 }
+
+// Forzar el cierre cuando Odoo detecta un descuadre: usa su propio asistente (pos.close.session.wizard), que
+// contabiliza la diferencia. Solo el administrador puede llamarlo desde la app.
+export async function forceCloseRegister(sessionId: number): Promise<CloseResult> {
+  const action = await callKw<{ res_model?: string; res_id?: number }>('pos.session', 'action_pos_session_validate', [[sessionId]])
+  if (!action || action.res_model !== 'pos.close.session.wizard' || !action.res_id) return { successful: true, message: '' }
+  await callKw('pos.close.session.wizard', 'close_session', [[action.res_id]], { context: { active_ids: [sessionId], active_model: 'pos.session' } })
+  return { successful: true, message: '' }
+}

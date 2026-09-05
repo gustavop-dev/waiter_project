@@ -1,4 +1,4 @@
-# Plan E — Cierre del POS · Partes 1 y 2: cobro completo y caja
+# Plan E — Cierre del POS · Partes 1 a 3: cobro, caja y roles
 
 > **Para agentes:** ejecutar tarea por tarea, con el ciclo completo (test que
 > falla → implementación mínima → test que pasa → commit).
@@ -45,5 +45,20 @@ navegador), modo offline, semi-integración de datáfono.
   cierre»; hoy se muestra su mensaje y no se fuerza (queda para roles: solo
   administrador).
 
-Siguientes partes (no en este PR): roles y permisos; buscar plato, nota
-general, fotos; buscar mesa.
+## Parte 3 — Roles y permisos (2026-09-05)
+
+- Rol en Odoo: `res.users.waiter_role` (mesero / cajero / administrador) en
+  el addon `projectapp_ops`, **sincronizado con los grupos** de Odoo al crear
+  o cambiar (POS usuario / administrador, facturación, productos, inventario).
+  Así la app y la API nunca se contradicen.
+- La app lee el rol al iniciar sesión (campo autorizado en
+  `SELF_READABLE_FIELDS`). Sidebar y rail muestran solo lo del rol; una ruta
+  ajena devuelve al salón sin pantalla de error.
+- Mesero: salón, pedido, cocina, en vivo, clientes. Cajero: + caja, ventas,
+  facturación. Administrador: todo, y **forzar cierre** de caja cuando Odoo
+  detecta un descuadre (usa su asistente, que contabiliza la diferencia).
+- Configuración → Usuarios: rol al crear y cambio de rol por usuario.
+- Demo: `sofia` (mesero), `julian` (cajero), clave `Waiter-2026`.
+
+Siguiente parte (no en este PR): buscar plato, nota general a cocina, fotos
+de producto, buscar mesa o pedido.

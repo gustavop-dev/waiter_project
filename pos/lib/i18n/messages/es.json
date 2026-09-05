@@ -24,7 +24,12 @@
       "operationSection": "Operación",
       "salon": "Salón",
       "live": "En vivo",
-      "kitchenScreen": "Cocina (KDS)"
+      "kitchenScreen": "Cocina (KDS)",
+      "roles": {
+        "waiter": "Mesero",
+        "cashier": "Cajero",
+        "admin": "Administrador"
+      }
     },
     "rail": {
       "tables": "Mesas",
@@ -485,7 +490,10 @@
         "lastLogin": "Último ingreso",
         "never": "Nunca",
         "create": "Crear usuario",
-        "hint": "El usuario nace con acceso básico; los permisos de POS se asignan en el aprovisionamiento."
+        "hint": "El usuario nace con acceso básico; los permisos de POS se asignan en el aprovisionamiento.",
+        "role": "Rol",
+        "roleHint": "Mesero: salón y pedidos. Cajero: además caja, ventas y facturación. Administrador: todo.",
+        "roleSaved": "Rol actualizado."
       },
       "alerts": {
         "late": "Minutos para «demorado»",
@@ -595,7 +603,10 @@
         "confirm": "Cerrar caja",
         "closing": "Cerrando…",
         "closed": "Caja cerrada. El turno queda contabilizado en Odoo.",
-        "failed": "Odoo no cerró la caja: {message}"
+        "failed": "Odoo no cerró la caja: {message}",
+        "force": "Forzar cierre (administrador)",
+        "forceHint": "Odoo detectó un descuadre contable. Forzar el cierre lo contabiliza como diferencia de caja.",
+        "forced": "Cierre forzado. La diferencia quedó contabilizada."
       }
     }
   }

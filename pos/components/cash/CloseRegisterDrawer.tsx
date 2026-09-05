@@ -13,7 +13,9 @@ import { cn } from '@/lib/utils'
 
 const TONE = { ok: 'text-free-ink', warn: 'text-pending-ink', busy: 'text-busy-ink' }
 
-export function CloseRegisterDrawer({ data, onClose, onConfirm }: { data: ClosingData; onClose: () => void; onConfirm: (counted: number, notes: string) => Promise<CloseResult> }) {
+interface CloseRegisterDrawerProps { data: ClosingData; onClose: () => void; onConfirm: (counted: number, notes: string) => Promise<CloseResult>; canForce?: boolean; onForce?: () => Promise<CloseResult> }
+
+export function CloseRegisterDrawer({ data, onClose, onConfirm, canForce = false, onForce }: CloseRegisterDrawerProps) {
   const t = useTranslations('pos.cash.close')
   const ui = useTranslations('pos.ui')
   const [counted, setCounted] = useState('')
@@ -44,6 +46,10 @@ export function CloseRegisterDrawer({ data, onClose, onConfirm }: { data: Closin
       <TextInput label={t('notes')} value={notes} onChange={(e) => setNotes(e.target.value)} disabled={state === 'closed'} />
       {state === 'closed' && <p role="status" className="text-[15px] text-free-ink">{t('closed')}</p>}
       {state === 'failed' && <p role="alert" className="text-[15px] text-busy-ink">{t('failed', { message })}</p>}
+      {state === 'failed' && canForce && onForce && (
+        <div className="flex flex-col gap-2"><p className="text-[13px] text-soft">{t('forceHint')}</p>
+          <Button variant="destructive" onClick={async () => { const r = await onForce(); setMessage(r.message); setState(r.successful ? 'closed' : 'failed') }}>{t('force')}</Button></div>
+      )}
     </Drawer>
   )
 }

@@ -11,7 +11,8 @@ import { DataTable, type Column } from '@/components/ui/DataTable'
 import { Select } from '@/components/ui/Field'
 import { KpiCard } from '@/components/ui/KpiCard'
 import { formatCop } from '@/lib/domain/money'
-import { cashInOut, closeRegister, closingData, type ClosingData } from '@/lib/services/cashRegister'
+import { can } from '@/lib/domain/roles'
+import { cashInOut, closeRegister, closingData, forceCloseRegister, type ClosingData } from '@/lib/services/cashRegister'
 import { listSales, listShifts, paymentsByMethod, salesByWaiter, topProducts, type MethodTotal, type ProductTotal, type SaleRow, type ShiftRow, type WaiterTotal } from '@/lib/services/sales'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
@@ -24,7 +25,8 @@ const day = (at: string) => new Date(at.replace(' ', 'T') + 'Z').toLocaleDateStr
 export default function VentasPage() {
   const t = useTranslations('pos.sales')
   const catalog = useCatalogStore((s) => s.catalog)
-  const { session, refreshSession } = useAuthStore()
+  const { session, refreshSession, user } = useAuthStore()
+  const role = user?.role ?? 'waiter'
   const [closing, setClosing] = useState<ClosingData | null>(null)
   const [expectedCash, setExpectedCash] = useState<number | null>(null)
   const [shifts, setShifts] = useState<ShiftRow[]>([])
@@ -60,7 +62,7 @@ export default function VentasPage() {
         </Select></div>} />
       <div className="flex-1 min-h-0 flex">
       <div className="flex-1 min-w-0 p-6 px-7 flex flex-col gap-[18px] overflow-y-auto">
-        {session && <RegisterCard openSince={shifts.find((s) => s.id === session.id)?.startAt ? time(shifts.find((s) => s.id === session.id)!.startAt) : '—'} expectedCash={expectedCash}
+        {session && can.closeRegister(role) && <RegisterCard openSince={shifts.find((s) => s.id === session.id)?.startAt ? time(shifts.find((s) => s.id === session.id)!.startAt) : '—'} expectedCash={expectedCash}
           onClose={() => void closingData(session.id).then(setClosing)} onMove={async (type, amount, reason) => { await cashInOut(session.id, type, amount, reason); setExpectedCash((await closingData(session.id)).expectedCash) }} />}
         <div className="grid grid-cols-4 gap-3">
           <KpiCard label={t('kpi.sales')} value={`$ ${formatCop(total)}`} />
@@ -95,7 +97,8 @@ export default function VentasPage() {
         </div>
       </div>
       {closing && session && <CloseRegisterDrawer data={closing} onClose={() => setClosing(null)}
-        onConfirm={async (counted, notes) => { const r = await closeRegister(session.id, counted, notes); if (r.successful) setTimeout(() => void refreshSession(), 1500); return r }} />}
+        onConfirm={async (counted, notes) => { const r = await closeRegister(session.id, counted, notes); if (r.successful) setTimeout(() => void refreshSession(), 1500); return r }}
+        canForce={can.forceCloseRegister(role)} onForce={async () => { const r = await forceCloseRegister(session.id); if (r.successful) setTimeout(() => void refreshSession(), 1500); return r }} />}
       </div>
     </Shell>
   )
