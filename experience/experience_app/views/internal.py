@@ -4,7 +4,7 @@ from django.conf import settings
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from experience_app.services import catalog
+from experience_app.services import brand, catalog
 
 
 @api_view(['POST'])
@@ -13,4 +13,6 @@ def invalidate_menu(request, restaurant, venue):
     if not settings.EXPERIENCE_INTERNAL_KEY or not hmac.compare_digest(key, settings.EXPERIENCE_INTERNAL_KEY):
         return Response({'detail': 'clave interna inválida'}, status=401)
     catalog.invalidate(restaurant, venue)
+    # La marca cae con la carta: quien avisa "algo cambió en Odoo" no tiene que distinguir qué.
+    brand.invalidate(restaurant, venue)
     return Response({'invalidada': f'{restaurant}/{venue}'})

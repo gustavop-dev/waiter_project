@@ -9,13 +9,17 @@ from dataclasses import dataclass, field
 
 from experience_app.adapters.odoo.client import OdooClient
 
+# Reexportados: el sniff vive en utils/images.py (lo comparten fotos y logo); quien ya usaba pos.image_content_type sigue igual.
+from experience_app.utils.images import IMAGE_SIGNATURES, image_content_type, raster_content_type  # noqa: F401
+
 OPEN_SESSION_STATES = ['opening_control', 'opened']
 # Tamaños públicos de la foto → campo de image.mixin. 512 px basta para la tarjeta de la carta;
 # la pantalla del plato la muestra a ancho completo y en un móvil 3x necesita 1024 px.
 PHOTO_FIELDS = {'tarjeta': 'image_512', 'plato': 'image_1024'}
 DEFAULT_PHOTO_SIZE = 'tarjeta'
-# Solo formatos raster: un SVG servido inline desde nuestro origen podría ejecutar script (XSS). Lo demás sale como binario opaco.
-IMAGE_SIGNATURES = [(b'\x89PNG', 'image/png'), (b'\xff\xd8', 'image/jpeg'), (b'GIF8', 'image/gif')]
+# Marca en res.company (addon projectapp_ops): vacío en Odoo significa "usa el valor del registro".
+BRAND_FIELDS = ['name', 'brand_color', 'brand_font', 'brand_radius', 'brand_tagline', 'brand_greeting', 'brand_waiter_name',
+                'brand_welcome', 'brand_logo', 'write_date']
 
 
 @dataclass(frozen=True)
@@ -53,6 +57,23 @@ class Catalog:
     company_name: str
     products: list[Product] = field(default_factory=list)
     categories: list[Category] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class CompanyBrand:
+    """Lo que el restaurante escribió en Odoo. Cadena vacía / None = no lo tocó (manda el registro)."""
+
+    name: str
+    color: str
+    font: str
+    radius: int | None
+    tagline: str
+    greeting: str
+    waiter_name: str
+    welcome: str
+    has_logo: bool
+    # write_date de la compañía, compactado: cambia con el logo (y con cualquier campo) y versiona su URL pública.
+    version: str
 
 
 @dataclass(frozen=True)
@@ -136,11 +157,33 @@ def _version(write_date) -> str:
     return re.sub(r'\D', '', str(write_date or ''))
 
 
-def image_content_type(data: bytes) -> str:
-    """Tipo real de la imagen por sus primeros bytes: Odoo conserva el formato original (PNG, WebP, GIF, JPEG)."""
-    if data[:4] == b'RIFF' and data[8:12] == b'WEBP':
-        return 'image/webp'
-    return next((ctype for magic, ctype in IMAGE_SIGNATURES if data.startswith(magic)), 'application/octet-stream')
+def read_company_brand(client: OdooClient) -> CompanyBrand:
+    """La marca de la compañía del POS (una por base). Odoo devuelve False en los campos vacíos: aquí se normaliza.
+
+    bin_size=True hace que brand_logo llegue como tamaño ('12.5 Kb') en vez del base64: basta para saber si hay logo
+    sin descargarlo en cada refresco de la marca.
+    """
+    rows = client.call_kw('res.company', 'search_read', [[], BRAND_FIELDS], {'limit': 1, 'context': {'bin_size': True}})
+    row = rows[0] if rows else {}
+
+    def text(key):
+        return row.get(key) or ''
+
+    return CompanyBrand(name=text('name'), color=text('brand_color'), font=text('brand_font'),
+                        radius=int(row['brand_radius']) if row.get('brand_radius') else None,
+                        tagline=text('brand_tagline'), greeting=text('brand_greeting'), waiter_name=text('brand_waiter_name'),
+                        welcome=text('brand_welcome'), has_logo=bool(row.get('brand_logo')), version=_version(row.get('write_date')))
+
+
+def fetch_company_logo(client: OdooClient) -> tuple[bytes, str] | None:
+    """Bytes y content-type del logo de la compañía. None si no hay logo o no es PNG/JPEG/GIF (un SVG nunca sale)."""
+    rows = client.call_kw('res.company', 'search_read', [[], ['brand_logo']], {'limit': 1})
+    encoded = rows[0].get('brand_logo') if rows else None
+    if not encoded:
+        return None
+    data = base64.b64decode(encoded)
+    content_type = raster_content_type(data)
+    return (data, content_type) if content_type else None
 
 
 def fetch_product_image(client: OdooClient, template_id: int, size: str = DEFAULT_PHOTO_SIZE) -> tuple[bytes, str] | None:

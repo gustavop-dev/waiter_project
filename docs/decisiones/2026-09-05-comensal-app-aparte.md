@@ -21,6 +21,10 @@ por su adaptador; aquí se extiende esa regla al frontend del comensal.
    viaja con el `Tenant` y sale en `contexto.marca` de la API pública. Seis
    variables derivadas de dos entradas (color y tipografía), como manda el
    sistema de diseño; el contraste del color de acción se valida en servidor.
+   *Matiz posterior (ADR [marca desde el POS](2026-09-05-marca-desde-el-pos.md)):*
+   lo del registro es el **valor inicial** del onboarding; el restaurante la
+   edita desde el POS y queda en Odoo (`res.company`), campo a campo con
+   precedencia Odoo > registro. La forma de `contexto.marca` no cambia.
 4. **Lo que el comensal pide llega al salón por Odoo**, no por un canal
    paralelo: "llamar al mesero", "pedir la cuenta" y "está pidiendo" se
    escriben en `restaurant.table.waiter_call` (addon `projectapp_ops`) a
