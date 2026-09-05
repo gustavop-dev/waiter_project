@@ -1,4 +1,4 @@
-# Plan E — Cierre del POS · Parte 1: cobro completo
+# Plan E — Cierre del POS · Partes 1 y 2: cobro completo y caja
 
 > **Para agentes:** ejecutar tarea por tarea, con el ciclo completo (test que
 > falla → implementación mínima → test que pasa → commit).
@@ -31,5 +31,19 @@ navegador), modo offline, semi-integración de datáfono.
 4. ✅ PWA: manifest, service worker mínimo, iconos; rail con Pedidos y Pagos enlazados.
 5. ✅ E2E actualizadas al nuevo flujo + docs.
 
-Siguientes partes del Plan E (no en este PR): apertura y cierre de caja con
-arqueo; roles y permisos; buscar plato, nota general, fotos; buscar mesa.
+## Parte 2 — Apertura y cierre de caja con arqueo (2026-09-05)
+
+- `/caja` (fuera del gate): sin caja abierta la app lleva aquí, no al login.
+  Efectivo inicial y notas → `pos.session` + `set_opening_control`.
+- En Ventas: tarjeta de caja (abierta desde, efectivo esperado), entradas y
+  salidas de efectivo (`try_cash_in_out`, exige `extras.translatedType`), y
+  **Cerrar caja**: `get_closing_control_data` (ventas, por método, apertura,
+  movimientos), efectivo contado → diferencia con tolerancia de 500 COP,
+  notas, `post_closing_cash_details` + `close_session_from_ui`. Las cuentas
+  abiertas bloquean el cierre con aviso.
+- Si Odoo detecta un descuadre contable devuelve el asistente «Forzar el
+  cierre»; hoy se muestra su mensaje y no se fuerza (queda para roles: solo
+  administrador).
+
+Siguientes partes (no en este PR): roles y permisos; buscar plato, nota
+general, fotos; buscar mesa.
