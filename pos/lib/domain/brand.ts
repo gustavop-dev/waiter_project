@@ -9,6 +9,8 @@ export const RADIUS_LABELS: Record<Radius, 'straight' | 'soft' | 'round'> = { 4:
 export const DEFAULT_COLOR = '#C1873A'
 export const INK_DARK = '#1A1815'
 export const INK_LIGHT = '#FFFFFF'
+// Fondo crema de la portada del comensal (diner globals.css --color-canvas): sobre él va el color como texto.
+export const CANVAS_LIGHT = '#FDFBF7'
 export const MIN_CONTRAST = 4.5
 
 export interface Theme { color: string; colorTexto: string; colorSuave: string; fuente: Font; radio: Radius; contraste: number }
@@ -55,6 +57,18 @@ export function softFor(color: string): string {
 
 // Un color pasa si el texto que se le calcula lo lee cualquiera: ≥ 4.5:1.
 export const meetsContrast = (color: string): boolean => contrast(color, inkFor(color)) >= MIN_CONTRAST
+
+// El comensal también usa el color como texto sobre el fondo crema («Ver todos», «Llamar al mesero»). No bloquea
+// (el sistema solo exige el contraste con su tinta), pero por debajo de 4.5:1 esos enlaces se ven tenues y se avisa.
+export const linkContrast = (color: string): number => contrast(color, CANVAS_LIGHT)
+export const linkReadable = (color: string): boolean => linkContrast(color) >= MIN_CONTRAST
+
+// Misma regla que diner/lib/domain/theme.ts greetingFor: con el saludo vacío el comensal saluda según la hora,
+// y la vista previa del POS tiene que enseñar exactamente eso.
+export function greetingFor(hour: number, custom: string): string {
+  if (custom.trim()) return custom
+  return hour < 12 ? 'Buenos días' : hour < 19 ? 'Buenas tardes' : 'Buenas noches'
+}
 
 export function theme(color: string, font: string, radius: number): Theme {
   const c = (isHex(color) ? color : DEFAULT_COLOR).toUpperCase()

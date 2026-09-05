@@ -14,14 +14,15 @@ export function useSaveState(): [State, (fn: () => Promise<void>) => Promise<voi
   return [state, async (fn) => { setState('saving'); try { await fn(); setState('saved') } catch { setState('error') } }]
 }
 
-export function SaveBar({ state, onSave, disabled }: { state: State; onSave: () => void; disabled?: boolean }) {
+// errorText: motivo concreto del fallo cuando el formulario lo conoce (p. ej. lo que respondió Odoo); si no, el estándar.
+export function SaveBar({ state, onSave, disabled, errorText }: { state: State; onSave: () => void; disabled?: boolean; errorText?: string | null }) {
   const t = useTranslations('pos.settings')
   const ui = useTranslations('pos.ui')
   return (
     <div className="flex items-center gap-3 pt-2">
       <Button variant="primary" onClick={onSave} disabled={disabled || state === 'saving'}>{t('save')}</Button>
       {state === 'saved' && <span role="status" className="text-[15px] text-free-ink">{t('saved')}</span>}
-      {state === 'error' && <span role="alert" className="text-[15px] text-busy-ink">{ui('error')}</span>}
+      {state === 'error' && <span role="alert" className="text-[15px] text-busy-ink">{errorText || ui('error')}</span>}
     </div>
   )
 }
