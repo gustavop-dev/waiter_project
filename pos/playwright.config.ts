@@ -20,5 +20,9 @@ export default defineConfig({
     timeout: 180_000,
   },
   use: { baseURL, trace: 'on-first-retry' },
-  projects: [{ name: 'Desktop Chrome', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    { name: 'Desktop Chrome', use: { ...devices['Desktop Chrome'] } },
+    // El marco del kit CloudPos: 1194×834.
+    { name: 'Tablet', use: { ...devices['iPad Pro 11 landscape'], browserName: 'chromium' } },
+  ],
 });
