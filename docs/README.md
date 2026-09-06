@@ -24,6 +24,10 @@ prueba que su integración externa exista.
 3. [Plan H](planes/2026-09-05-plan-H-plantillas.md) y
    [decisión de propiedad de plantillas](decisiones/2026-09-05-plantillas-en-el-modulo-3.md).
 4. [Revisión y evidencia del PR #14](revisiones/2026-09-05-cierre-H-pr14.md).
+5. [Inventario del kit CloudPos frente al POS](diseno/2026-09-06-inventario-kit-cloudpos.md):
+   rediseño del POS del operador; pantallas y textos del kit en `diseno/pos-kit/`.
+6. [Plan I · Rediseño del POS sobre el kit](planes/2026-09-06-plan-I-rediseno-pos-kit.md) y su primera
+   oleada ejecutable, [Plan I.1 · Sistema de diseño y armazón](planes/2026-09-06-plan-I1-sistema-de-diseno.md).
 
 Los planes anteriores conservan instrucciones y supuestos históricos. Los ADR documentan
 las decisiones de su fecha. `diseno/` contiene referencias visuales; promociones, tarjetas

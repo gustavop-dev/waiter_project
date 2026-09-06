@@ -117,3 +117,6 @@ Thumbs.db
 /registry/venv
 /pos/node_modules
 /diner/node_modules
+
+# Figma binario del kit del POS (215 MB): no se versiona
+*.fig
