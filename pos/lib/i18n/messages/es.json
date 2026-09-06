@@ -774,6 +774,84 @@
     "kit": {
       "keypad": {
         "backspace": "Borrar"
+      },
+      "nav": {
+        "main": "Navegación principal",
+        "adminRow": "Administración",
+        "dashboard": "Inicio",
+        "orders": "Pedidos",
+        "tables": "Mesas",
+        "reservations": "Reservas",
+        "history": "Historial",
+        "inventory": "Inventario",
+        "kitchen": "Cocina",
+        "admin": "Administración",
+        "bell": "Notificaciones, {count} sin leer",
+        "sub": {
+          "sales": "Ventas",
+          "catalog": "Catálogo",
+          "customers": "Clientes",
+          "billing": "Facturación",
+          "roi": "Retorno",
+          "settings": "Configuración"
+        }
+      },
+      "settings": {
+        "title": "Ajustes",
+        "session": "Sesión en este dispositivo",
+        "logout": "Cerrar sesión",
+        "logoutTitle": "¿Cerrar sesión?",
+        "logoutBody": "Saldrás de la aplicación en este dispositivo.",
+        "logoutNo": "No, volver",
+        "logoutYes": "Sí, salir",
+        "tabs": {
+          "profile": "Empleado",
+          "notifications": "Notificaciones",
+          "security": "Seguridad",
+          "display": "Pantalla"
+        },
+        "profile": {
+          "name": "Nombre",
+          "role": "Rol",
+          "restaurant": "Restaurante",
+          "soon": "Teléfono, correo, turno y fecha de ingreso llegan con el login por PIN."
+        },
+        "notify": {
+          "popup": "Aviso en pantalla",
+          "sound": "Sonido",
+          "kitchen": {
+            "title": "Cocina",
+            "body": "Avisos de cocina sobre los pedidos."
+          },
+          "inventory": {
+            "title": "Inventario",
+            "body": "Avisos sobre existencias e ingredientes."
+          },
+          "system": {
+            "title": "Sistema",
+            "body": "Avisos sobre actualizaciones del sistema."
+          }
+        },
+        "security": {
+          "changePin": "Cambiar PIN",
+          "pinSoon": "Disponible con el login por PIN."
+        },
+        "display": {
+          "language": "Idioma",
+          "languageBody": "Idioma de la aplicación.",
+          "colorMode": "Modo de color",
+          "colorModeBody": "Sistema, claro u oscuro.",
+          "system": "Sistema",
+          "light": "Claro",
+          "dark": "Oscuro"
+        }
+      },
+      "soon": {
+        "body": "Esta pantalla llega en su oleada del Plan I.",
+        "dashboard": "Inicio",
+        "orders": "Pedidos",
+        "reservations": "Reservas",
+        "history": "Historial"
       }
     }
   }
