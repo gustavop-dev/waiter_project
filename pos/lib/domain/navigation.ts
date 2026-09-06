@@ -6,10 +6,11 @@ export const KIT_TABS = ['dashboard', 'orders', 'tables', 'reservations', 'histo
 export type KitTab = (typeof KIT_TABS)[number]
 
 export const TAB_ROUTES: Record<KitTab, string> = {
-  dashboard: '/dashboard', orders: '/pedidos', tables: '/salon', reservations: '/reservas', history: '/historial',
+  dashboard: '/dashboard', orders: '/operacion', tables: '/salon', reservations: '/reservas', history: '/historial',
   inventory: '/inventario', kitchen: '/kds', admin: '/ventas',
 }
 
+// Pedidos apunta a la pantalla "En vivo" actual hasta que la oleada I.3 pinte la del kit en /pedidos.
 // Segunda fila de Administración (chips "Tab Menu" del kit). Caja vive en Ventas hasta la oleada I.7.
 export const ADMIN_SUBTABS = [['sales', '/ventas'], ['catalog', '/catalogo'], ['customers', '/clientes'], ['billing', '/facturacion'], ['roi', '/automatizacion'], ['settings', '/configuracion']] as const
 export type AdminSubtab = (typeof ADMIN_SUBTABS)[number][0]
