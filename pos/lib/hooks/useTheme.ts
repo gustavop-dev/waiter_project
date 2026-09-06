@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { THEME_MODES, type ThemeMode } from '@/lib/design/tokens'
 
@@ -14,9 +14,9 @@ export function applyTheme(mode: ThemeMode) {
   try { localStorage.setItem(KEY, mode) } catch { /* sin almacenamiento */ }
 }
 
+// El modo se lee del dispositivo al montar y se aplica cada vez que cambia (ThemeBoot lo monta una vez por app).
 export function useTheme() {
-  const [mode, setModeState] = useState<ThemeMode>('system')
-  useEffect(() => { const m = read(); setModeState(m); applyTheme(m) }, [])
-  const setMode = useCallback((m: ThemeMode) => { setModeState(m); applyTheme(m) }, [])
+  const [mode, setMode] = useState<ThemeMode>(read)
+  useEffect(() => { applyTheme(mode) }, [mode])
   return { mode, setMode }
 }
