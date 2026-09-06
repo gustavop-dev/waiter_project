@@ -19,24 +19,25 @@ export function TopBar({ active, role, userName, unread = 0, activeSubtab, onOpe
   const subtabs = adminSubtabsFor(role)
   return (
     <header className="shrink-0 bg-surface border-b border-border">
-      <div className="h-topbar px-6 flex items-center gap-6">
+      <div className="h-topbar px-5 flex items-center gap-4">
         <Link href="/dashboard" aria-label="Waiter" className="w-9 h-9 rounded-md bg-primary text-primary-ink grid place-items-center font-semibold">W</Link>
-        <nav aria-label={t('main')} className="flex items-center gap-1 p-1 rounded-lg bg-muted">
+        <nav aria-label={t('main')} className="min-w-0 flex items-center gap-0.5 p-1 rounded-lg bg-muted overflow-x-auto">
           {tabs.map((tab) => (
             <Link key={tab} href={TAB_ROUTES[tab]} aria-current={tab === active ? 'page' : undefined}
-              className={cn('flex items-center gap-2 h-11 px-4 rounded-md text-[16px] font-semibold', tab === active ? 'bg-surface border border-border text-ink' : 'text-dim hover:text-soft')}>
+              className={cn('flex items-center gap-1.5 h-11 px-2.5 rounded-md text-[15px] font-semibold whitespace-nowrap', tab === active ? 'bg-surface border border-border text-ink' : 'text-dim hover:text-soft')}>
               <Icon name={ICON[tab]} size={20} /><span>{t(tab)}</span>
             </Link>
           ))}
         </nav>
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto shrink-0 flex items-center gap-3">
           <button type="button" aria-label={t('bell', { count: unread })} className="relative w-12 h-12 rounded-md border border-border grid place-items-center text-soft">
             <Icon name="bell" size={22} />
             {unread > 0 && <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 rounded-full bg-danger border-2 border-surface" />}
           </button>
-          <button type="button" onClick={onOpenSettings} className="h-12 pl-1.5 pr-4 rounded-md border border-border flex items-center gap-2.5">
+          {/* En 1194 px con ocho pestañas el nombre no cabe: bajo 1400 px queda solo el avatar; la etiqueta accesible lleva nombre y rol. */}
+          <button type="button" onClick={onOpenSettings} aria-label={`${userName} / ${tr(role)}`} className="h-12 px-1.5 min-[1400px]:pr-4 rounded-md border border-border flex items-center gap-2.5">
             <span className="w-9 h-9 rounded-full bg-primary-soft text-primary grid place-items-center text-[14px] font-semibold">{initials(userName)}</span>
-            <span className="text-[15px] text-ink font-semibold">{userName}<span className="text-dim font-normal"> / {tr(role)}</span></span>
+            <span className="hidden min-[1400px]:inline text-[15px] text-ink font-semibold">{userName}<span className="text-dim font-normal"> / {tr(role)}</span></span>
           </button>
         </div>
       </div>

@@ -2,7 +2,8 @@
 
 App Next.js para mesero, cajero y administrador. Habla con Odoo por su API externa JSON-RPC a
 través del proxy same-origin `/odoo/*`; **nunca usa la interfaz de Odoo**.
-Diseño: `docs/diseno/waiter-pantallas.dc.html` (pantallas 1a y 1b).
+Diseño: el kit CloudPos (`docs/diseno/pos-kit/`, Plan I). Las pantallas 1a y 1b de
+`docs/diseno/waiter-pantallas.dc.html` son la referencia anterior a la oleada I.1.
 
 ## Correr
 
@@ -25,6 +26,21 @@ El navegador corre en la máquina anfitriona: entrar por `http://192.168.56.10:3
 Cada test: ≤50 líneas, ≤7 asserts, sin condicionales, y un comentario
 `// Falla si …` que nombre el bug que atrapa. Los E2E llevan `@flow:` y
 `@outcome:`.
+
+## Sistema de diseño del kit CloudPos (Plan I.1)
+
+- Tokens en `lib/design/tokens.ts` y `app/globals.css` (`--kit-*`, temas claro y oscuro por
+  `<html data-theme>`, `@theme inline`). Los nombres antiguos (`brand-500`, `ink`, `canvas`…) siguen
+  existiendo con los valores del kit. Tipografía Open Sans (`@fontsource/open-sans`).
+- Iconos: solo Tabler, a través de `components/kit/Icon.tsx`.
+- Componentes del kit en `components/kit/`: `TopBar`, `KitShell`, `SettingsModal`, `Chip`,
+  `StatusPill`, `Toggle`, `Card`, `KitEmptyState`, `NumericKeypad`, `PinInput`, `Modal`,
+  `WizardSteps`, `Toaster` (con `lib/stores/toastStore.ts`).
+- Navegación por rol en `lib/domain/navigation.ts`; `Shell` delega en `KitShell`.
+- Tema: `lib/hooks/useTheme.ts` (`waiter.theme`); preferencias de aviso en `waiter.notify` hasta la oleada I.5.
+- Galería de componentes en `/kit` (solo admin). Capturas a 1194×834 para cotejar con los PNG del kit:
+  `PLAYWRIGHT_BASE_URL=http://192.168.56.10:3000 npm run kit:compare -- /kit /salon` → `kit-compare/`.
+- Playwright tiene el proyecto `Tablet` (iPad Pro 11 apaisado sobre Chromium): `npx playwright test <spec> --project=Tablet`.
 
 ## Alcance actual
 
