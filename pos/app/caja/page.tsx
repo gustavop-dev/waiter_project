@@ -36,7 +36,7 @@ export default function CajaPage() {
   if (!hydrated || !user || session) return null
   return (
     <main className="min-h-screen grid place-items-center bg-canvas p-6">
-      <form onSubmit={(e) => { e.preventDefault(); void open() }} className="w-[460px] rounded-[18px] bg-surface border border-[#E9E2D7] p-7 flex flex-col gap-5">
+      <form onSubmit={(e) => { e.preventDefault(); void open() }} className="w-[460px] rounded-[18px] bg-surface border border-border p-7 flex flex-col gap-5">
         <div className="flex items-center gap-2.5"><span className="h-[30px] px-2 rounded-sm bg-brand-500 grid place-items-center font-bold text-[17px] tracking-[-0.05em] text-ink">Wt.</span><span className="text-[22px] font-bold">{t('openTitle')}</span></div>
         <p className="text-[15px] text-soft leading-relaxed">{t('openBody')}</p>
         <Select label={t('config')} value={configId ?? ''} onChange={(e) => setConfigId(Number(e.target.value))}>{configs.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>

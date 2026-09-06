@@ -65,18 +65,18 @@ export function Sidebar({ active, restaurant = '', shift = null, userName = '', 
           <div className="p-3.5 rounded-xl bg-sidebar-raised flex flex-col gap-1.5">
             <span className="text-xs tracking-[0.1em] uppercase text-sidebar-dim font-medium">{t('nav.noHuman')}</span>
             <span className="font-mono tabular text-2xl text-sidebar-ink">{autonomy.total ? Math.round((autonomy.autonomous / autonomy.total) * 100) : 0}%</span>
-            <span className="text-[13px] text-[#8F877D]">{t('nav.noHumanMeta', { autonomous: autonomy.autonomous, total: autonomy.total })}</span>
+            <span className="text-[13px] text-dim">{t('nav.noHumanMeta', { autonomous: autonomy.autonomous, total: autonomy.total })}</span>
           </div>
         ) : shift && (
           <div className="p-3.5 rounded-xl bg-sidebar-raised flex flex-col gap-1.5">
             <span className="text-xs tracking-[0.1em] uppercase text-sidebar-dim font-medium">{t('nav.shift')}</span>
             <Money amount={shift.sales} withSymbol className="text-2xl text-sidebar-ink" />
-            <span className="text-[13px] text-[#8F877D]">{t('nav.shiftMeta', { orders: shift.orders, waiters: shift.waiters })}</span>
+            <span className="text-[13px] text-dim">{t('nav.shiftMeta', { orders: shift.orders, waiters: shift.waiters })}</span>
           </div>
         )}
         {userName && (
           <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-[10px] bg-sidebar-raised">
-            <span className="w-[34px] h-[34px] rounded-full bg-[#3A342E] text-sidebar-ink grid place-items-center text-sm font-medium">{initials(userName)}</span>
+            <span className="w-[34px] h-[34px] rounded-full bg-kds-raised text-sidebar-ink grid place-items-center text-sm font-medium">{initials(userName)}</span>
             <div className="flex flex-col leading-tight"><span className="text-[15px] text-sidebar-ink">{userName}</span><span className="text-[13px] text-sidebar-dim">{t(`nav.roles.${role}`)}</span></div>
           </div>
         )}

@@ -106,7 +106,7 @@ export function BrandForm({ restaurantName }: { restaurantName: string }) {
                 const on = b.radius === String(r)
                 return (
                   <button key={r} type="button" aria-pressed={on} onClick={() => patch({ radius: on ? '' : (String(r) as BrandRadius) })} style={{ borderRadius: r }}
-                    className={cn('h-tap-min px-4 border text-[15px] flex items-center gap-1.5', on ? 'bg-ink text-canvas border-ink font-bold' : 'bg-surface border-border hover:bg-muted')}>
+                    className={cn('h-tap-min px-4 border text-[15px] flex items-center gap-1.5', on ? 'bg-primary text-primary-ink border-primary font-bold' : 'bg-surface border-border hover:bg-muted')}>
                     {t(RADIUS_LABELS[r])} <span className={cn('font-mono text-[13px]', on ? 'opacity-70' : 'text-soft')}>{r}</span>
                   </button>
                 )

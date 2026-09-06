@@ -13,7 +13,7 @@ export function NewTableDialog({ floorName, nextNumber, onCreate, onCancel }: { 
   const [seats, setSeats] = useState('4')
   const [busy, setBusy] = useState(false)
   return (
-    <div role="dialog" aria-modal="true" aria-label={t('title')} className="fixed inset-0 z-50 grid place-items-center bg-ink/40 p-6">
+    <div role="dialog" aria-modal="true" aria-label={t('title')} className="fixed inset-0 z-50 grid place-items-center bg-overlay/60 p-6">
       <form onSubmit={async (e) => { e.preventDefault(); setBusy(true); try { await onCreate(Number(number), Number(seats)) } finally { setBusy(false) } }} className="w-[440px] rounded-[18px] bg-surface p-6 flex flex-col gap-4 shadow-xl">
         <span className="text-[19px] font-bold">{t('title')}</span>
         <p className="text-[15px] text-soft">{t('body', { floor: floorName })}</p>

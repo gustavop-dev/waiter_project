@@ -18,7 +18,7 @@ export function AlertCard({ alert, late, queue, onResolve, onAttend }: AlertCard
     : alert.kind === 'table' ? t('alertBody.table', { table })
     : t('alertBody.payment', { table, minutes: Math.floor(alert.seconds / 60) })
   return (
-    <article aria-label={t(`alert.${alert.kind}`)} className={cn('rounded-[14px] border p-4 flex flex-col gap-2.5', busy ? 'border-[#EBC7C4] bg-busy-soft' : 'border-[#F0DDB2] bg-surface')}>
+    <article aria-label={t(`alert.${alert.kind}`)} className={cn('rounded-[14px] border p-4 flex flex-col gap-2.5', busy ? 'border-danger/40 bg-busy-soft' : 'border-progress/40 bg-surface')}>
       <div className="flex items-center justify-between">
         <span className={cn('text-[13px] tracking-[0.1em] uppercase font-medium', busy ? 'text-busy-ink' : 'text-pending-ink')}>{t(`alert.${alert.kind}`)}</span>
         <span className={cn('font-mono tabular text-sm', busy ? 'text-busy-ink' : 'text-soft')}>{formatClock(alert.seconds)}</span>

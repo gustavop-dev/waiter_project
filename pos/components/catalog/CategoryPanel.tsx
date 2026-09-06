@@ -23,7 +23,7 @@ export function CategoryPanel({ categories, onSave, onClose }: CategoryPanelProp
         const d = drafts[key]
         const isNew = key === 'new'
         return (
-          <section key={key} aria-label={isNew ? t('new') : d.name} className="flex flex-col gap-2.5 pb-4 border-b border-[#EFE9E0]">
+          <section key={key} aria-label={isNew ? t('new') : d.name} className="flex flex-col gap-2.5 pb-4 border-b border-border">
             {isNew && <span className="text-[13px] tracking-[0.1em] uppercase text-ink-3 font-medium">{t('new')}</span>}
             <TextInput label={t('name')} value={d.name} onChange={(e) => edit(key, { name: e.target.value })} />
             <TextInput label={t('station')} hint={t('stationHint')} value={d.station} onChange={(e) => edit(key, { station: e.target.value })} />

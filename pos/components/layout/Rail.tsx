@@ -20,7 +20,7 @@ export function Rail({ active, userName = '', role = 'admin' }: { active: 'table
           return href ? <Link key={key} href={href} className={cls}>{t(key)}</Link> : <span key={key} className={cn(cls, 'opacity-60')}>{t(key)}</span>
         })}
       </nav>
-      {userName && <span className="mt-auto w-10 h-10 rounded-full bg-[#3A342E] text-sidebar-ink grid place-items-center text-sm font-medium">{initials(userName)}</span>}
+      {userName && <span className="mt-auto w-10 h-10 rounded-full bg-kds-raised text-sidebar-ink grid place-items-center text-sm font-medium">{initials(userName)}</span>}
     </aside>
   )
 }

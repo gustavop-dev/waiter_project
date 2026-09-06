@@ -139,7 +139,7 @@ export function MenuTemplateForm() {
               const on = f === family
               return (
                 <button key={f} id={`${ids}-tab-${f}`} type="button" role="tab" aria-selected={on} aria-controls={`${ids}-panel`} tabIndex={on ? 0 : -1} onClick={() => setFamily(f)} onKeyDown={onTabKey}
-                  className={cn('h-tap-min rounded-full border px-4 text-[15px] flex items-center gap-2', on ? 'bg-ink text-canvas border-ink font-bold' : 'bg-surface border-border hover:bg-muted')}>
+                  className={cn('h-tap-min rounded-full border px-4 text-[15px] flex items-center gap-2', on ? 'bg-primary text-primary-ink border-primary font-bold' : 'bg-surface border-border hover:bg-muted')}>
                   <span className={cn('font-mono text-[13px]', on ? 'opacity-70' : 'text-soft')}>{f}</span>{catalog.familias[f]}
                 </button>
               )
@@ -150,7 +150,7 @@ export function MenuTemplateForm() {
               const on = p.codigo === code
               return (
                 <button key={p.codigo} type="button" aria-pressed={on} onClick={() => choose(p)}
-                  className={cn('flex flex-col overflow-hidden rounded-[14px] border-2 bg-surface text-left focus-visible:outline-2 focus-visible:outline-brand-500', on ? 'border-brand-500' : 'border-border hover:border-ink-3')}>
+                  className={cn('flex flex-col overflow-hidden rounded-[14px] border-2 bg-surface text-left focus-visible:outline-2 focus-visible:outline-brand-500', on ? 'border-brand-500' : 'border-border hover:border-primary-3')}>
                   {/* eslint-disable-next-line @next/next/no-img-element -- la miniatura la sirve experience (otro origen, PNG estático con caché larga); con images.unoptimized next/image no aporta nada y exigiría registrar el host. */}
                   <img src={ctx.experienceUrl.replace(/\/+$/, '') + p.miniatura} alt="" loading="lazy" width={744} height={1040} className="aspect-[93/130] w-full bg-muted object-cover object-top" />
                   <div className="flex flex-col gap-1.5 p-3">
@@ -200,7 +200,7 @@ export function MenuTemplateForm() {
         <aside aria-label={t('preview')} className="flex flex-col gap-2 self-start xl:sticky xl:top-0">
           <span className="text-[13px] font-medium uppercase tracking-[0.1em] text-ink-3">{t('preview')}</span>
           {/* key: cambiar los ajustes recarga el iframe entero (la vista previa vive en la URL). */}
-          {src && <iframe key={src} title={t('preview')} src={src} width={PREVIEW_WIDTH} height={PREVIEW_HEIGHT} className="max-w-full rounded-[22px] border border-[#E4DED4] bg-surface" />}
+          {src && <iframe key={src} title={t('preview')} src={src} width={PREVIEW_WIDTH} height={PREVIEW_HEIGHT} className="max-w-full rounded-[22px] border border-border bg-surface" />}
           <p className="text-[13px] text-soft">{t('previewHint')}</p>
         </aside>
       </div>

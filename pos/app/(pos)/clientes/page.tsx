@@ -45,7 +45,7 @@ export default function ClientesPage() {
           <Button variant="primary" onClick={() => setPanel({ id: null })}>{t('new')}</Button></>} />
       <div className="flex-1 min-h-0 flex">
         <section className="flex-1 min-w-0 p-6 px-7 flex flex-col">
-          <div className="flex-1 min-h-0 rounded-[18px] bg-surface border border-[#E9E2D7] flex flex-col overflow-hidden">
+          <div className="flex-1 min-h-0 rounded-[18px] bg-surface border border-border flex flex-col overflow-hidden">
             <DataTable columns={columns} rows={customers} rowKey={(c) => c.id} emptyText={t('empty')} onRowClick={(c) => setPanel({ id: c.id })} selectedKey={panel?.id ?? null} />
           </div>
         </section>

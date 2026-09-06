@@ -48,7 +48,7 @@ export function PayPanel({ tableNumber, total, methods, busy, onSettle, onCancel
   }
   return (
     <aside aria-label={t('title', { number: tableNumber })} className="w-panel-lg shrink-0 border-l border-border bg-surface flex flex-col">
-      <header className="px-[22px] py-4 border-b border-[#EFE9E0] flex items-start justify-between">
+      <header className="px-[22px] py-4 border-b border-border flex items-start justify-between">
         <div className="flex flex-col"><span className="text-[19px] font-bold">{t('title', { number: tableNumber })}</span><span className="text-sm text-soft">{t('subtotalLabel')} <span className="font-mono tabular">{formatCop(total)}</span></span></div>
         <span className="font-mono tabular text-[28px]">$ {formatCop(grand)}</span>
       </header>
@@ -57,7 +57,7 @@ export function PayPanel({ tableNumber, total, methods, busy, onSettle, onCancel
           <span className="text-[13px] tracking-[0.08em] uppercase text-ink-3 font-medium">{t('tip')}</span>
           <div className="flex gap-2">
             {(['none', 'suggested', 'custom'] as TipMode[]).map((m) => (
-              <button key={m} type="button" aria-pressed={tipMode === m} onClick={() => setTipMode(m)} className={cn('h-tap-min px-4 rounded-full border text-[15px]', tipMode === m ? 'bg-ink text-canvas border-ink font-bold' : 'bg-surface border-border')}>
+              <button key={m} type="button" aria-pressed={tipMode === m} onClick={() => setTipMode(m)} className={cn('h-tap-min px-4 rounded-full border text-[15px]', tipMode === m ? 'bg-primary text-primary-ink border-primary font-bold' : 'bg-surface border-border')}>
                 {m === 'none' ? t('tipNone') : m === 'suggested' ? t('tipSuggested', { amount: formatCop(suggestedTip(total)) }) : t('tipCustom')}
               </button>
             ))}
@@ -78,7 +78,7 @@ export function PayPanel({ tableNumber, total, methods, busy, onSettle, onCancel
         <section className="flex flex-col gap-2">
           <span className="text-[13px] tracking-[0.08em] uppercase text-ink-3 font-medium">{t('payments')}</span>
           {payments.map((p, i) => (
-            <div key={i} className="flex items-center justify-between h-tap-min px-3.5 rounded-[10px] bg-canvas border border-[#EFE9E0] text-[15px]">
+            <div key={i} className="flex items-center justify-between h-tap-min px-3.5 rounded-[10px] bg-canvas border border-border text-[15px]">
               <span>{usable.find((m) => m.id === p.methodId)?.name}{p.reference && <span className="text-soft font-mono"> · {p.reference}</span>}{p.type === 'cash' && p.received > p.amount && <span className="text-soft"> · {t('received')} {formatCop(p.received)}</span>}</span>
               <span className="flex items-center gap-3"><span className="font-mono tabular">{formatCop(p.amount)}</span><button type="button" aria-label={t('removePayment')} onClick={() => setPayments((ps) => ps.filter((_, j) => j !== i))} className="text-soft">✕</button></span>
             </div>
@@ -95,7 +95,7 @@ export function PayPanel({ tableNumber, total, methods, busy, onSettle, onCancel
           )}
         </section>
       </div>
-      <footer className="px-[22px] py-4 border-t border-[#EFE9E0] bg-canvas flex flex-col gap-2.5">
+      <footer className="px-[22px] py-4 border-t border-border bg-canvas flex flex-col gap-2.5">
         <div className="flex justify-between text-[15px]"><span className="text-soft">{t('remaining')}</span><span className={cn('font-mono tabular', left > 0 ? 'text-busy-ink' : 'text-free-ink')}>{formatCop(left)}</span></div>
         {ch > 0 && <div className="flex justify-between text-[15px]"><span className="text-soft">{t('change')}</span><span className="font-mono tabular">{formatCop(ch)}</span></div>}
         <Button variant="primary" size="money" className="w-full" disabled={busy || !canSettle(grand, payments)} onClick={() => onSettle({ tip, payments })}>{t('confirm')}</Button>

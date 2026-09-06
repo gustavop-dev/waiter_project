@@ -71,28 +71,28 @@ export default function VentasPage() {
           <KpiCard label={t('kpi.autonomous')} value={`${current?.sales.length ? Math.round((autonomous / current.sales.length) * 100) : 0}%`} tone="brand" />
         </div>
         <div className="grid grid-cols-3 gap-[18px]">
-          <section className="rounded-[18px] bg-surface border border-[#E9E2D7] p-[22px] flex flex-col gap-3">
+          <section className="rounded-[18px] bg-surface border border-border p-[22px] flex flex-col gap-3">
             <span className="text-[17px] font-bold">{t('byMethod')}</span>
             {(current?.methods ?? []).map((m) => (
               <div key={m.method} className="flex items-center gap-3"><span className="w-28 text-[15px] truncate">{m.method}</span>
                 <span className="h-[22px] rounded-md bg-brand-500" style={{ width: `${Math.max(3, (m.amount / maxMethod) * 55)}%` }} aria-hidden /><span className="font-mono tabular text-[15px] text-soft">{formatCop(m.amount)}</span></div>
             ))}
           </section>
-          <section className="rounded-[18px] bg-surface border border-[#E9E2D7] p-[22px] flex flex-col gap-3">
+          <section className="rounded-[18px] bg-surface border border-border p-[22px] flex flex-col gap-3">
             <span className="text-[17px] font-bold">{t('byWaiter')}</span>
             {(current?.waiters ?? []).map((w) => (
               <div key={w.waiter} className="flex items-center justify-between text-[15px]"><span>{w.waiter} <span className="text-soft">· {w.orders} {t('cols.orders').toLowerCase()}</span></span><span className="font-mono tabular">{formatCop(w.amount)}</span></div>
             ))}
           </section>
-          <section className="rounded-[18px] bg-surface border border-[#E9E2D7] p-[22px] flex flex-col gap-3">
+          <section className="rounded-[18px] bg-surface border border-border p-[22px] flex flex-col gap-3">
             <span className="text-[17px] font-bold">{t('top')}</span>
             {(current?.top ?? []).map((p) => (
               <div key={p.product} className="flex items-center justify-between text-[15px]"><span className="truncate">{p.product} <span className="text-soft font-mono tabular">× {p.qty}</span></span><span className="font-mono tabular">{formatCop(p.amount)}</span></div>
             ))}
           </section>
         </div>
-        <div className="rounded-[18px] bg-surface border border-[#E9E2D7] flex flex-col overflow-hidden">
-          <div className="px-[22px] py-[18px] border-b border-[#EFE9E0] text-[19px] font-bold">{t('orders')}</div>
+        <div className="rounded-[18px] bg-surface border border-border flex flex-col overflow-hidden">
+          <div className="px-[22px] py-[18px] border-b border-border text-[19px] font-bold">{t('orders')}</div>
           <DataTable columns={columns} rows={current?.sales ?? []} rowKey={(s) => s.id} emptyText={t('empty')} />
         </div>
       </div>

@@ -12,7 +12,7 @@ export function TerminalDialog({ amount, onResult }: { amount: number; onResult:
   const t = useTranslations('pos.pay.terminal')
   const [reference, setReference] = useState('')
   return (
-    <div role="dialog" aria-modal="true" aria-label={t('title')} className="fixed inset-0 z-50 grid place-items-center bg-ink/40 p-6">
+    <div role="dialog" aria-modal="true" aria-label={t('title')} className="fixed inset-0 z-50 grid place-items-center bg-overlay/60 p-6">
       <div className="w-[440px] rounded-[18px] bg-surface p-6 flex flex-col gap-4 shadow-xl">
         <span className="text-[13px] tracking-[0.1em] uppercase text-ink-3 font-medium">{t('title')}</span>
         <p className="text-[17px] leading-snug">{t('body', { amount: `$ ${formatCop(amount)}` })}</p>

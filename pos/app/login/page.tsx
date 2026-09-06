@@ -14,7 +14,7 @@ import { useStored } from '@/lib/hooks/useStored'
 const ROTATE_MS = 8_000
 const write = (key: string, value: string) => { try { if (value) localStorage.setItem(key, value); else localStorage.removeItem(key) } catch { /* sin almacenamiento */ } }
 const greetingKey = (h: number) => (h < 12 ? 'morning' : h < 19 ? 'afternoon' : 'night')
-const INPUT = 'h-14 px-4 rounded-[10px] border border-[#D6CEC1] bg-surface text-[17px] text-ink focus:outline-none focus:border-brand-500 focus:ring-[3px] focus:ring-brand-50'
+const INPUT = 'h-14 px-4 rounded-[10px] border border-border bg-surface text-[17px] text-ink focus:outline-none focus:border-brand-500 focus:ring-[3px] focus:ring-brand-50'
 
 // Diseño "Waiter Login" 2a, sin la fila de perfiles (decisión del usuario): solo correo y contraseña.
 export default function LoginPage() {
@@ -103,12 +103,12 @@ export default function LoginPage() {
                 <input aria-label={t('email')} value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" className={INPUT} /></label>
               <label className="flex flex-col gap-[7px]">
                 <span className="flex items-baseline justify-between"><span className="text-[15px] font-medium">{t('password')}</span><button type="button" aria-label={t('forgot')} onClick={() => { setMode('code'); setCodeState('idle') }} className="text-sm font-medium text-brand-600">{t('forgot')}</button></span>
-                <span className="flex items-center h-14 rounded-[10px] border border-[#D6CEC1] bg-surface overflow-hidden focus-within:border-brand-500 focus-within:ring-[3px] focus-within:ring-brand-50">
+                <span className="flex items-center h-14 rounded-[10px] border border-border bg-surface overflow-hidden focus-within:border-brand-500 focus-within:ring-[3px] focus-within:ring-brand-50">
                   <input aria-label={t('password')} type={show ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" className="flex-1 h-full px-4 text-[17px] bg-transparent focus:outline-none" />
-                  <button type="button" onClick={() => setShow((v) => !v)} className="h-full px-4 text-sm font-medium text-soft border-l border-[#EFE9E0]">{show ? t('hide') : t('show')}</button>
+                  <button type="button" onClick={() => setShow((v) => !v)} className="h-full px-4 text-sm font-medium text-soft border-l border-border">{show ? t('hide') : t('show')}</button>
                 </span>
               </label>
-              <button type="button" role="switch" aria-checked={remember} onClick={() => setRemember((v) => !v)} className="flex items-center gap-[11px] text-[15px] text-[#3B352E]">
+              <button type="button" role="switch" aria-checked={remember} onClick={() => setRemember((v) => !v)} className="flex items-center gap-[11px] text-[15px] text-ink">
                 <span className={cn('w-[52px] h-[30px] rounded-full p-[3px] flex transition-colors', remember ? 'bg-brand-500 justify-end' : 'bg-border justify-start')}><span className="w-6 h-6 rounded-full bg-surface" /></span>{t('remember')}
               </button>
               {failed && <p role="alert" className="text-busy-ink text-[15px]">{t('failed')}</p>}
@@ -134,7 +134,7 @@ export default function LoginPage() {
             </form>
           )}
         </div>
-        <div className="flex items-center justify-between gap-4 pt-5 border-t border-[#EFE9E0] text-sm">
+        <div className="flex items-center justify-between gap-4 pt-5 border-t border-border text-sm">
           <span className="text-ink-3">{t('footer', { odoo: odooVersion })}</span>
           <span className="inline-flex items-center gap-2 text-soft"><span className={cn('w-[7px] h-[7px] rounded-full', online === false ? 'bg-busy' : 'bg-free')} />{online === false ? t('offline') : t('online')}</span>
         </div>

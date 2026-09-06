@@ -60,10 +60,10 @@ export default function CatalogoPage() {
           <div className="flex flex-wrap gap-2" role="tablist" aria-label={t('categories')}>
             {[{ id: 'all' as const, name: t('all') }, ...categories, { id: 'none' as const, name: t('uncategorized') }].map((c) => (
               <button key={c.id} type="button" role="tab" aria-selected={filter === c.id} onClick={() => setFilter(c.id)}
-                className={cn('h-tap-min px-4 rounded-full border text-[15px]', filter === c.id ? 'bg-ink text-canvas border-ink font-bold' : 'bg-surface border-border')}>{c.name}</button>
+                className={cn('h-tap-min px-4 rounded-full border text-[15px]', filter === c.id ? 'bg-primary text-primary-ink border-primary font-bold' : 'bg-surface border-border')}>{c.name}</button>
             ))}
           </div>
-          <div className="flex-1 min-h-0 rounded-[18px] bg-surface border border-[#E9E2D7] flex flex-col overflow-hidden">
+          <div className="flex-1 min-h-0 rounded-[18px] bg-surface border border-border flex flex-col overflow-hidden">
             <DataTable columns={columns} rows={visible} rowKey={(p) => p.id} emptyText={t('empty')} onRowClick={(p) => setPanel({ kind: 'product', id: p.id })} selectedKey={panel.kind === 'product' ? panel.id : null} />
           </div>
         </section>

@@ -27,7 +27,7 @@ export function Receipt({ data, onClose }: { data: ReceiptData; onClose: () => v
         {data.change > 0 && <div className="flex justify-between"><span>{t('change')}</span><span className="tabular">{formatCop(data.change)}</span></div>}
         <p className="text-center text-soft pt-2">{t('thanks')}</p>
       </div>
-      <footer className="px-[22px] py-4 border-t border-[#EFE9E0] bg-canvas flex gap-2.5 print:hidden">
+      <footer className="px-[22px] py-4 border-t border-border bg-canvas flex gap-2.5 print:hidden">
         <Button className="flex-1" onClick={() => window.print()}>{t('print')}</Button>
         <Button variant="primary" className="flex-1" onClick={onClose}>{t('close')}</Button>
       </footer>

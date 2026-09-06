@@ -54,7 +54,7 @@ export default function FacturacionPage() {
             <KpiCard label={t('kpi.month')} value={thisMonth.length} />
             <KpiCard label={t('kpi.amount')} value={`$ ${formatCop(thisMonth.reduce((a, i) => a + i.total, 0))}`} />
           </div>
-          <div className="flex-1 min-h-0 rounded-[18px] bg-surface border border-[#E9E2D7] flex flex-col overflow-hidden">
+          <div className="flex-1 min-h-0 rounded-[18px] bg-surface border border-border flex flex-col overflow-hidden">
             {tab === 'pending'
               ? <DataTable columns={orderCols} rows={pending} rowKey={(o) => o.id} emptyText={t('emptyPending')} onRowClick={(o) => setSelected(o.id)} selectedKey={selected} />
               : <DataTable columns={invoiceCols} rows={invoices} rowKey={(i) => i.id} emptyText={t('emptyInvoices')} />}

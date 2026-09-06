@@ -57,7 +57,7 @@ export default function InventarioPage() {
             <KpiCard label={t('kpi.low')} value={low} tone={low ? 'brand' : 'neutral'} />
             <KpiCard label={t('kpi.out')} value={out} tone={out ? 'busy' : 'neutral'} />
           </div>
-          <div className="flex-1 min-h-0 rounded-[18px] bg-surface border border-[#E9E2D7] flex flex-col overflow-hidden">
+          <div className="flex-1 min-h-0 rounded-[18px] bg-surface border border-border flex flex-col overflow-hidden">
             <DataTable columns={columns} rows={rows} rowKey={(r) => r.productId} emptyText={`${t('empty')} ${t('hint')}`} onRowClick={(r) => setSelected(r.productId)} selectedKey={selected} />
           </div>
         </section>

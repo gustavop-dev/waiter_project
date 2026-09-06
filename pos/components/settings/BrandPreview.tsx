@@ -14,7 +14,7 @@ export function BrandPreview({ theme, name, logo, tagline, greeting, waiterName,
   const serif = { fontFamily: `'${theme.fuente}', serif` }
   const dishes = [[t('dish'), t('dishDesc'), '38.900'], [t('dish2'), t('dish2Desc'), '32.900']]
   return (
-    <div aria-hidden className="overflow-hidden rounded-[22px] border border-[#E4DED4] bg-[#FDFBF7] text-ink" style={{ fontFamily: "'Ubuntu', system-ui, sans-serif" }}>
+    <div aria-hidden className="overflow-hidden rounded-[22px] border border-border bg-muted/40 text-ink" style={{ fontFamily: "'Ubuntu', system-ui, sans-serif" }}>
       <div className="flex items-center justify-between px-[18px] pt-[18px]">
         <div className="flex min-w-0 flex-col leading-[1.1]">
           {logo
@@ -23,14 +23,14 @@ export function BrandPreview({ theme, name, logo, tagline, greeting, waiterName,
             : <span className="truncate text-[25px]" style={serif}>{name || t('restaurant')}</span>}
           <span className="mt-1 text-[10px] uppercase tracking-[0.22em] text-ink-3">{tagline || t('tagline')}</span>
         </div>
-        <span className="inline-flex h-9 shrink-0 items-center rounded-full border border-[#E4DED4] bg-surface px-3 text-[14px] font-medium">{t('table')}</span>
+        <span className="inline-flex h-9 shrink-0 items-center rounded-full border border-border bg-surface px-3 text-[14px] font-medium">{t('table')}</span>
       </div>
       <div className="px-[18px] pb-[18px] pt-[22px]">
         <div className="text-[32px] leading-[1.1]" style={serif}>{greeting || t('greeting')}</div>
         {/* Igual que la portada real (diner Home): la bienvenida va después de la línea del mesero, no la reemplaza. */}
         <div className="mt-1.5 text-[16px] leading-[1.45] text-soft">{waiterName || !welcome ? t('line', { name: waiterName || t('waiter'), welcome: welcome || t('welcome') }) : welcome}</div>
         {/* "Ver la carta" es blanco con borde (DS §06); el color de acción va en "Ver todos", los "＋" y la barra de pedido. */}
-        <div className="mt-4 flex h-14 items-center justify-between border border-[#E4DED4] bg-surface px-[18px] text-[16px] font-bold" style={{ borderRadius: theme.radio }}>
+        <div className="mt-4 flex h-14 items-center justify-between border border-border bg-surface px-[18px] text-[16px] font-bold" style={{ borderRadius: theme.radio }}>
           <span>{t('cta')}</span><span className="text-ink-3">→</span>
         </div>
       </div>
@@ -38,7 +38,7 @@ export function BrandPreview({ theme, name, logo, tagline, greeting, waiterName,
         <div className="mb-2.5 flex items-baseline justify-between"><span className="text-[18px] font-bold">{t('recommended')}</span><span className="text-[14px]" style={{ color: theme.color }}>{t('all')}</span></div>
         <div className="grid grid-cols-2 gap-3">
           {dishes.map(([dish, desc, price]) => (
-            <div key={dish} className="overflow-hidden border border-[#EFE9E0] bg-surface" style={{ borderRadius: theme.radio }}>
+            <div key={dish} className="overflow-hidden border border-border bg-surface" style={{ borderRadius: theme.radio }}>
               <div className="grid h-[72px] place-items-center bg-muted text-[11px] uppercase tracking-[0.08em] text-ink-3">{t('photo')}</div>
               <div className="px-3 pb-3 pt-2.5">
                 <div className="text-[15px] font-bold leading-[1.25]">{dish}</div>
@@ -49,7 +49,7 @@ export function BrandPreview({ theme, name, logo, tagline, greeting, waiterName,
           ))}
         </div>
       </div>
-      <div className="mx-3.5 mb-3.5 flex items-center justify-between rounded-[16px] bg-ink px-[18px] py-3.5 text-[#F5F1EA]">
+      <div className="mx-3.5 mb-3.5 flex items-center justify-between rounded-[16px] bg-[#1A1815] px-[18px] py-3.5 text-[#F5F1EA]">
         <div className="flex items-center gap-3">
           <span className="grid h-[26px] min-w-[26px] place-items-center rounded-full text-[14px] font-bold" style={{ background: theme.color, color: theme.colorTexto }}>2</span>
           <div className="flex flex-col leading-[1.2]"><span className="text-[15px]">{t('order')}</span><span className="font-mono text-[17px]">{t('total')}</span></div>

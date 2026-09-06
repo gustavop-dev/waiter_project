@@ -41,7 +41,7 @@ function FloorsForm({ floors, configId, onChanged }: { floors: FloorInfo[]; conf
   return (
     <div className="flex flex-col gap-6">
       {floors.map((f) => (
-        <section key={f.id} aria-label={f.name} className="rounded-[18px] bg-surface border border-[#E9E2D7] p-5 flex flex-col gap-3">
+        <section key={f.id} aria-label={f.name} className="rounded-[18px] bg-surface border border-border p-5 flex flex-col gap-3">
           <div className="flex items-center justify-between"><span className="text-[17px] font-bold">{f.name}</span><span className="text-sm text-soft">{t('tables', { n: f.tables.length })}</span></div>
           <div className="grid grid-cols-[100px_100px_1fr_auto] gap-3 items-end">
             {f.tables.map((tb) => {
@@ -70,9 +70,9 @@ function UsersForm({ users, onChanged }: { users: UserInfo[]; onChanged: () => P
   const [state, save] = useSaveState()
   return (
     <div className="flex flex-col gap-5">
-      <div className="rounded-[18px] bg-surface border border-[#E9E2D7] overflow-hidden">
+      <div className="rounded-[18px] bg-surface border border-border overflow-hidden">
         {users.map((x) => (
-          <div key={x.id} className="flex items-center justify-between gap-3 px-5 py-3 border-b border-[#F3EFE8] text-[15px]">
+          <div key={x.id} className="flex items-center justify-between gap-3 px-5 py-3 border-b border-border text-[15px]">
             <span className="font-medium">{x.name} <span className="text-soft font-normal">· {x.login}</span></span>
             <span className="flex items-center gap-3">
               <span className={cn('inline-flex h-7 px-2.5 rounded-lg items-center text-[13px] font-medium', x.activated ? 'bg-free-soft text-free-ink' : 'bg-pending-soft text-pending-ink')}>{x.activated ? t('active') : t('pending')}</span>
@@ -132,7 +132,7 @@ function ConfiguracionInner() {
       <Topbar left={<span className="text-[22px] font-bold">{t('title')}</span>} right={null} />
       <div className="flex-1 min-h-0 flex">
         <nav aria-label={t('title')} className="w-[248px] shrink-0 border-r border-border bg-surface p-3 flex flex-col gap-1">
-          {SECTIONS.map((s) => <button key={s} type="button" aria-current={section === s ? 'page' : undefined} onClick={() => setSection(s)} className={cn('h-tap-min px-3.5 rounded-[10px] text-left text-[15px]', section === s ? 'bg-ink text-canvas font-bold' : 'hover:bg-muted')}>{t(`sections.${s}`)}</button>)}
+          {SECTIONS.map((s) => <button key={s} type="button" aria-current={section === s ? 'page' : undefined} onClick={() => setSection(s)} className={cn('h-tap-min px-3.5 rounded-[10px] text-left text-[15px]', section === s ? 'bg-primary text-primary-ink font-bold' : 'hover:bg-muted')}>{t(`sections.${s}`)}</button>)}
         </nav>
         <section aria-label={t(`sections.${section}`)} className="flex-1 min-w-0 p-6 px-7 overflow-y-auto">
           <h2 className="text-[19px] font-bold mb-4">{t(`sections.${section}`)}</h2>

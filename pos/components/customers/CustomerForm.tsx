@@ -36,7 +36,7 @@ export function CustomerForm({ initial, isNew, idTypes, history, onSave, onClose
       {state === 'saved' && <p role="status" className="text-[15px] text-free-ink">{t('saved')}</p>}
       {state === 'error' && <p role="alert" className="text-[15px] text-busy-ink">{ui('error')}</p>}
       {!isNew && (
-        <section aria-label={t('history')} className="flex flex-col gap-2 pt-3 border-t border-[#EFE9E0]">
+        <section aria-label={t('history')} className="flex flex-col gap-2 pt-3 border-t border-border">
           <span className="text-[13px] tracking-[0.08em] uppercase text-ink-3 font-medium">{t('history')}</span>
           {history.length === 0 && <span className="text-[15px] text-soft">{t('noHistory')}</span>}
           {history.map((o) => <div key={o.id} className="flex justify-between text-[15px]"><span className="text-soft">#{o.id} · {o.date.slice(0, 10)}</span><span className="font-mono tabular">{formatCop(o.total)}</span></div>)}
