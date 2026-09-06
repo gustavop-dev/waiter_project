@@ -770,6 +770,11 @@
         "forceHint": "Odoo detectó un descuadre contable. Forzar el cierre lo contabiliza como diferencia de caja.",
         "forced": "Cierre forzado. La diferencia quedó contabilizada."
       }
+    },
+    "kit": {
+      "keypad": {
+        "backspace": "Borrar"
+      }
     }
   }
 }
