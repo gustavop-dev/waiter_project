@@ -4,10 +4,9 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 
 import { Icon, type KitIcon } from '@/components/kit/Icon'
-import { initials } from '@/components/layout/Sidebar'
 import { TAB_ROUTES, adminSubtabsFor, tabsFor, type AdminSubtab, type KitTab } from '@/lib/domain/navigation'
 import type { Role } from '@/lib/domain/roles'
-import { cn } from '@/lib/utils'
+import { cn, initials } from '@/lib/utils'
 
 const ICON: Record<KitTab, KitIcon> = { dashboard: 'dashboard', orders: 'orders', tables: 'tables', reservations: 'reservations', history: 'history', inventory: 'inventory', kitchen: 'kitchen', admin: 'admin' }
 

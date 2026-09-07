@@ -1,70 +1,87 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
-import { InvoiceForm } from '@/components/billing/InvoiceForm'
-import { Shell } from '@/components/layout/Shell'
-import { Topbar } from '@/components/layout/Topbar'
-import { DataTable, type Column } from '@/components/ui/DataTable'
-import { KpiCard } from '@/components/ui/KpiCard'
-import { Segmented } from '@/components/ui/Segmented'
+import { InvoicePanel, type Selection } from '@/components/billing/InvoicePanel'
+import { Card } from '@/components/kit/Card'
+import { Chip } from '@/components/kit/Chip'
+import { KitEmptyState } from '@/components/kit/KitEmptyState'
+import { KitShell } from '@/components/kit/KitShell'
+import { StatusPill } from '@/components/kit/StatusPill'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { SearchInput } from '@/components/ui/SearchInput'
 import { formatCop } from '@/lib/domain/money'
-import { invoiceOrder, invoicePdfUrl, listInvoices, listPaidOrders, type Invoice, type InvoiceableOrder } from '@/lib/services/invoices'
+import { invoiceOrder, listInvoices, listPaidOrders, type Invoice, type InvoiceableOrder } from '@/lib/services/invoices'
+import { useCatalogStore } from '@/lib/stores/catalogStore'
 import { cn } from '@/lib/utils'
 
 type Tab = 'pending' | 'invoices'
-const day = (at: string) => (at ? new Date(at.replace(' ', 'T') + (at.length > 10 ? 'Z' : '')).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }) : '—')
+const day = (at: string) => (at ? new Date(at.replace(' ', 'T') + (at.length > 10 ? 'Z' : '')).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', hour: at.length > 10 ? '2-digit' : undefined, minute: at.length > 10 ? '2-digit' : undefined }) : '—')
+const STATE_TONE = { draft: 'neutral', posted: 'success', cancel: 'danger' } as const
 
+// Facturación con la estructura de "Order History / Bill Selected" del kit: chips Pendientes / Facturas, lista de
+// tarjetas y panel "Información de la factura" a la derecha.
 export default function FacturacionPage() {
-  const t = useTranslations('pos.billing')
+  const t = useTranslations('admin.billing')
+  const catalog = useCatalogStore((s) => s.catalog)
   const [tab, setTab] = useState<Tab>('pending')
+  const [query, setQuery] = useState('')
   const [orders, setOrders] = useState<InvoiceableOrder[]>([])
   const [invoices, setInvoices] = useState<Invoice[]>([])
-  const [selected, setSelected] = useState<number | null>(null)
+  const [selectedOrder, setSelectedOrder] = useState<number | null>(null)
+  const [selectedInvoice, setSelectedInvoice] = useState<number | null>(null)
   const reload = () => Promise.all([listPaidOrders(), listInvoices()]).then(([o, i]) => { setOrders(o); setInvoices(i) })
   useEffect(() => { void reload() }, [])
+  const tableNumberOf = useMemo(() => (id: number | null) => (id === null ? null : catalog?.tables.find((tb) => tb.id === id)?.number ?? null), [catalog])
 
-  const pending = orders.filter((o) => o.invoiceId === null)
-  const month = new Date().toISOString().slice(0, 7)
-  const thisMonth = invoices.filter((i) => i.date.startsWith(month) && i.state === 'posted')
-  const current = orders.find((o) => o.id === selected) ?? null
-  const orderCols: Column<InvoiceableOrder>[] = [
-    { key: 'ref', header: t('cols.order'), width: '90px', render: (o) => <code className="font-mono text-soft">#{o.id}</code> },
-    { key: 'date', header: t('cols.date'), width: '110px', render: (o) => day(o.date) },
-    { key: 'cust', header: t('cols.customer'), render: (o) => o.partnerName || <span className="text-soft">{t('noCustomer')}</span> },
-    { key: 'total', header: t('cols.total'), width: '130px', align: 'right', render: (o) => <span className="font-mono tabular">{formatCop(o.total)}</span> },
-    { key: 'inv', header: t('cols.invoice'), width: '140px', align: 'right', render: (o) => <span className={cn('inline-flex h-[30px] px-2.5 rounded-lg items-center text-sm font-medium', o.invoiceId ? 'bg-free-soft text-free-ink' : 'bg-pending-soft text-pending-ink')}>{o.invoiceId ? t('invoiced') : t('notInvoiced')}</span> },
-  ]
-  const invoiceCols: Column<Invoice>[] = [
-    { key: 'name', header: t('cols.number'), width: '170px', render: (i) => <code className="font-mono">{i.name}</code> },
-    { key: 'date', header: t('cols.date'), width: '110px', render: (i) => day(i.date) },
-    { key: 'cust', header: t('cols.customer'), render: (i) => i.partner },
-    { key: 'total', header: t('cols.total'), width: '130px', align: 'right', render: (i) => <span className="font-mono tabular">{formatCop(i.total)}</span> },
-    { key: 'state', header: t('cols.state'), width: '200px', align: 'right', render: (i) => <span className="inline-flex items-center gap-2"><span className="text-sm text-soft">{i.paymentState === 'paid' ? t('paid') : t('notPaid')}</span><a href={invoicePdfUrl(i.id)} target="_blank" rel="noreferrer" className="text-brand-600 font-medium text-sm">PDF</a></span> },
-  ]
+  const q = query.trim().toLowerCase()
+  const pending = orders.filter((o) => o.invoiceId === null && (!q || String(o.id).includes(q) || o.partnerName.toLowerCase().includes(q)))
+  const shownInvoices = invoices.filter((i) => !q || i.name.toLowerCase().includes(q) || i.partner.toLowerCase().includes(q))
+  const selection: Selection = tab === 'pending'
+    ? (() => { const o = orders.find((x) => x.id === selectedOrder); return o ? { kind: 'order', order: o } : null })()
+    : (() => { const i = invoices.find((x) => x.id === selectedInvoice); return i ? { kind: 'invoice', invoice: i } : null })()
+  const rowClass = (on: boolean) => cn('rounded-md border bg-surface text-left overflow-hidden hover:border-primary/60', on ? 'border-primary' : 'border-border')
+  const field = (label: string, value: React.ReactNode, first = false) => <div className={cn(!first && 'pl-4')}><p className="text-[13px] text-soft">{label}</p><div className="font-semibold text-ink">{value}</div></div>
+
   return (
-    <Shell mode="sidebar" active="billing">
-      <Topbar left={<div className="flex flex-col gap-0.5"><span className="text-[22px] font-bold">{t('title')}</span><span className="text-[15px] text-soft">{t('subtitle')}</span></div>}
-        right={<Segmented label={t('title')} options={[{ value: 'pending' as Tab, label: t('tabs.pending') }, { value: 'invoices' as Tab, label: t('tabs.invoices') }]} value={tab} onChange={setTab} />} />
-      <div className="flex-1 min-h-0 flex">
-        <section className="flex-1 min-w-0 p-6 px-7 flex flex-col gap-[18px]">
-          <div className="grid grid-cols-3 gap-3">
-            <KpiCard label={t('kpi.pending')} value={pending.length} tone={pending.length ? 'brand' : 'neutral'} />
-            <KpiCard label={t('kpi.month')} value={thisMonth.length} />
-            <KpiCard label={t('kpi.amount')} value={`$ ${formatCop(thisMonth.reduce((a, i) => a + i.total, 0))}`} />
+    <KitShell>
+      <PageHeader icon="billing" title={t('title')} actions={<SearchInput value={query} onChange={setQuery} placeholder={t('search')} className="w-[360px]" />}>
+        <Chip label={t('tabs.pending')} count={orders.filter((o) => o.invoiceId === null).length} active={tab === 'pending'} onClick={() => setTab('pending')} />
+        <Chip label={t('tabs.invoices')} count={invoices.length} active={tab === 'invoices'} onClick={() => setTab('invoices')} />
+      </PageHeader>
+      <div className="flex-1 min-h-0 flex gap-4 px-5 pb-5">
+        <Card className="flex-1 min-w-0">
+          <div className="h-full overflow-y-auto p-3 flex flex-col gap-3">
+            {tab === 'pending' && pending.length === 0 && <KitEmptyState icon="billing" title={t('emptyPending')} />}
+            {tab === 'invoices' && shownInvoices.length === 0 && <KitEmptyState icon="billing" title={t('emptyInvoices')} />}
+            {tab === 'pending' && pending.map((o) => (
+              <button key={o.id} type="button" onClick={() => setSelectedOrder(o.id)} aria-pressed={selectedOrder === o.id} className={rowClass(selectedOrder === o.id)}>
+                <div className="h-10 px-4 flex items-center justify-between bg-muted text-[13px]"><span className="text-soft">{t('cols.order')} <span className="font-semibold text-ink">{o.id}</span></span><span className="text-soft">{day(o.date)}</span></div>
+                <div className="px-4 py-3 grid grid-cols-4 divide-x divide-border text-[15px]">
+                  {field(t('cols.table'), tableNumberOf(o.tableId) ?? '—', true)}
+                  {field(t('cols.customer'), o.partnerName || <span className="text-soft font-normal">{t('noCustomer')}</span>)}
+                  {field(t('cols.total'), <span className="tabular">$ {formatCop(o.total)}</span>)}
+                  {field(t('cols.invoice'), <StatusPill tone="progress" className="h-7 text-[13px]">{t('notInvoiced')}</StatusPill>)}
+                </div>
+              </button>
+            ))}
+            {tab === 'invoices' && shownInvoices.map((i) => (
+              <button key={i.id} type="button" onClick={() => setSelectedInvoice(i.id)} aria-pressed={selectedInvoice === i.id} className={rowClass(selectedInvoice === i.id)}>
+                <div className="h-10 px-4 flex items-center justify-between bg-muted text-[13px]"><span className="text-soft">{t('cols.number')} <span className="font-semibold text-ink">{i.name}</span></span><span className="text-soft">{day(i.date)}</span></div>
+                <div className="px-4 py-3 grid grid-cols-4 divide-x divide-border text-[15px]">
+                  {field(t('cols.customer'), i.partner || <span className="text-soft font-normal">{t('noCustomer')}</span>, true)}
+                  {field(t('cols.total'), <span className="tabular">$ {formatCop(i.total)}</span>)}
+                  {field(t('cols.state'), <StatusPill tone={STATE_TONE[i.state as keyof typeof STATE_TONE] ?? 'neutral'} className="h-7 text-[13px]">{t(`state.${i.state as 'draft' | 'posted' | 'cancel'}`)}</StatusPill>)}
+                  {field(t('paid'), <StatusPill tone={i.paymentState === 'paid' ? 'success' : 'info'} className="h-7 text-[13px]">{i.paymentState === 'paid' ? t('paid') : t('notPaid')}</StatusPill>)}
+                </div>
+              </button>
+            ))}
           </div>
-          <div className="flex-1 min-h-0 rounded-[18px] bg-surface border border-border flex flex-col overflow-hidden">
-            {tab === 'pending'
-              ? <DataTable columns={orderCols} rows={pending} rowKey={(o) => o.id} emptyText={t('emptyPending')} onRowClick={(o) => setSelected(o.id)} selectedKey={selected} />
-              : <DataTable columns={invoiceCols} rows={invoices} rowKey={(i) => i.id} emptyText={t('emptyInvoices')} />}
-          </div>
-        </section>
-        {current && tab === 'pending' && (
-          <InvoiceForm key={current.id} order={current} onClose={() => setSelected(null)}
-            onIssue={async (partnerId) => { const id = await invoiceOrder(current.id, partnerId); await reload(); const inv = (await listInvoices(5)).find((i) => i.id === id); return { id, name: inv?.name ?? String(id) } }} />
-        )}
+        </Card>
+        <InvoicePanel selection={selection} tableNumber={selection?.kind === 'order' ? tableNumberOf(selection.order.tableId) : null}
+          onIssue={async (orderId, partnerId) => { const id = await invoiceOrder(orderId, partnerId); await reload(); const inv = (await listInvoices(5)).find((i) => i.id === id); return { id, name: inv?.name ?? String(id) } }} />
       </div>
-    </Shell>
+    </KitShell>
   )
 }

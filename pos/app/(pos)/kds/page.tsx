@@ -7,6 +7,7 @@ import { KdsFooter } from '@/components/kds/KdsFooter'
 import { KdsHeader } from '@/components/kds/KdsHeader'
 import { ReadyList } from '@/components/kds/ReadyList'
 import { TicketCard } from '@/components/kds/TicketCard'
+import { KitEmptyState } from '@/components/kit/KitEmptyState'
 import { ALL, LATE, averagePrepSeconds, countTickets, filterTickets, stations } from '@/lib/domain/kitchen'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
@@ -14,9 +15,10 @@ import { useKitchenStore } from '@/lib/stores/kitchenStore'
 
 const POLL_MS = 5_000
 
-// Pantalla fija de cocina (1920×1080): sondea Odoo cada 5 s, cronómetros cada segundo.
+// Pantalla fija de cocina en modo oscuro del kit (data-theme="dark" propio, independiente del tema del usuario):
+// sondea Odoo cada 5 s, cronómetros cada segundo. Sin barra superior: la cocina es un dispositivo, no un mesero.
 export default function KdsPage() {
-  const t = useTranslations('pos.kds')
+  const t = useTranslations('kds')
   const session = useAuthStore((s) => s.session)
   const catalog = useCatalogStore((s) => s.catalog)
   const { tickets, done, tab, muted, refresh, ready, serve, setTab, toggleMute, tick } = useKitchenStore()
@@ -43,11 +45,11 @@ export default function KdsPage() {
   const readyOnes = tickets.filter((tk) => tk.readyAt !== null)
   const visible = filterTickets(cooking, tab, now)
   return (
-    <main className="min-h-screen flex flex-col bg-kds-bg text-kds-ink">
+    <main data-theme="dark" className="h-screen flex flex-col bg-canvas text-ink">
       <KdsHeader tabs={[ALL, ...stations(cooking), LATE]} counts={countTickets(cooking, now)} active={tab} onTab={setTab} avgSeconds={averagePrepSeconds(done)} now={now} />
-      <div className="flex flex-1 min-h-0">
-        <section aria-label={t('grid')} className="flex-1 p-6 grid grid-cols-4 auto-rows-min content-start gap-5 overflow-y-auto">
-          {visible.length === 0 && <p className="col-span-4 text-sidebar-soft text-lg">{t('empty')}</p>}
+      <div className="flex flex-1 min-h-0 gap-5 p-5">
+        <section aria-label={t('grid')} className="flex-1 min-w-0 overflow-y-auto grid grid-cols-3 auto-rows-min content-start gap-5">
+          {visible.length === 0 && <div className="col-span-3 flex"><KitEmptyState icon="chef" title={t('empty')} body={t('emptyBody')} /></div>}
           {visible.map((tk) => <TicketCard key={tk.id} ticket={tk} tableNumber={tableNumberOf(tk.tableId)} now={now} onReady={(id) => void ready(id, session.id, stationOf)} />)}
         </section>
         <ReadyList tickets={readyOnes} tableNumberOf={tableNumberOf} now={now} onServed={(id) => void serve(id, session.id, stationOf)} />

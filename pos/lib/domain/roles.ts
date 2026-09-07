@@ -1,5 +1,8 @@
-import type { NavItem } from '@/components/layout/Sidebar'
 import { pathAllowed } from '@/lib/domain/navigation'
+
+// Módulos del POS anteriores al kit; siguen nombrando las pantallas de administración (Shell y navFor).
+export const NAV_ITEMS = ['operation', 'sales', 'catalog', 'inventory', 'customers', 'automation', 'billing', 'settings'] as const
+export type NavItem = (typeof NAV_ITEMS)[number]
 
 // Tres roles, los del restaurante. El rol vive en Odoo (res.users.waiter_role) y ahí se sincroniza con los grupos.
 export type Role = 'waiter' | 'cashier' | 'admin'

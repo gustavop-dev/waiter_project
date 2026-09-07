@@ -31,12 +31,6 @@
         "admin": "Administrador"
       }
     },
-    "rail": {
-      "tables": "Mesas",
-      "orders": "Pedidos",
-      "kitchen": "Cocina",
-      "payments": "Pagos"
-    },
     "topbar": {
       "operational": "Restaurante operativo",
       "search": "Buscar mesa o pedido",

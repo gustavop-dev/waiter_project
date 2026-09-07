@@ -1,10 +1,13 @@
 import {
-  IconAddressBook, IconAdjustments, IconAlarm, IconArrowLeft, IconArrowRight, IconArrowsMove, IconBabyCarriage, IconBackspace,
-  IconBell, IconBox, IconBuildingStore, IconCalendarEvent, IconCash, IconCashRegister, IconChartBar, IconCheck, IconChefHat,
-  IconChevronDown, IconChevronLeft, IconChevronRight, IconClock, IconCreditCard, IconDeviceDesktop, IconDotsVertical,
-  IconFileInvoice, IconFileText, IconFingerprint, IconHistory, IconLanguage, IconLayoutDashboard, IconLock, IconLogout,
-  IconMail, IconMinus, IconPackage, IconPencil, IconPhoto, IconPlus, IconPrinter, IconQrcode, IconReceipt, IconRotate,
-  IconSearch, IconSettings, IconShoppingCart, IconToolsKitchen2, IconTrash, IconTruckDelivery, IconUser, IconUsers, IconX,
+  IconAddressBook, IconAdjustments, IconAlarm, IconAlertTriangle, IconArrowDown, IconArrowLeft, IconArrowRight, IconArrowUp,
+  IconArrowsMove, IconBabyCarriage, IconBackspace, IconBell, IconBox, IconBuildingStore, IconCalendarEvent, IconCash,
+  IconCashRegister, IconChartBar, IconChartLine, IconCheck, IconChefHat, IconChevronDown, IconChevronLeft, IconChevronRight,
+  IconClock, IconCreditCard, IconDeviceDesktop, IconDeviceTablet, IconDotsVertical, IconFileInvoice, IconFileText,
+  IconFileTypePdf, IconFilter, IconFingerprint, IconFlame, IconGift, IconHistory, IconLanguage, IconLayout2,
+  IconLayoutDashboard, IconLayoutGrid, IconLock, IconLogout, IconMail, IconMapPin, IconMinus, IconPackage, IconPalette,
+  IconPencil, IconPercentage, IconPhone, IconPhoto, IconPlus, IconPrinter, IconQrcode, IconReceipt, IconRefresh, IconRotate,
+  IconSearch, IconSettings, IconShoppingCart, IconStar, IconStarFilled, IconTag, IconToolsKitchen2, IconTrash,
+  IconTruckDelivery, IconUser, IconUsers, IconVolume, IconVolumeOff, IconWallet, IconX,
   type IconProps,
 } from '@tabler/icons-react'
 import type { ComponentType } from 'react'
@@ -22,6 +25,11 @@ const ICONS = {
   logout: IconLogout, lock: IconLock, photo: IconPhoto, chef: IconChefHat, move: IconArrowsMove, rotate: IconRotate,
   mail: IconMail, fingerprint: IconFingerprint, language: IconLanguage, babyChair: IconBabyCarriage, delivery: IconTruckDelivery,
   store: IconBuildingStore,
+  // Superficies sin equivalente en el kit (oleada I.7): KDS, caja, catálogo, clientes, facturación, configuración.
+  refresh: IconRefresh, star: IconStar, starFilled: IconStarFilled, volume: IconVolume, volumeOff: IconVolumeOff, flame: IconFlame,
+  tag: IconTag, alert: IconAlertTriangle, filter: IconFilter, arrowUp: IconArrowUp, arrowDown: IconArrowDown, wallet: IconWallet,
+  gift: IconGift, phone: IconPhone, mapPin: IconMapPin, pdf: IconFileTypePdf, palette: IconPalette, layout: IconLayout2,
+  grid: IconLayoutGrid, percentage: IconPercentage, chartLine: IconChartLine, tablet: IconDeviceTablet,
 } satisfies Record<string, ComponentType<IconProps>>
 
 export type KitIcon = keyof typeof ICONS
