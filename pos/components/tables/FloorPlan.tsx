@@ -6,9 +6,13 @@ import { KitEmptyState } from '@/components/kit/KitEmptyState'
 import { TableShape, type TablePill } from '@/components/tables/TableShape'
 import type { TableState, TableView } from '@/lib/domain/tableState'
 import { kitState, orderCode, planSize } from '@/lib/domain/tablesKit'
+import type { TableReservation } from '@/lib/services/tables'
 import { cn } from '@/lib/utils'
 
-interface Props { views: TableView[]; selectedId: number | null; onSelect: (id: number) => void; background?: string | null; pickFree?: boolean; codeFor?: (view: TableView) => string | null }
+interface Props {
+  views: TableView[]; selectedId: number | null; onSelect: (id: number) => void; background?: string | null; pickFree?: boolean
+  codeFor?: (view: TableView) => string | null; reserved?: Record<number, TableReservation | null>
+}
 
 // Estado bajo la mesa, en las palabras del kit. Los estados que el kit no dibuja (asistencia, cuenta pedida…) van con
 // la misma píldora naranja y su propio texto: son reales y el mesero los necesita.
@@ -24,7 +28,7 @@ export function pillFor(state: TableState, t: (key: string) => string): TablePil
 }
 
 // Plano real del piso (posición y tamaño de restaurant.table) con scroll horizontal, como en el kit.
-export function FloorPlan({ views, selectedId, onSelect, background = null, pickFree = false, codeFor }: Props) {
+export function FloorPlan({ views, selectedId, onSelect, background = null, pickFree = false, codeFor, reserved = {} }: Props) {
   const t = useTranslations('tables')
   const ts = useTranslations('tables.state')
   const size = planSize(views.map((v) => v.table))
@@ -35,14 +39,18 @@ export function FloorPlan({ views, selectedId, onSelect, background = null, pick
         {background && <img src={background} alt="" className="absolute inset-0 w-full h-full object-contain object-left-top opacity-60 pointer-events-none" />}
         <div className="absolute" style={{ left: 40, top: 40 }}>
           {views.map((v) => {
-            const state = kitState(v.state)
+            const booking = reserved[v.table.id] ?? null
+            const state = kitState(v.state, booking !== null)
+            // Mover un pedido solo puede aterrizar en una mesa libre: una reservada tampoco vale.
             const pickable = !pickFree || state === 'available'
             const name = String(v.table.number)
-            const pill = pillFor(v.state, ts)
+            const pill = state === 'reserved' && booking ? { text: booking.label, icon: 'clock' as const } : pillFor(v.state, ts)
+            const legend = state === 'reserved' ? t('legend.reserved') : t('legend.available')
             return (
               <TableShape key={v.table.id} rect={v.table} name={name} state={state} selected={v.table.id === selectedId} dimmed={pickFree && !pickable}
                 code={codeFor ? codeFor(v) : v.orderId !== null ? orderCode('DI', null, v.orderId) : null} pill={pill}
-                label={t('tableLabel', { name, state: pill?.text ?? t('legend.available') })} onClick={pickable ? () => onSelect(v.table.id) : undefined} className={cn(!pickable && 'pointer-events-none')} />
+                label={t('tableLabel', { name, state: state === 'unavailable' && pill ? pill.text : legend })}
+                onClick={pickable ? () => onSelect(v.table.id) : undefined} className={cn(!pickable && 'pointer-events-none')} />
             )
           })}
         </div>

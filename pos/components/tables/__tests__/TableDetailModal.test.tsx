@@ -22,7 +22,7 @@ it('with dishes in progress: shows the ring, offers change table and keeps payme
   expect(await screen.findByText('DI104')).toBeInTheDocument()
   expect(screen.getByRole('img', { name: '50%' })).toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'Ir a pagar' })).toBeDisabled()
-  expect(screen.getByText('Podrás cobrar cuando todos los platos estén servidos.')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Ir a pagar' })).toHaveAttribute('title', 'Podrás cobrar cuando todos los platos estén servidos.')
   await userEvent.click(screen.getByRole('button', { name: 'Cambiar mesa' }))
   expect(onChangeTable).toHaveBeenCalledWith(expect.objectContaining({ id: 9 }))
 })

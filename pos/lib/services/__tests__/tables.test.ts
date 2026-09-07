@@ -1,5 +1,5 @@
 import { callKw } from '@/lib/services/odoo'
-import { getOrderDetail, listAllFloors, moveOrder, saveFloorLayout } from '@/lib/services/tables'
+import { getOrderDetail, listAllFloors, listTableReservations, moveOrder, reservedAtByTable, saveFloorLayout } from '@/lib/services/tables'
 
 jest.mock('@/lib/services/odoo', () => ({ callKw: jest.fn() }))
 const m = callKw as jest.Mock
@@ -64,4 +64,22 @@ it('writes an existing floor without touching its background and lists floors of
   m.mockResolvedValueOnce([{ id: 7, name: 'Piso 2', active: false, table_ids: [1, 2] }])
   await expect(listAllFloors(1)).resolves.toEqual([{ id: 7, name: 'Piso 2', active: false, tableCount: 2 }])
   expect(m.mock.calls[1][2][0]).toEqual([['active', 'in', [true, false]], ['pos_config_ids', 'in', [1]]])
+})
+
+// Falla si el plano deja de preguntar por las reservas del día a restaurant.table.waiter_reserved_at, o si las
+// claves que el RPC devuelve como texto ("2") no vuelven a ser ids numéricos del plano.
+it('reads the next reservation of each table for the plan', async () => {
+  m.mockImplementation(async () => ({ '2': { id: 5, label: '17:00', customer_name: 'Eva', time_start: 17 }, '3': false }))
+  const map = await reservedAtByTable([2, 3], '2026-09-07')
+  expect(m).toHaveBeenCalledWith('restaurant.table', 'waiter_reserved_at', [[2, 3], '2026-09-07'])
+  expect(map[2]).toMatchObject({ id: 5, label: '17:00', customerName: 'Eva' })
+  expect(map[3]).toBeNull()
+})
+
+// Falla si la lista de reservas de una mesa trae las canceladas o las de otras mesas, o si pierde la hora del kit.
+it('lists the active reservations of one table', async () => {
+  m.mockImplementation(async () => [{ id: 5, name: 'Rv001', customer_name: 'Eva', date: '2026-09-07', time_start: 10, time_end: 11, people: 2, baby_chair: true, state: 'confirmed', table_id: [2, 'Mesa 1'] }])
+  const rows = await listTableReservations(2)
+  expect(m.mock.calls[0][2][0]).toEqual([['table_id', '=', 2], ['state', 'in', ['confirmed', 'seated']]])
+  expect(rows[0]).toMatchObject({ name: 'Rv001', customerName: 'Eva', timeLabel: '10:00 – 11:00', people: 2, babyChair: true })
 })

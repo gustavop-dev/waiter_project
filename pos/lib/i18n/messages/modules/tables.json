@@ -11,7 +11,13 @@
   "tableLabel": "Mesa {name}: {state}",
   "state": { "inProgress": "En progreso", "served": "Servido", "billing": "Esperando pago", "assist": "Pide mesero", "ordering": "Pidiendo", "closed": "Cerrada", "paid": "Pagado" },
   "selected": { "label": "Mesa seleccionada:", "clear": "Quitar selección", "reservation": "Info de reserva", "detail": "Detalle de mesa", "moving": "Elige la mesa nueva para el pedido {code}:", "cancelMove": "Cancelar cambio" },
-  "reservations": { "title": "Lista de reservas", "customer": "Cliente", "date": "Fecha", "time": "Hora", "detail": "Detalle", "emptyTitle": "Sin reservas", "emptyBody": "Cuando exista el módulo de reservas, las de la mesa {name} aparecerán aquí." },
+  "reservations": {
+    "title": "Lista de reservas", "customer": "Cliente", "date": "Fecha", "time": "Hora", "detail": "Detalle",
+    "emptyTitle": "Sin reservas", "emptyBody": "La mesa {name} no tiene reservas confirmadas.", "loading": "Cargando las reservas…",
+    "hint": "Las reservas se crean en la pantalla de Reservas.",
+    "detailTitle": "Detalle de reserva", "code": "Reserva#", "people": "Personas", "babyChair": "Silla de bebé", "yes": "Sí", "no": "No",
+    "notes": "Notas:", "menu": "Pre-pedido", "noPreorder": "Esta reserva no trae pre-pedido.", "note": "Nota:", "total": "Total del pre-pedido"
+  },
   "detail": {
     "title": "Detalle de mesa", "order": "Pedido#", "type": { "DI": "En mesa", "TA": "Para llevar", "DE": "Domicilio" },
     "customer": "Nombre del cliente", "noCustomer": "Sin nombre", "changeTable": "Cambiar mesa",

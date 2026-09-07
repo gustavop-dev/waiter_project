@@ -1,5 +1,5 @@
 import {
-  GRID, TEMPLATES, canPlace, chairsFor, floorName, floorNumber, kitState, layoutSummary, nextFloorNumber, orderCode, orderPrefix,
+  GRID, TEMPLATES, canPlace, chairsFor, floorName, floorNumber, hourLabel, kitState, layoutSummary, nextFloorNumber, orderCode, orderPrefix,
   overlaps, parseFloorName, parseTableName, planSize, progressPercent, remainingByTemplate, rotated, snap, templateFor,
 } from '@/lib/domain/tablesKit'
 import type { TableView } from '@/lib/domain/tableState'
@@ -40,10 +40,17 @@ it('rejects a placement that overlaps another table, itself excluded', () => {
   expect(canPlace({ ...small, x: 40, y: 40 }, placed, 'a')).toBe(true)
 })
 
-// Falla si un estado del salón deja de mapear a los tres del kit: solo "libre" es disponible; reservada no existe aún.
+// Falla si un estado del salón deja de mapear a los tres del kit, o si una mesa con pedido pasa por reservada.
 it('maps salon states to the kit legend', () => {
   expect(kitState('free')).toBe('available')
-  expect((['occupied', 'kitchen', 'served', 'billing', 'assist', 'ordering', 'closed', 'paid'] as const).map(kitState)).toEqual(Array(8).fill('unavailable'))
+  expect((['occupied', 'kitchen', 'served', 'billing', 'assist', 'ordering', 'closed', 'paid'] as const).map((s) => kitState(s))).toEqual(Array(8).fill('unavailable'))
+  expect(kitState('free', true)).toBe('reserved')
+  expect(kitState('occupied', true)).toBe('unavailable')
+})
+
+// Falla si la hora de una reserva de Odoo (float) deja de leerse como "17:00" o si media hora se pierde.
+it('reads the reservation hour as the kit badge shows it', () => {
+  expect([hourLabel(17), hourLabel(17.5), hourLabel(9.25)]).toEqual(['17:00', '17:30', '09:15'])
 })
 
 // Falla si el prefijo del pedido deja de seguir el preset (mesa DI, mostrador TA, domicilio DE) o si sin preset no es DI.

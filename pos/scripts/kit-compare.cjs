@@ -21,6 +21,8 @@ async function main() {
   await page.waitForURL('**/salon')
   for (const route of routes) {
     await page.goto(`${base}${route}`); await page.waitForLoadState('networkidle')
+    // La pantalla se pinta cuando el catálogo llega por RPC: sin esto la captura sale en blanco.
+    await page.waitForFunction(() => document.body.innerText.trim().length > 20, null, { timeout: 30_000 }).catch(() => undefined)
     const file = path.join(out, `${route.replace(/\//g, '_').replace(/^_/, '') || 'root'}${theme === 'dark' ? '-dark' : ''}.png`)
     await page.screenshot({ path: file }); console.log('captura', file)
   }

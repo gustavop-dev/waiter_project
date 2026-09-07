@@ -43,3 +43,14 @@ it('shows the kit empty state when the floor has no tables', () => {
   wrap(<FloorPlan views={[]} selectedId={null} onSelect={() => undefined} />)
   expect(screen.getByText('Este piso no tiene mesas')).toBeInTheDocument()
 })
+
+// Falla si una mesa libre con reserva deja de pintarse en tinta con su hora, o si esa mesa se puede elegir como
+// destino al mover un pedido (una reserva la ocupa igual que un pedido).
+it('paints a free table with a booking as reserved, with the hour of the kit', () => {
+  const booking = { id: 5, name: 'Rv001', customerName: 'Eva', people: 2, babyChair: false, state: 'confirmed', date: '2026-09-07', timeStart: 17, timeEnd: 18.5, label: '17:00', timeLabel: '17:00 – 18:30', tableId: 1 }
+  wrap(<FloorPlan views={[view(1, 'free')]} selectedId={null} onSelect={() => undefined} reserved={{ 1: booking }} pickFree />)
+  const table = screen.getByRole('button', { name: 'Mesa 1: Reservada' })
+  expect(table).toHaveClass('bg-reserved')
+  expect(table).toHaveTextContent('17:00')
+  expect(table).toBeDisabled()
+})

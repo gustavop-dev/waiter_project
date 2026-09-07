@@ -1,7 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { Icon, type KitIcon } from '@/components/kit/Icon'
 import { Modal } from '@/components/kit/Modal'
@@ -24,10 +24,10 @@ export function FloorEditModal({ open, onClose, floor, tables, configId, onSaved
   const [tab, setTab] = useState<Tab>('info')
   const parsed = parseFloorName(floor.name)
   const [info, setInfo] = useState<FloorInfo>({ number: floorNumber(floor.name) !== null ? String(floorNumber(floor.name)) : parsed.label, type: parsed.type, background: undefined, preview: null })
-  const [layout, setLayout] = useState<EditorTable[]>([])
+  // El modal se monta con las mesas del piso ya leídas (page.tsx lo renderiza solo al editar): estado inicial y ya.
+  const [layout, setLayout] = useState<EditorTable[]>(() => tables.map((x) => ({ key: `t${x.id}`, id: x.id, number: x.number, seats: x.seats, x: x.x, y: x.y, width: x.width, height: x.height })))
   const [removed, setRemoved] = useState<number[]>([])
   const [busy, setBusy] = useState(false)
-  useEffect(() => { setLayout(tables.map((x) => ({ key: `t${x.id}`, id: x.id, number: x.number, seats: x.seats, x: x.x, y: x.y, width: x.width, height: x.height }))); setRemoved([]) }, [tables, open])
 
   async function submit() {
     setBusy(true)

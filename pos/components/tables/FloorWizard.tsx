@@ -48,7 +48,7 @@ export function FloorWizard({ open, onClose, floors, configId, onCreated, save =
             <footer className="px-4 py-3 border-t border-border"><Button variant="primary" onClick={() => setStep(1)} disabled={!info.number.trim()}>{t('next')}<Icon name="arrowRight" size={18} /></Button></footer>
           </>)}
           {step === 1 && (<>
-            <header className="h-14 px-4 border-b border-border flex items-center gap-3 text-[18px] font-semibold text-ink">{t('steps.arrange')}<span className="h-7 px-2 rounded-sm bg-muted text-[13px] font-normal text-soft flex items-center">{t('arrangeMeta', { number: parseFloorName(name).label, type: t(info.type) })}</span></header>
+            <header className="h-14 px-4 border-b border-border flex items-center gap-3 text-[18px] font-semibold text-ink">{t('steps.arrange')}<span className="h-7 px-2 rounded-sm bg-muted text-[13px] font-normal text-soft flex items-center">{t('arrangeMeta', { number: info.number || String(nextFloorNumber(floors)), type: t(info.type) })}</span></header>
             <LayoutArranger tables={tables} onChange={setTables} />
             <footer className="px-4 py-3 border-t border-border flex gap-3"><Button onClick={() => setStep(0)} disabled={busy}><Icon name="arrowLeft" size={18} />{t('back')}</Button><Button variant="primary" onClick={finish} disabled={busy || tables.length === 0}>{busy ? t('saving') : t('next')}<Icon name="arrowRight" size={18} /></Button></footer>
           </>)}

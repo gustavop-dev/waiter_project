@@ -58,13 +58,15 @@ function LineCard({ line, image, t }: { line: OrderDetailLine; image: string | n
 export function TableDetailModal({ open, onClose, tableName, orderId, imageFor, onChangeTable, onNewOrder, onPay, load = getOrderDetail }: Props) {
   const t = useTranslations('tables.detail')
   const ts = useTranslations('tables.state')
-  const [detail, setDetail] = useState<OrderDetail | null>(null)
+  const [loaded, setLoaded] = useState<OrderDetail | null>(null)
   useEffect(() => {
-    if (!open || orderId === null) { setDetail(null); return }
+    if (!open || orderId === null) return
     let alive = true
-    void load(orderId).then((d) => { if (alive) setDetail(d) })
+    void load(orderId).then((d) => { if (alive) setLoaded(d) })
     return () => { alive = false }
   }, [open, orderId, load])
+  // Mientras llega el pedido pedido, el del anterior no se muestra: se compara con el id que se está pidiendo.
+  const detail = loaded !== null && loaded.id === orderId ? loaded : null
 
   const allServed = detail !== null && detail.lines.length > 0 && detail.lines.every((l) => l.status === 'served')
   const inProgress = detail !== null && detail.lines.some((l) => l.status === 'progress')
@@ -78,7 +80,6 @@ export function TableDetailModal({ open, onClose, tableName, orderId, imageFor, 
         <Button className="flex-1" onClick={onNewOrder}><Icon name="plus" size={18} />{t('newOrder')}</Button>
         <Button variant="primary" className="flex-1" disabled={!allServed} onClick={() => detail && onPay(detail)} title={allServed ? undefined : t('payHint')}><Icon name="wallet" size={18} />{t('pay')}</Button>
       </div>
-      {detail && !allServed && <p className="text-[13px] text-dim text-center">{t('payHint')}</p>}
     </div>
   )
 
@@ -101,7 +102,7 @@ export function TableDetailModal({ open, onClose, tableName, orderId, imageFor, 
             {inProgress ? (
               <Button size="compact" className="border-primary text-primary" onClick={() => onChangeTable(detail)}><Icon name="exchange" size={18} />{t('changeTable')}</Button>
             ) : (
-              <span className="h-10 px-3 rounded-sm bg-success-soft text-success-ink flex items-center gap-2 text-[14px] font-semibold"><Icon name="check" size={16} />{ts('served')}<span className="ml-3">{t('items', { count: detail.lines.length })}</span><Icon name="arrowRight" size={16} /></span>
+              <span className="flex-1 h-11 px-3 rounded-sm bg-success-soft text-success-ink flex items-center gap-2 text-[14px] font-semibold"><Icon name="check" size={16} />{ts('served')}<span className="ml-auto">{t('items', { count: detail.lines.length })}</span><Icon name="arrowRight" size={16} /></span>
             )}
           </div>
           {inProgress && (

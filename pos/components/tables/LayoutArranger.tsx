@@ -21,10 +21,13 @@ const MIN_COLS = 20
 const MIN_ROWS = 12
 let seq = 0
 
-// Miniatura de la paleta: la plantilla a escala 1/4 con sus sillas.
+// Miniatura de la paleta: la plantilla encogida a 34 px de lado mayor, con sus sillas alrededor (caben en 68 px).
+const MINI = 34
 function Mini({ template }: { template: TableTemplate }) {
   const tpl = TEMPLATES[template]
-  return <div className="relative w-16 h-16 grid place-items-center"><div className="relative" style={{ width: tpl.width / 4, height: tpl.height / 4 }}><TableShape inert rect={{ x: 0, y: 0, width: tpl.width / 4, height: tpl.height / 4 }} name="" state="available" label="" /></div></div>
+  const scale = MINI / Math.max(tpl.width, tpl.height)
+  const rect = { x: 0, y: 0, width: tpl.width * scale, height: tpl.height * scale }
+  return <div className="relative w-[68px] h-[68px] shrink-0 grid place-items-center"><div className="relative" style={{ width: rect.width, height: rect.height }}><TableShape inert rect={rect} name="" state="available" label="" /></div></div>
 }
 
 // Paso "Organizar plano" del kit (Layout Arrange – 1..3.png y Edit Table/Layout Arrange.png): paleta arrastrable,
@@ -46,14 +49,6 @@ export function LayoutArranger({ tables, onChange, onRemove }: Props) {
     e.preventDefault()
     setDrag(d); setOffset(off); setPointer({ x: e.clientX, y: e.clientY })
   }
-  useEffect(() => {
-    if (!drag) return
-    const move = (e: PointerEvent) => setPointer({ x: e.clientX, y: e.clientY })
-    const up = (e: PointerEvent) => { drop(e.clientX, e.clientY); setDrag(null) }
-    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up)
-    return () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up) }
-  })
-
   function drop(cx: number, cy: number) {
     if (!drag || !canvas.current) return
     const inside = (el: HTMLElement | null) => { const r = el?.getBoundingClientRect(); return Boolean(r && cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) }
@@ -71,6 +66,15 @@ export function LayoutArranger({ tables, onChange, onRemove }: Props) {
     else { setPending(rect); setName('') }
   }
 
+  // Sin lista de dependencias a propósito: cada render vuelve a enganchar el puntero con las mesas de ese render.
+  useEffect(() => {
+    if (!drag) return
+    const move = (e: PointerEvent) => setPointer({ x: e.clientX, y: e.clientY })
+    const up = (e: PointerEvent) => { drop(e.clientX, e.clientY); setDrag(null) }
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up)
+    return () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up) }
+  })
+
   const parsed = parseTableName(name)
   const taken = parsed.number !== null && tables.some((x) => x.number === parsed.number)
   const nameError = name.trim() === '' ? null : parsed.number === null ? t('nameNeedsNumber') : taken ? t('nameTaken', { number: parsed.number }) : null
@@ -87,15 +91,15 @@ export function LayoutArranger({ tables, onChange, onRemove }: Props) {
   const ghost = drag ? { ...drag.rect, x: pointer.x - offset.x, y: pointer.y - offset.y } : null
   return (
     <div className="flex-1 min-h-0 flex">
-      <aside className="w-[200px] shrink-0 border-r border-border flex flex-col">
+      <aside className="w-[212px] shrink-0 border-r border-border flex flex-col">
         <div className="p-4 border-b border-border"><p className="text-[15px] font-semibold text-ink">{t('selection')}</p><p className="text-[13px] text-dim">{t('selectionHint')}</p></div>
         <ul className="p-2 flex flex-col gap-1">
           {PALETTE.map((k) => (
             <li key={k}>
               <button type="button" aria-label={t(k)} onPointerDown={(e) => start(e, { kind: 'new', template: k, rect: { x: 0, y: 0, ...TEMPLATES[k] } }, { x: TEMPLATES[k].width / 2, y: TEMPLATES[k].height / 2 })}
-                className="w-full h-16 px-2 rounded-md flex items-center gap-2 text-left touch-none hover:bg-muted cursor-grab">
+                className="w-full h-[76px] px-2 rounded-md flex items-center gap-2 text-left touch-none hover:bg-muted cursor-grab">
                 <Mini template={k} />
-                <span className="flex flex-col"><span className="text-[13px] font-semibold text-ink">{t(k)}</span><span className="flex items-center gap-1 text-[12px] text-dim"><Icon name="user" size={12} />{t(k === 'small' ? 'smallPeople' : 'largePeople')}</span></span>
+                <span className="flex flex-col whitespace-nowrap"><span className="text-[13px] font-semibold text-ink">{t(k)}</span><span className="flex items-center gap-1 text-[12px] text-dim"><Icon name="user" size={12} />{t(k === 'small' ? 'smallPeople' : 'largePeople')}</span></span>
               </button>
             </li>
           ))}

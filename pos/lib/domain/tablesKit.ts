@@ -39,8 +39,16 @@ export function canPlace<K>(rect: Rect, others: (Rect & { key: K })[], selfKey: 
   return others.every((o) => (selfKey !== null && o.key === selfKey) || !overlaps(rect, o))
 }
 
-// El kit solo distingue disponible / no disponible / reservada. Reservada llegará con el módulo de reservas.
-export const kitState = (state: TableState): KitTableState => (state === 'free' ? 'available' : 'unavailable')
+// El kit solo distingue disponible / no disponible / reservada. Una mesa con pedido abierto sigue siendo "no
+// disponible" aunque tenga reserva: el naranja del pedido manda sobre la tinta de la reserva.
+export const kitState = (state: TableState, reserved = false): KitTableState =>
+  state !== 'free' ? 'unavailable' : reserved ? 'reserved' : 'available'
+
+// waiter.reservation guarda las horas como float (17.5 = 17:30), igual que Odoo. El kit las pinta "17:00".
+export function hourLabel(value: number): string {
+  const total = Math.round((value || 0) * 60)
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
+}
 
 // Prefijo del kit por tipo de pedido (pos.preset.service_at). Sin preset, un pedido con mesa es "en mesa".
 export const orderPrefix = (serviceAt: ServiceAt | null): OrderPrefix => (serviceAt === 'counter' ? 'TA' : serviceAt === 'delivery' ? 'DE' : 'DI')
@@ -80,7 +88,7 @@ export function parseTableName(name: string): { number: number | null; exact: bo
 }
 
 export function remainingByTemplate(views: TableView[]): { large: number; small: number } {
-  const free = views.filter((v) => kitState(v.state) === 'available')
+  const free = views.filter((v) => v.state === 'free')
   const small = free.filter((v) => templateFor(v.table) === 'small').length
   return { large: free.length - small, small }
 }
