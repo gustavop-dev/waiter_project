@@ -57,10 +57,10 @@ test('the admin adds a floor with two tables dragged onto the layout and then de
 })
 
 // @flow: tables-move-order  @outcome: success
-test('a waiter moves an order in progress from table 11 to table 12 through the table detail', async ({ page }) => {
+test('a waiter moves an order in progress to a free table through the table detail', async ({ page }) => {
   await loginAsAdmin(page)
-  const [from, to] = [await terrazaTable(page, 11), await terrazaTable(page, 12)]
-  await clearDraftOrders(page, [from, to])
+  const from = await terrazaTable(page, 11)
+  await clearDraftOrders(page, [from])
   await page.goto(`/mesas/${from}`)
   await page.getByRole('region', { name: 'Carta' }).getByRole('button', { name: /Hamburguesa Angus/ }).click()
   await page.getByRole('button', { name: 'Enviar a cocina' }).click()
@@ -71,9 +71,13 @@ test('a waiter moves an order in progress from table 11 to table 12 through the 
   await expect(detail.getByText('Hamburguesa Angus')).toBeVisible()
   await expect(detail.getByRole('button', { name: 'Ir a pagar' })).toBeDisabled()
   await detail.getByRole('button', { name: 'Cambiar mesa' }).click()
-  await page.getByRole('button', { name: 'Mesa 12: Disponible' }).click()
+  // Al mover, solo aterriza en una mesa libre: una reservada del día no se puede elegir, así que se
+  // toma la primera que el plano deje pulsar en vez de una fija.
+  const target = page.getByRole('button', { name: /^Mesa \d+: Disponible/ }).first()
+  const numero = ((await target.getAttribute('aria-label')) ?? '').match(/^Mesa (\d+):/)?.[1] ?? ''
+  await target.click()
   await page.getByRole('dialog', { name: 'Cambiar mesa' }).getByRole('button', { name: 'Confirmar cambio' }).click()
-  await expect(page.getByRole('button', { name: 'Mesa 12: En progreso' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Mesa 11: Disponible' })).toBeVisible()
-  await clearDraftOrders(page, [from, to])
+  await expect(page.getByRole('button', { name: `Mesa ${numero}: En progreso` })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Mesa 11: (Disponible|Reservada)/ })).toBeVisible()
+  await clearDraftOrders(page, [from, await terrazaTable(page, Number(numero))])
 })

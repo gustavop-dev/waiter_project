@@ -21,7 +21,7 @@ export default function KdsPage() {
   const t = useTranslations('kds')
   const session = useAuthStore((s) => s.session)
   const catalog = useCatalogStore((s) => s.catalog)
-  const { tickets, done, tab, muted, refresh, ready, serve, serveDish, setTab, toggleMute, tick } = useKitchenStore()
+  const { tickets, done, tab, muted, refresh, ready, readyDish, setTab, toggleMute, tick } = useKitchenStore()
   const [now, setNow] = useState(() => Date.now())
 
   // Estación de un producto: la de la primera categoría suya que tenga una.
@@ -41,8 +41,9 @@ export default function KdsPage() {
 
   if (!session || !catalog) return null
   const tableNumberOf = (tableId: number) => catalog.tables.find((tb) => tb.id === tableId)?.number ?? tableId
-  const cooking = tickets.filter((tk) => tk.readyAt === null)
-  const readyOnes = tickets.filter((tk) => tk.readyAt !== null)
+  // Una comanda sigue "en preparación" mientras le quede un plato en el fuego, aunque otros ya estén en el pase.
+  const cooking = tickets.filter((tk) => tk.lines.some((l) => !l.readyAt))
+  const readyOnes = tickets.filter((tk) => tk.lines.some((l) => l.readyAt && !l.servedAt))
   const visible = filterTickets(cooking, tab, now)
   return (
     <main data-theme="dark" className="h-screen flex flex-col bg-canvas text-ink">
@@ -50,10 +51,10 @@ export default function KdsPage() {
       <div className="flex flex-1 min-h-0 gap-5 p-5">
         <section aria-label={t('grid')} className="flex-1 min-w-0 overflow-y-auto grid grid-cols-3 auto-rows-min content-start gap-5">
           {visible.length === 0 && <div className="col-span-3 flex"><KitEmptyState icon="chef" title={t('empty')} body={t('emptyBody')} /></div>}
-          {visible.map((tk) => <TicketCard key={tk.id} ticket={tk} tableNumber={tableNumberOf(tk.tableId)} now={now} onReady={(id) => void ready(id, session.id, stationOf)} />)}
+          {visible.map((tk) => <TicketCard key={tk.id} ticket={tk} tableNumber={tableNumberOf(tk.tableId)} now={now}
+            onReady={(id) => void ready(id, session.id, stationOf)} onReadyDish={(id) => void readyDish(id, session.id, stationOf)} />)}
         </section>
-        <ReadyList tickets={readyOnes} tableNumberOf={tableNumberOf} now={now} onServed={(id) => void serve(id, session.id, stationOf)}
-          onServedDish={(id) => void serveDish(id, session.id, stationOf)} />
+        <ReadyList tickets={readyOnes} tableNumberOf={tableNumberOf} now={now} />
       </div>
       <KdsFooter muted={muted} onToggleMute={toggleMute} />
     </main>

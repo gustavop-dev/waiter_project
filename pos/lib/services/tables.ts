@@ -81,13 +81,13 @@ export interface OrderDetailLine { id: number; uuid: string; productId: number; 
 export interface OrderDetail { id: number; tracking: string | null; reference: string; serviceAt: ServiceAt | null; customerName: string; dateOrder: string; total: number; sent: number; served: number; lines: OrderDetailLine[] }
 
 interface RawDetailOrder { id: number; tracking_number: string | false; pos_reference: string; preset_id: [number, string] | false; floating_order_name: string | false; date_order: string; amount_total: number }
-interface RawDetailLine { id: number; uuid: string; product_id: [number, string]; full_product_name: string; qty: number; price_unit: number; price_subtotal_incl: number; customer_note: string | false; attribute_value_ids: number[]; course_id: [number, string] | false; served_date: string | false }
+interface RawDetailLine { id: number; uuid: string; product_id: [number, string]; full_product_name: string; qty: number; price_unit: number; price_subtotal_incl: number; customer_note: string | false; attribute_value_ids: number[]; course_id: [number, string] | false; waiter_ready_date: string | false; served_date: string | false }
 interface RawDetailCourse { id: number; fired: boolean; ready_date: string | false; served_date: string | false }
 
 export async function getOrderDetail(orderId: number): Promise<OrderDetail> {
   const [[order], lines, courses] = await Promise.all([
     callKw<RawDetailOrder[]>('pos.order', 'read', [[orderId], ['tracking_number', 'pos_reference', 'preset_id', 'floating_order_name', 'date_order', 'amount_total']]),
-    callKw<RawDetailLine[]>('pos.order.line', 'search_read', [[['order_id', '=', orderId]], ['uuid', 'product_id', 'full_product_name', 'qty', 'price_unit', 'price_subtotal_incl', 'customer_note', 'attribute_value_ids', 'course_id', 'served_date']], { order: 'id asc' }),
+    callKw<RawDetailLine[]>('pos.order.line', 'search_read', [[['order_id', '=', orderId]], ['uuid', 'product_id', 'full_product_name', 'qty', 'price_unit', 'price_subtotal_incl', 'customer_note', 'attribute_value_ids', 'course_id', 'waiter_ready_date', 'served_date']], { order: 'id asc' }),
     callKw<RawDetailCourse[]>('restaurant.order.course', 'search_read', [[['order_id', '=', orderId]], ['fired', 'ready_date', 'served_date']]),
   ])
   const attrIds = [...new Set(lines.flatMap((l) => l.attribute_value_ids))]
@@ -104,7 +104,7 @@ export async function getOrderDetail(orderId: number): Promise<OrderDetail> {
     const course = l.course_id ? l.course_id[0] : null
     if (course === null || !fired.has(course)) return 'waiting'
     if (l.served_date || served.has(course)) return 'served'
-    return readyCourses.has(course) ? 'ready' : 'progress'
+    return l.waiter_ready_date || readyCourses.has(course) ? 'ready' : 'progress'
   }
   const mapped: OrderDetailLine[] = lines.map((l) => ({
     id: l.id, uuid: l.uuid, productId: l.product_id[0], name: l.full_product_name, qty: l.qty, unitPrice: l.price_unit, total: l.price_subtotal_incl,

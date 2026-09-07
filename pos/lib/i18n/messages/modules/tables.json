@@ -22,7 +22,7 @@
   "detail": {
     "title": "Detalle de mesa", "order": "Pedido#", "type": { "DI": "En mesa", "TA": "Para llevar", "DE": "Domicilio" },
     "customer": "Nombre del cliente", "noCustomer": "Sin nombre", "changeTable": "Cambiar mesa",
-    "deliver": "Entregar", "deliverFailed": "No se pudo marcar como entregado",
+    "deliver": "Entregar", "deliverAll": "Entregar todo", "deliverFailed": "No se pudo marcar como entregado",
     "items": "{count, plural, one {# plato} other {# platos}}", "addition": "Adiciones:", "note": "Nota:",
     "total": "Total a pagar", "newOrder": "Nuevo pedido", "pay": "Ir a pagar", "payHint": "Podrás cobrar cuando todos los platos estén servidos.",
     "emptyTitle": "Sin pedido abierto", "emptyBody": "La mesa {name} está disponible. Crea un pedido para empezar.", "loading": "Cargando el pedido…"

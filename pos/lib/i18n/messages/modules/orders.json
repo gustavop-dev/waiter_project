@@ -142,6 +142,7 @@
     "total": "Total",
     "details": "Ver detalle",
     "pay": "Cobrar",
+    "notReadyYet": "Cocina todavía no lo ha marcado listo",
     "markServed": "Marcar {name} como servido",
     "servedLine": "{name} servido",
     "serveFailed": "No se pudo marcar el plato como servido"
@@ -159,7 +160,7 @@
       "served": "Servido"
     },
     "cancel": "Cancelar",
-    "deliver": "Entregar",
+    "deliverAll": "Entregar todo",
     "note": "Nota:",
     "totalPayment": "Total a pagar",
     "newOrder": "Nuevo pedido",

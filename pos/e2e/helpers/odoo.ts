@@ -91,20 +91,40 @@ export async function chargeTable(page: Page, mesa: string) {
   await expect(page.getByRole('button', { name: new RegExp(`^Mesa ${mesa}: (En progreso|Listo|Servido|Esperando pago)`) })).toHaveCount(0, { timeout: 30_000 })
 }
 
-// Cocina marca listas todas las comandas de la mesa y las entrega desde "Listos por entregar".
-// Son varias cuando el mesero agregó rondas: cada ronda es un curso y cada curso, una comanda.
-export async function kitchenReadyAndServe(page: Page, mesa: string) {
+// Cocina saca al pase todas las comandas de la mesa ("Listo todo"). Son varias cuando el mesero agregó
+// rondas: cada ronda es un curso y cada curso, una comanda.
+export async function kitchenReady(page: Page, mesa: string) {
   await page.goto('/kds')
   const tickets = page.getByRole('article', { name: `Mesa ${mesa}` })
   await expect(tickets.first()).toBeVisible({ timeout: 30_000 })
   for (let left = await tickets.count(); left > 0; left -= 1) {
-    await tickets.first().getByRole('button', { name: 'Listo' }).click()
+    await tickets.first().getByRole('button', { name: 'Listo todo' }).click()
     await expect(tickets).toHaveCount(left - 1)
   }
-  const ready = page.getByRole('complementary', { name: 'Listos por entregar' })
-  const cards = ready.getByRole('listitem', { name: `Mesa ${mesa}` })
-  for (let left = await cards.count(); left > 0; left -= 1) {
-    await cards.first().getByRole('button', { name: 'Entregar todo' }).click()
-    await expect(cards).toHaveCount(left - 1)
+}
+
+// El mesero lleva a la mesa lo que cocina dejó en el pase, desde el detalle de la mesa. Con dos o más platos
+// hay "Entregar todo"; con uno solo, el botón de ese plato. Se pulsa lo que haya hasta que no quede nada.
+export async function deliverTable(page: Page, mesa: string) {
+  await page.goto('/salon')
+  await page.getByRole('button', { name: new RegExp(`^Mesa ${mesa}: `) }).click()
+  await page.getByRole('button', { name: 'Detalle de mesa' }).click()
+  const detail = page.getByRole('dialog', { name: 'Detalle de mesa' })
+  const pending = detail.getByRole('button', { name: /^Entregar/ })
+  await expect(pending.first()).toBeVisible({ timeout: 30_000 })
+  // "Entregar todo" se lleva varios de un golpe y el botón de un plato solo uno: se comprueba que quedan
+  // menos, no cuántos.
+  for (let guard = 0; guard < 10; guard += 1) {
+    const left = await pending.count()
+    if (left === 0) break
+    await pending.first().click()
+    await expect(async () => { expect(await pending.count()).toBeLessThan(left) }).toPass({ timeout: 20_000 })
   }
+  await page.getByRole('button', { name: 'Cerrar' }).first().click()
+}
+
+// Cocina lo saca y el mesero lo lleva: el recorrido completo hasta que la mesa se puede cobrar.
+export async function kitchenReadyAndServe(page: Page, mesa: string) {
+  await kitchenReady(page, mesa)
+  await deliverTable(page, mesa)
 }

@@ -4,7 +4,7 @@ import {
 } from '@/lib/domain/orderState'
 
 const course = (id: number, patch: Partial<KitCourse> = {}): KitCourse => ({ id, fired: true, readyAt: null, servedAt: null, ...patch })
-const line = (id: number, courseId: number | null): KitLine => ({ id, uuid: `u${id}`, productId: 3, name: 'Angus', qty: 1, unitPrice: 36900, subtotal: 36900, total: 43911, note: '', courseId, servedAt: null })
+const line = (id: number, courseId: number | null): KitLine => ({ id, uuid: `u${id}`, productId: 3, name: 'Angus', qty: 1, unitPrice: 36900, subtotal: 36900, total: 43911, note: '', courseId, readyAt: null, servedAt: null })
 const order = (patch: Partial<KitOrder> = {}): KitOrder => ({
   id: 7, number: 'DI007', type: 'dine_in', state: 'draft', tableId: 4, tableNumber: 3, customer: 'Eva', startedAt: '2026-09-06 20:00:00', total: 0, tax: 0, lines: [], courses: [], ...patch,
 })

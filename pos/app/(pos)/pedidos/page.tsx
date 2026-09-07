@@ -40,11 +40,11 @@ export default function PedidosPage() {
     return p?.hasImage ? templateImage(p.templateId) : null
   }, [catalog])
 
-  // Marcar un plato lo sirve en Odoo (`action_kitchen_line_served`), no en la memoria de esta tablet: así lo
-  // ve el resto del salón y sobrevive a una recarga. El curso se cierra solo cuando ya no queda ninguno pendiente.
+  // Marcar un plato lo entrega en Odoo (`action_kitchen_line_served`), no en la memoria de esta tablet: así lo
+  // ve el resto del salón y sobrevive a una recarga. Solo se entrega lo que cocina marcó listo; el servidor
+  // lo comprueba otra vez, porque hay tres pantallas que lo ofrecen.
   async function toggleLine(order: KitOrder, line: KitLine) {
-    const group = lineGroup(order, line)
-    if (group !== 'in_progress' && group !== 'ready') return
+    if (lineGroup(order, line) !== 'ready') return
     setBusy(true)
     try {
       await serveLines([line.id])

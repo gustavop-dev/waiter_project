@@ -153,9 +153,10 @@ export default function SalonPage() {
     }
   }
 
-  // Entregar un plato desde la mesa: lo mismo que marcarlo en Pedidos, guardado en Odoo.
-  async function serveLine(line: OrderDetailLine) {
-    try { await serveLines([line.id]); await reload() }
+  // Entregar desde la mesa: lo mismo que marcarlo en Pedidos, guardado en Odoo. Uno o todos los que
+  // cocina ya sacó al pase.
+  async function serveLine(lines: OrderDetailLine[]) {
+    try { await serveLines(lines.map((l) => l.id)); await reload() }
     catch { toast({ title: t('detail.deliverFailed'), tone: 'danger' }) }
   }
 

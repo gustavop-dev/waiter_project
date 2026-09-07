@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils'
 interface Props {
   open: boolean; onClose: () => void; tableName: string; orderId: number | null; imageFor: (productId: number) => string | null
   onChangeTable: (detail: OrderDetail) => void; onNewOrder: () => void; onPay: (detail: OrderDetail) => void; load?: (orderId: number) => Promise<OrderDetail>
-  onServe?: (line: OrderDetailLine) => Promise<void> | void; busy?: boolean
+  onServe?: (lines: OrderDetailLine[]) => Promise<void> | void; busy?: boolean
 }
 
 // date_order llega en UTC sin zona; se muestra como "lun, 17 feb 12:24 p. m." en la hora del dispositivo.
@@ -43,7 +43,7 @@ const LINE_HEAD: Record<LineStatus, { cls: string; icon: 'alarm' | 'chef' | 'che
   served: { cls: 'bg-muted text-soft', icon: 'checkFilled' },
 }
 
-function LineCard({ line, image, t, onServe, busy }: { line: OrderDetailLine; image: string | null; t: ReturnType<typeof useTranslations<'tables.detail'>>; onServe?: (line: OrderDetailLine) => Promise<void> | void; busy?: boolean }) {
+function LineCard({ line, image, t, onServe, busy }: { line: OrderDetailLine; image: string | null; t: ReturnType<typeof useTranslations<'tables.detail'>>; onServe?: (lines: OrderDetailLine[]) => Promise<void> | void; busy?: boolean }) {
   const tl = useTranslations('orders.lineState')
   const head = LINE_HEAD[line.status]
   return (
@@ -51,7 +51,7 @@ function LineCard({ line, image, t, onServe, busy }: { line: OrderDetailLine; im
       <div className={cn('h-10 px-3 flex items-center gap-2 text-[14px] font-semibold', head.cls)}>
         <Icon name={head.icon} size={18} />{tl(line.status === 'progress' ? 'in_progress' : line.status)}
         {line.status === 'ready' && onServe && (
-          <Button size="compact" variant="primary" className="ml-auto h-8 px-3 text-[13px]" disabled={busy} onClick={() => void onServe(line)}><Icon name="check" size={14} />{t('deliver')}</Button>
+          <Button size="compact" variant="primary" className="ml-auto h-8 px-3 text-[13px]" disabled={busy} onClick={() => void onServe([line])}><Icon name="check" size={14} />{t('deliver')}</Button>
         )}
       </div>
       <div className="p-3 flex gap-3">
@@ -91,7 +91,8 @@ export function TableDetailModal({ open, onClose, tableName, orderId, imageFor, 
   const allServed = detail !== null && detail.lines.length > 0 && detail.lines.every((l) => l.status === 'served')
   const pending = detail !== null && detail.lines.some((l) => l.status !== 'served')
   // Si cocina ya dejó algo en el pase, la franja lo dice en verde: el mesero tiene que ir por ello.
-  const anyReady = detail !== null && detail.lines.some((l) => l.status === 'ready')
+  const readyLines = detail === null ? [] : detail.lines.filter((l) => l.status === 'ready')
+  const anyReady = readyLines.length > 0
   const percent = detail ? progressPercent(detail.served, detail.sent) : 0
   const code = detail ? orderCode(orderPrefix(detail.serviceAt), detail.tracking, detail.id) : ''
 
@@ -131,10 +132,12 @@ export function TableDetailModal({ open, onClose, tableName, orderId, imageFor, 
             <div className={cn('h-11 px-3 rounded-sm flex items-center gap-2 text-[14px] font-semibold', anyReady ? 'bg-success-soft text-success-ink' : 'bg-progress-soft text-progress-ink')}>
               {anyReady ? <Icon name="chef" size={18} /> : <Ring percent={percent} />}
               <span>{anyReady ? ts('ready') : `${ts('inProgress')} •`}</span>
-              <span className="ml-auto">{t('items', { count: detail.lines.length })}</span><Icon name="arrowRight" size={16} />
+              {readyLines.length > 1 && onServe
+                ? <Button size="compact" variant="primary" className="ml-auto h-8 px-3 text-[13px]" disabled={busy} onClick={() => void onServe(readyLines)}><Icon name="checks" size={14} />{t('deliverAll')}</Button>
+                : <><span className="ml-auto">{t('items', { count: detail.lines.length })}</span><Icon name="arrowRight" size={16} /></>}
             </div>
           )}
-          <ul className="flex flex-col gap-3">{detail.lines.map((l) => <LineCard key={l.id} line={l} image={imageFor(l.productId)} t={t} onServe={onServe ? async (line) => { await onServe(line); setTick((n) => n + 1) } : undefined} busy={busy} />)}</ul>
+          <ul className="flex flex-col gap-3">{detail.lines.map((l) => <LineCard key={l.id} line={l} image={imageFor(l.productId)} t={t} onServe={onServe ? async (lines) => { await onServe(lines); setTick((n) => n + 1) } : undefined} busy={busy} />)}</ul>
         </div>
       )}
     </Modal>

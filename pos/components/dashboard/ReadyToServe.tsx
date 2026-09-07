@@ -15,7 +15,7 @@ function waited(since: string, now: number): number {
 
 // Panel "Listos para servir": lo que cocina ya dejó en el pase y nadie ha llevado a la mesa. Es la lista de
 // trabajo del mesero — el plato que lleva más esperando va primero — y el único sitio donde se marca "Entregado".
-export function ReadyToServe({ dishes, onServe, busy }: { dishes: ReadyDish[]; onServe: (dish: ReadyDish) => void; busy: boolean }) {
+export function ReadyToServe({ dishes, onServe, onServeAll, busy }: { dishes: ReadyDish[]; onServe: (dish: ReadyDish) => void; onServeAll: () => void; busy: boolean }) {
   const t = useTranslations('dashboard.ready')
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => { const id = setInterval(() => setNow(Date.now()), 30_000); return () => clearInterval(id) }, [])
@@ -27,6 +27,11 @@ export function ReadyToServe({ dishes, onServe, busy }: { dishes: ReadyDish[]; o
         <h2 className="min-w-0 truncate text-[16px] font-semibold text-ink">{t('title')}</h2>
         {dishes.length > 0 && <span className="ml-auto h-7 min-w-7 px-2 rounded-full bg-success text-white grid place-items-center text-[13px] font-bold tabular">{dishes.length}</span>}
       </header>
+      {dishes.length > 1 && (
+        <div className="px-3 pt-3">
+          <Button size="compact" className="w-full" disabled={busy} onClick={onServeAll}><Icon name="checks" size={18} />{t('deliverAll')}</Button>
+        </div>
+      )}
       <ul className="flex-1 min-h-0 overflow-y-auto p-3 flex flex-col gap-2">
         {dishes.length === 0 && (
           <li className="flex-1 grid place-items-center py-6 text-center">

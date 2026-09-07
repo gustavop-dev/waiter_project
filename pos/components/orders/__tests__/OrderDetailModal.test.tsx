@@ -7,7 +7,7 @@ import { SortMenu } from '@/components/orders/SortMenu'
 import { messages } from '@/lib/i18n/messages'
 import type { KitLine, KitOrder } from '@/lib/domain/orderState'
 
-const line = (id: number, name: string, courseId: number | null, note = ''): KitLine => ({ id, uuid: `u${id}`, productId: 3, name, qty: 1, unitPrice: 36900, subtotal: 36900, total: 43911, note, courseId, servedAt: null })
+const line = (id: number, name: string, courseId: number | null, note = ''): KitLine => ({ id, uuid: `u${id}`, productId: 3, name, qty: 1, unitPrice: 36900, subtotal: 36900, total: 43911, note, courseId, readyAt: null, servedAt: null })
 const order: KitOrder = {
   id: 7, number: 'DI007', type: 'dine_in', state: 'draft', tableId: 4, tableNumber: 3, customer: 'Eva', startedAt: '2026-09-06 20:00:00', total: 131733, tax: 21033,
   lines: [line(1, 'Hamburguesa Angus', 1), line(2, 'Papas Trufadas', null, 'sin sal'), line(3, 'Limonada de Coco', 2)],

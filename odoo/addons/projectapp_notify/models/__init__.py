@@ -1,2 +1,2 @@
 from . import notification
-from . import course
+from . import line

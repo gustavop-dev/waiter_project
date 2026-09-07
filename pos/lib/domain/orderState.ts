@@ -13,7 +13,7 @@ export type HistoryFilter = 'all' | OrderType
 export interface KitCourse { id: number; fired: boolean; readyAt: string | null; servedAt: string | null }
 export interface KitLine {
   id: number; uuid: string; productId: number; name: string; qty: number; unitPrice: number; subtotal: number; total: number; note: string
-  courseId: number | null; servedAt: string | null
+  courseId: number | null; readyAt: string | null; servedAt: string | null
 }
 export interface KitOrder {
   id: number; number: string; type: OrderType; state: 'draft' | 'paid' | 'done' | 'invoiced' | 'cancel'
@@ -50,14 +50,15 @@ const courseOf = (order: KitOrder, line: KitLine) => order.courses.find((c) => c
 // El viaje de un plato, tal como lo vive el mesero:
 //   waiting     — aún no ha salido a cocina (curso sin disparar)
 //   in_progress — cocina lo está haciendo
-//   ready       — cocina pulsó "Listo" en el KDS: hay que ir por él
+//   ready       — cocina lo marcó listo: está en el pase, hay que ir por él
 //   served      — el mesero lo dejó en la mesa
+// Manda el plato, no la comanda: cocina saca de uno en uno y el mesero entrega de uno en uno. La fecha del
+// curso se mira además del plato porque cierra la comanda entera cuando se marca "todo".
 export function lineGroup(order: KitOrder, line: KitLine): LineGroup {
   const course = courseOf(order, line)
   if (!course || !course.fired) return 'waiting'
-  // La línea manda: el mesero sirve plato a plato y el curso se cierra cuando ya no queda ninguno pendiente.
   if (line.servedAt || course.servedAt) return 'served'
-  return course.readyAt ? 'ready' : 'in_progress'
+  return line.readyAt || course.readyAt ? 'ready' : 'in_progress'
 }
 
 // % = líneas servidas / líneas enviadas a cocina. Sin nada enviado, 0.
@@ -83,7 +84,7 @@ export function readyToServe(orders: KitOrder[]): ReadyDish[] {
   const dishes = orders.flatMap((o) => o.lines.filter((l) => lineGroup(o, l) === 'ready').map((l) => ({
     orderId: o.id, orderNumber: o.number, lineId: l.id, name: l.name, qty: l.qty,
     tableNumber: o.tableNumber, customer: o.customer,
-    since: o.courses.find((c) => c.id === l.courseId)?.readyAt ?? o.startedAt,
+    since: l.readyAt ?? o.courses.find((c) => c.id === l.courseId)?.readyAt ?? o.startedAt,
   })))
   return dishes.sort((a, b) => a.since.localeCompare(b.since) || a.lineId - b.lineId)
 }

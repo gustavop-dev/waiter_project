@@ -25,7 +25,7 @@ test('un plato viaja de cocina al pase y de ahí a la mesa', async ({ page, brow
   await kds.goto('/kds')
   const ticket = kds.getByRole('article', { name: `Mesa ${mesa}` }).first()
   await expect(ticket).toContainText('Hamburguesa Angus')
-  await ticket.getByRole('button', { name: 'Listo' }).click()
+  await ticket.getByRole('button', { name: 'Listo todo' }).click()
 
   // El plano lo canta en verde: esa mesa reclama al mesero desde el otro lado del salón.
   await page.goto('/salon')

@@ -1,6 +1,17 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 import { loginAsAdmin } from './helpers/odoo'
+
+// La base demo es compartida y el plano es el mismo cada día: una reserva de prueba que se queda deja la
+// mesa en "Reservada" y bloquea a los demás recorridos, que ya no la pueden elegir. Se borra al terminar.
+async function dropReservation(page: Page, customer: string) {
+  const call = async (method: string, args: unknown[]) => {
+    const res = await page.request.post('/odoo/web/dataset/call_kw', { data: { jsonrpc: '2.0', method: 'call', id: 1, params: { model: 'waiter.reservation', method, args, kwargs: {} } } })
+    return (await res.json()).result
+  }
+  const ids = (await call('search', [[['customer_name', '=', customer]]])) as number[] | undefined
+  if (ids?.length) await call('unlink', [ids])
+}
 
 // @flow: reservation-create  @outcome: success
 // Crea una reserva con un plato pre-pedido y comprueba que aparece en la grilla del día y en su detalle.
@@ -35,4 +46,5 @@ test('a reservation with a preordered dish lands on the timeline', async ({ page
   await expect(card).toBeVisible()
   await card.click()
   await expect(page.getByRole('dialog', { name: 'Detalle de la reserva' })).toContainText(customer)
+  await dropReservation(page, customer)
 })

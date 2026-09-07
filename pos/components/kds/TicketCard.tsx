@@ -15,16 +15,18 @@ const EDGE: Record<TicketMood, string> = { late: 'border-danger', attention: 'bo
 const FILL = { ok: 'bg-success', warn: 'bg-progress', late: 'bg-danger' }
 const MARKS = [12, 18]
 
-interface TicketCardProps { ticket: KitchenTicket; tableNumber: number; now: number; onReady: (courseId: number) => void }
+interface TicketCardProps { ticket: KitchenTicket; tableNumber: number; now: number; onReady: (courseId: number) => void; onReadyDish: (lineId: number) => void }
 
 // Tarjeta de comanda con la estructura de la tarjeta de pedido del kit (Order / Ipad View.png):
 // cabecera "Pedido# / tipo", mesa como avatar, banda de estado con cronómetro, tabla Ítems / Cant. y botón al pie.
-export function TicketCard({ ticket, tableNumber, now, onReady }: TicketCardProps) {
+// Cada plato tiene su "Listo" porque salen de uno en uno; el del pie saca la comanda entera de una vez.
+export function TicketCard({ ticket, tableNumber, now, onReady, onReadyDish }: TicketCardProps) {
   const t = useTranslations('kds')
   const seconds = elapsedSeconds(ticket.firedAt, now)
   const minutes = Math.floor(seconds / 60)
   const mood = ticketMood(ticket, now)
-  const dishes = ticket.lines.reduce((acc, l) => acc + l.qty, 0)
+  const cooking = ticket.lines.filter((l) => !l.readyAt)
+  const dishes = cooking.reduce((acc, l) => acc + l.qty, 0)
   return (
     <article aria-label={t('table', { n: tableNumber })} className={cn('bg-surface rounded-lg border flex flex-col overflow-hidden text-ink', EDGE[mood])}>
       <header className="h-10 px-4 flex items-center justify-between gap-3 bg-muted text-[13px] text-soft">
@@ -54,18 +56,29 @@ export function TicketCard({ ticket, tableNumber, now, onReady }: TicketCardProp
         </div>
         {ticket.note && <p className="px-3 py-2 rounded-sm bg-progress-soft text-progress-ink text-[14px] font-medium flex items-start gap-2"><Icon name="alert" size={18} className="shrink-0 mt-0.5" />{ticket.note}</p>}
         <div className="rounded-md border border-border overflow-hidden">
-          <div className="grid grid-cols-[1fr_auto] gap-3 px-3 h-9 items-center bg-muted text-[13px] text-soft"><span>{t('items')}</span><span>{t('qty')}</span></div>
+          <div className="grid grid-cols-[1fr_auto_auto] gap-3 px-3 h-9 items-center bg-muted text-[13px] text-soft"><span>{t('items')}</span><span>{t('qty')}</span><span aria-hidden className="w-[54px]" /></div>
           <ul>
-            {ticket.lines.map((l) => (
-              <li key={l.id} className="grid grid-cols-[1fr_auto] gap-3 px-3 py-2 border-t border-border items-start">
-                <div className="min-w-0"><span className="text-[16px] font-medium">{l.name}</span>{l.note && <p className="text-[14px] text-progress-ink">{t('note')}: {l.note}</p>}</div>
-                <span className="font-mono tabular text-[16px] font-semibold">{l.qty}×</span>
-              </li>
-            ))}
+            {ticket.lines.map((l) => {
+              const done = Boolean(l.readyAt)
+              return (
+                <li key={l.id} className={cn('grid grid-cols-[1fr_auto_auto] gap-3 px-3 py-2 border-t border-border items-center', done && 'text-dim')}>
+                  <div className="min-w-0 leading-tight"><span className={cn('text-[16px] font-medium', done && 'line-through')}>{l.name}</span>{l.note && <p className="text-[14px] text-progress-ink">{t('note')}: {l.note}</p>}</div>
+                  <span className="font-mono tabular text-[16px] font-semibold">{l.qty}×</span>
+                  {done ? (
+                    <span className="w-[54px] inline-flex items-center justify-center gap-1 text-[13px] font-semibold text-success-ink"><Icon name="check" size={13} />{t('dishReady')}</span>
+                  ) : (
+                    <button type="button" onClick={() => onReadyDish(l.id)}
+                      className="w-[54px] h-9 rounded-sm border border-border bg-surface text-[14px] font-semibold text-ink grid place-items-center">
+                      {t('readyBtn')}
+                    </button>
+                  )}
+                </li>
+              )
+            })}
           </ul>
         </div>
       </div>
-      <div className="px-4 pb-4 mt-auto"><Button variant="primary" className="w-full" onClick={() => onReady(ticket.id)}><Icon name="check" size={18} />{t('readyBtn')}</Button></div>
+      <div className="px-4 pb-4 mt-auto"><Button variant="primary" className="w-full" onClick={() => onReady(ticket.id)}><Icon name="checks" size={18} />{t('readyAll')}</Button></div>
     </article>
   )
 }

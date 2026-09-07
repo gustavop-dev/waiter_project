@@ -133,12 +133,16 @@ no le queda ninguno pendiente (`action_kitchen_line_served` en `projectapp_kitch
 |---|---|---|
 | Sin enviar | el mesero, al crear la ronda | tarjeta del pedido, grupo «Esperando cocina» del detalle |
 | Cocina | el mesero, al lanzar el curso | ficha del KDS, píldora naranja de la mesa |
-| Listo | **cocina**, con «Listo» en el KDS (`ready_date`) | panel «Listos para servir» del Inicio, píldora verde en el plano, campana |
-| En mesa | el mesero, al entregarlo (`served_date` de la línea) | casilla marcada; con todas marcadas se habilita Cobrar |
+| Listo | **cocina**, con «Listo» (un plato) o «Listo todo» (la comanda) en el KDS (`waiter_ready_date`) | pase del KDS, panel «Listos para servir» del Inicio, píldora verde en el plano, campana |
+| Servido | **el mesero**, al dejarlo en la mesa (`served_date` de la línea) | casilla marcada; con todas marcadas se habilita Cobrar |
 
-El panel «Listos para servir» del Inicio es la lista de trabajo: lo que cocina dejó en el pase, ordenado
-por lo que lleva más esperando, con un botón «Entregar en la mesa» por plato. El mismo gesto está en el
-detalle de la mesa (donde el mesero está de pie) y en la casilla de la tarjeta de Pedidos.
+Las dos manos son distintas y ninguna hace el trabajo de la otra. Cocina saca los platos de uno en uno
+—o toda la comanda de una vez— y ahí termina su parte: el pase del KDS es una lista de espera, no un
+mando. El mesero los lleva y los marca entregados, también de uno en uno o todos a la vez, desde el
+panel del Inicio, el detalle de la mesa o la casilla de la tarjeta de Pedidos.
+
+**Nadie entrega lo que cocina no ha marcado listo.** La regla vive en `action_kitchen_line_served`
+(`projectapp_kitchen`) y no en la pantalla, porque son tres las pantallas que ofrecen entregar.
 
 ## Oleadas
 

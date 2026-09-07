@@ -49,11 +49,11 @@ export default function DashboardPage() {
   const ready = useMemo(() => readyToServe(orders), [orders])
 
   // Entregar desde aquí es lo mismo que marcar la casilla en el pedido: se guarda en Odoo (`served_date` de la línea).
-  async function deliver(dish: ReadyDish) {
+  async function deliver(lineIds: number[], title: string) {
     setServing(true)
     try {
-      await serveLines([dish.lineId])
-      toast({ title: t('ready.delivered', { name: dish.name }) })
+      await serveLines(lineIds)
+      toast({ title })
       await refresh()
     } catch {
       toast({ title: t('ready.failed'), tone: 'danger' })
@@ -85,7 +85,9 @@ export default function DashboardPage() {
         <div className="min-h-0 flex flex-col gap-4">
           <Link href="/salon?elegir=mesa" className="h-12 shrink-0 rounded-md bg-primary text-primary-ink text-[16px] font-bold inline-flex items-center justify-center gap-2"><Icon name="plus" size={20} />{t('createOrder')}</Link>
           <div className="flex-1 min-h-0 grid grid-rows-3 gap-4">
-            <ReadyToServe dishes={ready} onServe={(d) => void deliver(d)} busy={serving} />
+            <ReadyToServe dishes={ready} busy={serving}
+              onServe={(d) => void deliver([d.lineId], t('ready.delivered', { name: d.name }))}
+              onServeAll={() => void deliver(ready.map((d) => d.lineId), t('ready.deliveredAll', { n: ready.length }))} />
             <TablesAvailable floors={catalog?.floors ?? []} tables={catalog?.tables ?? []} busyTableIds={busyTables} />
             <OutOfStock products={catalog?.products ?? []} />
           </div>

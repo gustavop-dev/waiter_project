@@ -1,16 +1,25 @@
 import { expect, test } from '@playwright/test'
 
-import { createOrder, DEMO_EMPLOYEE, loginAs, startShiftAs } from './helpers/odoo'
+import { createOrder, DEMO_EMPLOYEE, kitchenReady, loginAs, loginAsAdmin, startShiftAs } from './helpers/odoo'
 
 // @flow: kit-serve-dish  @outcome: success
-// Marcar un plato lo sirve en Odoo, no solo en esta tablet: se comprueba recargando la pantalla.
-test('marcar un plato lo deja servido y sobrevive a la recarga', async ({ page }) => {
+// Marcar un plato lo entrega en Odoo, no solo en esta tablet: se comprueba recargando la pantalla.
+test('marcar un plato lo deja servido y sobrevive a la recarga', async ({ page, browser }) => {
   await loginAs(page, 'admin', 'admin')
   const customer = `Servido ${Date.now().toString().slice(-6)}`
 
-  await createOrder(page, { customer })
+  const mesa = await createOrder(page, { customer })
 
+  // Cocina lo saca al pase desde su propia pantalla: hasta entonces la casilla del mesero está bloqueada.
   const card = page.getByRole('article').filter({ hasText: customer })
+  await expect(card.getByRole('checkbox').first()).toBeDisabled()
+  const kitchen = await browser.newContext()
+  const kds = await kitchen.newPage()
+  await loginAsAdmin(kds)
+  await kitchenReady(kds, mesa)
+  await kitchen.close()
+  await page.reload()
+
   const dish = card.getByRole('checkbox').first()
   await expect(dish).toBeEnabled()
   // click, no check: al marcarlo la lista se recarga y el elemento se sustituye por el servido.

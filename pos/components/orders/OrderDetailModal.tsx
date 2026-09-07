@@ -54,7 +54,7 @@ export function OrderDetailModal({ order, status, percent, onClose, imageOf, onC
               <span className="inline-flex items-center gap-2 text-[15px] font-semibold"><Icon name={g.icon} size={18} />{t(`detail.groups.${g.key}`)}</span>
               {g.key === 'ready' && onServeReady && (
                 <button type="button" disabled={busy} onClick={() => onServeReady(g.lines)} className="h-8 px-3 rounded-sm bg-primary text-primary-ink text-[13px] font-semibold inline-flex items-center gap-1 disabled:opacity-40">
-                  <Icon name="check" size={14} />{t('detail.deliver')}
+                  <Icon name="checks" size={14} />{t('detail.deliverAll')}
                 </button>
               )}
               {g.key === 'waiting' && (

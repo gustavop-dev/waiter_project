@@ -81,7 +81,8 @@ function LineState({ group }: { group: LineGroup }) {
 }
 
 interface LinesTableProps { order: KitOrder; onToggle: (line: KitLine) => void }
-// Tabla Ítems / Cant / Precio con casilla por línea. Solo se puede marcar lo que cocina ya recibió.
+// Tabla Ítems / Cant / Precio con casilla por línea. Solo se marca lo que cocina ya dejó en el pase:
+// entregar un plato que sigue en el fuego sería mentirle a la cuenta.
 function LinesTable({ order, onToggle }: LinesTableProps) {
   const t = useTranslations('orders')
   return (
@@ -94,9 +95,10 @@ function LinesTable({ order, onToggle }: LinesTableProps) {
           const group = lineGroup(order, l)
           const served = group === 'served'
           const label = served ? t('card.servedLine', { name: l.name }) : t('card.markServed', { name: l.name })
+          const title = group === 'ready' || served ? undefined : t('card.notReadyYet')
           return (
             <li key={l.id} className={cn('grid grid-cols-[56px_1fr_auto_30px_66px] gap-1.5 px-3 h-9 items-center text-[14px]', group === 'waiting' && 'text-dim')}>
-              <input type="checkbox" aria-label={label} className="w-4 h-4 accent-primary justify-self-center" checked={served} disabled={served || group === 'waiting'} onChange={() => onToggle(l)} />
+              <input type="checkbox" aria-label={label} title={title} className="w-4 h-4 accent-primary justify-self-center" checked={served} disabled={group !== 'ready'} onChange={() => onToggle(l)} />
               <span className="truncate">{l.name}</span>
               {/* Servido ya lo dice la casilla marcada: la píldora solo aparece cuando falta algo por saber. */}
               {served ? <span aria-hidden /> : <LineState group={group} />}
