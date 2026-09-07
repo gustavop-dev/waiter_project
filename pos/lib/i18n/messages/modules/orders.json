@@ -1,1 +1,30 @@
-{}
+{
+  "title": "Pedidos",
+  "search": "Buscar por número o cliente",
+  "createOrder": "Crear pedido",
+  "filters": { "all": "Todos", "in_progress": "En progreso", "ready": "Listos para servir", "waiting_payment": "Esperando pago" },
+  "sortBy": "Ordenar por: {label}",
+  "sortMenu": "Ordenar por",
+  "sort": { "latest": "Más reciente", "oldest": "Más antiguo", "type": "Tipo de pedido" },
+  "type": { "dine_in": "En mesa", "takeout": "Para llevar", "delivery": "Domicilio" },
+  "status": { "in_progress": "En progreso", "ready": "Listo para servir", "served": "Servido", "waiting_payment": "Esperando pago", "completed": "Completado" },
+  "card": {
+    "orderNo": "Pedido#", "customer": "Nombre del cliente", "noCustomer": "Sin nombre", "table": "Mesa {n}", "items": "{count} ítems",
+    "itemsHeader": "Ítems", "qty": "Cant", "price": "Precio", "total": "Total", "details": "Ver detalle", "pay": "Cobrar",
+    "markServed": "Marcar {name} como servido", "servedLine": "{name} servido"
+  },
+  "empty": { "title": "Sin pedidos", "body": "Cuando se cree un pedido, el más reciente aparecerá aquí." },
+  "detail": {
+    "title": "Detalle del pedido", "groups": { "waiting": "Esperando cocina", "in_progress": "En progreso", "served": "Servido" },
+    "cancel": "Cancelar", "note": "Nota:", "totalPayment": "Total a pagar", "newOrder": "Nuevo pedido", "proceed": "Ir a pagar",
+    "cancelled": "Líneas canceladas", "cancelledBody": "Cocina no las había recibido."
+  },
+  "addRound": {
+    "title": "Agregar del menú", "search": "Buscar plato", "all": "Todos", "available": "Disponible", "unavailable": "No disponible",
+    "availableOn": "Disponible: {time}", "noTime": "Sin hora", "add": "Agregar", "addMore": "Agregar más ({n})",
+    "cart": "Nueva ronda", "reset": "Reiniciar", "note": "Nota:", "notePrompt": "Nota para cocina", "empty": "Aún no hay platos en la ronda.",
+    "subtotal": "Subtotal", "tax": "Impuestos", "total": "Total a pagar", "send": "Guardar y enviar a cocina",
+    "sent": "¡Listo! El pedido #{number} va a cocina.", "sentBody": "La nueva ronda ya está en cocina.",
+    "close": "Cerrar", "edit": "Editar nota", "remove": "Quitar", "decrease": "Menos", "increase": "Más", "notFound": "No se encontró el pedido."
+  }
+}

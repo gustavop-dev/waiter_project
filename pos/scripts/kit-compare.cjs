@@ -1,5 +1,6 @@
 // Captura rutas del POS a 1194×834 (iPad Pro 11 apaisado, el marco del kit) para cotejarlas con docs/diseno/pos-kit/pantallas.
 // Uso: npm run kit:compare -- /kit /salon   (requiere `next dev` en PLAYWRIGHT_BASE_URL o http://localhost:3000 y Odoo demo con admin/admin)
+// KIT_THEME=dark captura en modo oscuro (fija localStorage.waiter.theme antes de entrar) con sufijo _dark en el archivo.
 const { chromium, devices } = require('@playwright/test')
 const fs = require('node:fs')
 const path = require('node:path')
@@ -11,6 +12,8 @@ async function main() {
   const out = path.join(__dirname, '..', 'kit-compare'); fs.mkdirSync(out, { recursive: true })
   const browser = await chromium.launch()
   const context = await browser.newContext({ ...devices['iPad Pro 11 landscape'] })
+  const dark = process.env.KIT_THEME === 'dark'
+  if (dark) await context.addInitScript(() => { localStorage.setItem('waiter.theme', 'dark') })
   const page = await context.newPage()
   await page.goto(`${base}/login`)
   await page.getByLabel('Correo').fill('admin'); await page.getByLabel('Contraseña').fill('admin')
@@ -18,7 +21,7 @@ async function main() {
   await page.waitForURL('**/salon')
   for (const route of routes) {
     await page.goto(`${base}${route}`); await page.waitForLoadState('networkidle')
-    const file = path.join(out, `${route.replace(/\//g, '_').replace(/^_/, '') || 'root'}.png`)
+    const file = path.join(out, `${route.replace(/\//g, '_').replace(/^_/, '') || 'root'}${dark ? '_dark' : ''}.png`)
     await page.screenshot({ path: file }); console.log('captura', file)
   }
   await browser.close()

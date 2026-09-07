@@ -1,10 +1,10 @@
 import {
   IconAddressBook, IconAdjustments, IconAlarm, IconArrowLeft, IconArrowRight, IconArrowsMove, IconBabyCarriage, IconBackspace,
   IconBell, IconBox, IconBuildingStore, IconCalendarEvent, IconCash, IconCashRegister, IconChartBar, IconCheck, IconChefHat,
-  IconChevronDown, IconChevronLeft, IconChevronRight, IconClock, IconCreditCard, IconDeviceDesktop, IconDotsVertical,
-  IconFileInvoice, IconFileText, IconFingerprint, IconHistory, IconLanguage, IconLayoutDashboard, IconLock, IconLogout,
-  IconMail, IconMinus, IconPackage, IconPencil, IconPhoto, IconPlus, IconPrinter, IconQrcode, IconReceipt, IconRotate,
-  IconSearch, IconSettings, IconShoppingCart, IconToolsKitchen2, IconTrash, IconTruckDelivery, IconUser, IconUsers, IconX,
+  IconChevronDown, IconChevronLeft, IconChevronRight, IconCircleCheck, IconClock, IconCreditCard, IconDeviceDesktop, IconDotsVertical,
+  IconFileCheck, IconFileInvoice, IconFileText, IconFingerprint, IconHistory, IconLanguage, IconLayoutDashboard, IconLock, IconLogout,
+  IconMail, IconMinus, IconPackage, IconPencil, IconPhoto, IconPlus, IconPrinter, IconProgress, IconQrcode, IconReceipt, IconRotate,
+  IconSearch, IconSettings, IconShoppingCart, IconToolsKitchen2, IconTrash, IconTruckDelivery, IconUser, IconUsers, IconWallet, IconX,
   type IconProps,
 } from '@tabler/icons-react'
 import type { ComponentType } from 'react'
@@ -22,6 +22,8 @@ const ICONS = {
   logout: IconLogout, lock: IconLock, photo: IconPhoto, chef: IconChefHat, move: IconArrowsMove, rotate: IconRotate,
   mail: IconMail, fingerprint: IconFingerprint, language: IconLanguage, babyChair: IconBabyCarriage, delivery: IconTruckDelivery,
   store: IconBuildingStore,
+  // Dashboard, Pedidos e Historial (oleada I.3/I.5): KPIs, grupos del detalle y estado vacío del historial.
+  wallet: IconWallet, fileCheck: IconFileCheck, circleCheck: IconCircleCheck, progress: IconProgress,
 } satisfies Record<string, ComponentType<IconProps>>
 
 export type KitIcon = keyof typeof ICONS

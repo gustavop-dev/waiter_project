@@ -1,1 +1,13 @@
-{}
+{
+  "greeting": { "morning": "Buenos días, {name}", "afternoon": "Buenas tardes, {name}", "evening": "Buenas noches, {name}" },
+  "motto": "Da lo mejor de ti con los clientes, ¡feliz jornada! ☺️",
+  "createOrder": "Crear pedido",
+  "clock": "Hora actual",
+  "kpi": { "earning": "Total ventas del turno", "inProgress": "En progreso", "ready": "Listos para servir", "completed": "Completados" },
+  "columns": { "inProgress": "En progreso", "waiting": "Esperando pago" },
+  "seeAll": "Ver todos",
+  "emptyInProgress": { "title": "Sin pedidos", "body": "Cuando se cree un pedido, el más reciente aparecerá aquí." },
+  "emptyWaiting": { "title": "Sin pedidos", "body": "Los pedidos en estado Esperando pago aparecerán aquí." },
+  "tables": { "title": "Mesas disponibles", "floor": "Piso", "number": "Número de mesa", "capacity": "Capacidad", "persons": "personas", "empty": "No hay mesas libres en este piso." },
+  "outOfStock": { "title": "Agotados", "available": "Disponible:", "noTime": "Sin hora", "emptyTitle": "Todo el menú está listo", "emptyBody": "Todos los platos siguen disponibles." }
+}
