@@ -3,6 +3,7 @@ import {
   IconBell, IconBox, IconBuildingStore, IconCalendarEvent, IconCash, IconCashRegister, IconChartBar, IconCheck, IconChefHat,
   IconChevronDown, IconChevronLeft, IconChevronRight, IconClock, IconCreditCard, IconDeviceDesktop, IconDotsVertical,
   IconFileInvoice, IconFileText, IconFingerprint, IconHistory, IconLanguage, IconLayoutDashboard, IconLock, IconLogout,
+  IconArrowsExchange2, IconCircleCheckFilled, IconInfoCircle, IconLoader2, IconPhotoPlus, IconSettingsCog, IconWallet,
   IconMail, IconMinus, IconPackage, IconPencil, IconPhoto, IconPlus, IconPrinter, IconQrcode, IconReceipt, IconRotate,
   IconSearch, IconSettings, IconShoppingCart, IconToolsKitchen2, IconTrash, IconTruckDelivery, IconUser, IconUsers, IconX,
   type IconProps,
@@ -22,6 +23,8 @@ const ICONS = {
   logout: IconLogout, lock: IconLock, photo: IconPhoto, chef: IconChefHat, move: IconArrowsMove, rotate: IconRotate,
   mail: IconMail, fingerprint: IconFingerprint, language: IconLanguage, babyChair: IconBabyCarriage, delivery: IconTruckDelivery,
   store: IconBuildingStore,
+  // 6 – Table: cambiar mesa, subir plano, engranaje de pisos, cobro, aviso, cargando, servido.
+  exchange: IconArrowsExchange2, photoPlus: IconPhotoPlus, cog: IconSettingsCog, wallet: IconWallet, info: IconInfoCircle, loader: IconLoader2, checkFilled: IconCircleCheckFilled,
 } satisfies Record<string, ComponentType<IconProps>>
 
 export type KitIcon = keyof typeof ICONS

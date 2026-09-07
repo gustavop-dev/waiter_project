@@ -1,7 +1,9 @@
 export interface Product { id: number; templateId: number; name: string; price: number; categoryIds: number[]; taxIds: number[]; favorite: boolean; storable: boolean; soldOut: boolean; hasImage: boolean }
 export interface Category { id: number; name: string; sequence: number; station: string | null }
-export interface Floor { id: number; name: string; tableIds: number[] }
-export interface Table { id: number; number: number; floorId: number; seats: number }
+export interface Floor { id: number; name: string; tableIds: number[]; hasBackground: boolean }
+// Geometría real del plano de Odoo (restaurant.table): posición y tamaño en px, forma y color del editor.
+export type TableShape = 'square' | 'round'
+export interface Table { id: number; number: number; floorId: number; seats: number; x: number; y: number; width: number; height: number; shape: TableShape; color: string | null }
 export interface PaymentMethod { id: number; name: string; type: 'cash' | 'bank' | 'pay_later' }
 export interface Company { name: string }
 // Umbrales y supuestos que viven en pos.config (addon projectapp_ops) para que todas las tablets vean lo mismo.

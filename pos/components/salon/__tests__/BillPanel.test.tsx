@@ -5,7 +5,7 @@ import { BillPanel } from '@/components/salon/BillPanel'
 import messages from '@/lib/i18n/messages/es.json'
 
 const wrap = (ui: React.ReactElement) => render(<NextIntlClientProvider locale="es" messages={messages}>{ui}</NextIntlClientProvider>)
-const table = { id: 6, number: 9, floorId: 1, seats: 4 }
+const table = { id: 6, number: 9, floorId: 1, seats: 4, x: 0, y: 0, width: 110, height: 110, shape: 'square' as const, color: null }
 const view = { table, state: 'billing' as const, total: 73600, tax: 11753, orderId: 9, startedAt: '2026-09-04 20:00:00', waiter: 'Alejandra', callSince: null }
 const lines = [{ uuid: 'a', productId: 3, name: 'Hamburguesa Angus', unitPrice: 36900, qty: 1, note: '', taxIds: [] }]
 const NOW = Date.parse('2026-09-04T21:26:00Z')

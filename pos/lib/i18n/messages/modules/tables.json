@@ -1,1 +1,44 @@
-{}
+{
+  "title": "Mesas",
+  "legend": { "available": "Disponible", "unavailable": "No disponible", "reserved": "Reservada" },
+  "createOrder": "Crear pedido",
+  "settings": "Ajustes de mesas",
+  "floors": "Pisos",
+  "floorPicker": "Piso #{number}",
+  "floorInfo": { "label": "Info del piso:", "type": "Tipo", "indoor": "Interior", "outdoor": "Exterior", "toggle": "Ver detalle del piso", "remainingLarge": "Mesas grandes libres", "remainingSmall": "Mesas pequeñas libres" },
+  "emptyFloor": { "title": "Este piso no tiene mesas", "body": "Usa el engranaje para organizar el plano." },
+  "table": "Mesa {name}",
+  "tableLabel": "Mesa {name}: {state}",
+  "state": { "inProgress": "En progreso", "served": "Servido", "billing": "Esperando pago", "assist": "Pide mesero", "ordering": "Pidiendo", "closed": "Cerrada", "paid": "Pagado" },
+  "selected": { "label": "Mesa seleccionada:", "clear": "Quitar selección", "reservation": "Info de reserva", "detail": "Detalle de mesa", "moving": "Elige la mesa nueva para el pedido {code}:", "cancelMove": "Cancelar cambio" },
+  "reservations": { "title": "Lista de reservas", "customer": "Cliente", "date": "Fecha", "time": "Hora", "detail": "Detalle", "emptyTitle": "Sin reservas", "emptyBody": "Cuando exista el módulo de reservas, las de la mesa {name} aparecerán aquí." },
+  "detail": {
+    "title": "Detalle de mesa", "order": "Pedido#", "type": { "DI": "En mesa", "TA": "Para llevar", "DE": "Domicilio" },
+    "customer": "Nombre del cliente", "noCustomer": "Sin nombre", "changeTable": "Cambiar mesa",
+    "items": "{count, plural, one {# plato} other {# platos}}", "addition": "Adiciones:", "note": "Nota:",
+    "total": "Total a pagar", "newOrder": "Nuevo pedido", "pay": "Ir a pagar", "payHint": "Podrás cobrar cuando todos los platos estén servidos.",
+    "emptyTitle": "Sin pedido abierto", "emptyBody": "La mesa {name} está disponible. Crea un pedido para empezar.", "loading": "Cargando el pedido…"
+  },
+  "change": {
+    "title": "Cambiar mesa", "current": "Mesa actual", "new": "Mesa nueva", "cancel": "Cancelar", "confirm": "Confirmar cambio",
+    "done": "Pedido movido a la mesa {name}", "busy": "La mesa {name} ya tiene un pedido.", "failed": "No se pudo mover el pedido."
+  },
+  "floorSettings": { "add": "Agregar piso", "edit": "Editar piso {name}", "active": "Piso {name} activo", "empty": "Aún no hay pisos." },
+  "wizard": {
+    "addTitle": "Agregar plano", "editTitle": "Editar plano", "steps": { "info": "Información", "arrange": "Organizar plano", "success": "Mesas creadas" },
+    "number": "Número de piso", "numberPlaceholder": "Escribe el número o el nombre del piso", "type": "Tipo de piso", "indoor": "Interior", "outdoor": "Exterior",
+    "upload": "Sube tu plano", "optional": "(Opcional)", "tapHere": "Toca aquí", "toUpload": "para subir una foto", "removeImage": "Quitar imagen",
+    "formats": "Formato .jpg, .jpeg o .png y tamaño máximo de 10 MB", "tooBig": "La imagen supera los 10 MB.", "analyzing": "Analizando tu plano",
+    "next": "Siguiente", "back": "Atrás", "save": "Guardar información", "saving": "Guardando…",
+    "arrangeMeta": "Piso# {number} / Tipo {type}", "selection": "Selección de mesa", "selectionHint": "Arrastra la mesa al plano para organizarla.",
+    "small": "Mesa pequeña", "largeH": "Mesa grande (H)", "largeV": "Mesa grande (V)", "smallPeople": "1-4 personas", "largePeople": "6+ personas",
+    "deleteZone": "Arrastra aquí para borrar", "rotate": "Rotar mesa {name}", "move": "Mover mesa {name}", "canvas": "Plano del piso",
+    "nameTitle": "Nombre de la mesa", "namePlaceholder": "Escribe el nombre de la mesa", "nameConfirm": "Confirmar",
+    "nameHint": "Odoo solo guarda el número de mesa: se usará {number}.", "nameNeedsNumber": "El nombre debe incluir un número.", "nameTaken": "Ya existe la mesa {number} en este piso.",
+    "overlap": "Ahí no cabe: se solapa con otra mesa.",
+    "successTitle": "Mesas creadas con éxito", "successBody": "¡Listo! las mesas nuevas ya están en el", "successMenu": "menú de Mesas",
+    "floor": "Piso", "large": "Mesas grandes", "smallCount": "Mesas pequeñas", "total": "Total de mesas", "goTables": "Ir a mesas",
+    "saved": "Plano guardado", "savedBody": "Los cambios ya se ven en el salón.", "failed": "No se pudo guardar el plano."
+  },
+  "pay": { "title": "Cobrar mesa {name}" }
+}

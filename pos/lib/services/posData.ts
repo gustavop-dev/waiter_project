@@ -6,8 +6,8 @@ import type { Catalog, Category, Floor, PaymentMethod, Product, Settings, Table 
 interface RawProduct { id: number; product_tmpl_id: number; display_name: string; lst_price: number }
 interface RawTemplate { id: number; name: string; list_price: number; pos_categ_ids: number[]; taxes_id: number[]; available_in_pos: boolean; active: boolean; is_favorite: boolean; is_storable: boolean; image_128: string | false }
 interface RawCategory { id: number; name: string; sequence: number; kitchen_station: string | false }
-interface RawFloor { id: number; name: string; table_ids: number[] }
-interface RawTable { id: number; table_number: number; floor_id: number; seats: number; active: boolean }
+interface RawFloor { id: number; name: string; table_ids: number[]; floor_background_image: string | false }
+interface RawTable { id: number; table_number: number; floor_id: number; seats: number; active: boolean; position_h: number; position_v: number; width: number; height: number; shape: 'square' | 'round'; color: string | false }
 interface RawMethod { id: number; name: string; type: PaymentMethod['type'] }
 interface RawCompany { id: number; name: string }
 interface RawConfig { id: number; name: string; alert_late_minutes: number; alert_bill_minutes: number; roi_hour_cost: number; roi_minutes_per_order: number; roi_baseline_hours_per_100: number; roi_monthly_cost: number; roi_start_date: string | false; tip_product_id: number | false }
@@ -38,9 +38,10 @@ export async function loadPosData(sessionId: number): Promise<Catalog> {
   const out = await soldOutIds(base)
   const products = base.map((p) => ({ ...p, soldOut: out.has(p.id) }))
   const categories: Category[] = raw['pos.category'].map(({ id, name, sequence, kitchen_station }) => ({ id, name, sequence, station: kitchen_station || null }))
-  const floors: Floor[] = raw['restaurant.floor'].map(({ id, name, table_ids }) => ({ id, name, tableIds: table_ids }))
+  // load_data manda el fondo del plano en base64: aquí solo interesa si existe; la imagen se pide por /web/image.
+  const floors: Floor[] = raw['restaurant.floor'].map(({ id, name, table_ids, floor_background_image }) => ({ id, name, tableIds: table_ids, hasBackground: Boolean(floor_background_image) }))
   const tables: Table[] = raw['restaurant.table'].filter((t) => t.active)
-    .map((t) => ({ id: t.id, number: t.table_number, floorId: t.floor_id, seats: t.seats }))
+    .map((t) => ({ id: t.id, number: t.table_number, floorId: t.floor_id, seats: t.seats, x: t.position_h, y: t.position_v, width: t.width, height: t.height, shape: t.shape, color: t.color || null }))
   const paymentMethods: PaymentMethod[] = raw['pos.payment.method'].map(({ id, name, type }) => ({ id, name, type }))
   const company = { name: raw['res.company'][0]?.name ?? '' }
   const c = raw['pos.config'][0]

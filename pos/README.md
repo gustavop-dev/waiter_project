@@ -42,6 +42,14 @@ Cada test: ≤50 líneas, ≤7 asserts, sin condicionales, y un comentario
   `PLAYWRIGHT_BASE_URL=http://192.168.56.10:3000 npm run kit:compare -- /kit /salon` → `kit-compare/`.
 - Playwright tiene el proyecto `Tablet` (iPad Pro 11 apaisado sobre Chromium): `npx playwright test <spec> --project=Tablet`.
 
+## Mesas (kit 6 – Table, oleada I.2)
+
+`/salon` pinta el plano real de `restaurant.table` (`position_h/v`, `width`, `height`, `seats`) con las tres
+plantillas del kit (`lib/domain/tablesKit.ts`). Lo que Odoo no guarda viaja así, hasta que el addon lo tenga:
+tipo de piso como sufijo del nombre (`Piso 4 · Exterior`), rotación intercambiando ancho y alto, nombre de mesa
+reducido a `table_number` (de "Mesa A12" se guarda 12). "Reservada" aparece en la leyenda pero no hay reservas
+hasta el módulo de reservas. "Ir a pagar" abre el cobro actual en un modal hasta que exista `/pago/<orderId>`.
+
 ## Alcance actual
 
 A: salón y pedidos; B: KDS; C: backoffice y ROI; E: cobro, caja y roles;
