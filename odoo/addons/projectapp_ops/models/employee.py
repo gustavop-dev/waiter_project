@@ -24,28 +24,33 @@ PIN_LOCK_MINUTES = 10
 PIN_RESET_SECONDS = 60      # mínimo entre correos de «olvidé mi PIN» por empleado
 SESSION_HOURS = 16          # vida del token de sesión de empleado (un turno largo)
 MANAGER_GROUPS = ("point_of_sale.group_pos_manager", "hr.group_hr_manager")
+# Todos llevan `groups="hr.group_hr_user"`, como el `pin` de Odoo: hr.employee considera privado
+# cualquier campo que no exista en hr.employee.public y, al leerlo, en vez de omitirlo lanza AccessError.
+# Sin el grupo, la lectura de empleados dentro de `pos.session.load_data` reventaba y el mesero se
+# quedaba sin carta.
+# Estos campos NO se añaden a `_load_pos_data_fields`: viven en hr.employee, que reserva sus datos a
+# `hr.group_hr_user`. Pedirlos en `pos.session.load_data` hacía que Odoo lanzara AccessError para quien
+# atiende, la carga se quedaba sin `pos.config` y pos_loyalty terminaba reventando con un IndexError:
+# el mesero validaba su PIN y el POS no podía abrir la carta. El selector los recibe por `waiter_login_list`,
+# que va con sudo y no expone el PIN.
 WAITER_EMPLOYEE_FIELDS = ["waiter_role", "employee_code", "joining_date", "shift_start", "shift_end", "employment_status"]
 
 
 class HrEmployee(models.Model):
     _inherit = "hr.employee"
 
-    waiter_role = fields.Selection(ROLES, string="Rol en Waiter", default="waiter", required=True)
+    waiter_role = fields.Selection(ROLES, string="Rol en Waiter", default="waiter", required=True, groups="hr.group_hr_user")
     employee_code = fields.Char(string="Código de empleado", copy=False, readonly=True, index=True,
-                                help="Secuencia WT-0001, WT-0002… (kit: Employee ID). Se asigna al crear.")
-    joining_date = fields.Date(string="Fecha de ingreso")
-    shift_start = fields.Float(string="Inicio del turno (h)", help="Hora decimal, p. ej. 8.5 = 08:30. Vacío: sin turno fijo.")
-    shift_end = fields.Float(string="Fin del turno (h)")
-    employment_status = fields.Selection(EMPLOYMENT, string="Tipo de vinculación")
-    waiter_pin_attempts = fields.Integer(string="Intentos fallidos del PIN", default=0, copy=False)
-    waiter_pin_locked_until = fields.Datetime(string="PIN bloqueado hasta", copy=False)
-    waiter_pin_reset_at = fields.Datetime(string="Último envío de PIN nuevo", copy=False)
+                                help="Secuencia WT-0001, WT-0002… (kit: Employee ID). Se asigna al crear.", groups="hr.group_hr_user")
+    joining_date = fields.Date(string="Fecha de ingreso", groups="hr.group_hr_user")
+    shift_start = fields.Float(string="Inicio del turno (h)", help="Hora decimal, p. ej. 8.5 = 08:30. Vacío: sin turno fijo.", groups="hr.group_hr_user")
+    shift_end = fields.Float(string="Fin del turno (h)", groups="hr.group_hr_user")
+    employment_status = fields.Selection(EMPLOYMENT, string="Tipo de vinculación", groups="hr.group_hr_user")
+    waiter_pin_attempts = fields.Integer(string="Intentos fallidos del PIN", default=0, copy=False, groups="hr.group_hr_user")
+    waiter_pin_locked_until = fields.Datetime(string="PIN bloqueado hasta", copy=False, groups="hr.group_hr_user")
+    waiter_pin_reset_at = fields.Datetime(string="Último envío de PIN nuevo", copy=False, groups="hr.group_hr_user")
     waiter_session_token = fields.Char(string="Token de sesión de empleado", copy=False, groups="hr.group_hr_user")
     waiter_session_expires = fields.Datetime(string="El token caduca", copy=False, groups="hr.group_hr_user")
-
-    @api.model
-    def _load_pos_data_fields(self, *args, **kwargs):
-        return super()._load_pos_data_fields(*args, **kwargs) + WAITER_EMPLOYEE_FIELDS
 
     @api.model_create_multi
     def create(self, vals_list):

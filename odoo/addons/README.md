@@ -68,16 +68,16 @@ renombrar estas clases de CSS, así que hay que revisarlos en cada actualizació
 [Arquitectura](../../docs/arquitectura/2026-09-04-arquitectura-modular.md).
 
 
-## Fallo conocido: `load_data` rompe para quien no administra el POS
+## Por qué los campos de empleado llevan `groups="hr.group_hr_user"`
 
-Con `pos_loyalty` instalado, `pos.session.load_data` lanza `IndexError: list index out of range` en
-`pos_loyalty/models/product_template.py` (`data['pos.config'][0]`) cuando lo llama un usuario del punto de
-venta **sin** `point_of_sale.group_pos_manager`: para él `pos.config` no viaja en `data` y el addon de
-fidelización asume que siempre está. Nuestros campos no intervienen (un mesero los lee sin problema).
+`hr.employee` considera privado todo campo que no exista en `hr.employee.public`, y al leerlo no lo omite:
+lanza `AccessError`. Nuestros campos (`waiter_role`, `employee_code`, el turno, los contadores del PIN)
+nacieron sin grupo, así que la lectura de empleados dentro de `pos.session.load_data` reventaba para quien
+atiende, la carga se quedaba sin `pos.config` y `pos_loyalty` terminaba con un `IndexError`. El síntoma era
+que el mesero validaba su PIN y el POS no abría la carta.
 
-Consecuencia: el mesero entra, valida su PIN y el POS no puede cargar la carta. Desde el 2026-09-07 la
-aplicación lo dice con el mensaje del servidor y un botón de reintento, en vez de quedarse en blanco.
-
-Mitigaciones mientras Odoo lo corrige: dar `point_of_sale.group_pos_manager` a los usuarios que atienden,
-o desinstalar `pos_loyalty` si el restaurante no usa puntos. `seed_employees` ya asigna al terminal el
-empleado de cada usuario del POS, que es condición necesaria pero no suficiente.
+Desde el 2026-09-07 todos declaran `groups="hr.group_hr_user"`, como hace Odoo con `pin`: quien no es de
+RR. HH. simplemente no los ve, y la carga funciona. El selector del login los recibe por `waiter_login_list`,
+que va con sudo y nunca expone el PIN. La regresión está cubierta en `test_kit.py`
+(`test_the_pos_load_never_asks_for_the_hr_only_employee_fields`). El POS, además, muestra el error del
+servidor con un botón de reintento en vez de quedarse en blanco.

@@ -136,6 +136,18 @@ class TestEmployeePin(KitCase):
         self.assertTrue(self.Employee.waiter_check_pin(self.employee.id, "654321")["ok"])
         self.assertFalse(self.Employee.waiter_check_pin(self.employee.id, "123456")["ok"])
 
+    def test_the_pos_load_never_asks_for_the_hr_only_employee_fields(self):
+        """Atrapa la regresión que dejaba al mesero sin carta: pedir estos campos en load_data hace que Odoo
+        lance AccessError para quien atiende, la carga se queda sin pos.config y pos_loyalty revienta."""
+        loaded = self.env["hr.employee"]._load_pos_data_fields(self.config)
+        for field in ("waiter_role", "employee_code", "joining_date", "shift_start", "shift_end", "employment_status"):
+            self.assertNotIn(field, loaded, f"{field} es de RR. HH.: va por waiter_login_list, no por load_data")
+        session = self.config.current_session_id or self.env["pos.session"].create({"config_id": self.config.id, "user_id": self.env.uid})
+        waiter = new_test_user(self.env, login="mesero_carta", groups="base.group_user,point_of_sale.group_pos_user")
+        self.config.write({"module_pos_hr": True, "basic_employee_ids": [(4, self.employee.id)]})
+        data = self.env["pos.session"].with_user(waiter).browse(session.id).load_data([])
+        self.assertTrue(data.get("pos.config"), "sin pos.config el POS se queda en blanco")
+
     def test_a_waiter_without_hr_rights_can_still_list_the_employees_to_log_in(self):
         """Atrapa el bug que dejaba fuera a los meseros: search_read niega los campos de RR. HH. y la lista
         del selector llegaba vacía, así que solo podían entrar los administradores."""
@@ -191,12 +203,13 @@ class TestEmployeePin(KitCase):
         self.assertTrue(self.Employee.waiter_forgot_pin("prueba.mesera@example.com"))
         self.assertEqual(self.employee.sudo().pin, new_pin, "un envío por minuto: el segundo no cambia el PIN")
 
-    def test_employee_code_is_a_sequence_and_fields_travel_in_load_data(self):
+    def test_employee_code_is_a_sequence_and_reaches_the_pos_through_the_login_list(self):
         other = self.env["hr.employee"].create({"name": "Otro Empleado"})
         self.assertRegex(other.employee_code, r"^WT-\d{4}$")
         self.assertNotEqual(other.employee_code, self.employee.employee_code)
-        loaded = self.env["hr.employee"]._load_pos_data_fields(self.config)
-        self.assertTrue({"waiter_role", "employee_code", "joining_date", "shift_start", "shift_end", "employment_status"} <= set(loaded))
+        # El POS los recibe por waiter_login_list, nunca por load_data (son campos de RR. HH.).
+        row = next(r for r in self.Employee.waiter_login_list() if r["id"] == other.id)
+        self.assertEqual(row["employee_code"], other.employee_code)
 
 
 @tagged("post_install", "-at_install")
