@@ -4,6 +4,7 @@ import { uuid } from '@/lib/domain/uuid'
 import type { DraftOrder } from '@/lib/domain/order'
 import { listCourseSummaries } from '@/lib/services/kitchen'
 import { callKw } from '@/lib/services/odoo'
+import { activeEmployeeId } from '@/lib/stores/authStore'
 
 export interface SavedOrder { id: number; reference: string; state: 'draft' | 'paid'; total: number; tax: number; paid: number }
 export interface OpenOrder { id: number; tableId: number; total: number; tax: number; state: 'draft' | 'paid'; lineCount: number; startedAt: string; waiter: string; kitchen: KitchenPhase }
@@ -23,7 +24,7 @@ async function readOrder(id: number): Promise<SavedOrder> {
 }
 
 export async function saveOrder(draft: DraftOrder): Promise<SavedOrder> {
-  const result = await callKw<{ 'pos.order': { id: number }[] }>('pos.order', 'sync_from_ui', [[toSyncPayload(draft)]])
+  const result = await callKw<{ 'pos.order': { id: number }[] }>('pos.order', 'sync_from_ui', [[toSyncPayload(draft, activeEmployeeId())]])
   const id = result['pos.order'][0].id
   // sync_from_ui deja amount_total en 0 por la API cruda: el recálculo es obligatorio.
   await callKw<void>('pos.order', 'recompute_prices', [[id]])

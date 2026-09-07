@@ -1,12 +1,11 @@
 import { expect, test } from '@playwright/test'
 
+import { loginAs } from './helpers/odoo'
+
 // @flow: waiter-role-limits  @outcome: success
 test('a waiter sees only her screens and is sent back to the floor from settings', async ({ page }) => {
-  await page.goto('/login')
-  await page.getByLabel('Correo').fill('sofia')
-  await page.getByLabel('Contraseña').fill('Waiter-2026')
-  await page.getByRole('button', { name: 'Abrir mi turno' }).click()
-  await page.waitForURL('**/salon')
+  // Sofía es mesera en Odoo (usuario) y empleada con PIN 111111 (hr.employee sembrado en la demo).
+  await loginAs(page, 'sofia', 'Waiter-2026', 'Sofía Ríos', '111111')
   await expect(page.getByRole('link', { name: 'Reservas' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Administración' })).toHaveCount(0)
   await expect(page.getByRole('button', { name: /\/ Mesero/ })).toBeVisible()

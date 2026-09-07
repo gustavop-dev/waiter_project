@@ -8,7 +8,7 @@ type LineCommand = [0, 0, Record<string, unknown>]
 export interface SyncOrderPayload {
   id: number; uuid: string; session_id: number; table_id: number; customer_count: number
   sequence_number: number; state: 'draft'; general_customer_note: string; amount_total: number; amount_tax: number
-  amount_paid: number; amount_return: number; date_order: string; lines: LineCommand[]
+  amount_paid: number; amount_return: number; date_order: string; lines: LineCommand[]; employee_id?: number
 }
 
 export function createDraft({ sessionId, tableId, guests = 1 }: { sessionId: number; tableId: number; guests?: number }): DraftOrder {
@@ -49,8 +49,10 @@ function nowForOdoo(): string {
   return new Date().toISOString().slice(0, 19).replace('T', ' ')
 }
 
-export function toSyncPayload(order: DraftOrder): SyncOrderPayload {
+// employeeId: el empleado activo del dispositivo (pos_hr) firma el pedido cuando lo hay.
+export function toSyncPayload(order: DraftOrder, employeeId: number | null = null): SyncOrderPayload {
   return {
+    ...(employeeId ? { employee_id: employeeId } : {}),
     id: order.serverId ?? -1, uuid: order.uuid, session_id: order.sessionId, table_id: order.tableId,
     customer_count: order.guests, sequence_number: 1, state: 'draft', general_customer_note: order.note,
     amount_total: 0, amount_tax: 0, amount_paid: 0, amount_return: 0, date_order: nowForOdoo(),

@@ -1,9 +1,26 @@
 import type { Page } from '@playwright/test'
 
-export async function loginAsAdmin(page: Page) {
+// Empleado demo del terminal (hr.employee "Mesero Demo", PIN 123456, sembrado en la base demo compartida).
+export const DEMO_EMPLOYEE = { name: 'Mesero Demo', pin: '123456' }
+
+// "Inicio de empleado" del kit: elegir la cuenta, escribir el PIN en el teclado en pantalla e iniciar turno.
+export async function startShiftAs(page: Page, employee = DEMO_EMPLOYEE.name, pin = DEMO_EMPLOYEE.pin) {
+  await page.getByRole('button', { name: 'Empleado' }).click()
+  await page.getByRole('option', { name: new RegExp(employee) }).click()
+  for (const d of pin) await page.getByRole('button', { name: d, exact: true }).click()
+  await page.getByRole('button', { name: 'Iniciar turno' }).click()
+}
+
+// Login completo del terminal: correo y contraseña de Odoo y luego el empleado con su PIN.
+export async function loginAs(page: Page, login: string, password: string, employee = DEMO_EMPLOYEE.name, pin = DEMO_EMPLOYEE.pin) {
   await page.goto('/login')
-  await page.getByLabel('Correo').fill('admin')
-  await page.getByLabel('Contraseña').fill('admin')
-  await page.getByRole('button', { name: 'Abrir mi turno' }).click()
+  await page.getByLabel('Correo').fill(login)
+  await page.getByLabel('Contraseña').fill(password)
+  await page.getByRole('button', { name: 'Entrar' }).click()
+  await startShiftAs(page, employee, pin)
   await page.waitForURL('**/salon')
+}
+
+export async function loginAsAdmin(page: Page) {
+  await loginAs(page, 'admin', 'admin')
 }
