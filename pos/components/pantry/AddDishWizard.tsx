@@ -6,20 +6,22 @@ import { useState } from 'react'
 import { Chip } from '@/components/kit/Chip'
 import { Icon } from '@/components/kit/Icon'
 import { INPUT, LABEL, PrimaryButton, WizardFrame } from '@/components/pantry/WizardFrame'
-import { unitDisplayName, type Ingredient } from '@/lib/domain/pantry'
+import type { Ingredient } from '@/lib/domain/pantry'
 import type { AdminCategory } from '@/lib/services/catalogAdmin'
-import { createDish, type Unit } from '@/lib/services/pantry'
+import { createDish, type KitUnit } from '@/lib/services/pantry'
 import { toast } from '@/lib/stores/toastStore'
 
-interface Line { productId: number | null; qty: string; uomId: number | null }
-const emptyLine = (): Line => ({ productId: null, qty: '', uomId: null })
+interface Line { ingredientId: number | null; qty: string; uomId: number | null }
+const emptyLine = (): Line => ({ ingredientId: null, qty: '', uomId: null })
 
-// "Add New Dish" del kit en dos pasos: datos del plato y filas de ingredientes; al enviar crea el producto y su receta kit.
+// "Add New Dish" del kit en dos pasos: datos del plato y filas de ingredientes. Al enviar llama a
+// `waiter_create_dish` del addon, que crea el producto del POS y su receta.
 export function AddDishWizard({ open, onClose, categories, ingredients, units, onSaved }: {
-  open: boolean; onClose: () => void; categories: AdminCategory[]; ingredients: Ingredient[]; units: Unit[]; onSaved: () => Promise<void>
+  open: boolean; onClose: () => void; categories: AdminCategory[]; ingredients: Ingredient[]; units: KitUnit[]; onSaved: () => Promise<void>
 }) {
   const t = useTranslations('pantry.dishWizard')
   const ta = useTranslations('pantry.actions')
+  const tu = useTranslations('pantry.units')
   const [step, setStep] = useState(0)
   const [name, setName] = useState('')
   const [categoryId, setCategoryId] = useState<number | null>(null)
@@ -39,20 +41,22 @@ export function AddDishWizard({ open, onClose, categories, ingredients, units, o
     setError(null); setStep(1)
   }
   const patch = (i: number, p: Partial<Line>) => setLines((ls) => ls.map((l, j) => (j === i ? { ...l, ...p } : l)))
-  const pickIngredient = (i: number, productId: number | null) => {
-    const ing = ingredients.find((x) => x.productId === productId)
-    patch(i, { productId, uomId: ing ? ing.uomId : null })
+  // Al elegir el ingrediente se propone su unidad de Odoo, si es una de las seis del kit.
+  const pickIngredient = (i: number, ingredientId: number | null) => {
+    const ing = ingredients.find((x) => x.id === ingredientId)
+    patch(i, { ingredientId, uomId: units.find((u) => u.id === ing?.uomId)?.id ?? null })
   }
 
   async function submit() {
-    const filled = lines.filter((l) => l.productId !== null || l.qty !== '')
-    if (filled.some((l) => l.productId === null || !(Number(l.qty) > 0) || l.uomId === null)) return setError(t('errors.lines'))
+    const filled = lines.filter((l) => l.ingredientId !== null || l.qty !== '')
+    if (filled.some((l) => l.ingredientId === null || !(Number(l.qty) > 0) || l.uomId === null)) return setError(t('errors.lines'))
     setSaving(true); setError(null)
     try {
-      await createDish({ name: name.trim(), categoryIds: categoryId === null ? [] : [categoryId], description: description.trim(), price: Number(price), lines: filled.map((l) => ({ productId: l.productId as number, qty: Number(l.qty), uomId: l.uomId as number })) })
-      await onSaved()
+      await createDish({ name: name.trim(), categoryIds: categoryId === null ? [] : [categoryId], description: description.trim(), price: Number(price),
+        recipe: filled.map((l) => ({ ingredientId: l.ingredientId as number, qty: Number(l.qty), uomId: l.uomId as number })) })
       toast({ title: t('successTitle'), body: t('successBody') })
       close()
+      await onSaved()
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally { setSaving(false) }
@@ -83,12 +87,12 @@ export function AddDishWizard({ open, onClose, categories, ingredients, units, o
           <div className="grid grid-cols-[1fr_80px_200px] gap-2.5 text-[15px] font-semibold text-ink"><span>{t('ingredientName')}</span><span>{t('quantity')}</span><span>{t('unit')}</span></div>
           {lines.map((l, i) => (
             <div key={i} className="grid grid-cols-[1fr_80px_200px] gap-2.5" role="group" aria-label={t('row', { n: i + 1 })}>
-              <select value={l.productId ?? ''} onChange={(e) => pickIngredient(i, e.target.value ? Number(e.target.value) : null)} aria-label={t('ingredientName')} className={INPUT}>
-                <option value="">{t('selectIngredient')}</option>{ingredients.map((x) => <option key={x.productId} value={x.productId}>{x.name}</option>)}
+              <select value={l.ingredientId ?? ''} onChange={(e) => pickIngredient(i, e.target.value ? Number(e.target.value) : null)} aria-label={t('ingredientName')} className={INPUT}>
+                <option value="">{t('selectIngredient')}</option>{ingredients.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
               </select>
               <input type="number" min={0} step="any" value={l.qty} onChange={(e) => patch(i, { qty: e.target.value })} aria-label={t('quantity')} className={INPUT} />
               <select value={l.uomId ?? ''} onChange={(e) => patch(i, { uomId: e.target.value ? Number(e.target.value) : null })} aria-label={t('unit')} className={INPUT}>
-                <option value="">{t('selectUnit')}</option>{units.map((u) => <option key={u.id} value={u.id}>{unitDisplayName(u.name)}</option>)}
+                <option value="">{t('selectUnit')}</option>{units.map((u) => <option key={u.id} value={u.id}>{tu(u.key)}</option>)}
               </select>
             </div>
           ))}

@@ -5,31 +5,31 @@ import { useRef, useState } from 'react'
 
 import { Chip } from '@/components/kit/Chip'
 import { Icon } from '@/components/kit/Icon'
-import { ingredientImage } from '@/components/pantry/DishDetailModal'
 import { INPUT, LABEL, PrimaryButton, WizardFrame } from '@/components/pantry/WizardFrame'
 import { imageDataUrl, resizeImage, validateLogoFile } from '@/lib/domain/image'
-import { KIT_UNITS, categoryEmoji, kitUnitKey, type Ingredient } from '@/lib/domain/pantry'
-import { createIngredient, updateIngredient, type IngredientCategory, type Supplier, type Unit } from '@/lib/services/pantry'
+import { PANTRY_CATEGORIES, categoryEmoji, type Ingredient, type PantryCategory } from '@/lib/domain/pantry'
+import { createIngredient, imageUrl, updateIngredient, type KitUnit, type Supplier } from '@/lib/services/pantry'
 import { toast } from '@/lib/stores/toastStore'
 import { cn } from '@/lib/utils'
 
 const PHOTO_MAX = { width: 512, height: 512 }
 export const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? '').join('')
 
-// "Add New Ingredients" del kit en dos pasos: datos (nombre, categoría, stock inicial, unidad, foto) y proveedor en rejilla.
-// Con `initial` edita el ingrediente (Edit Ingredients del menú ⋯): mismo formulario con los valores actuales.
-export function AddIngredientWizard({ open, onClose, initial = null, categories, units, suppliers, onSaved }: {
-  open: boolean; onClose: () => void; initial?: Ingredient | null; categories: IngredientCategory[]; units: Unit[]; suppliers: Supplier[]; onSaved: () => Promise<void>
+// "Add New Ingredients" del kit en dos pasos: datos (nombre, categoría, stock inicial, unidad, foto) y proveedor en
+// rejilla con buscador. Al enviar llama a `waiter_create_ingredient` del addon. Con `initial` edita (menú ⋯ → Editar).
+export function AddIngredientWizard({ open, onClose, initial = null, units, suppliers, onSaved }: {
+  open: boolean; onClose: () => void; initial?: Ingredient | null; units: KitUnit[]; suppliers: Supplier[]; onSaved: () => Promise<void>
 }) {
   const t = useTranslations('pantry.ingredientWizard')
   const ta = useTranslations('pantry.actions')
+  const tc = useTranslations('pantry.categories')
   const tu = useTranslations('pantry.units')
   const ts = useTranslations('pantry.search')
   const [step, setStep] = useState(0)
   const [name, setName] = useState(initial?.name ?? '')
-  const [categoryId, setCategoryId] = useState<number | null>(initial?.categoryId ?? null)
+  const [category, setCategory] = useState<PantryCategory | null>(initial?.category ?? null)
   const [stock, setStock] = useState(initial ? String(initial.qty) : '')
-  const [unitKey, setUnitKey] = useState<string | null>(initial ? kitUnitKey(initial.uomName) : null)
+  const [uomId, setUomId] = useState<number | null>(initial ? units.find((u) => u.id === initial.uomId)?.id ?? null : null)
   const [image, setImage] = useState<string | undefined>(undefined)
   const [supplierId, setSupplierId] = useState<number | null>(initial?.supplierId ?? null)
   const [query, setQuery] = useState('')
@@ -37,13 +37,11 @@ export function AddIngredientWizard({ open, onClose, initial = null, categories,
   const [saving, setSaving] = useState(false)
   const file = useRef<HTMLInputElement>(null)
 
-  const unitId = (key: string | null) => (key === null ? null : units.find((u) => u.name === KIT_UNITS.find((k) => k.key === key)?.uom)?.id ?? null)
-
   function next() {
     if (!name.trim()) return setError(t('errors.name'))
-    if (categoryId === null) return setError(t('errors.category'))
+    if (category === null) return setError(t('errors.category'))
     if (stock !== '' && !(Number(stock) >= 0)) return setError(t('errors.stock'))
-    if (unitId(unitKey) === null) return setError(t('errors.unit'))
+    if (uomId === null) return setError(t('errors.unit'))
     setError(null); setStep(1)
   }
 
@@ -56,19 +54,19 @@ export function AddIngredientWizard({ open, onClose, initial = null, categories,
   async function submit() {
     if (supplierId === null) return setError(t('errors.supplier'))
     setSaving(true); setError(null)
-    const input = { name: name.trim(), categoryId: categoryId as number, uomId: unitId(unitKey) as number, stock: Number(stock || 0), image, supplierId }
+    const input = { name: name.trim(), category: category as PantryCategory, uomId: uomId as number, stock: Number(stock || 0), image, supplierId }
     try {
       if (initial) await updateIngredient(initial, input); else await createIngredient(input)
-      await onSaved()
       toast(initial ? { title: t('editedTitle'), body: t('editedBody') } : { title: t('successTitle'), body: t('successBody') })
       onClose()
+      await onSaved()
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally { setSaving(false) }
   }
 
   const visible = suppliers.filter((s) => s.name.toLocaleLowerCase('es').includes(query.trim().toLocaleLowerCase('es')))
-  const preview = image ? imageDataUrl(image) : initial?.hasImage ? ingredientImage(initial.id) : null
+  const preview = image ? imageDataUrl(image) : initial?.hasImage ? imageUrl(initial.id, 256) : null
   const footer = (
     <>
       {step === 0 ? <PrimaryButton onClick={next}>{ta('saveNext')}</PrimaryButton> : <PrimaryButton onClick={submit} disabled={saving}>{ta('saveSubmit')}</PrimaryButton>}
@@ -88,12 +86,14 @@ export function AddIngredientWizard({ open, onClose, initial = null, categories,
           <label className="flex flex-col gap-2"><span className={LABEL}>{t('name')}</span><input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('namePlaceholder')} className={INPUT} /></label>
           <div className="flex flex-col gap-2" role="group" aria-label={t('category')}>
             <span className={LABEL}>{t('category')}</span>
-            <div className="flex flex-wrap gap-4 [&>button]:min-w-[120px] [&>button]:justify-center">{categories.map((c) => <Chip key={c.id} label={`${categoryEmoji(c.name)} ${c.name}`} active={c.id === categoryId} onClick={() => setCategoryId(c.id)} />)}</div>
+            <div className="flex flex-wrap gap-4 [&>button]:min-w-[120px] [&>button]:justify-center">
+              {PANTRY_CATEGORIES.map((c) => <Chip key={c.key} label={`${categoryEmoji(c.key)} ${tc(c.key)}`} active={c.key === category} onClick={() => setCategory(c.key)} />)}
+            </div>
           </div>
           <label className="flex flex-col gap-2"><span className={LABEL}>{t('initialStock')}</span><input type="number" min={0} step="any" value={stock} onChange={(e) => setStock(e.target.value)} placeholder={t('initialStockPlaceholder')} className={`${INPUT} max-w-[390px]`} /></label>
           <div className="flex flex-col gap-2" role="group" aria-label={t('unit')}>
             <span className={LABEL}>{t('unit')}</span>
-            <div className="flex flex-wrap gap-4 [&>button]:min-w-[120px] [&>button]:justify-center">{KIT_UNITS.map((u) => <Chip key={u.key} label={tu(u.key)} active={u.key === unitKey} onClick={() => setUnitKey(u.key)} />)}</div>
+            <div className="flex flex-wrap gap-4 [&>button]:min-w-[120px] [&>button]:justify-center">{units.map((u) => <Chip key={u.id} label={tu(u.key)} active={u.id === uomId} onClick={() => setUomId(u.id)} />)}</div>
           </div>
           <div className="flex flex-col gap-2">
             <span className={LABEL}>{t('photo')}</span>

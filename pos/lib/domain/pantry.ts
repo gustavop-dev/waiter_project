@@ -1,107 +1,92 @@
-// Reglas puras del inventario del kit (12 – Inventory): niveles de stock, raciones servibles, estados y filtros.
-// Los datos vienen de los módulos estándar de Odoo (product, stock, mrp, purchase, uom); aquí no hay llamadas.
+// Reglas puras del inventario del kit (12 – Inventory). Los niveles, estados y raciones los calcula el addon
+// projectapp_pantry en Odoo (pantry_level, pantry_status, servings_available): aquí solo se les da formato,
+// se agrupan para el panel de filtros y se filtran las listas. Nada se inventa ni se recalcula.
 
+export type PantryCategory = 'produce' | 'meat' | 'seafood' | 'dairy' | 'dry'
 export type StockLevel = 'empty' | 'low' | 'medium' | 'high'
 export type IngredientStatus = 'request' | 'normal' | 'good'
 export type DishStatusFilter = 'all' | 'available' | 'unavailable'
 export type LevelFilter = 'all' | StockLevel
 
-export interface Thresholds { min: number; max: number }
-// Sin punto de pedido en Odoo: Bajo ≤ 5, Medio ≤ 20, Alto > 20 (y Vacío en 0).
-export const DEFAULT_THRESHOLDS: Thresholds = { min: 5, max: 20 }
+// Las cinco categorías de `pantry_category` con el emoji que el kit pone delante del nombre.
+export const PANTRY_CATEGORIES: { key: PantryCategory; emoji: string }[] = [
+  { key: 'produce', emoji: '🥦' }, { key: 'meat', emoji: '🥩' }, { key: 'seafood', emoji: '🐟' },
+  { key: 'dairy', emoji: '🧀' }, { key: 'dry', emoji: '🍚' },
+]
+export const categoryEmoji = (category: PantryCategory | null): string =>
+  PANTRY_CATEGORIES.find((c) => c.key === category)?.emoji ?? '🧺'
 
-export interface RecipeLine { lineId: number; ingredientId: number; productId: number; name: string; qty: number; uomId: number; uomName: string; uomFactor: number }
-export interface Dish { id: number; name: string; categoryIds: number[]; availableInPos: boolean; hasImage: boolean; price: number; recipe: RecipeLine[] | null }
-export interface DishView extends Dish { servings: number | null; level: StockLevel | null; available: boolean }
+// Orden del panel "Stock Level" del kit: Bajo, Medio, Alto, Vacío (detrás de "Todos").
+export const STOCK_LEVELS: StockLevel[] = ['low', 'medium', 'high', 'empty']
+// Barritas del indicador de nivel: tres para Alto, dos para Medio, una para Bajo, ninguna para Vacío.
+export const LEVEL_BARS: Record<StockLevel, number> = { empty: 0, low: 1, medium: 2, high: 3 }
+
+export interface RecipeLine {
+  id: number; ingredientId: number; name: string; qty: number; uomName: string
+  level: StockLevel | null; status: IngredientStatus | null; servings: number
+}
+export interface Dish {
+  id: number; name: string; categoryIds: number[]; hasImage: boolean; price: number
+  availableInPos: boolean; hasRecipe: boolean; servings: number; level: StockLevel | null
+}
 export interface Ingredient {
-  id: number; productId: number; name: string; categoryId: number | null; categoryName: string; qty: number; uomId: number; uomName: string; uomFactor: number
-  hasImage: boolean; supplierId: number | null; supplierName: string | null; supplierPrice: number; thresholds: Thresholds | null
+  id: number; name: string; category: PantryCategory | null; qty: number; uomId: number; uomName: string
+  level: StockLevel | null; status: IngredientStatus | null; supplierId: number | null; supplierName: string | null
+  hasImage: boolean; min: number; max: number
 }
 
-export const STOCK_LEVELS: StockLevel[] = ['empty', 'low', 'medium', 'high']
+// Badge "Disponible" del kit: el plato está en la carta del POS y, si tiene receta, todavía alcanza para una ración.
+export const dishAvailable = (d: Pick<Dish, 'availableInPos' | 'hasRecipe' | 'servings'>): boolean =>
+  d.availableInPos && (!d.hasRecipe || d.servings > 0)
 
-export function stockLevel(qty: number, thresholds: Thresholds | null = null): StockLevel {
-  const t = thresholds ?? DEFAULT_THRESHOLDS
-  if (qty <= 0) return 'empty'
-  if (qty <= t.min) return 'low'
-  return qty <= t.max ? 'medium' : 'high'
-}
-
-export function ingredientStatus(level: StockLevel): IngredientStatus {
-  return level === 'high' ? 'good' : level === 'medium' ? 'normal' : 'request'
-}
-
-// Raciones servibles: el mínimo entero de stock disponible / cantidad de la receta. Sin líneas útiles no hay receta.
-export function servings(lines: { available: number; needed: number }[]): number | null {
-  const ratios = lines.filter((l) => l.needed > 0).map((l) => Math.floor(l.available / l.needed))
-  return ratios.length === 0 ? null : Math.max(0, Math.min(...ratios))
-}
-
-export const servingsLevel = (n: number | null): StockLevel | null => (n === null ? null : stockLevel(n))
-
-// Un plato se puede pedir si está en el POS y su receta (cuando la tiene) no se agotó.
-export const dishAvailable = (availableInPos: boolean, portions: number | null): boolean => availableInPos && portions !== 0
-
-// Odoo 19 convierte entre unidades por su factor absoluto: qty × factor origen / factor destino (kg = 1000, g = 1).
-export const convertQty = (qty: number, fromFactor: number, toFactor: number): number => (qty * fromFactor) / toFactor
-
-export function dishView(d: Dish, byIngredient: Map<number, Ingredient>): DishView {
-  const lines = (d.recipe ?? []).flatMap((l) => {
-    const ing = byIngredient.get(l.ingredientId)
-    return ing ? [{ available: ing.qty, needed: convertQty(l.qty, l.uomFactor, ing.uomFactor) }] : []
-  })
-  const portions = d.recipe === null ? null : servings(lines)
-  return { ...d, servings: portions, level: servingsLevel(portions), available: dishAvailable(d.availableInPos, portions) }
-}
+// Raciones del pie de la tarjeta: null en los platos sin receta, donde el kit no muestra número sino "Sin receta".
+export const dishServings = (d: Pick<Dish, 'hasRecipe' | 'servings'>): number | null => (d.hasRecipe ? d.servings : null)
 
 const qtyFormat = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 2 })
 export const formatQty = (qty: number): string => qtyFormat.format(qty)
-export const formatStock = (qty: number, uomName: string): string => `${formatQty(qty)} ${unitDisplayName(uomName)}`
+// "Stock: 1,5 kg" del kit: cantidad en español y la unidad tal como la nombra Odoo, con su etiqueta del kit si la tiene.
+export const formatStock = (qty: number, uomName: string): string => `${formatQty(qty)} ${unitLabel(uomName)}`
 
-// Solicitud al proveedor: lo que falta hasta el máximo del punto de pedido; sin umbrales, una unidad.
-export function requestQty(qty: number, thresholds: Thresholds | null): number {
-  if (thresholds && thresholds.max > qty) return Math.round((thresholds.max - qty) * 100) / 100
-  return 1
-}
-
-// Unidades del kit (Add New Ingredients) → nombre de la unidad en uom.uom. Las tres primeras no vienen con Odoo y se crean.
+// Unidades del kit ("Unit Measurement") → nombre en uom.uom. Manojo, Diente y Rebanada no vienen con Odoo.
 export const KIT_UNITS = [
-  { key: 'bunch', uom: 'Manojo', label: 'Manojo' }, { key: 'clove', uom: 'Diente', label: 'Diente' }, { key: 'gram', uom: 'g', label: 'g' },
-  { key: 'kilogram', uom: 'kg', label: 'kg' }, { key: 'pieces', uom: 'Units', label: 'Unidades' }, { key: 'slice', uom: 'Rebanada', label: 'Rebanada' },
+  { key: 'bunch', uom: 'Manojo' }, { key: 'clove', uom: 'Diente' }, { key: 'gram', uom: 'g' },
+  { key: 'kilogram', uom: 'kg' }, { key: 'pieces', uom: 'Units' }, { key: 'slice', uom: 'Rebanada' },
 ] as const
 export type KitUnitKey = (typeof KIT_UNITS)[number]['key']
 export const kitUnitKey = (uomName: string): KitUnitKey | null => KIT_UNITS.find((u) => u.uom === uomName)?.key ?? null
-export const unitDisplayName = (uomName: string): string => KIT_UNITS.find((u) => u.uom === uomName)?.label ?? uomName
-
-// Categorías de ingrediente del kit como hijas de product.category "Ingredientes"; el emoji es el del kit.
-export const INGREDIENT_ROOT = 'Ingredientes'
-export const INGREDIENT_CATEGORIES = [
-  { key: 'produce', name: 'Frutas y verduras', emoji: '🥦' }, { key: 'meat', name: 'Carnes y aves', emoji: '🥩' },
-  { key: 'seafood', name: 'Pescados y mariscos', emoji: '🐟' }, { key: 'dairy', name: 'Lácteos y huevos', emoji: '🧀' },
-  { key: 'dry', name: 'Secos y granos', emoji: '🍚' },
-] as const
-export const categoryEmoji = (name: string): string => INGREDIENT_CATEGORIES.find((c) => c.name === name)?.emoji ?? '🧺'
+// "Units" es el nombre inglés de Odoo para la unidad suelta; el resto se muestra tal cual (kg, g, Manojo…).
+export const unitLabel = (uomName: string): string => (uomName === 'Units' ? 'Unidades' : uomName)
 
 const matches = (name: string, query: string) => name.toLocaleLowerCase('es').includes(query.trim().toLocaleLowerCase('es'))
 
 export interface DishFilters { status: DishStatusFilter; level: LevelFilter; categoryId: number | null; query: string }
 export const EMPTY_DISH_FILTERS: DishFilters = { status: 'all', level: 'all', categoryId: null, query: '' }
 
-export function filterDishes(rows: DishView[], f: DishFilters): DishView[] {
+export function filterDishes(rows: Dish[], f: DishFilters): Dish[] {
   return rows.filter((d) =>
-    (f.status === 'all' || (f.status === 'available') === d.available)
+    (f.status === 'all' || (f.status === 'available') === dishAvailable(d))
     && (f.level === 'all' || d.level === f.level)
     && (f.categoryId === null || d.categoryIds.includes(f.categoryId))
     && matches(d.name, f.query))
 }
 
-export interface IngredientFilters { level: LevelFilter; categoryId: number | null; query: string }
-export const EMPTY_INGREDIENT_FILTERS: IngredientFilters = { level: 'all', categoryId: null, query: '' }
-
-export const ingredientLevel = (i: Ingredient): StockLevel => stockLevel(i.qty, i.thresholds)
+export interface IngredientFilters { level: LevelFilter; category: PantryCategory | null; query: string }
+export const EMPTY_INGREDIENT_FILTERS: IngredientFilters = { level: 'all', category: null, query: '' }
 
 export function filterIngredients(rows: Ingredient[], f: IngredientFilters): Ingredient[] {
-  return rows.filter((i) => (f.level === 'all' || ingredientLevel(i) === f.level) && (f.categoryId === null || i.categoryId === f.categoryId) && matches(i.name, f.query))
+  return rows.filter((i) =>
+    (f.level === 'all' || i.level === f.level)
+    && (f.category === null || i.category === f.category)
+    && matches(i.name, f.query))
 }
 
-export const countBy = <T>(rows: T[], pick: (row: T) => boolean): number => rows.filter(pick).length
+// Conteos de los chips del panel "Filter": `all` es el total y cada clave la cuenta de su grupo (0 si nadie cae ahí).
+export function groupCounts<T>(rows: T[], keys: readonly string[], pick: (row: T) => string | null): Record<string, number> {
+  const counts: Record<string, number> = { all: rows.length }
+  for (const key of keys) counts[key] = 0
+  for (const row of rows) {
+    const key = pick(row)
+    if (key !== null && key in counts) counts[key] += 1
+  }
+  return counts
+}

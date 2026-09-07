@@ -55,7 +55,8 @@
     "canServe": "Se pueden servir {n}",
     "ingredients": "Ingredientes",
     "noRecipe": "Este plato todavía no tiene receta.",
-    "open": "Ver detalle de {name}"
+    "open": "Ver detalle de {name}",
+    "loading": "Cargando la receta…"
   },
   "dishWizard": {
     "title": "Agregar plato",

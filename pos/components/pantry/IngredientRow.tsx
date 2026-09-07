@@ -5,9 +5,9 @@ import { useEffect, useRef, useState } from 'react'
 
 import { Icon } from '@/components/kit/Icon'
 import { StatusPill, type PillTone } from '@/components/kit/StatusPill'
-import { IngredientPhoto } from '@/components/pantry/DishDetailModal'
+import { IngredientPhoto } from '@/components/pantry/IngredientPhoto'
 import { LevelBadge } from '@/components/pantry/LevelBadge'
-import { categoryEmoji, formatStock, ingredientLevel, ingredientStatus, type Ingredient, type IngredientStatus } from '@/lib/domain/pantry'
+import { categoryEmoji, formatStock, type Ingredient, type IngredientStatus } from '@/lib/domain/pantry'
 
 const TONE: Record<IngredientStatus, PillTone> = { request: 'danger', normal: 'progress', good: 'success' }
 
@@ -22,18 +22,16 @@ export function IngredientRow({ ingredient, onEdit, onRequest, onDelete }: { ing
     document.addEventListener('mousedown', onDown)
     return () => document.removeEventListener('mousedown', onDown)
   }, [open])
-  const level = ingredientLevel(ingredient)
-  const status = ingredientStatus(level)
   const pick = (fn: () => void) => () => { setOpen(false); fn() }
   return (
     <li className="h-[72px] px-3 rounded-md border border-border bg-surface flex items-center gap-3">
-      <IngredientPhoto ingredient={ingredient} size={48} />
+      <IngredientPhoto id={ingredient.id} hasImage={ingredient.hasImage} size={48} />
       <div className="flex-1 min-w-0 flex flex-col gap-0.5">
         <p className="text-[15px] font-semibold text-ink truncate">{ingredient.name}</p>
         <p className="text-[13px] text-soft flex items-center gap-1.5 truncate">
-          <span>{categoryEmoji(ingredient.categoryName)} {ingredient.categoryName || t('categories.other')}</span><span aria-hidden>•</span>
+          <span>{categoryEmoji(ingredient.category)} {t(`categories.${ingredient.category ?? 'other'}`)}</span><span aria-hidden>•</span>
           <span>{t('ingredients.stock')} {formatStock(ingredient.qty, ingredient.uomName)}</span>
-          <LevelBadge level={level} />
+          <LevelBadge level={ingredient.level} />
         </p>
       </div>
       <span className="w-px h-10 bg-border" aria-hidden />
@@ -43,7 +41,9 @@ export function IngredientRow({ ingredient, onEdit, onRequest, onDelete }: { ing
       </div>
       <div className="w-[130px] flex flex-col gap-1 items-start">
         <span className="text-[12px] font-medium text-dim tracking-wide">{t('ingredients.status')}</span>
-        <StatusPill tone={TONE[status]} className="h-6 px-2 text-[13px]">{t(`ingredients.statusLabel.${status}`)}</StatusPill>
+        {ingredient.status
+          ? <StatusPill tone={TONE[ingredient.status]} className="h-6 px-2 text-[13px]">{t(`ingredients.statusLabel.${ingredient.status}`)}</StatusPill>
+          : <span className="text-[13px] text-dim">{t('levels.none')}</span>}
       </div>
       <div ref={box} className="relative">
         <button type="button" aria-label={t('actions.more', { name: ingredient.name })} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}
