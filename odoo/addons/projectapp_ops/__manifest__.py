@@ -1,12 +1,15 @@
 {
-    "name": "ProjectApp — Operación (origen del pedido, umbrales y supuestos de ROI)",
-    "summary": "Campos sin interfaz para el backoffice propio: quién originó cada pedido, umbrales de alerta, supuestos del ROI, marca del restaurante y origen de cada foto.",
-    "version": "19.0.1.0.0",
+    "name": "ProjectApp — Operación (origen del pedido, umbrales, kit CloudPos)",
+    "summary": "Campos sin interfaz para el backoffice propio: quién originó cada pedido, umbrales de alerta, supuestos del ROI, "
+               "marca del restaurante, origen de cada foto y los datos que el kit CloudPos necesita (silla de bebé, prefijo y "
+               "número del pedido, PIN de empleado con bloqueo, turno, preferencias de notificación, presets y fidelización).",
+    "version": "19.0.2.0.0",
     "license": "LGPL-3",
     "author": "ProjectApp",
     "category": "Point of Sale",
-    "depends": ["pos_restaurant", "pos_self_order", "account", "product", "stock", "mail"],
-    "data": [],
+    "depends": ["pos_restaurant", "pos_self_order", "pos_hr", "hr_attendance", "pos_loyalty", "account", "product", "stock", "mail"],
+    "data": ["data/sequence.xml"],
+    "post_init_hook": "post_init_hook",
     "installable": True,
     "auto_install": False,
 }

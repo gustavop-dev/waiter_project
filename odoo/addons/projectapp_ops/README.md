@@ -4,8 +4,90 @@ Addon **sin interfaz** para el backoffice propio (`pos/`): `pos.order.waiter_ori
 (mesero / comensal / IA), umbrales de alerta y supuestos del ROI en `pos.config`
 (llegan al cliente por `load_data`), marca del restaurante en `res.company`, origen de
 la imagen y atributos para el comensal en `product.template`, descuento de primera compra en
-`pos.config` y la pasarela `/waiter/admin/menu_settings` hacia `experience/`. Instalación:
-`-i projectapp_ops`.
+`pos.config`, la pasarela `/waiter/admin/menu_settings` hacia `experience/` y, desde el Plan I, todo lo
+que el kit CloudPos necesita y Community no guarda (sección «Kit CloudPos»). Instalación:
+`-i projectapp_ops`. Depende de `pos_restaurant`, `pos_self_order`, `pos_hr`, `hr_attendance`, `pos_loyalty`.
+
+## Kit CloudPos (Plan I)
+
+Todo se lee por `pos.session.load_data` (añadido en `_load_pos_data_fields`) o por RPC (`callKw`). Ninguno
+tiene vista. Al actualizar un Odoo ya instalado: `-u projectapp_ops` y luego **una vez**
+`odoo/provisioning/seed-kit.sh` (la siembra corre sola solo al instalar, en el `post_init_hook`).
+
+### `pos.order`
+
+| Campo | Tipo | Qué |
+|---|---|---|
+| `baby_chair` | Boolean | silla de bebé (Dine In del kit) |
+| `waiter_billing` | Boolean, indexado | «Waiting for Payment»: el mesero pidió la cuenta; compartido entre tablets |
+| `waiter_prefix` | Char computed store | `DI` (`preset_id.service_at = table` o sin preset), `TA` (`counter`), `DE` (`delivery`) |
+| `waiter_number` | Char, readonly | `<prefijo><NNN>`: `DI001`, `DI002`, `TA001`… secuencia del día por sede (`pos.config`) y prefijo; se asigna en `create` (bloqueo `FOR UPDATE` del `pos.config`) |
+| `delivery_address`, `delivery_phone` | Char | entrega (preset Delivery, identificación por dirección) |
+
+| Método | Firma | Devuelve |
+|---|---|---|
+| Esperando pago | `pos.order.set_waiter_billing(order_id, value)` (`@api.model`) | `True` |
+| Mover de mesa | `pos.order.waiter_move_table(order_id, table_id)` (`@api.model`) | `True`; `UserError` si la mesa destino tiene un pedido `draft` |
+
+### Salón y producto
+
+| Campo | Modelo | Tipo |
+|---|---|---|
+| `floor_type` | `restaurant.floor` | Selection `indoor` / `outdoor`, default `indoor` |
+| `rotation` | `restaurant.table` | Integer 0 / 90 / 180 / 270 (constraint) |
+| `available_from` | `product.template` | Datetime (UTC): hora de reposición cuando el plato está agotado |
+
+### `res.users.waiter_notify`
+
+Char con un objeto JSON de seis booleanos, todos `true` al crear el usuario:
+`kitchen_popup`, `kitchen_sound`, `inventory_popup`, `inventory_sound`, `system_popup`, `system_sound`.
+Viaja en `load_data` (`res.users`) y es legible/escribible por el propio usuario.
+
+| Método | Firma | Devuelve |
+|---|---|---|
+| Leer | `res.users.get_waiter_notify()` sobre `[uid]` | dict con las seis claves |
+| Guardar | `res.users.set_waiter_notify(notify)` sobre `[uid]`; `notify` es dict o cadena JSON, parcial | dict resultante (lo que falta conserva su valor) |
+
+### `hr.employee` (empleados del kit; los meseros no tienen usuario de Odoo)
+
+| Campo | Tipo | Qué |
+|---|---|---|
+| `waiter_role` | Selection `waiter` / `cashier` / `admin`, default `waiter` | rol operativo (Plan I, Identidad) |
+| `employee_code` | Char, readonly | `WT-0001`, `WT-0002`… (secuencia `waiter.employee.code`, asignada en `create`) |
+| `joining_date` | Date | fecha de ingreso |
+| `shift_start`, `shift_end` | Float (horas, 8.5 = 08:30), opcional | turno |
+| `employment_status` | Selection `full_time` / `part_time` / `contract` | vinculación |
+| `pin` | Char (de `hr`) | PIN de 6 dígitos; **nunca viaja al cliente en claro** |
+| `waiter_pin_attempts`, `waiter_pin_locked_until` | Integer, Datetime | bloqueo: 5 fallos seguidos → 10 minutos |
+
+Los seis primeros viajan en `load_data` (`hr.employee`, requiere `pos.config.module_pos_hr = True`; la siembra
+lo enciende en el `pos.config` demo). Todos los métodos son `@api.model` y exigen `point_of_sale.group_pos_user`
+(el usuario del terminal); por dentro usan `sudo` para leer el PIN y escribir la asistencia.
+
+| Método | Firma | Devuelve |
+|---|---|---|
+| Validar PIN | `hr.employee.waiter_check_pin(employee_id, pin)` | `{ok: true, employee: {id, name, waiter_role, employee_code, joining_date, shift_start, shift_end, employment_status, work_email, job_title, user_id}, attendance_id}` o `{ok: false, reason: 'wrong', attempts_left}` / `{ok: false, reason: 'locked', locked_until}` / `{ok: false, reason: 'unknown'}`. Al validar abre (o reutiliza) la asistencia `hr.attendance` sin `check_out` |
+| Cambiar PIN | `hr.employee.waiter_change_pin(employee_id, new_pin)` | `True`; `UserError` si no son exactamente 6 dígitos ASCII |
+| Olvidé mi PIN | `hr.employee.waiter_forgot_pin(email)` | siempre `True`. Si el correo coincide con `work_email`, genera un PIN nuevo y lo envía por `mail.mail` (máximo uno por minuto); nunca revela si el correo existe |
+| Cerrar turno («Log Out») | `hr.employee.waiter_end_shift(employee_id)` | `{ok, attendance_id, worked_hours}`; `ok: false` si no había asistencia abierta |
+
+### Siembra (`waiter.seed.seed_kit()`)
+
+Idempotente; corre en el `post_init_hook` y con `odoo/provisioning/seed-kit.sh [db] [proyecto-compose]`:
+
+- Presets **Dine In** (`service_at = table`), **Takeout** (`counter`, identificación por nombre) y **Delivery**
+  (`delivery`, identificación por dirección); se crean si faltan (o se corrige su `service_at`, porque los presets
+  maestros de `pos_restaurant` nacen con `counter`), y se activan en el `pos.config` demo (`use_presets`,
+  `available_preset_ids`, `default_preset_id` = Dine In si no había).
+- Programa de fidelización **«Puntos Waiter»** (`loyalty.program` tipo `loyalty`, aplica en el pedido actual y
+  futuros): regla `money` con `reward_point_amount = 0.001` (1 punto por 1.000 COP, mínimo 1.000 COP) y recompensa
+  `discount` `per_point` de 10 COP por punto con `required_points = 100` (100 puntos = 1.000 COP).
+- Empleados demo **Sofía Mesera** (PIN `123456`, `waiter`, `sofia.mesera@example.com`) y **Carlos Cajero** (PIN
+  `654321`, `cashier`, `carlos.cajero@example.com`), en `basic_employee_ids` del `pos.config` demo con
+  `module_pos_hr = True`. Ojo: con `basic_employee_ids` no vacío, `pos_hr` solo carga en el POS a esos
+  empleados (más los de `advanced_employee_ids` / `minimal_employee_ids` y el ligado al usuario del terminal).
+
+Pruebas del kit: `tests/test_kit.py` (`-u projectapp_ops --test-enable --test-tags /projectapp_ops`).
 
 ## Roles (`res.users.waiter_role`)
 
@@ -17,7 +99,9 @@ la imagen y atributos para el comensal en `product.template`, descuento de prime
 
 Al crear o cambiar el rol, el addon reasigna los grupos. Los usuarios se crean
 desde Configuración → Usuarios. Demo: `sofia` (mesero) y `julian` (cajero),
-clave `Waiter-2026`.
+clave `Waiter-2026`. Desde el Plan I el rol operativo de un mesero es `hr.employee.waiter_role`
+(los meseros no tienen usuario); `res.users.waiter_role` sigue mandando sobre los grupos del terminal y del
+administrador.
 
 ## Marca del restaurante (`res.company.brand_*`)
 
@@ -119,7 +203,7 @@ env.cr.commit()
 ```
 
 - Actualizar en un Odoo ya instalado: `-u projectapp_ops` (agrega las dos columnas; no hay datos ni vistas).
-- Tests del addon (`tests/test_menu_settings.py`): `-u projectapp_ops --test-enable` en una base de prueba.
+- Tests del addon (`tests/test_menu_settings.py`, `tests/test_kit.py`): `-u projectapp_ops --test-enable` en una base de prueba.
 
 ## Invitaciones y códigos
 
