@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-import { initials } from '@/components/layout/Sidebar'
+import { initials } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 
 // Foto del empleado desde Odoo (avatar_128 trae iniciales generadas si no hay foto); si el terminal no puede leerla, iniciales locales.

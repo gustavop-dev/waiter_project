@@ -4,8 +4,8 @@ import { formatElapsed, formatHour, fromOdooDatetime, lockMinutesLeft, readStore
 it('remembers the active employee on the device and survives corrupt storage', () => {
   localStorage.clear()
   expect(readStoredEmployee()).toBeNull()
-  storeEmployee({ id: 2, checkIn: '2026-09-06T10:00:00.000Z' })
-  expect(readStoredEmployee()).toEqual({ id: 2, checkIn: '2026-09-06T10:00:00.000Z' })
+  storeEmployee({ id: 2, checkIn: '2026-09-06T10:00:00.000Z', token: 'tok-demo' })
+  expect(readStoredEmployee()).toEqual({ id: 2, checkIn: '2026-09-06T10:00:00.000Z', token: 'tok-demo' })
   localStorage.setItem('waiter.employee', '{bad')
   expect(readStoredEmployee()).toBeNull()
   storeEmployee(null)

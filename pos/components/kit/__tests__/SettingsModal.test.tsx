@@ -20,7 +20,7 @@ beforeEach(() => {
   localStorage.clear(); delete document.documentElement.dataset.theme
   useAuthStore.setState({
     user: { uid: 7, name: 'Ana', companyId: 1, role: 'admin' },
-    employee: { id: 2, name: 'Sofía Mesera', code: 'WT-0001', role: 'waiter', shift: { from: 10, to: 14 }, userId: null, checkIn: new Date(Date.now() - 65_000).toISOString(), attendanceId: 9 },
+    employee: { id: 2, name: 'Sofía Mesera', code: 'WT-0001', role: 'waiter', shift: { from: 10, to: 14 }, userId: null, checkIn: new Date(Date.now() - 65_000).toISOString(), attendanceId: 9, token: 'tok-demo' },
   })
   ;(getEmployeeProfile as jest.Mock).mockResolvedValue({ id: 2, name: 'Sofía Mesera', code: 'WT-0001', phone: '300', email: null, address: 'Calle 10', joiningDate: '2025-01-01', accessRole: 'waiter', employmentStatus: 'full_time', manager: 'Administrator', jobTitle: null, shift: { from: 10, to: 14 } })
   ;(getNotifyPrefs as jest.Mock).mockResolvedValue({ kitchen_popup: true, kitchen_sound: true, inventory_popup: true, inventory_sound: true, system_popup: true, system_sound: true })
@@ -45,7 +45,7 @@ it('security tab changes the PIN with the keypad and confirms', async () => {
   for (const d of '654321') await userEvent.click(screen.getByRole('button', { name: d }))
   await userEvent.click(within(screen.getByRole('dialog', { name: 'Cambiar PIN' })).getByRole('button', { name: 'Cambiar PIN' }))
   expect(await screen.findByText('¡PIN cambiado!')).toBeInTheDocument()
-  expect(changePin).toHaveBeenCalledWith(2, '654321')
+  expect(changePin).toHaveBeenCalledWith(2, '654321', 'tok-demo')
   await userEvent.click(screen.getByRole('button', { name: 'Ok' }))
   expect(screen.queryByText('¡PIN cambiado!')).toBeNull()
 })

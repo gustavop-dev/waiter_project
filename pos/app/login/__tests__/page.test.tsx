@@ -50,8 +50,8 @@ it('with a session lists the employees with today shift and rejects a wrong PIN'
 // Falla si el PIN correcto no inicia el turno (empleado activo) ni lleva al salón.
 it('a correct PIN starts the shift and enters the POS', async () => {
   hydrateAs(true)
-  ;(checkPin as jest.Mock).mockResolvedValue({ ok: true, attendanceId: 9, employee: { ...demo, userId: null } })
-  useAuthStore.setState({ startShift: async (e, id) => { useAuthStore.setState({ employee: { ...e, checkIn: '', attendanceId: id } }) } })
+  ;(checkPin as jest.Mock).mockResolvedValue({ ok: true, attendanceId: 9, token: 'tok-demo', employee: { ...demo, userId: null } })
+  useAuthStore.setState({ startShift: async (e, id, token) => { useAuthStore.setState({ employee: { ...e, checkIn: '', attendanceId: id, token } }) } })
   wrap()
   await userEvent.click(await screen.findByRole('button', { name: 'Empleado' }))
   await userEvent.click(screen.getByRole('option', { name: /Sofía Mesera/ }))

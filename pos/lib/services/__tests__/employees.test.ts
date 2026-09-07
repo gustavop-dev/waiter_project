@@ -32,12 +32,12 @@ it('checkPin delegates to the server and maps every refusal', async () => {
 // Falla si cambiar el PIN, pedirlo por correo o cerrar el turno dejan de usar los métodos del servidor.
 it('changePin, forgotPin and endShift call their server methods', async () => {
   rpc.mockResolvedValue(true)
-  await changePin(2, '654321')
-  expect(rpc).toHaveBeenCalledWith('hr.employee', 'waiter_change_pin', [2, '654321'])
+  await changePin(2, '654321', 'tok-demo')
+  expect(rpc).toHaveBeenCalledWith('hr.employee', 'waiter_change_pin', [2, '654321', 'tok-demo'])
   await forgotPin('sofia.mesera@example.com')
   expect(rpc).toHaveBeenCalledWith('hr.employee', 'waiter_forgot_pin', ['sofia.mesera@example.com'])
   rpc.mockResolvedValueOnce({ ok: true, attendance_id: 9, worked_hours: 4.25 })
-  expect(await endShift(2)).toEqual({ ok: true, attendanceId: 9, workedHours: 4.25 })
+  expect(await endShift(2, 'tok-demo')).toEqual({ ok: true, attendanceId: 9, workedHours: 4.25 })
 })
 
 // Falla si un usuario sin RR. HH. deja el perfil sin cargar en vez de mostrar "—" en los campos privados.
