@@ -1,10 +1,10 @@
 import {
-  IconAddressBook, IconAdjustments, IconAlarm, IconArrowLeft, IconArrowRight, IconArrowsMove, IconBabyCarriage, IconBackspace,
-  IconBell, IconBox, IconBuildingStore, IconCalendarEvent, IconCash, IconCashRegister, IconChartBar, IconCheck, IconChefHat,
-  IconChevronDown, IconChevronLeft, IconChevronRight, IconClock, IconCreditCard, IconDeviceDesktop, IconDotsVertical,
-  IconFileInvoice, IconFileText, IconFingerprint, IconHistory, IconLanguage, IconLayoutDashboard, IconLock, IconLogout,
-  IconMail, IconMinus, IconPackage, IconPencil, IconPhoto, IconPlus, IconPrinter, IconQrcode, IconReceipt, IconRotate,
-  IconSearch, IconSettings, IconShoppingCart, IconToolsKitchen2, IconTrash, IconTruckDelivery, IconUser, IconUsers, IconX,
+  IconAddressBook, IconAdjustments, IconAlarm, IconArmchair, IconArrowLeft, IconArrowRight, IconArrowsMaximize, IconArrowsMove, IconBabyCarriage, IconBackspace,
+  IconBell, IconBox, IconBuildingStore, IconCalendarEvent, IconCash, IconCashBanknote, IconCashRegister, IconChartBar, IconCheck, IconChefHat,
+  IconChevronDown, IconChevronLeft, IconChevronRight, IconCircleCheck, IconClock, IconCreditCard, IconDeviceDesktop, IconDeviceMobile, IconDotsVertical,
+  IconFileInvoice, IconFileText, IconFingerprint, IconHash, IconHistory, IconLanguage, IconLayoutDashboard, IconLoader2, IconLock, IconLogout,
+  IconMail, IconMapPin, IconMinus, IconPackage, IconPencil, IconPhone, IconPhoto, IconPlus, IconPrinter, IconQrcode, IconReceipt, IconRotate,
+  IconSearch, IconSettings, IconShoppingBag, IconShoppingCart, IconToolsKitchen2, IconTrash, IconTruckDelivery, IconUser, IconUsers, IconX,
   type IconProps,
 } from '@tabler/icons-react'
 import type { ComponentType } from 'react'
@@ -22,6 +22,9 @@ const ICONS = {
   logout: IconLogout, lock: IconLock, photo: IconPhoto, chef: IconChefHat, move: IconArrowsMove, rotate: IconRotate,
   mail: IconMail, fingerprint: IconFingerprint, language: IconLanguage, babyChair: IconBabyCarriage, delivery: IconTruckDelivery,
   store: IconBuildingStore,
+  // Wizard de pedido y pago del kit (oleada I.3 / I.4).
+  bag: IconShoppingBag, hash: IconHash, expand: IconArrowsMaximize, armchair: IconArmchair, terminal: IconDeviceMobile, banknote: IconCashBanknote,
+  mapPin: IconMapPin, phone: IconPhone, loader: IconLoader2, circleCheck: IconCircleCheck,
 } satisfies Record<string, ComponentType<IconProps>>
 
 export type KitIcon = keyof typeof ICONS
