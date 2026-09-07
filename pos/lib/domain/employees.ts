@@ -40,12 +40,15 @@ export function lockMinutesLeft(lockedUntil: string, now = new Date()): number {
 }
 
 export const EMPLOYEE_KEY = 'waiter.employee'
-export interface StoredEmployee { id: number; checkIn: string }
-// El empleado activo se recuerda en el dispositivo (id y hora de entrada) para sobrevivir a una recarga.
+export interface StoredEmployee { id: number; checkIn: string; token: string }
+// El empleado activo se recuerda en el dispositivo (id, hora de entrada y token de sesión) para sobrevivir
+// a una recarga. El token nunca se muestra: solo viaja a Odoo para probar quién pide el cambio de PIN o el
+// cierre del turno; caduca a las 16 horas y muere al cerrar el turno.
 export function readStoredEmployee(): StoredEmployee | null {
   try {
     const raw = JSON.parse(localStorage.getItem(EMPLOYEE_KEY) || 'null') as Partial<StoredEmployee> | null
-    return raw && Number.isInteger(raw.id) && (raw.id as number) > 0 && typeof raw.checkIn === 'string' ? { id: raw.id as number, checkIn: raw.checkIn } : null
+    if (!raw || !Number.isInteger(raw.id) || (raw.id as number) <= 0 || typeof raw.checkIn !== 'string') return null
+    return { id: raw.id as number, checkIn: raw.checkIn, token: typeof raw.token === 'string' ? raw.token : '' }
   } catch { return null }
 }
 export function storeEmployee(value: StoredEmployee | null): void {

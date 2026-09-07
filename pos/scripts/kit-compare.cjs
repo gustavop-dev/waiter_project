@@ -17,9 +17,9 @@ async function main() {
   await page.goto(`${base}/login`)
   await page.getByLabel('Correo').fill('admin'); await page.getByLabel('Contraseña').fill('admin')
   await page.getByRole('button', { name: 'Entrar' }).click()
-  // "Inicio de empleado" (pos_hr): el empleado demo "Mesero Demo" con PIN 123456.
+  // "Inicio de empleado" (pos_hr): el empleado demo "Sofía Mesera" con PIN 123456.
   await page.getByRole('button', { name: 'Empleado' }).click()
-  await page.getByRole('option', { name: /Mesero Demo/ }).click()
+  await page.getByRole('option', { name: /Sofía Mesera/ }).click()
   for (const d of '123456') await page.getByRole('button', { name: d, exact: true }).click()
   await page.getByRole('button', { name: 'Iniciar turno' }).click()
   await page.waitForURL('**/salon')

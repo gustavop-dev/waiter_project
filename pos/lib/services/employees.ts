@@ -15,7 +15,7 @@ export interface EmployeeProfile {
 }
 export interface CheckedEmployee { id: number; name: string; code: string | null; role: Role | null; shift: Shift | null; userId: number | null }
 export type PinResult =
-  | { ok: true; employee: CheckedEmployee; attendanceId: number }
+  | { ok: true; employee: CheckedEmployee; attendanceId: number; token: string }
   | { ok: false; reason: 'wrong'; attemptsLeft: number }
   | { ok: false; reason: 'locked'; lockedUntil: string }
   | { ok: false; reason: 'unknown' }
@@ -31,7 +31,7 @@ interface RawProfile extends RawEmployee {
 interface RawPrivate { private_street: string | false; private_city: string | false; private_email: string | false; private_phone: string | false }
 interface RawPin {
   ok: boolean; reason?: 'wrong' | 'locked' | 'unknown'; attempts_left?: number; locked_until?: string
-  attendance_id?: number
+  attendance_id?: number; token?: string
   employee?: { id: number; name: string; waiter_role: Role | false; employee_code: string | false; shift_start: number; shift_end: number; user_id: number | false }
 }
 
@@ -44,13 +44,14 @@ export async function listPosEmployees(): Promise<PosEmployee[]> {
   return rows.map((r) => ({ id: r.id, name: r.name, code: or(r.employee_code), role: r.waiter_role || null, shift: toShift(r.shift_start, r.shift_end) }))
 }
 
-// "Iniciar turno": el servidor compara el PIN, cuenta los fallos, bloquea diez minutos tras cinco y abre la asistencia.
+// "Iniciar turno": el servidor compara el PIN, cuenta los fallos, bloquea diez minutos tras cinco, abre la
+// asistencia y emite el token de sesión del empleado (identidad de las acciones sensibles: nunca se muestra).
 export async function checkPin(employeeId: number, pin: string): Promise<PinResult> {
   const raw = await callKw<RawPin>(EMPLOYEE, 'waiter_check_pin', [employeeId, pin])
   if (raw.ok && raw.employee) {
     const e = raw.employee
     return {
-      ok: true, attendanceId: raw.attendance_id as number,
+      ok: true, attendanceId: raw.attendance_id as number, token: raw.token ?? '',
       employee: { id: e.id, name: e.name, code: or(e.employee_code), role: e.waiter_role || null, shift: toShift(e.shift_start, e.shift_end), userId: e.user_id || null },
     }
   }
@@ -59,15 +60,16 @@ export async function checkPin(employeeId: number, pin: string): Promise<PinResu
   return { ok: false, reason: 'wrong', attemptsLeft: raw.attempts_left ?? 0 }
 }
 
-export const changePin = (employeeId: number, newPin: string): Promise<true> =>
-  callKw<true>(EMPLOYEE, 'waiter_change_pin', [employeeId, newPin])
+// El token prueba que quien pide el cambio es el empleado del turno: sin él, Odoo responde AccessError.
+export const changePin = (employeeId: number, newPin: string, token: string | null): Promise<true> =>
+  callKw<true>(EMPLOYEE, 'waiter_change_pin', [employeeId, newPin, token])
 
 // Siempre devuelve true: el servidor nunca revela si el correo existe.
 export const forgotPin = (email: string): Promise<true> => callKw<true>(EMPLOYEE, 'waiter_forgot_pin', [email])
 
 export interface EndShift { ok: boolean; attendanceId: number | false; workedHours: number }
-export async function endShift(employeeId: number): Promise<EndShift> {
-  const raw = await callKw<{ ok: boolean; attendance_id: number | false; worked_hours: number }>(EMPLOYEE, 'waiter_end_shift', [employeeId])
+export async function endShift(employeeId: number, token: string | null): Promise<EndShift> {
+  const raw = await callKw<{ ok: boolean; attendance_id: number | false; worked_hours: number }>(EMPLOYEE, 'waiter_end_shift', [employeeId, token])
   return { ok: raw.ok, attendanceId: raw.attendance_id, workedHours: raw.worked_hours }
 }
 

@@ -9,21 +9,29 @@ import { NumericKeypad } from '@/components/kit/NumericKeypad'
 import { PinInput } from '@/components/kit/PinInput'
 import { Button } from '@/components/ui/Button'
 import { changePin } from '@/lib/services/employees'
+import { OdooError } from '@/lib/services/errors'
 
 const PIN_LENGTH = 6
 
 // "Change PIN" y "Change PIN Successful!" del kit (Account Setting): seis casillas, teclado y confirmación.
-export function ChangePinModal({ open, employeeId, onClose }: { open: boolean; employeeId: number; onClose: () => void }) {
+// El cambio va firmado con el token de sesión del empleado: si caducó, Odoo responde AccessError y se muestra su texto.
+export function ChangePinModal({ open, employeeId, token, onClose }: { open: boolean; employeeId: number; token: string; onClose: () => void }) {
   const t = useTranslations('account.settings.security')
   const [pin, setPin] = useState('')
   const [done, setDone] = useState(false)
-  const [failed, setFailed] = useState(false)
+  const [failed, setFailed] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const close = () => { setPin(''); setDone(false); setFailed(false); onClose() }
+  const close = () => { setPin(''); setDone(false); setFailed(null); onClose() }
 
   async function submit() {
-    setBusy(true); setFailed(false)
-    try { await changePin(employeeId, pin); setDone(true) } catch { setFailed(true) } finally { setBusy(false) }
+    setBusy(true); setFailed(null)
+    try {
+      await changePin(employeeId, pin, token || null)
+      setDone(true)
+    } catch (e) {
+      setFailed(e instanceof OdooError && e.message ? e.message : t('failed'))
+      setPin('')
+    } finally { setBusy(false) }
   }
 
   if (done) {
@@ -43,7 +51,7 @@ export function ChangePinModal({ open, employeeId, onClose }: { open: boolean; e
       <div className="p-6 flex flex-col items-center gap-6">
         <p className="text-[17px] text-ink">{t('newPin')}</p>
         <PinInput value={pin} label={t('newPin')} />
-        {failed && <p role="alert" className="text-[14px] text-danger-ink">{t('failed')}</p>}
+        {failed && <p role="alert" className="text-center text-[14px] text-danger-ink">{failed}</p>}
         <NumericKeypad onDigit={(d) => setPin((p) => (p + d).slice(0, PIN_LENGTH))} onBackspace={() => setPin((p) => p.slice(0, -1))} disabled={busy} />
         <Button variant="primary" className="w-full h-12 text-[17px]" disabled={busy || pin.length !== PIN_LENGTH} onClick={() => void submit()}>{t('changePin')}</Button>
       </div>

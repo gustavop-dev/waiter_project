@@ -76,7 +76,7 @@ export default function LoginPage() {
       if (result.reason === 'unknown') return t('employee.unknown')
       return result.attemptsLeft > 0 ? t('employee.wrongPinLeft', { left: result.attemptsLeft }) : t('employee.wrongPin')
     }
-    await startShift(result.employee, result.attendanceId)
+    await startShift(result.employee, result.attendanceId, result.token)
     router.push('/salon')
     return null
   }

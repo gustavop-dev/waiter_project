@@ -5,14 +5,19 @@ import { DEMO_EMPLOYEE, startShiftAs } from './helpers/odoo'
 const ODOO = 'http://192.168.56.10:8069'
 const NEW_PIN = '918273'
 
-// El PIN del empleado demo vuelve a 123456 al final para que el resto de specs sigan entrando.
-async function resetDemoPin(request: Parameters<Parameters<typeof test>[2]>[0]['request']) {
+// El PIN del empleado demo vuelve a 123456 y sin bloqueo antes y después de cada prueba: los intentos
+// fallidos son de verdad (cinco bloquean diez minutos) y el resto de specs entran con el PIN de la demo.
+type Request = Parameters<Parameters<typeof test>[2]>[0]['request']
+async function resetDemoPin(request: Request) {
   await request.post(ODOO + '/web/session/authenticate', { data: { jsonrpc: '2.0', method: 'call', params: { db: 'projectapp', login: 'admin', password: 'admin' } } })
   const rpc = async (model: string, method: string, args: unknown[]) =>
     (await (await request.post(ODOO + '/web/dataset/call_kw', { data: { jsonrpc: '2.0', method: 'call', params: { model, method, args, kwargs: {} } } })).json()).result
   const [emp] = await rpc('hr.employee', 'search_read', [[['name', '=', DEMO_EMPLOYEE.name]], ['id']])
-  await rpc('hr.employee', 'waiter_change_pin', [emp.id, DEMO_EMPLOYEE.pin])
+  await rpc('hr.employee', 'write', [[emp.id], { pin: DEMO_EMPLOYEE.pin, waiter_pin_attempts: 0, waiter_pin_locked_until: false }])
 }
+
+test.beforeEach(async ({ request }) => resetDemoPin(request))
+test.afterEach(async ({ request }) => resetDemoPin(request))
 
 async function loginTerminal(page: import('@playwright/test').Page) {
   await page.goto('/login')
@@ -24,7 +29,7 @@ async function loginTerminal(page: import('@playwright/test').Page) {
 // @flow: employee-shift  @outcome: success
 // El terminal entra con su correo; el mesero elige su cuenta y valida su PIN contra `waiter_check_pin`;
 // en Ajustes cambia el PIN, cierra el turno (`waiter_end_shift`) y vuelve al "Inicio de empleado".
-test('terminal login, employee PIN, change PIN in settings and end the shift', async ({ page, request }) => {
+test('terminal login, employee PIN, change PIN in settings and end the shift', async ({ page }) => {
   await page.goto('/login')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Inicio de terminal')
   await loginTerminal(page)
@@ -35,7 +40,7 @@ test('terminal login, employee PIN, change PIN in settings and end the shift', a
   await page.getByRole('option', { name: new RegExp(DEMO_EMPLOYEE.name) }).click()
   for (const d of '000001') await page.getByRole('button', { name: d, exact: true }).click()
   await page.getByRole('button', { name: 'Iniciar turno' }).click()
-  await expect(page.getByRole('alert')).toHaveText(/PIN incorrecto/)
+  await expect(page.getByRole('alert').first()).toContainText('PIN incorrecto')
 
   await startShiftAs(page)
   await page.waitForURL('**/salon')
@@ -57,10 +62,9 @@ test('terminal login, employee PIN, change PIN in settings and end the shift', a
   await expect(page).toHaveURL(/\/login$/)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Inicio de empleado')
 
-  // El nuevo PIN entra; luego se restaura el de la demo.
+  // El nuevo PIN entra (el de la demo se restaura en afterEach).
   await startShiftAs(page, DEMO_EMPLOYEE.name, NEW_PIN)
   await page.waitForURL('**/salon')
-  await resetDemoPin(request)
 })
 
 // @flow: notification-center  @outcome: success
@@ -91,7 +95,7 @@ test('the notification toggles are stored on the Odoo user', async ({ page }) =>
   await expect(sound).toBeVisible()
   const before = await sound.getAttribute('aria-checked')
   await sound.click()
-  await page.reload()
+  await page.reload({ waitUntil: 'domcontentloaded' })
   await page.getByRole('button', { name: /\/ Administrador/ }).click()
   await settings.getByRole('tab', { name: 'Notificaciones' }).click()
   await expect(sound).toHaveAttribute('aria-checked', before === 'true' ? 'false' : 'true')

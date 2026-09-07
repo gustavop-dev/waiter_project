@@ -128,7 +128,7 @@ export function SettingsModal({ open, onClose, onLogout }: { open: boolean; onCl
           </section>
         </div>
       </Modal>
-      {employee && <ChangePinModal open={changingPin} employeeId={employee.id} onClose={() => setChangingPin(false)} />}
+      {employee && <ChangePinModal open={changingPin} employeeId={employee.id} token={employee.token} onClose={() => setChangingPin(false)} />}
       <LanguageModal open={choosingLanguage} onClose={() => setChoosingLanguage(false)} />
       <Modal open={confirming} onClose={() => setConfirming(false)} footer={
         <div className="flex gap-3"><Button className="flex-1 h-12" onClick={() => setConfirming(false)}>{t('logoutNo')}</Button><Button variant="primary" className="flex-1 h-12" onClick={() => { setConfirming(false); void onLogout() }}>{t('logoutYes')}</Button></div>

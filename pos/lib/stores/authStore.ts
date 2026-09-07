@@ -14,6 +14,8 @@ import type { AuthUser, PosSession } from '@/lib/services/session'
 export interface ActiveEmployee {
   id: number; name: string; code: string | null; role: Role | null; shift: Shift | null
   userId: number | null; checkIn: string; attendanceId: number | null
+  // Token de sesión del empleado: prueba su identidad ante Odoo (cambiar PIN, cerrar turno). No se muestra.
+  token: string
 }
 
 interface AuthState {
@@ -26,7 +28,7 @@ interface AuthState {
   logout: () => Promise<void>
   refreshSession: () => Promise<void>
   openRegister: (configId: number, openingCash: number, notes: string) => Promise<void>
-  startShift: (employee: CheckedEmployee, attendanceId: number) => Promise<void>
+  startShift: (employee: CheckedEmployee, attendanceId: number, token: string) => Promise<void>
   endShift: () => Promise<void>
 }
 
@@ -39,7 +41,7 @@ async function restoreEmployee(): Promise<ActiveEmployee | null> {
   try {
     const employee = await readEmployee(stored.id)
     const open = await findOpenAttendance(stored.id).catch(() => null)
-    return { ...employee, userId: null, checkIn: open ? toIso(open.checkIn) : stored.checkIn, attendanceId: open?.id ?? null }
+    return { ...employee, userId: null, token: stored.token, checkIn: open ? toIso(open.checkIn) : stored.checkIn, attendanceId: open?.id ?? null }
   } catch {
     storeEmployee(null)
     return null
@@ -69,17 +71,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   refreshSession: async () => set({ session: await getOpenSession() }),
   openRegister: async (configId, cash, notes) => set({ session: await openRegisterRequest(configId, cash, notes) }),
-  // El PIN ya lo validó `waiter_check_pin`, que devolvió al empleado y la asistencia recién abierta.
-  startShift: async (employee, attendanceId) => {
+  // El PIN ya lo validó `waiter_check_pin`, que devolvió al empleado, la asistencia recién abierta y el token.
+  startShift: async (employee, attendanceId, token) => {
     const open = await findOpenAttendance(employee.id).catch(() => null)
     const checkIn = open ? toIso(open.checkIn) : new Date().toISOString()
-    storeEmployee({ id: employee.id, checkIn })
-    set({ employee: { ...employee, checkIn, attendanceId } })
+    storeEmployee({ id: employee.id, checkIn, token })
+    set({ employee: { ...employee, checkIn, attendanceId, token } })
   },
   // "Cerrar sesión" del kit: cierra la asistencia (`waiter_end_shift`) y suelta al empleado; la sesión de Odoo del terminal sigue.
   endShift: async () => {
     const current = get().employee
-    if (current) { try { await endShiftRequest(current.id) } catch { /* sin permiso de asistencia: el turno termina igual */ } }
+    if (current) { try { await endShiftRequest(current.id, current.token) } catch { /* el token pudo caducar: el turno termina igual en el dispositivo */ } }
     storeEmployee(null)
     set({ employee: null })
   },
