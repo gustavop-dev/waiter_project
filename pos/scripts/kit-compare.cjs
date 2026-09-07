@@ -13,7 +13,6 @@ async function main() {
   const out = process.env.KIT_OUT || path.join(__dirname, '..', 'kit-compare'); fs.mkdirSync(out, { recursive: true })
   const browser = await chromium.launch()
   const context = await browser.newContext({ ...devices['iPad Pro 11 landscape'] })
-  const theme = process.env.KIT_THEME === 'dark' ? 'dark' : 'light'
   const page = await context.newPage()
   await page.addInitScript((mode) => { try { localStorage.setItem('waiter.theme', mode) } catch { /* sin almacenamiento */ } }, theme)
   await page.goto(`${base}/login`)
