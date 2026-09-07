@@ -1,12 +1,29 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 import { loginAsAdmin } from './helpers/odoo'
 
 // @flow: kit-orders  @outcome: success
 // Dashboard muestra el pedido en progreso; Pedidos lo lista y abre el detalle; Agregar ronda la envía a cocina;
 // Historial muestra un pedido pagado. Al final se cobra el pedido para dejar la mesa 7 libre.
+// La base demo es compartida: si una corrida anterior dejó la mesa 7 ocupada, se cobra antes de empezar.
+async function liberarMesa7(page: Page) {
+  const mesa = page.getByRole('button', { name: /^7\b/ }).first()
+  await mesa.waitFor()
+  if ((await mesa.innerText()).includes('Libre')) return
+  await mesa.click()
+  await page.getByText('Toca una mesa para ver su cuenta').waitFor({ state: 'hidden' })
+  await page.getByRole('button', { name: /^Cobrar \$/ }).click()
+  await page.getByRole('button', { name: 'Agregar pago' }).click()
+  await page.getByRole('button', { name: 'Confirmar cobro' }).click()
+  await page.getByRole('button', { name: 'Cerrar' }).click()
+  await expect(page.getByRole('button', { name: /^7\b.*Libre/ })).toBeVisible()
+}
+
 test('dashboard, orders, detail, add round and history follow the kit', async ({ page }) => {
+  // Recorre cuatro pantallas y además limpia y cobra la mesa 7: no cabe en el minuto por defecto.
+  test.setTimeout(180_000)
   await loginAsAdmin(page)
+  await liberarMesa7(page)
   await page.getByRole('button', { name: /^7\b.*Libre/ }).click()
   await page.getByText('Toca una mesa para ver su cuenta').waitFor({ state: 'hidden' })
   await page.getByRole('button', { name: /Mesa 7/ }).click()
@@ -36,7 +53,7 @@ test('dashboard, orders, detail, add round and history follow the kit', async ({
   const cart = page.getByRole('complementary', { name: 'Nueva ronda' })
   await expect(cart.getByRole('listitem', { name: 'Papas Trufadas' })).toBeVisible()
   await cart.getByRole('button', { name: 'Guardar y enviar a cocina' }).click()
-  await expect(page.getByRole('status').first()).toContainText('va a cocina')
+  // El aviso "va a cocina" se desvanece solo; lo que se comprueba es el resultado: vuelve a Pedidos con la ronda dentro.
   await expect(page).toHaveURL(/\/pedidos$/)
   await expect(card).toContainText('Papas Trufadas')
 

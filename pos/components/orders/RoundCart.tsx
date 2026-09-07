@@ -27,7 +27,7 @@ export function RoundCart({ lines, totals, busy, productOf, onQty, onNote, onRem
         {lines.map((l) => {
           const p = productOf(l.productId)
           return (
-            <li key={l.uuid} aria-label={l.name} className="rounded-md border border-border p-3 flex flex-col gap-3">
+            <li key={l.uuid} aria-label={l.name} className="rounded-md border border-border p-3 flex flex-col gap-3 shrink-0">
               <div className="flex gap-3">
                 <span className="w-20 h-20 rounded-sm bg-muted overflow-hidden shrink-0 grid place-items-center text-dim">{p?.hasImage ? <img src={templateImage(p.templateId)} alt="" className="w-full h-full object-cover" /> : <Icon name="photo" size={22} />}</span>
                 <div className="min-w-0 flex-1 flex flex-col gap-1">

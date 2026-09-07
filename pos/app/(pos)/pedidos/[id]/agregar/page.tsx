@@ -53,7 +53,7 @@ export default function AgregarRondaPage() {
   const products = useMemo(() => (catalog?.products ?? []).filter((p) => p.categoryIds.length > 0 && p.name.toLowerCase().includes(query.trim().toLowerCase())), [catalog, query])
   const categories = useMemo(() => (catalog?.categories ?? []).map((c) => ({ ...c, items: products.filter((p) => p.categoryIds.includes(c.id)) })).filter((c) => c.items.length > 0), [catalog, products])
   const shown = categoryId === null ? categories : categories.filter((c) => c.id === categoryId)
-  const lines = draft?.lines ?? []
+  const lines = useMemo(() => draft?.lines ?? [], [draft])
   const totals = useMemo(() => cartTotals(lines, taxes), [lines, taxes])
   const productOf = useCallback((id: number) => catalog?.products.find((p) => p.id === id), [catalog])
   const inCart = (productId: number) => lines.filter((l) => l.productId === productId).reduce((a, l) => a + l.qty, 0)
@@ -86,8 +86,8 @@ export default function AgregarRondaPage() {
           </header>
           {loaded && !order
             ? <KitEmptyState icon="orders" title={t('addRound.notFound')} />
-            : <div className="flex-1 min-h-0 grid grid-cols-[1fr_380px] gap-3 p-3 bg-canvas">
-              <section aria-label={t('addRound.title')} className="rounded-lg border border-border bg-surface flex flex-col min-h-0">
+            : <div className="flex-1 min-h-0 grid grid-cols-[minmax(0,1fr)_380px] gap-3 p-3 bg-canvas">
+              <section aria-label={t('addRound.title')} className="rounded-lg border border-border bg-surface flex flex-col min-h-0 min-w-0">
                 <div className="px-4 h-16 flex items-center gap-4 shrink-0">
                   <span className="inline-flex items-center gap-2 text-[17px] font-semibold text-ink"><Icon name="inventory" size={20} />{t('addRound.title')}</span>
                   <label className="ml-auto w-[320px] h-11 px-3 rounded-md border border-border bg-surface flex items-center gap-2 text-dim">
@@ -104,7 +104,7 @@ export default function AgregarRondaPage() {
                     <div key={c.id} className="flex flex-col gap-3">
                       <div className="flex items-center gap-3"><span className="h-9 px-3 rounded-md bg-muted text-[14px] font-semibold text-ink inline-flex items-center">{c.name}</span><span className="flex-1 border-t border-dashed border-border" /></div>
                       <div className="grid grid-cols-3 gap-3">
-                        {c.items.map((p) => <MenuProductCard key={p.id} product={p} inCart={inCart(p.id)} onAdd={() => add(p)} />)}
+                        {c.items.map((p) => <MenuProductCard key={p.id} product={p} inCart={inCart(p.id)} onAdd={() => add(p)} disabled={!draft} />)}
                       </div>
                     </div>
                   ))}

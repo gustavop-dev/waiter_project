@@ -107,7 +107,7 @@ export function OrderCard({ order, status, percent, variant = 'full', checked = 
   const t = useTranslations('orders')
   const chargeable = canCharge(order)
   return (
-    <article aria-label={`${t('card.orderNo')} ${order.number}`} className="bg-surface border border-border rounded-lg p-3 flex flex-col gap-3">
+    <article aria-label={`${t('card.orderNo')} ${order.number}`} className="bg-surface border border-border rounded-lg p-3 flex flex-col gap-3 shrink-0">
       <OrderHeadline order={order} />
       <CustomerRow order={order} />
       <StatusBar order={order} status={status} percent={percent} onItems={onDetails} />
@@ -118,7 +118,7 @@ export function OrderCard({ order, status, percent, variant = 'full', checked = 
             <Button variant="secondary" size="compact" onClick={onDetails}>{t('card.details')}</Button>
             {chargeable
               ? <Link href={`/pago/${order.id}`} className="h-tap-min px-4 rounded-md bg-primary text-primary-ink text-[15px] font-bold inline-flex items-center justify-center">{t('card.pay')}</Link>
-              : <Button variant="primary" size="compact" disabled aria-disabled="true">{t('card.pay')}</Button>}
+              : <Button variant="primary" size="compact" disabled className="disabled:bg-muted disabled:text-dim disabled:opacity-100">{t('card.pay')}</Button>}
           </div>
         </>
       )}

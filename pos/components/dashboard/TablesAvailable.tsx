@@ -15,7 +15,7 @@ export function TablesAvailable({ floors, tables, busyTableIds }: { floors: Floo
   return (
     <section aria-label={t('tables.title')} className="bg-surface border border-border rounded-lg flex flex-col min-h-0">
       <header className="px-4 h-16 flex items-center justify-between border-b border-border shrink-0">
-        <h2 className="text-[17px] font-semibold text-ink">{t('tables.title')}</h2>
+        <h2 className="text-[16px] font-semibold text-ink whitespace-nowrap">{t('tables.title')}</h2>
         <label className="relative h-10 rounded-md border border-border bg-surface inline-flex items-center pl-3 pr-8 text-[15px] font-semibold text-ink">
           <select aria-label={t('tables.floor')} value={active?.id ?? ''} onChange={(e) => setFloorId(Number(e.target.value))} className="appearance-none bg-transparent outline-none pr-1">
             {floors.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}

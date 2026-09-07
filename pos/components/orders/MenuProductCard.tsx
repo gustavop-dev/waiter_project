@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 
 // Tarjeta de plato del kit (8 – Add New Order): foto con badge Disponible / No disponible, nombre, precio y "Agregar" / "Agregar más (n)".
 // Un plato agotado muestra "Disponible: Sin hora" hasta que exista `available_from` en Odoo.
-export function MenuProductCard({ product, inCart, onAdd }: { product: Product; inCart: number; onAdd: () => void }) {
+export function MenuProductCard({ product, inCart, onAdd, disabled = false }: { product: Product; inCart: number; onAdd: () => void; disabled?: boolean }) {
   const t = useTranslations('orders.addRound')
   return (
     <article aria-label={product.name} className="rounded-md border border-border bg-surface p-2 flex flex-col gap-2">
@@ -25,7 +25,7 @@ export function MenuProductCard({ product, inCart, onAdd }: { product: Product; 
         ? <span className="h-10 rounded-sm bg-muted text-[13px] font-semibold text-ink inline-flex items-center justify-center gap-1.5"><Icon name="mail" size={16} />{t('availableOn', { time: t('noTime') })}</span>
         : <div className="flex items-center justify-between gap-2">
           <span className="text-[16px] font-semibold text-primary tabular"><sup className="text-[11px] mr-0.5">$</sup>{formatCop(product.price)}</span>
-          <button type="button" onClick={onAdd} className={cn('h-9 px-3 rounded-sm border text-[13px] font-semibold', inCart > 0 ? 'border-primary/40 bg-primary-soft text-primary' : 'border-border bg-surface text-ink')}>
+          <button type="button" onClick={onAdd} disabled={disabled} className={cn('h-9 px-3 rounded-sm border text-[13px] font-semibold disabled:opacity-40', inCart > 0 ? 'border-primary/40 bg-primary-soft text-primary' : 'border-border bg-surface text-ink')}>
             {inCart > 0 ? t('addMore', { n: inCart }) : t('add')}
           </button>
         </div>}

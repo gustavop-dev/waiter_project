@@ -16,7 +16,7 @@ export function HistoryRow({ order, selected, onSelect }: { order: KitOrder; sel
   cells.push([t('row.customer'), order.customer || to('card.noCustomer')], [t('row.total'), `$ ${formatCop(order.total)}`])
   return (
     <button type="button" onClick={onSelect} aria-pressed={selected} aria-label={`${t('row.orderNo')} ${order.number}`}
-      className={cn('w-full text-left rounded-md border bg-surface overflow-hidden', selected ? 'border-primary ring-1 ring-primary' : 'border-border')}>
+      className={cn('w-full shrink-0 text-left rounded-md border bg-surface overflow-hidden', selected ? 'border-primary ring-1 ring-primary' : 'border-border')}>
       <div className="h-10 px-4 bg-muted flex items-center justify-between text-[14px] text-soft">
         <span>{t('row.orderNo')} <b className="text-ink font-semibold">{order.number}</b></span>
         <span className="tabular">{formatOrderDate(order.startedAt)}</span>

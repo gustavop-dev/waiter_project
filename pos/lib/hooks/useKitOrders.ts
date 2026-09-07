@@ -22,8 +22,10 @@ export function useKitOrders() {
   const [loaded, setLoaded] = useState(false)
   const tableNumberOf = useCallback((id: number) => catalog?.tables.find((t) => t.id === id)?.number ?? null, [catalog])
 
+  // Sin la carta cargada no se sabe el número de las mesas: pedir ahora dejaría las tarjetas sin su chip azul
+  // hasta el siguiente sondeo. Al llegar la carta, `refresh` cambia y el efecto vuelve a pedir enseguida.
   const refresh = useCallback(async () => {
-    if (!session) return
+    if (!session || !catalog) return
     try {
       const [list] = await Promise.all([listKitOrders(session.id, tableNumberOf), refreshOpenOrders(session.id)])
       setOrders(list)
@@ -32,7 +34,7 @@ export function useKitOrders() {
     } finally {
       setLoaded(true)
     }
-  }, [session, tableNumberOf, refreshOpenOrders])
+  }, [session, catalog, tableNumberOf, refreshOpenOrders])
 
   useEffect(() => {
     // Primera carga fuera del cuerpo del efecto (sin setState síncrono) y sondeo periódico después.

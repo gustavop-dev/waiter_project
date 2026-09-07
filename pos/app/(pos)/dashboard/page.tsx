@@ -44,7 +44,7 @@ export default function DashboardPage() {
 
   return (
     <KitShell>
-      <div className="flex-1 min-h-0 grid grid-cols-[1fr_284px] gap-4 p-4">
+      <div className="flex-1 min-h-0 grid grid-cols-[minmax(0,1fr)_300px] gap-4 p-4">
         <div className="min-h-0 flex flex-col gap-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex flex-col gap-1">
