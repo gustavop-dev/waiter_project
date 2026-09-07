@@ -42,6 +42,24 @@ Cada test: ≤50 líneas, ≤7 asserts, sin condicionales, y un comentario
   `PLAYWRIGHT_BASE_URL=http://192.168.56.10:3000 npm run kit:compare -- /kit /salon` → `kit-compare/`.
 - Playwright tiene el proyecto `Tablet` (iPad Pro 11 apaisado sobre Chromium): `npx playwright test <spec> --project=Tablet`.
 
+## Inventario del kit (12 – Inventory, `/inventario`)
+
+Sobre los módulos estándar de Odoo, sin addon propio: ingrediente = `product.template` almacenable y no
+vendible (`sale_ok = false`, `is_storable = true`, `available_in_pos = false`) con categoría hija de
+`product.category` "Ingredientes"; receta = `mrp.bom` tipo kit (`phantom`) del plato; proveedor =
+`product.supplierinfo`; umbrales Bajo / Medio / Alto = `stock.warehouse.orderpoint` (mín y máx; sin punto
+de pedido: Bajo ≤ 5, Medio ≤ 20); solicitud = `purchase.order` en borrador (Odoo no envía correo hasta que
+alguien pulse "Enviar por correo" en la orden). Reglas puras en `lib/domain/pantry.ts`, Odoo en
+`lib/services/pantry.ts`, textos en `lib/i18n/messages/modules/pantry.json`.
+
+Datos demo del kit (idempotente; volver a correrlo deja el stock en los valores demo):
+
+    node scripts/seed-pantry.cjs        # ODOO_URL, ODOO_DB, ODOO_USER, ODOO_PASSWORD opcionales
+
+Crea las categorías de ingrediente, las unidades Manojo / Diente / Rebanada, 2 proveedores, 8 ingredientes
+con stock y punto de pedido, y la receta de 6 platos demo (hamburguesas, arepa, bowl, carbonara, tacos).
+Los ingredientes no tienen foto (no hay imágenes de ingredientes en `assets/demo/imagenes/`).
+
 ## Alcance actual
 
 A: salón y pedidos; B: KDS; C: backoffice y ROI; E: cobro, caja y roles;
