@@ -1,0 +1,80 @@
+'use client'
+
+import { useTranslations } from 'next-intl'
+
+import { Icon } from '@/components/kit/Icon'
+import { Button } from '@/components/ui/Button'
+import { formatCop } from '@/lib/domain/money'
+import { additionNames, lineSubtotal, type CartLine, type CartTotals } from '@/lib/domain/orderWizard'
+import { hourLabel, type ReservationDraft } from '@/lib/domain/reservations'
+
+// Paso 4 del kit (Reservation Summary.png): los platos pre-pedidos a la izquierda y la ficha de la reserva
+// a la derecha. El ID lo asigna el servidor al crearla.
+export function SummaryStep({ draft, tableNumber, lines, totals, busy, onCreate }: {
+  draft: ReservationDraft; tableNumber: number | null; lines: CartLine[]; totals: CartTotals; busy: boolean; onCreate: () => void
+}) {
+  const t = useTranslations('reservations.summary')
+  const rows: [string, string, 'hash' | 'user' | 'reservations' | 'clock' | 'tables' | 'babyChair' | 'mail' | 'phone'][] = [
+    [t('id'), t('idPending'), 'hash'],
+    [t('customer'), draft.customerName, 'user'],
+    [t('date'), draft.date ? new Date(`${draft.date}T00:00:00`).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' }) : '—', 'reservations'],
+    [t('time'), draft.timeStart !== null ? hourLabel(draft.timeStart) : '—', 'clock'],
+    [t('table'), tableNumber !== null ? String(tableNumber) : '—', 'tables'],
+    [t('people'), String(draft.people), 'user'],
+    [t('babyChair'), draft.babyChair ? t('yes') : t('no'), 'babyChair'],
+    ...(draft.customerEmail ? ([[t('email'), draft.customerEmail, 'mail']] as typeof rows) : []),
+    ...(draft.customerPhone ? ([[t('phone'), draft.customerPhone, 'phone']] as typeof rows) : []),
+  ]
+
+  return (
+    <div className="flex-1 min-h-0 flex gap-6 p-6 overflow-hidden">
+      <section className="flex-1 min-w-0 bg-surface border border-border rounded-lg flex flex-col overflow-hidden">
+        <h2 className="h-14 px-5 flex items-center text-[17px] font-semibold text-ink border-b border-border">{t('dishes')}</h2>
+        <div className="flex-1 min-h-0 overflow-auto p-5">
+          {lines.length === 0
+            ? <p className="text-[15px] text-dim">{t('noDishes')}</p>
+            : (
+              <div className="grid grid-cols-2 gap-3">
+                {lines.map((line) => (
+                  <article key={line.uuid} className="p-3 rounded-md border border-border flex gap-3">
+                    <span className="w-14 h-14 shrink-0 rounded-sm bg-muted overflow-hidden grid place-items-center text-dim">
+                      {line.hasImage ? <img src={`/odoo/web/image/product.template/${line.templateId}/image_128`} alt="" className="w-full h-full object-cover" /> : <Icon name="photo" size={20} />}
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-[15px] font-semibold text-ink truncate">{line.name}</span>
+                      {line.options.length > 0 && <span className="block text-[13px] text-soft truncate">{t('addition', { list: additionNames(line) })}</span>}
+                      {line.note && <span className="block text-[13px] text-soft truncate">{t('note', { note: line.note })}</span>}
+                      <span className="block mt-1 text-[15px] font-semibold text-ink">{formatCop(lineSubtotal(line))}</span>
+                    </span>
+                    <span className="self-start h-7 px-2 rounded-sm bg-muted text-[13px] font-semibold text-soft grid place-items-center">x{line.qty}</span>
+                  </article>
+                ))}
+              </div>
+            )}
+        </div>
+        {lines.length > 0 && (
+          <footer className="px-5 py-4 border-t border-border flex flex-col gap-2 text-[15px]">
+            <span className="flex justify-between text-soft">{t('subtotal')}<span className="tabular">{formatCop(totals.subtotal)}</span></span>
+            <span className="flex justify-between text-soft">{totals.taxNames.join(' · ') || t('tax')}<span className="tabular">{formatCop(totals.tax)}</span></span>
+            <span className="flex justify-between text-[17px] font-semibold text-ink">{t('total')}<span className="tabular">{formatCop(totals.total)}</span></span>
+          </footer>
+        )}
+      </section>
+
+      <section className="w-[400px] shrink-0 bg-surface border border-border rounded-lg flex flex-col overflow-hidden">
+        <h2 className="h-14 px-5 flex items-center text-[17px] font-semibold text-ink border-b border-border">{t('details')}</h2>
+        <dl className="flex-1 min-h-0 overflow-auto p-5 flex flex-col gap-4">
+          {rows.map(([label, value, icon]) => (
+            <div key={label} className="flex items-center justify-between gap-4">
+              <dt className="flex items-center gap-2 text-[15px] text-dim"><Icon name={icon} size={16} />{label}</dt>
+              <dd className="text-[15px] font-semibold text-ink text-right truncate">{value}</dd>
+            </div>
+          ))}
+        </dl>
+        <div className="p-5 border-t border-border">
+          <Button variant="primary" size="money" className="w-full" disabled={busy} onClick={onCreate}>{t('create')}</Button>
+        </div>
+      </section>
+    </div>
+  )
+}

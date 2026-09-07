@@ -1,1 +1,123 @@
-{}
+{
+  "title": "Reservas",
+  "floors": "Piso",
+  "day": "Día",
+  "add": "Nueva reserva",
+  "tableColumn": "Mesa",
+  "table": {
+    "legend": {
+      "available": "Disponible",
+      "reserved": "Reservada",
+      "unavailable": "No seleccionable"
+    },
+    "seats": "{count} personas",
+    "selected": "Mesa seleccionada:",
+    "tableName": "Mesa {number}",
+    "clear": "Quitar la mesa elegida",
+    "continue": "Continuar"
+  },
+  "loading": "Cargando las reservas del día…",
+  "created": "¡Reserva confirmada! {name}",
+  "createdBody": "Ya aparece en la grilla del día.",
+  "createdMail": "Le enviamos el detalle por correo al cliente.",
+  "empty": {
+    "tables": "Este piso no tiene mesas",
+    "tablesBody": "Agrega mesas desde el plano para poder reservarlas."
+  },
+  "dateTime": {
+    "title": "Elige fecha y hora",
+    "chooseTime": "Hora",
+    "notSelected": "Sin elegir",
+    "prevMonth": "Mes anterior",
+    "nextMonth": "Mes siguiente",
+    "cancel": "Cancelar",
+    "apply": "Aplicar"
+  },
+  "info": {
+    "title": "Datos de la reserva",
+    "when": "Fecha y hora",
+    "pickMoment": "Elige fecha y hora",
+    "name": "Nombre del cliente",
+    "namePlaceholder": "Nombre y apellido",
+    "email": "Correo",
+    "emailPlaceholder": "Para enviarle la confirmación",
+    "phone": "Teléfono",
+    "phonePlaceholder": "Opcional",
+    "people": "Personas",
+    "lessPeople": "Una persona menos",
+    "morePeople": "Una persona más",
+    "babyChair": "Silla de bebé",
+    "yes": "Sí",
+    "no": "No",
+    "notes": "Notas",
+    "notesPlaceholder": "Cumpleaños, alergias, mesa junto a la ventana…",
+    "continue": "Continuar"
+  },
+  "wizard": {
+    "title": "Nueva reserva",
+    "back": "Volver",
+    "close": "Cerrar",
+    "steps": {
+      "info": "Datos",
+      "table": "Mesa",
+      "dishes": "Platos",
+      "summary": "Resumen"
+    }
+  },
+  "summary": {
+    "dishes": "Platos pre-pedidos",
+    "noDishes": "Sin platos: el cliente pedirá al llegar.",
+    "addition": "Adición: {list}",
+    "note": "Nota: {note}",
+    "subtotal": "Subtotal",
+    "tax": "Impuestos",
+    "total": "Total",
+    "details": "Detalles de la reserva",
+    "id": "Código",
+    "idPending": "Se asigna al crear",
+    "customer": "Cliente",
+    "date": "Fecha",
+    "time": "Hora",
+    "table": "Mesa",
+    "people": "Personas",
+    "babyChair": "Silla de bebé",
+    "email": "Correo",
+    "phone": "Teléfono",
+    "yes": "Sí",
+    "no": "No",
+    "create": "Crear reserva"
+  },
+  "list": {
+    "title": "Reservas de la mesa",
+    "loading": "Cargando…",
+    "empty": "Sin reservas",
+    "emptyBody": "Esta mesa no tiene reservas activas.",
+    "customer": "Cliente",
+    "date": "Fecha",
+    "time": "Hora",
+    "detail": "Detalle"
+  },
+  "detail": {
+    "title": "Detalle de la reserva",
+    "loading": "Cargando…",
+    "id": "Reserva #{name}",
+    "customer": "Cliente",
+    "people": "Personas",
+    "babyChair": "Silla de bebé",
+    "yes": "Sí",
+    "no": "No",
+    "dishes": "Platos pre-pedidos",
+    "noDishes": "Sin platos pre-pedidos.",
+    "note": "Nota: {note}",
+    "total": "Total",
+    "seat": "Sentar",
+    "noShow": "No llegó",
+    "cancel": "Cancelar",
+    "state": {
+      "confirmed": "Confirmada",
+      "seated": "Sentada",
+      "no_show": "No llegó",
+      "cancelled": "Cancelada"
+    }
+  }
+}
