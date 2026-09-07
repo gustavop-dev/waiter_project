@@ -3,6 +3,15 @@ import { jest } from '@jest/globals';
 import '@testing-library/jest-dom';
 import '@testing-library/jest-dom/jest-globals';
 
+// jsdom no trae ResizeObserver y la barra superior lo usa para deslizar su píldora.
+if (!('ResizeObserver' in globalThis)) {
+  (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+}
+
 type NextImageProps = React.ComponentPropsWithoutRef<'img'> & { fill?: boolean };
 type NextLinkProps = React.ComponentPropsWithoutRef<'a'>;
 

@@ -20,7 +20,9 @@ const stock: Notification = { id: 4, kind: 'inventory', title: 'Stock bajo', bod
 const dish: Notification = { id: 3, kind: 'kitchen', title: 'Plato listo para servir', body: 'Pollo · Mesa A8', resModel: 'pos.order', resId: 40, action: 'serve', actionDone: false, read: false, at: '2026-09-06 10:00:00' }
 
 beforeEach(() => {
-  useNotificationStore.setState({ items: [] })
+  // El sondeo vive en el armazón (useNotificationAlerts), no en el popover: aquí se siembra el centro
+  // igual que lo dejaría una vuelta del sondeo, y se comprueba la campana y el popover.
+  useNotificationStore.setState({ items: [stock, dish] })
   useAuthStore.setState({ user: { uid: 2, name: 'Ana', companyId: 1, role: 'waiter' }, session: { id: 16, configId: 1, state: 'opened' } })
   ;(listNotifications as jest.Mock).mockResolvedValue([stock, dish])
 })

@@ -7,6 +7,7 @@ import { SettingsModal } from '@/components/kit/SettingsModal'
 import { TopBar } from '@/components/kit/TopBar'
 import { adminSubtabForPath, tabForPath } from '@/lib/domain/navigation'
 import { useIdentity } from '@/lib/hooks/useIdentity'
+import { useNotificationAlerts } from '@/lib/hooks/useNotificationAlerts'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
 
@@ -18,6 +19,8 @@ export function KitShell({ children }: { children: ReactNode }) {
   const endShift = useAuthStore((s) => s.endShift)
   const restaurant = useCatalogStore((s) => s.catalog?.company.name ?? '')
   const [settings, setSettings] = useState(false)
+  // Sonido y aviso en pantalla de cada notificación nueva, esté el mesero en la pantalla que esté.
+  useNotificationAlerts()
   // Manda el empleado que marcó su PIN, no la credencial con la que se abrió la tablet.
   const { name: shownName, role } = useIdentity()
   return (

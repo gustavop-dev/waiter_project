@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
+import { Toggle } from '@/components/kit/Toggle'
 import { Button } from '@/components/ui/Button'
 import { TextInput } from '@/components/ui/Field'
 import type { Settings } from '@/lib/types'
@@ -23,6 +24,26 @@ export function SaveBar({ state, onSave, disabled, error }: { state: State; onSa
       <Button variant="primary" onClick={onSave} disabled={disabled || state === 'saving'}>{t('save')}</Button>
       {state === 'saved' && <span role="status" className="text-[15px] text-free-ink">{t('saved')}</span>}
       {state === 'error' && <span role="alert" className="text-[15px] text-busy-ink">{error || ui('error')}</span>}
+    </div>
+  )
+}
+
+// Quién puede cobrar. Apagarlo deja el cobro en caja: el mesero sirve y el cajero elige la mesa en el plano
+// y cobra, sin que el mesero tenga que mandar nada. Vive en pos.config y lo ven todas las tablets.
+export function ChargePermissionForm({ initial, onSave }: { initial: Settings; onSave: (s: Settings) => Promise<void> }) {
+  const t = useTranslations('pos.settings')
+  const [state, save] = useSaveState()
+  const [on, setOn] = useState(initial.waiterCanCharge)
+  return (
+    <div className="mb-6 p-4 rounded-md border border-border bg-canvas flex flex-col gap-3 max-w-2xl">
+      <div className="flex items-start gap-4">
+        <Toggle checked={on} label={t('charge.label')} onChange={(v) => { setOn(v); void save(() => onSave({ ...initial, waiterCanCharge: v })) }} />
+        <div className="min-w-0 flex flex-col gap-1">
+          <span className="text-[15px] font-semibold text-ink">{t('charge.label')}</span>
+          <span className="text-[14px] text-soft leading-relaxed">{on ? t('charge.onHint') : t('charge.offHint')}</span>
+        </div>
+        <span className="ml-auto shrink-0">{state === 'saving' && <span className="text-[14px] text-soft">{t('saving')}</span>}</span>
+      </div>
     </div>
   )
 }

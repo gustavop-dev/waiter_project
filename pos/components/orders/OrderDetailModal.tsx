@@ -20,15 +20,15 @@ const GROUPS: { key: LineGroup; icon: KitIcon; cls: string }[] = [
 interface Props {
   order: KitOrder | null; status: KitStatus; percent: number; onClose: () => void
   imageOf: (productId: number) => string | null; onCancelWaiting: (lines: KitLine[]) => void
-  onServeReady?: (lines: KitLine[]) => void; busy?: boolean
+  onServeReady?: (lines: KitLine[]) => void; busy?: boolean; mayCharge?: boolean
 }
 
 // "Detail Order" del kit: cabecera del pedido, líneas agrupadas por estado de cocina y pie con total, "+ Nuevo pedido" e "Ir a pagar".
-export function OrderDetailModal({ order, status, percent, onClose, imageOf, onCancelWaiting, onServeReady, busy = false }: Props) {
+export function OrderDetailModal({ order, status, percent, onClose, imageOf, onCancelWaiting, onServeReady, busy = false, mayCharge = true }: Props) {
   const t = useTranslations('orders')
   if (!order) return null
   const groups = GROUPS.map((g) => ({ ...g, lines: order.lines.filter((l) => lineGroup(order, l) === g.key) })).filter((g) => g.lines.length > 0)
-  const chargeable = canCharge(order)
+  const chargeable = canCharge(order) && mayCharge
   const footer = (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between"><span className="text-[15px] text-soft">{t('detail.totalPayment')}</span><span className="text-[20px] font-semibold text-ink tabular">$ {formatCop(order.total)}</span></div>
@@ -36,7 +36,7 @@ export function OrderDetailModal({ order, status, percent, onClose, imageOf, onC
         <Link href={`/pedidos/${order.id}/agregar`} className="h-12 rounded-md border border-border bg-surface text-ink text-[15px] font-bold inline-flex items-center justify-center gap-1.5"><Icon name="plus" size={18} />{t('detail.newOrder')}</Link>
         {chargeable
           ? <Link href={`/pago/${order.id}`} className="h-12 rounded-md bg-primary text-primary-ink text-[15px] font-bold inline-flex items-center justify-center gap-1.5"><Icon name="money" size={18} />{t('detail.proceed')}</Link>
-          : <span aria-disabled="true" className="h-12 rounded-md bg-muted text-dim text-[15px] font-bold inline-flex items-center justify-center gap-1.5"><Icon name="money" size={18} />{t('detail.proceed')}</span>}
+          : <span aria-disabled="true" className="h-12 rounded-md bg-muted text-dim text-[15px] font-bold inline-flex items-center justify-center gap-1.5"><Icon name="money" size={18} />{mayCharge ? t('detail.proceed') : t('card.cashierCharges')}</span>}
       </div>
     </div>
   )

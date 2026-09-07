@@ -24,10 +24,12 @@ test('dashboard, orders, detail, add round and history follow the kit', async ({
   const card = page.getByRole('article').filter({ hasText: customer })
   await expect(card).toContainText('Hamburguesa Angus')
   await expect(card.getByRole('button', { name: 'Cobrar' })).toBeDisabled()
-  await card.getByRole('button', { name: 'Ver detalle' }).click()
+  // Al detalle se entra por la flecha de "N ítems"; el pie de la tarjeta es para pedir otra ronda.
+  await card.getByRole('button', { name: /ítems/ }).click()
   const detail = page.getByRole('dialog', { name: 'Detalle del pedido' })
   await expect(detail.getByRole('region', { name: 'En progreso' })).toContainText('Hamburguesa Angus')
-  await detail.getByRole('link', { name: 'Nuevo pedido' }).click()
+  await detail.getByRole('button', { name: 'Cerrar' }).click()
+  await card.getByRole('link', { name: 'Nuevo pedido' }).click()
   await expect(page).toHaveURL(/\/pedidos\/\d+\/agregar$/)
 
   await page.getByRole('article', { name: 'Papas Trufadas' }).getByRole('button', { name: 'Agregar' }).click()

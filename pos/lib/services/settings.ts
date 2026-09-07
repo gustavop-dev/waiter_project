@@ -110,7 +110,7 @@ export async function setUserRole(id: number, role: Role): Promise<void> {
 
 export async function saveSettings(s: Settings): Promise<void> {
   await callKw('pos.config', 'write', [[s.configId], {
-    alert_late_minutes: s.alertLateMinutes, alert_bill_minutes: s.alertBillMinutes, roi_hour_cost: s.roiHourCost, roi_minutes_per_order: s.roiMinutesPerOrder,
+    waiter_can_charge: s.waiterCanCharge, alert_late_minutes: s.alertLateMinutes, alert_bill_minutes: s.alertBillMinutes, roi_hour_cost: s.roiHourCost, roi_minutes_per_order: s.roiMinutesPerOrder,
     roi_baseline_hours_per_100: s.roiBaselineHoursPer100, roi_monthly_cost: s.roiMonthlyCost, roi_start_date: s.roiStartDate || false,
   }])
 }

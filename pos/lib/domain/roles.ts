@@ -38,4 +38,7 @@ export const can = {
   manageUsers: (role: Role) => role === 'admin',
   // Crear, editar o desactivar pisos y planos: configuración del local, no trabajo de sala.
   manageFloors: (role: Role) => role === 'admin',
+  // Cobrar. Lo decide el restaurante en Configuración: con `waiterCanCharge` apagado, cobrar es de caja y
+  // el mesero deja la mesa servida para que el cajero la elija en el plano.
+  charge: (role: Role, waiterCanCharge: boolean) => role !== 'waiter' || waiterCanCharge,
 }

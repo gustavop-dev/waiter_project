@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 
 import { BrandMark } from '@/components/kit/BrandMark'
 import { Icon, type KitIcon } from '@/components/kit/Icon'
@@ -21,6 +21,20 @@ export function TopBar({ active, role, userName, unread, activeSubtab, onOpenSet
   const storeUnread = useNotificationStore((s) => s.unread())
   const count = unread ?? storeUnread
   const [bell, setBell] = useState(false)
+  // La píldora azul es un solo elemento que se mueve entre pestañas, no una clase que salta de una a otra:
+  // se mide la pestaña activa y se desliza hasta ella. Sin medida todavía, no se pinta.
+  const nav = useRef<HTMLElement>(null)
+  const [pill, setPill] = useState<{ left: number; width: number } | null>(null)
+  useLayoutEffect(() => {
+    const move = () => {
+      const el = nav.current?.querySelector<HTMLElement>('[aria-current="page"]')
+      setPill(el && nav.current ? { left: el.offsetLeft, width: el.offsetWidth } : null)
+    }
+    move()
+    const ro = new ResizeObserver(move)
+    if (nav.current) ro.observe(nav.current)
+    return () => ro.disconnect()
+  }, [active, role])
   const tr = useTranslations('pos.nav.roles')
   const tabs = tabsFor(role)
   const subtabs = adminSubtabsFor(role)
@@ -28,10 +42,11 @@ export function TopBar({ active, role, userName, unread, activeSubtab, onOpenSet
     <header className="shrink-0 bg-surface border-b border-border">
       <div className="h-topbar px-5 flex items-center gap-4">
         <BrandMark href="/dashboard" />
-        <nav aria-label={t('main')} className="min-w-0 flex items-center gap-0.5 p-1 rounded-lg bg-muted overflow-x-auto">
+        <nav ref={nav} aria-label={t('main')} className="relative min-w-0 flex items-center gap-0.5 p-1 rounded-lg bg-muted overflow-x-auto">
+          {pill && <span aria-hidden className="absolute top-1 bottom-1 rounded-md bg-primary transition-[left,width] duration-300 ease-out" style={{ left: pill.left, width: pill.width }} />}
           {tabs.map((tab) => (
             <Link key={tab} href={TAB_ROUTES[tab]} aria-current={tab === active ? 'page' : undefined}
-              className={cn('flex items-center gap-1.5 h-11 px-2.5 rounded-md text-[15px] font-semibold whitespace-nowrap', tab === active ? 'bg-surface border border-border text-ink' : 'text-dim hover:text-soft')}>
+              className={cn('relative flex items-center gap-1.5 h-11 px-2.5 rounded-md text-[15px] font-semibold whitespace-nowrap transition-colors', tab === active ? 'text-primary-ink' : 'text-dim hover:text-soft')}>
               <Icon name={ICON[tab]} size={20} /><span>{t(tab)}</span>
             </Link>
           ))}

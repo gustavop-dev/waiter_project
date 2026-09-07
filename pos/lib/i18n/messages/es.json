@@ -493,6 +493,12 @@
       }
     },
     "settings": {
+      "saving": "Guardando…",
+      "charge": {
+        "label": "Los meseros pueden cobrar",
+        "onHint": "El mesero cobra la mesa que atendió, desde su propia pantalla.",
+        "offHint": "Cobrar es solo de caja: el mesero deja la mesa servida y el cajero la elige en el plano y cobra."
+      },
       "title": "Configuración",
       "sections": {
         "restaurant": "Restaurante",

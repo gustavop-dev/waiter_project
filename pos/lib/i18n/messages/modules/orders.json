@@ -140,6 +140,8 @@
     "qty": "Cant",
     "price": "Precio",
     "total": "Total",
+    "newRound": "Nuevo pedido",
+    "cashierCharges": "Cobra la caja",
     "details": "Ver detalle",
     "pay": "Cobrar",
     "notReadyYet": "Cocina todavía no lo ha marcado listo",

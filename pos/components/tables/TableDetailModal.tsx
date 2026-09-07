@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils'
 interface Props {
   open: boolean; onClose: () => void; tableName: string; orderId: number | null; imageFor: (productId: number) => string | null
   onChangeTable: (detail: OrderDetail) => void; onNewOrder: () => void; onPay: (detail: OrderDetail) => void; load?: (orderId: number) => Promise<OrderDetail>
-  onServe?: (lines: OrderDetailLine[]) => Promise<void> | void; busy?: boolean
+  onServe?: (lines: OrderDetailLine[]) => Promise<void> | void; busy?: boolean; mayCharge?: boolean
 }
 
 // date_order llega en UTC sin zona; se muestra como "lun, 17 feb 12:24 p. m." en la hora del dispositivo.
@@ -68,7 +68,7 @@ function LineCard({ line, image, t, onServe, busy }: { line: OrderDetailLine; im
 }
 
 // Modal "Detalle de mesa" del kit (Detail Table/Food In Progress.png y Food All Served.png).
-export function TableDetailModal({ open, onClose, tableName, orderId, imageFor, onChangeTable, onNewOrder, onPay, load = getOrderDetail, onServe, busy = false }: Props) {
+export function TableDetailModal({ open, onClose, tableName, orderId, imageFor, onChangeTable, onNewOrder, onPay, load = getOrderDetail, onServe, busy = false, mayCharge = true }: Props) {
   const t = useTranslations('tables.detail')
   const ts = useTranslations('tables.state')
   const [loaded, setLoaded] = useState<OrderDetail | null>(null)
@@ -101,7 +101,8 @@ export function TableDetailModal({ open, onClose, tableName, orderId, imageFor, 
       {detail && <div className="h-11 px-3 rounded-sm bg-muted flex items-center justify-between text-[15px]"><span className="text-soft">{t('total')}</span><span className="text-[20px] font-semibold text-ink">$ {formatCop(detail.total)}</span></div>}
       <div className="flex gap-3">
         <Button className="flex-1" onClick={onNewOrder}><Icon name="plus" size={18} />{t('newOrder')}</Button>
-        <Button variant="primary" className="flex-1" disabled={!allServed} onClick={() => detail && onPay(detail)} title={allServed ? undefined : t('payHint')}><Icon name="wallet" size={18} />{t('pay')}</Button>
+        {/* Sin permiso de cobro, el mesero deja la mesa servida y el cajero la cobra desde el plano. */}
+        <Button variant="primary" className="flex-1" disabled={!allServed || !mayCharge} onClick={() => detail && onPay(detail)} title={mayCharge ? (allServed ? undefined : t('payHint')) : t('cashierCharges')}><Icon name="wallet" size={18} />{mayCharge ? t('pay') : t('cashierCharges')}</Button>
       </div>
     </div>
   )

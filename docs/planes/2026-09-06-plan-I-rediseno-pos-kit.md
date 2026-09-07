@@ -144,6 +144,16 @@ panel del Inicio, el detalle de la mesa o la casilla de la tarjeta de Pedidos.
 **Nadie entrega lo que cocina no ha marcado listo.** La regla vive en `action_kitchen_line_served`
 (`projectapp_kitchen`) y no en la pantalla, porque son tres las pantallas que ofrecen entregar.
 
+Cada aviso nuevo suena y salta en pantalla en la tablet del mesero según lo que tenga marcado en
+Ajustes › Notificaciones (`res.users.waiter_notify`): el mesero no vive mirando la pantalla.
+
+#### Quién cobra
+
+`pos.config.waiter_can_charge` (Configuración › Usuarios). Encendido, el mesero cobra la mesa que
+atendió. Apagado, cobrar es solo de caja: el mesero deja la mesa servida y el cajero la elige en el
+plano y cobra —no hace falta que el mesero mande nada, la mesa servida ya es la señal—. La tarjeta del
+mesero dice «Cobra la caja» en lugar de ofrecer el botón.
+
 ## Oleadas
 
 Cada oleada produce software funcional y verificable por sí sola. Los planes I.2 a I.8 se escriben al

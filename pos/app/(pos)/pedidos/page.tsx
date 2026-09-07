@@ -13,6 +13,8 @@ import { OrderCard } from '@/components/orders/OrderCard'
 import { OrderDetailModal } from '@/components/orders/OrderDetailModal'
 import { SortMenu } from '@/components/orders/SortMenu'
 import { countByStatus, filterOrders, lineGroup, matchesOrderSearch, sortOrders, type KitLine, type KitOrder, type OrdersFilter, type OrdersSort } from '@/lib/domain/orderState'
+import { can } from '@/lib/domain/roles'
+import { useIdentity } from '@/lib/hooks/useIdentity'
 import { useKitOrders } from '@/lib/hooks/useKitOrders'
 import { cancelLines, serveLines } from '@/lib/services/ordersKit'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
@@ -24,6 +26,9 @@ const FILTERS: OrdersFilter[] = ['all', 'in_progress', 'ready', 'waiting_payment
 export default function PedidosPage() {
   const t = useTranslations('orders')
   const catalog = useCatalogStore((s) => s.catalog)
+  const { role } = useIdentity()
+  // Cobrar puede ser solo de caja: lo decide el restaurante en Configuración.
+  const mayCharge = can.charge(role, catalog?.settings.waiterCanCharge ?? true)
   const { orders, loaded, refresh, statusOf, percentOf } = useKitOrders()
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<OrdersFilter>('all')
@@ -88,12 +93,13 @@ export default function PedidosPage() {
             ? <KitEmptyState icon="orders" title={t('empty.title')} body={t('empty.body')} />
             : <div className="grid grid-cols-3 gap-4">
               {visible.map((o) => (
-                <OrderCard key={o.id} order={o} status={statusOf(o)} percent={percentOf(o)} onToggleLine={(l) => { if (!busy) void toggleLine(o, l) }} onDetails={() => setDetailId(o.id)} />
+                <OrderCard key={o.id} order={o} status={statusOf(o)} percent={percentOf(o)} mayCharge={mayCharge}
+                  onToggleLine={(l) => { if (!busy) void toggleLine(o, l) }} onDetails={() => setDetailId(o.id)} />
               ))}
             </div>}
         </div>
       </div>
-      <OrderDetailModal order={detail} status={detail ? statusOf(detail) : 'in_progress'} percent={detail ? percentOf(detail) : 0} onClose={() => setDetailId(null)}
+      <OrderDetailModal order={detail} status={detail ? statusOf(detail) : 'in_progress'} percent={detail ? percentOf(detail) : 0} onClose={() => setDetailId(null)} mayCharge={mayCharge}
         imageOf={imageOf} busy={busy} onCancelWaiting={(lines) => { if (detail) void cancelWaiting(detail, lines) }}
         onServeReady={(lines) => { if (!busy) void serveReady(lines) }} />
     </KitShell>

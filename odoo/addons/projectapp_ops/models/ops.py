@@ -120,6 +120,10 @@ class PosOrder(models.Model):
 class PosConfig(models.Model):
     _inherit = "pos.config"
 
+    waiter_can_charge = fields.Boolean(
+        string="Los meseros pueden cobrar", default=True,
+        help="Con esto apagado, cobrar es solo de caja: el mesero deja la mesa servida y el cajero la elige "
+             "en el plano y cobra. No hace falta que el mesero mande nada.")
     alert_late_minutes = fields.Integer(string="Minutos para 'demorado'", default=18)
     alert_bill_minutes = fields.Integer(string="Minutos con la cuenta pedida sin cobrar", default=10)
     roi_hour_cost = fields.Float(string="Costo hora de atención (COP)", default=20000.0)
@@ -134,7 +138,7 @@ class PosConfig(models.Model):
         fields_ = super()._load_pos_data_fields(*args, **kwargs)
         if not fields_:
             return fields_
-        return fields_ + ["alert_late_minutes", "alert_bill_minutes", "roi_hour_cost", "roi_minutes_per_order",
+        return fields_ + ["waiter_can_charge", "alert_late_minutes", "alert_bill_minutes", "roi_hour_cost", "roi_minutes_per_order",
                           "roi_baseline_hours_per_100", "roi_monthly_cost", "roi_start_date"]
 
 

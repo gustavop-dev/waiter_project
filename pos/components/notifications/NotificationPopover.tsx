@@ -14,7 +14,6 @@ import { toast } from '@/lib/stores/toastStore'
 import { cn } from '@/lib/utils'
 
 const TABS: NotificationTab[] = ['all', 'inventory', 'kitchen']
-const POLL_MS = 30_000
 const ICON: Record<NotificationKind, KitIcon> = { inventory: 'inventory', kitchen: 'chef', system: 'settings' }
 const TONE: Record<NotificationKind, string> = {
   inventory: 'bg-progress-soft border-progress/40 text-progress-ink',
@@ -35,12 +34,8 @@ export function NotificationPopover({ open, onClose }: { open: boolean; onClose:
   const [tab, setTab] = useState<NotificationTab>('all')
   const [busy, setBusy] = useState<number | null>(null)
 
-  useEffect(() => {
-    if (!user) return
-    void refresh()
-    const id = setInterval(() => void refresh(), POLL_MS)
-    return () => clearInterval(id)
-  }, [user, refresh])
+  // El sondeo lo lleva el armazón (useNotificationAlerts): aquí solo se relee al abrir.
+  useEffect(() => { if (open && user) void refresh() }, [open, user, refresh])
 
   async function request(n: Notification) {
     const productId = productOf(n)

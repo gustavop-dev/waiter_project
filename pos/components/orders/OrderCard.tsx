@@ -117,12 +117,14 @@ function LinesTable({ order, onToggle }: LinesTableProps) {
 
 interface OrderCardProps {
   order: KitOrder; status: KitStatus; percent: number; variant?: 'dashboard' | 'full'
-  checked?: Set<number>; onToggleLine?: (line: KitLine) => void; onDetails?: () => void
+  checked?: Set<number>; onToggleLine?: (line: KitLine) => void; onDetails?: () => void; mayCharge?: boolean
 }
-// Tarjeta de pedido del kit. En el Dashboard es la versión corta; en Pedidos lleva la tabla de ítems, "Ver detalle" y "Cobrar".
-export function OrderCard({ order, status, percent, variant = 'full', checked = new Set(), onToggleLine = () => undefined, onDetails }: OrderCardProps) {
+// Tarjeta de pedido del kit. En el Dashboard es la versión corta; en Pedidos lleva la tabla de ítems y el pie.
+// Al detalle se entra por la flecha de "N ítems", así que el pie deja sitio a lo que se hace más veces en
+// una mesa que ya está comiendo: pedir otra ronda.
+export function OrderCard({ order, status, percent, variant = 'full', checked = new Set(), onToggleLine = () => undefined, onDetails, mayCharge = true }: OrderCardProps) {
   const t = useTranslations('orders')
-  const chargeable = canCharge(order)
+  const chargeable = canCharge(order) && mayCharge
   return (
     <article aria-label={`${t('card.orderNo')} ${order.number}`} className="bg-surface border border-border rounded-lg p-3 flex flex-col gap-3 shrink-0">
       <OrderHeadline order={order} />
@@ -132,10 +134,12 @@ export function OrderCard({ order, status, percent, variant = 'full', checked = 
         <>
           <LinesTable order={order} onToggle={onToggleLine} />
           <div className="grid grid-cols-2 gap-3">
-            <Button variant="secondary" size="compact" onClick={onDetails}>{t('card.details')}</Button>
-            {chargeable
+            <Link href={`/pedidos/${order.id}/agregar`} className="h-tap-min px-4 rounded-md border border-border bg-surface text-ink text-[15px] font-bold inline-flex items-center justify-center gap-1.5"><Icon name="plus" size={18} />{t('card.newRound')}</Link>
+            {mayCharge && (chargeable
               ? <Link href={`/pago/${order.id}`} className="h-tap-min px-4 rounded-md bg-primary text-primary-ink text-[15px] font-bold inline-flex items-center justify-center">{t('card.pay')}</Link>
-              : <Button variant="primary" size="compact" disabled className="disabled:bg-muted disabled:text-dim disabled:opacity-100">{t('card.pay')}</Button>}
+              : <Button variant="primary" size="compact" disabled className="disabled:bg-muted disabled:text-dim disabled:opacity-100">{t('card.pay')}</Button>)}
+            {/* Sin permiso de cobro el mesero deja la mesa servida y el cajero la cobra desde el plano. */}
+            {!mayCharge && <span className="h-tap-min px-4 rounded-md bg-muted text-dim text-[14px] font-semibold inline-flex items-center justify-center text-center leading-tight">{t('card.cashierCharges')}</span>}
           </div>
         </>
       )}

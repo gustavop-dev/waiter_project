@@ -161,6 +161,8 @@ export default function SalonPage() {
   }
 
   if (!catalog) return null
+  // Cobrar puede ser solo de caja: lo decide el restaurante en Configuración.
+  const mayCharge = can.charge(role, catalog.settings.waiterCanCharge)
   // Un pedido en mesa nace de una mesa elegida a propósito: sin selección se pide antes de abrir el asistente.
   const newOrderHref = selected ? `/pedidos/nuevo?mesa=${selected.table.id}` : null
   return (
@@ -200,7 +202,7 @@ export default function SalonPage() {
       {selected && (
         <TableDetailModal open={sheet === 'detail'} onClose={() => setSheet(null)} tableName={String(selected.table.number)} orderId={selected.orderId} imageFor={imageFor}
           onChangeTable={(detail) => { setSheet(null); setMoving({ detail, fromTableId: selected.table.id }) }} onNewOrder={() => newOrderHref && router.push(newOrderHref)} onPay={openPay}
-          onServe={serveLine} busy={busy} />
+          onServe={serveLine} busy={busy} mayCharge={mayCharge} />
       )}
       {moving && target !== null && (
         <ChangeTableModal open onClose={() => setTarget(null)} detail={moving.detail} busy={movingBusy} onConfirm={confirmMove}
