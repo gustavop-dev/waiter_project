@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
+import { Button } from '@/components/ui/Button'
 import { allowedPath } from '@/lib/domain/roles'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
@@ -12,6 +13,8 @@ export default function PosLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { user, session, employee, hydrated, hydrate } = useAuthStore()
   const load = useCatalogStore((s) => s.load)
+  const catalogStatus = useCatalogStore((s) => s.status)
+  const catalogError = useCatalogStore((s) => s.error)
 
   useEffect(() => { void hydrate() }, [hydrate])
   // PWA: registro del service worker (no hace nada más que permitir la instalación).
@@ -29,5 +32,18 @@ export default function PosLayout({ children }: { children: React.ReactNode }) {
   }, [hydrated, user, employee, session, pathname, router, load])
 
   if (!hydrated || !session || !user || !employee || !allowedPath(user.role, pathname)) return null
+  // Sin catálogo no hay pantalla que pintar: se dice por qué en vez de dejar el POS en blanco.
+  if (catalogStatus === 'error') {
+    return (
+      <main className="h-screen grid place-items-center bg-canvas p-8">
+        <div role="alert" className="max-w-lg text-center flex flex-col gap-3">
+          <span className="text-[20px] font-semibold text-ink">No se pudo cargar la carta</span>
+          <p className="text-[15px] text-soft">Odoo rechazó los datos de este terminal. Avisa a quien administra el punto de venta.</p>
+          {catalogError && <p className="text-[13px] text-dim font-mono break-words">{catalogError}</p>}
+          <Button variant="primary" className="self-center mt-2" onClick={() => { if (session) void load(session.id) }}>Reintentar</Button>
+        </div>
+      </main>
+    )
+  }
   return <>{children}</>
 }

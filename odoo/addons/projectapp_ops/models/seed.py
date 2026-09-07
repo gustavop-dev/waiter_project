@@ -97,9 +97,16 @@ class WaiterSeed(models.AbstractModel):
                     "joining_date": fields.Date.today(), "shift_start": 8.0, "shift_end": 16.0,
                 })
             employees |= employee
+        # Todo empleado ligado a un usuario del POS entra al terminal. Sin esto, `pos.config` no viaja en
+        # `load_data` (pos_hr lo filtra), `pos_loyalty` revienta al leer `data['pos.config'][0]` y la persona
+        # se queda mirando una pantalla en blanco.
+        linked = employee_model.search([
+            ("user_id", "!=", False), ("user_id.active", "=", True),
+            ("user_id.group_ids", "in", self.env.ref("point_of_sale.group_pos_user").id),
+        ])
         config = self._demo_config()
         if config:
-            config.write({"module_pos_hr": True, "basic_employee_ids": [(4, e.id) for e in employees]})
+            config.write({"module_pos_hr": True, "basic_employee_ids": [(4, e.id) for e in employees | linked]})
         return employees
 
     @api.model

@@ -67,3 +67,17 @@ renombrar estas clases de CSS, así que hay que revisarlos en cada actualizació
 [Reservas](projectapp_reservations/README.md) · [Despensa](projectapp_pantry/README.md) ·
 [Arquitectura](../../docs/arquitectura/2026-09-04-arquitectura-modular.md).
 
+
+## Fallo conocido: `load_data` rompe para quien no administra el POS
+
+Con `pos_loyalty` instalado, `pos.session.load_data` lanza `IndexError: list index out of range` en
+`pos_loyalty/models/product_template.py` (`data['pos.config'][0]`) cuando lo llama un usuario del punto de
+venta **sin** `point_of_sale.group_pos_manager`: para él `pos.config` no viaja en `data` y el addon de
+fidelización asume que siempre está. Nuestros campos no intervienen (un mesero los lee sin problema).
+
+Consecuencia: el mesero entra, valida su PIN y el POS no puede cargar la carta. Desde el 2026-09-07 la
+aplicación lo dice con el mensaje del servidor y un botón de reintento, en vez de quedarse en blanco.
+
+Mitigaciones mientras Odoo lo corrige: dar `point_of_sale.group_pos_manager` a los usuarios que atienden,
+o desinstalar `pos_loyalty` si el restaurante no usa puntos. `seed_employees` ya asigna al terminal el
+empleado de cada usuario del POS, que es condición necesaria pero no suficiente.
