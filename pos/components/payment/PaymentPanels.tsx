@@ -117,7 +117,8 @@ export function QrPanel({ due, deadline, company, payload, checking, onConfirm, 
         <div className="grid place-items-center min-h-[188px]">
           {checking
             ? <p className="flex flex-col items-center gap-2 text-[15px] font-semibold text-success-ink"><Icon name="loader" size={26} className="animate-spin" />{t('checking')}</p>
-            : <span role="img" aria-label={t('methods.qr')} className="w-[188px] h-[188px] text-ink [&_svg]:w-full [&_svg]:h-full" dangerouslySetInnerHTML={{ __html: svg }} />}
+            /* El QR va siempre oscuro sobre blanco: invertido en modo oscuro los lectores no lo cogen. */
+            : <span role="img" aria-label={t('methods.qr')} className="w-[188px] h-[188px] rounded-sm bg-white text-black [&_svg]:w-full [&_svg]:h-full" dangerouslySetInnerHTML={{ __html: svg }} />}
         </div>
         <TotalBox amount={due} />
         <p className="text-[13px] text-dim text-center">{t('qrHint')}</p>

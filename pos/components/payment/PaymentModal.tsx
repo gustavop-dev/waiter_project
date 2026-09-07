@@ -9,6 +9,7 @@ import { CardPanel, CashPanel, QrPanel } from '@/components/payment/PaymentPanel
 import { PaymentSuccess, type PaidSummary } from '@/components/payment/PaymentSuccess'
 import { Button } from '@/components/ui/Button'
 import { formatCop } from '@/lib/domain/money'
+import { displayReference, type OrderType } from '@/lib/domain/orderWizard'
 import { change as changeOf, remaining, splitEqual, suggestedTip, type Payment } from '@/lib/domain/payment'
 import { amountOf, CARD_TIMEOUT_MS, methodFor, PAY_KINDS, pointsDiscount, pointsToRedeem, QR_CHECK_MS, type PayKind } from '@/lib/domain/paymentKit'
 import { manualTerminal, type TerminalResult } from '@/lib/payments/terminal'
@@ -18,6 +19,13 @@ import { useOrderStore } from '@/lib/stores/orderStore'
 import { cn } from '@/lib/utils'
 
 const KIND_ICON = { cash: 'money', card: 'card', qr: 'qr' } as const
+// pos.preset de Odoo → tipo del kit, para el prefijo "DI001 / TA001 / DE001" de la referencia.
+const TYPE_BY_PRESET: Record<number, OrderType> = { 1: 'dineIn', 2: 'takeAway', 3: 'delivery' }
+// "2026-09-07 01:21:00" (UTC de Odoo) → "dom, 7 sept 01:21", como la fecha del kit.
+const whenOf = (raw: string) => {
+  const d = new Date(`${raw.replace(' ', 'T')}Z`)
+  return Number.isNaN(d.getTime()) ? raw : d.toLocaleString('es-CO', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+}
 type TipMode = 'none' | 'suggested' | 'custom'
 
 // Modal "Payment" del kit (9 – Payment): cliente y puntos a la izquierda, métodos a la derecha; el cobro real
@@ -81,9 +89,9 @@ export function PaymentModal({ orderId, onClose, onPaid }: { orderId: number; on
     })
     if (ok) {
       const first = all[0]
-      setDone({ total: grand, methodName: methods.find((m) => m.id === first?.methodId)?.name ?? '', received: all.reduce((a, p) => a + p.received, 0), change: changeOf(all) })
+      setDone({ total: grand, methodName: first ? methods.find((m) => m.id === first.methodId)?.name ?? '' : t('memberPoints'), received: all.reduce((a, p) => a + p.received, 0), change: changeOf(all) })
     }
-  }, [order, catalog, discount, member, program, rate, settle, tip, methods, grand])
+  }, [order, catalog, discount, member, program, rate, settle, tip, methods, grand, t])
 
   const register = useCallback((p: Payment) => {
     const all = [...payments, p]
@@ -119,8 +127,10 @@ export function PaymentModal({ orderId, onClose, onPaid }: { orderId: number; on
 
   if (done) return <PaymentSuccess summary={done} onPrint={() => window.print()} onDone={() => onPaid(done)} />
 
-  const badge = order?.tableId ? t('tableBadge', { n: order.tableNumber.replace(/\D/g, '') || order.tableNumber }) : t('takeAwayBadge')
-  const presetLabel = order?.presetId ? t(`types.${order.presetId}` as 'types.1') : order?.presetName ?? ''
+  const badge = order?.tableId ? order.tableNumber.split(' ').pop() ?? '' : null
+  const presetType = order?.presetId ? TYPE_BY_PRESET[order.presetId] : undefined
+  const presetLabel = presetType ? t(`types.${order!.presetId}` as 'types.1') : order?.presetName ?? ''
+  const reference = order ? (presetType ? displayReference(presetType, order.trackingNumber) : order.trackingNumber) : ''
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-overlay/60 p-4" onClick={onClose}>
@@ -140,12 +150,12 @@ export function PaymentModal({ orderId, onClose, onPaid }: { orderId: number; on
               <div className="px-5 pt-4 pb-3 flex flex-col gap-3 border-b border-dashed border-border">
                 <span className="text-[14px] text-soft">{t('customerInformation')}</span>
                 <div className="flex items-start gap-3">
-                  <span className="w-10 h-10 rounded-md bg-primary text-primary-ink grid place-items-center text-[14px] font-semibold shrink-0">{badge}</span>
+                  <span className="w-10 h-10 rounded-md bg-primary text-primary-ink grid place-items-center text-[14px] font-semibold shrink-0">{badge ?? <Icon name="bag" size={18} />}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-[15px] font-semibold text-ink truncate">{order.customerName || t('noName')}</p>
-                    <p className="text-[13px] text-soft truncate">{t('orderNo')} <span className="font-semibold text-ink">{order.trackingNumber}</span> / {presetLabel}</p>
+                    <p className="text-[13px] text-soft">{t('orderNo')} <span className="font-semibold text-ink">{reference}</span> / {presetLabel}</p>
                   </div>
-                  <span className="text-[13px] text-soft shrink-0">{order.date.slice(0, 16)}</span>
+                  <span className="text-[13px] text-soft shrink-0 text-right max-w-[110px]">{whenOf(order.date)}</span>
                 </div>
                 <div className="flex gap-2">
                   <input value={code} onChange={(e) => setCode(e.target.value)} disabled={!program} placeholder={program ? t('searchPlaceholder') : t('noProgram')}
@@ -208,14 +218,27 @@ export function PaymentModal({ orderId, onClose, onPaid }: { orderId: number; on
               </div>
 
               <div className="flex-1 min-h-0 overflow-auto flex flex-col">
-                {kind === 'cash' && <CashPanel due={due} text={cashText} onText={setCashText} busy={busy}
-                  onPay={(received) => method && register({ methodId: method.id, type: 'cash', amount: due, received, reference: '' })} />}
-                {kind === 'card' && <CardPanel due={due} deadline={deadline} stage={cardStage} busy={busy}
-                  onConfirm={() => void payCard()} onResult={(approved, reference) => askRef.current?.({ approved, reference })} />}
-                {kind === 'qr' && <QrPanel due={due} deadline={deadline} company={catalog?.company.name ?? ''} checking={checking} busy={busy}
-                  payload={`WAITER|${order.trackingNumber}|${Math.round(due)}`} onConfirm={payQr} />}
+                {/* Los puntos pueden cubrir el pedido entero: entonces no hay nada que cobrar, solo cerrarlo. */}
+                {grand === 0 ? (
+                  <div className="px-6 py-5 flex flex-col gap-4">
+                    <p className="text-[15px] text-soft">{t('nothingDue')}</p>
+                    <div className="h-14 px-4 rounded-md border border-border bg-canvas flex items-center justify-between">
+                      <span className="text-[16px] text-ink">{t('totalPayment')}</span><span className="text-[18px] font-bold text-ink tabular-nums">$ {formatCop(0)}</span>
+                    </div>
+                    <Button variant="primary" size="money" className="w-full rounded-md" disabled={busy} onClick={() => void finish([])}>{t('confirmPay')}</Button>
+                  </div>
+                ) : (
+                  <>
+                    {kind === 'cash' && <CashPanel due={due} text={cashText} onText={setCashText} busy={busy}
+                      onPay={(received) => method && register({ methodId: method.id, type: 'cash', amount: due, received, reference: '' })} />}
+                    {kind === 'card' && <CardPanel due={due} deadline={deadline} stage={cardStage} busy={busy}
+                      onConfirm={() => void payCard()} onResult={(approved, reference) => askRef.current?.({ approved, reference })} />}
+                    {kind === 'qr' && <QrPanel due={due} deadline={deadline} company={catalog?.company.name ?? ''} checking={checking} busy={busy}
+                      payload={`WAITER|${order.trackingNumber}|${Math.round(due)}`} onConfirm={payQr} />}
+                  </>
+                )}
 
-                {!method && <p role="alert" className="px-6 text-[14px] text-danger-ink">{t('noQrMethod')}</p>}
+                {grand > 0 && !method && <p role="alert" className="px-6 text-[14px] text-danger-ink">{t('noQrMethod')}</p>}
                 {error && <p role="alert" className="px-6 pb-2 text-[14px] text-danger-ink">{error}</p>}
 
                 <div className="px-6 pb-5">

@@ -76,5 +76,6 @@
   "method": "Método",
   "searchPlaceholder": "Código de socio",
   "paying": "Registrando el pago…",
-  "payPart": "Cobrar {amount}"
+  "payPart": "Cobrar {amount}",
+  "nothingDue": "Los puntos del socio cubren el pedido: no queda nada por cobrar."
 }

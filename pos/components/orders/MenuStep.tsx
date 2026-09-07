@@ -80,7 +80,7 @@ export function MenuStep({ products, categories, taxes, optionsOf, descriptionOf
                     </div>
                     <div className="p-3.5 flex flex-col gap-1.5 flex-1">
                       <p className="text-[15px] font-semibold text-ink">{p.name}</p>
-                      <p className="text-[13px] text-dim line-clamp-2">{descriptionOf(p.templateId)}</p>
+                      {descriptionOf(p.templateId) && <p className="text-[13px] text-dim line-clamp-2">{descriptionOf(p.templateId)}</p>}
                       <div className="mt-auto pt-2.5 flex items-center justify-between gap-2">
                         <span className="text-[17px] font-semibold text-primary tabular-nums">$ {formatCop(p.price)}</span>
                         <Button variant="secondary" size="compact" className="rounded-md" disabled={p.soldOut} onClick={() => setAdding(p)}>{t('addToCart')}</Button>
