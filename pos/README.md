@@ -59,6 +59,13 @@ Datos demo del kit (idempotente; volver a correrlo deja el stock en los valores 
 Crea las categorías de ingrediente, las unidades Manojo / Diente / Rebanada, 2 proveedores, 8 ingredientes
 con stock y punto de pedido, y la receta de 6 platos demo (hamburguesas, arepa, bowl, carbonara, tacos).
 Los ingredientes no tienen foto (no hay imágenes de ingredientes en `assets/demo/imagenes/`).
+## Mesas (kit 6 – Table, oleada I.2)
+
+`/salon` pinta el plano real de `restaurant.table` (`position_h/v`, `width`, `height`, `seats`) con las tres
+plantillas del kit (`lib/domain/tablesKit.ts`). Lo que Odoo no guarda viaja así, hasta que el addon lo tenga:
+tipo de piso como sufijo del nombre (`Piso 4 · Exterior`), rotación intercambiando ancho y alto, nombre de mesa
+reducido a `table_number` (de "Mesa A12" se guarda 12). "Reservada" aparece en la leyenda pero no hay reservas
+hasta el módulo de reservas. "Ir a pagar" abre el cobro actual en un modal hasta que exista `/pago/<orderId>`.
 
 ## Alcance actual
 

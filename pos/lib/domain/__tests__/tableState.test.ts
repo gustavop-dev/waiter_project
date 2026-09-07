@@ -1,7 +1,8 @@
 import { barFill, barTone, countByState, deriveTableViews, elapsedMinutes, formatElapsed, matchesSearch } from '@/lib/domain/tableState'
 
-const tables = [{ id: 1, number: 1, floorId: 1, seats: 4 }, { id: 2, number: 2, floorId: 1, seats: 2 }, { id: 3, number: 3, floorId: 1, seats: 2 }]
-const order = { id: 9, tableId: 2, total: 74200, tax: 11851, state: 'draft' as const, lineCount: 2, startedAt: '2026-09-04 20:00:00', waiter: 'Alejandra', kitchen: 'none' as const }
+const geo = { x: 0, y: 0, width: 110, height: 110, shape: 'square' as const, color: null }
+const tables = [{ id: 1, number: 1, floorId: 1, seats: 4, ...geo }, { id: 2, number: 2, floorId: 1, seats: 2, ...geo }, { id: 3, number: 3, floorId: 1, seats: 2, ...geo }]
+const order = { id: 9, tableId: 2, total: 74200, tax: 11851, state: 'draft' as const, lineCount: 2, startedAt: '2026-09-04 20:00:00', waiter: 'Alejandra', kitchen: 'none' as const, tracking: null }
 
 // Falla si una mesa sin pedido abierto deja de mostrarse libre.
 it('marks tables without an open order as free with zero total', () => {
