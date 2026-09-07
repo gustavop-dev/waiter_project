@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 
 import { TicketCard } from '@/components/kds/TicketCard'
-import messages from '@/lib/i18n/messages/es.json'
+import { messages } from '@/lib/i18n/messages'
 
 const wrap = (ui: React.ReactElement) => render(<NextIntlClientProvider locale="es" messages={messages}>{ui}</NextIntlClientProvider>)
 const NOW = Date.parse('2026-09-05T02:18:40Z')
@@ -14,7 +14,7 @@ it('renders lines with quantity, note, the timer and the late tag', () => {
   wrap(<TicketCard ticket={ticket} tableNumber={7} now={NOW} onReady={jest.fn()} />)
   expect(screen.getByRole('heading', { name: 'Mesa 7' })).toBeInTheDocument()
   expect(screen.getByText('2×')).toBeInTheDocument()
-  expect(screen.getByText('término medio')).toBeInTheDocument()
+  expect(screen.getByText(/término medio/)).toBeInTheDocument()
   expect(screen.getByText('18:40')).toHaveClass('font-mono')
   expect(screen.getByText('Demorado')).toBeInTheDocument()
 })

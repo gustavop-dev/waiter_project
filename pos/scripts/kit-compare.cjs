@@ -9,7 +9,8 @@ async function main() {
   const routes = process.argv.slice(2)
   if (routes.length === 0) { console.error('Indica al menos una ruta, por ejemplo: npm run kit:compare -- /kit'); process.exit(1) }
   const base = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-  const out = path.join(__dirname, '..', 'kit-compare'); fs.mkdirSync(out, { recursive: true })
+  const theme = process.env.KIT_THEME || 'light'
+  const out = process.env.KIT_OUT || path.join(__dirname, '..', 'kit-compare'); fs.mkdirSync(out, { recursive: true })
   const browser = await chromium.launch()
   const context = await browser.newContext({ ...devices['iPad Pro 11 landscape'] })
   const theme = process.env.KIT_THEME === 'dark' ? 'dark' : 'light'
@@ -24,7 +25,8 @@ async function main() {
   for (const d of '123456') await page.getByRole('button', { name: d, exact: true }).click()
   await page.getByRole('button', { name: 'Iniciar turno' }).click()
   await page.waitForURL('**/salon')
-  for (const route of routes) {
+  for (const spec of routes) {
+    const [route, action] = spec.split('#click=')
     await page.goto(`${base}${route}`); await page.waitForLoadState('networkidle')
     // La pantalla se pinta cuando el catálogo llega por RPC: sin esto la captura sale en blanco.
     await page.waitForFunction(() => document.body.innerText.trim().length > 20, null, { timeout: 30_000 }).catch(() => undefined)

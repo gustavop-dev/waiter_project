@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 
 import { KdsHeader } from '@/components/kds/KdsHeader'
-import messages from '@/lib/i18n/messages/es.json'
+import { messages } from '@/lib/i18n/messages'
 
 const wrap = (ui: React.ReactElement) => render(<NextIntlClientProvider locale="es" messages={messages}>{ui}</NextIntlClientProvider>)
 

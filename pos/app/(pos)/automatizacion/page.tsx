@@ -1,23 +1,25 @@
 'use client'
 
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { useEffect, useMemo, useState } from 'react'
 
-import { Shell } from '@/components/layout/Shell'
-import { Topbar } from '@/components/layout/Topbar'
+import { Chip } from '@/components/kit/Chip'
+import { KitShell } from '@/components/kit/KitShell'
 import { useAutomationSubnav } from '@/components/layout/useAutomationSubnav'
 import { RoiBento } from '@/components/roi/RoiBento'
-import { Button } from '@/components/ui/Button'
-import { Segmented } from '@/components/ui/Segmented'
+import { PageHeader } from '@/components/ui/PageHeader'
 import { inRange, metrics, monthsOfUse, pctChange, periodRange, toOdooDate, type Period } from '@/lib/domain/roi'
 import { listPaidOrders, type PaidOrder } from '@/lib/services/roi'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
+import { cn } from '@/lib/utils'
 
 const PERIODS: Period[] = ['week', 'month', 'year']
 const HISTORY = 3
 
+// Retorno de inversión con el armazón del kit: chips de sección (retorno, analítica, configuración) y chips de periodo.
 export default function AutomatizacionPage() {
-  const t = useTranslations('pos.roi')
+  const t = useTranslations('admin.roi')
   const subnav = useAutomationSubnav('roi')
   const catalog = useCatalogStore((s) => s.catalog)
   const [period, setPeriod] = useState<Period>('month')
@@ -38,15 +40,22 @@ export default function AutomatizacionPage() {
   const previous = perRange[HISTORY - 2]
   const history = ranges.map((r, i) => ({ label: r.label.replace(/ \d{4}$/, ''), hoursPer100: perRange[i].hoursPer100 }))
   return (
-    <Shell mode="sidebar" active="automation" subnav={subnav}>
-      <Topbar
-        left={<div className="flex flex-col gap-0.5"><span className="text-[22px] font-bold">{t('title')}</span>
-          <span className="text-[15px] text-soft">{t('subtitle', { period: ranges[HISTORY - 1].label, previous: s.roiStartDate ? ranges[HISTORY - 2].label : t('baseline') })}</span></div>}
-        right={<><Segmented label={t('title')} options={PERIODS.map((p) => ({ value: p, label: t(`periods.${p}`) }))} value={period} onChange={setPeriod} />
-          <Button disabled>{t('export')}</Button></>}
-      />
-      {orders === null ? <p className="p-7 text-soft" role="status">…</p>
+    <KitShell>
+      <PageHeader icon="chartLine" title={t('title')} actions={
+        <div role="tablist" aria-label={t('title')} className="flex items-center gap-2">
+          {PERIODS.map((p) => <Chip key={p} label={t(`periods.${p}`)} active={period === p} onClick={() => setPeriod(p)} />)}
+        </div>
+      }>
+        <nav aria-label={subnav.label} className="flex items-center gap-2">
+          {subnav.items.map((item) => (
+            <Link key={item.key} href={item.href} aria-current={item.active ? 'page' : undefined}
+              className={cn('h-11 px-4 rounded-md border text-[15px] font-semibold inline-flex items-center', item.active ? 'bg-primary-soft border-primary/40 text-primary' : 'bg-surface border-border text-soft hover:bg-muted')}>{item.label}</Link>
+          ))}
+        </nav>
+        <span className="text-[14px] text-soft whitespace-nowrap">{t('subtitle', { period: ranges[HISTORY - 1].label, previous: s.roiStartDate ? ranges[HISTORY - 2].label : t('baseline') })}</span>
+      </PageHeader>
+      {orders === null ? <p className="px-5 text-soft" role="status">…</p>
         : <RoiBento current={current} history={history} months={monthsOfUse(s.roiStartDate, now)} periodLabel={ranges[HISTORY - 1].label} laborChange={pctChange(current.laborSaving, previous.laborSaving)} />}
-    </Shell>
+    </KitShell>
   )
 }

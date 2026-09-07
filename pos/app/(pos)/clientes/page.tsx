@@ -4,56 +4,82 @@ import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
 
 import { CustomerForm } from '@/components/customers/CustomerForm'
-import { Shell } from '@/components/layout/Shell'
-import { Topbar } from '@/components/layout/Topbar'
+import { CustomerPanel } from '@/components/customers/CustomerPanel'
+import { Card } from '@/components/kit/Card'
+import { Chip } from '@/components/kit/Chip'
+import { Icon } from '@/components/kit/Icon'
+import { KitEmptyState } from '@/components/kit/KitEmptyState'
+import { KitShell } from '@/components/kit/KitShell'
 import { Button } from '@/components/ui/Button'
-import { DataTable, type Column } from '@/components/ui/DataTable'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { SearchInput } from '@/components/ui/SearchInput'
 import { formatCop } from '@/lib/domain/money'
-import { customerOrders, identificationTypes, listCustomers, saveCustomer, type Customer, type CustomerInput, type CustomerOrder, type IdType } from '@/lib/services/customers'
+import { customerOrders, identificationTypes, listCustomers, loyaltyCard, saveCustomer, type Customer, type CustomerInput, type CustomerOrder, type IdType, type LoyaltyCard } from '@/lib/services/customers'
+import { cn } from '@/lib/utils'
 
+type Filter = 'all' | 'withOrders' | 'invoiced'
+const FILTERS: Filter[] = ['all', 'withOrders', 'invoiced']
 const EMPTY: CustomerInput = { name: '', phone: '', email: '', vat: '', idTypeId: null, street: '', city: '' }
+const pass = (c: Customer, f: Filter) => f === 'all' || (f === 'withOrders' ? c.orders > 0 : c.invoiced > 0)
 
+// Clientes con la estructura de "Order History" del kit: lista con buscador y chips a la izquierda, panel de detalle a la derecha.
 export default function ClientesPage() {
-  const t = useTranslations('pos.customers')
+  const t = useTranslations('admin.customers')
   const [customers, setCustomers] = useState<Customer[]>([])
   const [idTypes, setIdTypes] = useState<IdType[]>([])
   const [query, setQuery] = useState('')
-  const [panel, setPanel] = useState<{ id: number | null } | null>(null)
-  const [history, setHistory] = useState<{ id: number; orders: CustomerOrder[] } | null>(null)
+  const [filter, setFilter] = useState<Filter>('all')
+  const [selected, setSelected] = useState<number | null>(null)
+  const [form, setForm] = useState<{ id: number | null } | null>(null)
+  const [detail, setDetail] = useState<{ id: number; orders: CustomerOrder[]; loyalty: LoyaltyCard | null } | null>(null)
 
   useEffect(() => { void identificationTypes().then(setIdTypes) }, [])
   useEffect(() => { const h = setTimeout(() => { void listCustomers(query).then(setCustomers) }, 250); return () => clearTimeout(h) }, [query])
-  useEffect(() => { if (panel?.id) void customerOrders(panel.id).then((orders) => setHistory({ id: panel.id!, orders })) }, [panel])
+  useEffect(() => {
+    if (selected === null) return
+    void Promise.all([customerOrders(selected), loyaltyCard(selected).catch(() => null)]).then(([orders, loyalty]) => setDetail({ id: selected, orders, loyalty }))
+  }, [selected])
 
-  const editing = panel?.id ? customers.find((c) => c.id === panel.id) : undefined
+  const visible = customers.filter((c) => pass(c, filter))
+  const current = customers.find((c) => c.id === selected) ?? null
+  const editing = form?.id ? customers.find((c) => c.id === form.id) : undefined
   async function onSave(input: CustomerInput) {
-    const id = await saveCustomer(panel?.id ?? null, input)
+    const id = await saveCustomer(form?.id ?? null, input)
     setCustomers(await listCustomers(query))
-    setPanel({ id })
+    setSelected(id)
+    setForm({ id })
   }
-  const columns: Column<Customer>[] = [
-    { key: 'name', header: t('cols.name'), render: (c) => <span className="font-medium">{c.name}</span> },
-    { key: 'doc', header: t('cols.doc'), width: '150px', render: (c) => <span className="font-mono tabular text-soft">{c.vat || '—'}</span> },
-    { key: 'phone', header: t('cols.phone'), width: '150px', render: (c) => c.phone || '—' },
-    { key: 'orders', header: t('cols.orders'), width: '100px', align: 'right', render: (c) => <span className="font-mono tabular">{c.orders}</span> },
-    { key: 'inv', header: t('cols.invoiced'), width: '140px', align: 'right', render: (c) => <span className="font-mono tabular">{formatCop(c.invoiced)}</span> },
-  ]
   return (
-    <Shell mode="sidebar" active="customers">
-      <Topbar left={<div className="flex flex-col gap-0.5"><span className="text-[22px] font-bold">{t('title')}</span><span className="text-[15px] text-soft">{t('subtitle', { n: customers.length })}</span></div>}
-        right={<><input aria-label={t('search')} placeholder={t('search')} value={query} onChange={(e) => setQuery(e.target.value)} className="h-tap px-4 rounded-[10px] border border-border bg-surface text-base w-80" />
-          <Button variant="primary" onClick={() => setPanel({ id: null })}>{t('new')}</Button></>} />
-      <div className="flex-1 min-h-0 flex">
-        <section className="flex-1 min-w-0 p-6 px-7 flex flex-col">
-          <div className="flex-1 min-h-0 rounded-[18px] bg-surface border border-border flex flex-col overflow-hidden">
-            <DataTable columns={columns} rows={customers} rowKey={(c) => c.id} emptyText={t('empty')} onRowClick={(c) => setPanel({ id: c.id })} selectedKey={panel?.id ?? null} />
+    <KitShell>
+      <PageHeader icon="customers" title={t('title')} actions={<>
+        <SearchInput value={query} onChange={setQuery} placeholder={t('search')} className="w-[360px]" />
+        <Button variant="primary" onClick={() => setForm({ id: null })}><Icon name="plus" size={18} />{t('new')}</Button>
+      </>}>
+        {FILTERS.map((f) => <Chip key={f} label={t(`filters.${f}`)} count={customers.filter((c) => pass(c, f)).length} active={filter === f} onClick={() => setFilter(f)} />)}
+      </PageHeader>
+      <div className="flex-1 min-h-0 flex gap-4 px-5 pb-5">
+        <Card className="flex-1 min-w-0">
+          <div className="h-full overflow-y-auto p-3 flex flex-col gap-3">
+            {visible.length === 0 && <KitEmptyState icon="users" title={t('empty')} body={t('emptyBody')} />}
+            {visible.map((c) => (
+              <button key={c.id} type="button" onClick={() => setSelected(c.id)} aria-pressed={selected === c.id}
+                className={cn('rounded-md border bg-surface text-left overflow-hidden hover:border-primary/60', selected === c.id ? 'border-primary' : 'border-border')}>
+                <div className="h-10 px-4 flex items-center justify-between bg-muted text-[13px]"><span className="font-semibold text-ink">{c.name}</span><span className="text-soft tabular">{c.vat || t('cols.doc') + ': —'}</span></div>
+                <div className="px-4 py-3 grid grid-cols-3 divide-x divide-border text-[15px]">
+                  <div><p className="text-[13px] text-soft">{t('cols.phone')}</p><p className="font-semibold text-ink">{c.phone || '—'}</p></div>
+                  <div className="pl-4"><p className="text-[13px] text-soft">{t('cols.orders')}</p><p className="font-semibold text-ink tabular">{c.orders}</p></div>
+                  <div className="pl-4"><p className="text-[13px] text-soft">{t('cols.invoiced')}</p><p className="font-semibold text-ink tabular">$ {formatCop(c.invoiced)}</p></div>
+                </div>
+              </button>
+            ))}
           </div>
-        </section>
-        {panel && (
-          <CustomerForm key={panel.id ?? 'new'} initial={editing ? { name: editing.name, phone: editing.phone, email: editing.email, vat: editing.vat, idTypeId: editing.idTypeId, street: editing.street, city: editing.city } : EMPTY}
-            isNew={panel.id === null} idTypes={idTypes} history={history?.id === panel.id ? history.orders : []} onSave={onSave} onClose={() => setPanel(null)} />
-        )}
+        </Card>
+        <CustomerPanel customer={current} loyalty={detail?.id === selected ? detail.loyalty : undefined} history={detail?.id === selected ? detail.orders : []} onEdit={() => setForm({ id: selected })} />
       </div>
-    </Shell>
+      {form && (
+        <CustomerForm key={form.id ?? 'new'} initial={editing ? { name: editing.name, phone: editing.phone, email: editing.email, vat: editing.vat, idTypeId: editing.idTypeId, street: editing.street, city: editing.city } : EMPTY}
+          isNew={form.id === null} idTypes={idTypes} onSave={onSave} onClose={() => setForm(null)} />
+      )}
+    </KitShell>
   )
 }

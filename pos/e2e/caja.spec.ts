@@ -23,7 +23,7 @@ test('the cashier closes the register with the counted cash and opens the next s
   await loginAsAdmin(page)
   await page.goto('/ventas')
   await page.getByRole('button', { name: 'Cerrar caja' }).click()
-  const drawer = page.getByRole('complementary', { name: 'Cerrar caja' })
+  const drawer = page.getByRole('dialog', { name: 'Cerrar caja' })
   const expected = (await drawer.getByText(/^\$ /).first().innerText()).replace(/[^\d]/g, '')
   await drawer.getByLabel(/Efectivo contado/).fill(expected)
   await drawer.getByRole('button', { name: 'Cerrar caja' }).click()
