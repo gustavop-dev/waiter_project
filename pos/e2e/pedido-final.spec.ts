@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test'
 
-import { loginAsAdmin } from './helpers/odoo'
+import { loginAsAdmin, openFreeTable } from './helpers/odoo'
 
 // @flow: search-dish-and-kitchen-note  @outcome: success
 test('the waiter searches a dish, adds a general kitchen note and the KDS shows it', async ({ page }) => {
   await loginAsAdmin(page)
-  await page.getByRole('button', { name: /^Mesa 6: Disponible/ }).click()
+  const mesa = await openFreeTable(page)
   await page.getByRole('button', { name: 'Abrir pedido' }).click()
   await page.waitForURL('**/mesas/**')
   const carta = page.getByRole('region', { name: 'Carta' })
@@ -18,14 +18,14 @@ test('the waiter searches a dish, adds a general kitchen note and the KDS shows 
   await page.getByRole('button', { name: 'Enviar a cocina' }).click()
   await page.waitForURL('**/salon')
   await page.goto('/kds')
-  const ticket = page.getByRole('article', { name: 'Mesa 6' })
+  const ticket = page.getByRole('article', { name: `Mesa ${mesa}` })
   await expect(ticket).toContainText('sin hielo, alergia')
   await ticket.getByRole('button', { name: 'Listo' }).click()
   await page.getByRole('complementary').getByRole('button', { name: /Mesa 6/ }).click()
   await page.goto('/salon')
   await page.getByLabel('Buscar mesa o pedido').fill('6')
-  await expect(page.getByRole('button', { name: /^Mesa 1: Disponible/ })).toHaveCount(0)
-  await page.getByRole('button', { name: /^Mesa 6: Servido/ }).click()
+  await expect(page.getByRole('button', { name: `Mesa ${mesa}: Disponible` })).toHaveCount(0)
+  await page.getByRole('button', { name: new RegExp(`^Mesa ${mesa}: Servido`) }).click()
   await page.getByRole('button', { name: /^Cobrar/ }).click()
   await page.getByRole('button', { name: 'Agregar pago' }).click()
   await page.getByRole('button', { name: 'Confirmar cobro' }).click()

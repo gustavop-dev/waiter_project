@@ -31,3 +31,13 @@ export async function loginAs(page: Page, login: string, password: string, emplo
 export async function loginAsAdmin(page: Page) {
   await loginAs(page, 'admin', 'admin')
 }
+
+// Cualquier mesa libre del plano. Los recorridos no pueden fijar un número: la base demo es compartida y
+// las corridas anteriores dejan mesas ocupadas o reservadas.
+export async function openFreeTable(page: Page): Promise<string> {
+  const free = page.getByRole('button', { name: /^Mesa \d+: Disponible/ }).first()
+  await expect(free).toBeVisible({ timeout: 30_000 })
+  const label = (await free.getAttribute('aria-label')) ?? ''
+  await free.click()
+  return label.match(/^Mesa (\d+):/)?.[1] ?? ''
+}

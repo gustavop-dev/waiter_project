@@ -6,6 +6,7 @@ import { loginAsAdmin } from './helpers/odoo'
 test('the floor shows the seeded tables with their state word', async ({ page }) => {
   await loginAsAdmin(page)
   await expect(page.getByRole('tab', { name: 'Terraza' })).toBeVisible()
-  await expect(page.getByRole('button', { name: /^Mesa 1: Disponible/ })).toBeVisible()
-  await expect(page.getByText('Toca una mesa para ver su cuenta')).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Mesa \d+: (Disponible|En progreso|Reservada)/ }).first()).toBeVisible()
+  // El kit abre el detalle en un modal; el panel lateral del diseño anterior ya no existe.
+  await expect(page.getByRole('link', { name: 'Crear pedido' })).toBeVisible()
 })
