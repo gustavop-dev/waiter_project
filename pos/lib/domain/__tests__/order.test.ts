@@ -33,6 +33,12 @@ it('builds the sync_from_ui payload Odoo expects', () => {
   expect(p.lines[0]).toEqual([0, 0, expect.objectContaining({ product_id: 3, qty: 1, price_unit: 36900, tax_ids: [[6, 0, [5]]], uuid: o.lines[0].uuid })])
 })
 
+// Falla si el empleado activo (pos_hr) deja de firmar el pedido o si sin empleado se envía employee_id.
+it('signs the payload with the active employee only when there is one', () => {
+  expect(toSyncPayload(draft(), 2).employee_id).toBe(2)
+  expect('employee_id' in toSyncPayload(draft())).toBe(false)
+})
+
 // Falla si removeLine borra una línea distinta a la pedida.
 it('removeLine drops only the targeted line', () => {
   const other: Product = { ...angus, id: 4, name: 'Papas' }

@@ -2,18 +2,25 @@
 
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import { useState } from 'react'
 
 import { Icon, type KitIcon } from '@/components/kit/Icon'
 import { initials } from '@/components/layout/Sidebar'
+import { NotificationPopover } from '@/components/notifications/NotificationPopover'
 import { TAB_ROUTES, adminSubtabsFor, tabsFor, type AdminSubtab, type KitTab } from '@/lib/domain/navigation'
 import type { Role } from '@/lib/domain/roles'
+import { useNotificationStore } from '@/lib/stores/notificationStore'
 import { cn } from '@/lib/utils'
 
 const ICON: Record<KitTab, KitIcon> = { dashboard: 'dashboard', orders: 'orders', tables: 'tables', reservations: 'reservations', history: 'history', inventory: 'inventory', kitchen: 'kitchen', admin: 'admin' }
 
 // Barra superior del kit (Dashboard / Filled.png): logo, pestañas en píldora gris, campana con punto, chip de usuario.
-export function TopBar({ active, role, userName, unread = 0, activeSubtab, onOpenSettings }: { active: KitTab | null; role: Role; userName: string; unread?: number; activeSubtab?: AdminSubtab | null; onOpenSettings: () => void }) {
+// `unread` fuerza el conteo (galería y pruebas); sin él, la campana lee las no leídas del centro de notificaciones.
+export function TopBar({ active, role, userName, unread, activeSubtab, onOpenSettings }: { active: KitTab | null; role: Role; userName: string; unread?: number; activeSubtab?: AdminSubtab | null; onOpenSettings: () => void }) {
   const t = useTranslations('pos.kit.nav')
+  const storeUnread = useNotificationStore((s) => s.unread())
+  const count = unread ?? storeUnread
+  const [bell, setBell] = useState(false)
   const tr = useTranslations('pos.nav.roles')
   const tabs = tabsFor(role)
   const subtabs = adminSubtabsFor(role)
@@ -29,11 +36,12 @@ export function TopBar({ active, role, userName, unread = 0, activeSubtab, onOpe
             </Link>
           ))}
         </nav>
-        <div className="ml-auto shrink-0 flex items-center gap-3">
-          <button type="button" aria-label={t('bell', { count: unread })} className="relative w-12 h-12 rounded-md border border-border grid place-items-center text-soft">
+        <div className="ml-auto shrink-0 flex items-center gap-3 relative">
+          <button type="button" aria-label={t('bell', { count })} aria-expanded={bell} onClick={() => setBell((v) => !v)} className={cn('relative w-12 h-12 rounded-md border border-border grid place-items-center', bell ? 'text-primary border-primary/40' : 'text-soft')}>
             <Icon name="bell" size={22} />
-            {unread > 0 && <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 rounded-full bg-danger border-2 border-surface" />}
+            {count > 0 && <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 rounded-full bg-danger border-2 border-surface" />}
           </button>
+          <NotificationPopover open={bell} onClose={() => setBell(false)} />
           {/* En 1194 px con ocho pestañas el nombre no cabe: bajo 1400 px queda solo el avatar; la etiqueta accesible lleva nombre y rol. */}
           <button type="button" onClick={onOpenSettings} aria-label={`${userName} / ${tr(role)}`} className="h-12 px-1.5 min-[1400px]:pr-4 rounded-md border border-border flex items-center gap-2.5">
             <span className="w-9 h-9 rounded-full bg-primary-soft text-primary grid place-items-center text-[14px] font-semibold">{initials(userName)}</span>
