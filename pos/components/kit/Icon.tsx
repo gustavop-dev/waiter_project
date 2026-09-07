@@ -1,10 +1,10 @@
 import {
   IconAddressBook, IconAdjustments, IconAlarm, IconArrowLeft, IconArrowRight, IconArrowsMove, IconBabyCarriage, IconBackspace,
   IconBell, IconBox, IconBuildingStore, IconCalendarEvent, IconCash, IconCashRegister, IconChartBar, IconCheck, IconChefHat,
-  IconChevronDown, IconChevronLeft, IconChevronRight, IconClock, IconCreditCard, IconDeviceDesktop, IconDotsVertical,
+  IconChevronDown, IconChevronLeft, IconChevronRight, IconClock, IconCreditCard, IconDeviceDesktop, IconDots, IconDotsVertical,
   IconFileInvoice, IconFileText, IconFingerprint, IconHistory, IconLanguage, IconLayoutDashboard, IconLock, IconLogout,
-  IconMail, IconMinus, IconPackage, IconPencil, IconPhoto, IconPlus, IconPrinter, IconQrcode, IconReceipt, IconRotate,
-  IconSearch, IconSettings, IconShoppingCart, IconToolsKitchen2, IconTrash, IconTruckDelivery, IconUser, IconUsers, IconX,
+  IconMail, IconMinus, IconPackage, IconPencil, IconPhoto, IconPlus, IconPrinter, IconQrcode, IconReceipt, IconRefresh, IconRotate,
+  IconSearch, IconSettings, IconShoppingCart, IconToolsKitchen2, IconTrash, IconTruckDelivery, IconUpload, IconUser, IconUsers, IconX,
   type IconProps,
 } from '@tabler/icons-react'
 import type { ComponentType } from 'react'
@@ -21,7 +21,7 @@ const ICONS = {
   printer: IconPrinter, money: IconCash, card: IconCreditCard, qr: IconQrcode, receipt: IconReceipt, cart: IconShoppingCart,
   logout: IconLogout, lock: IconLock, photo: IconPhoto, chef: IconChefHat, move: IconArrowsMove, rotate: IconRotate,
   mail: IconMail, fingerprint: IconFingerprint, language: IconLanguage, babyChair: IconBabyCarriage, delivery: IconTruckDelivery,
-  store: IconBuildingStore,
+  store: IconBuildingStore, moreHorizontal: IconDots, refresh: IconRefresh, upload: IconUpload,
 } satisfies Record<string, ComponentType<IconProps>>
 
 export type KitIcon = keyof typeof ICONS
