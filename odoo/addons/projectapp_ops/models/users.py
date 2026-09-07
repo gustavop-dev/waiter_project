@@ -3,6 +3,8 @@
 El rol decide qué pantallas ve la app (`pos/`); los grupos deciden qué acepta la
 API de Odoo. Se mantienen juntos para que nunca se contradigan.
 """
+import json
+
 from odoo import api, fields, models
 
 ROLES = [("waiter", "Mesero"), ("cashier", "Cajero"), ("admin", "Administrador")]
@@ -14,15 +16,55 @@ GROUPS_BY_ROLE = {
 }
 MANAGED = sorted({g for gs in GROUPS_BY_ROLE.values() for g in gs} - {"base.group_user"})
 
+# Preferencias de notificación del kit (pantalla "Notification Settings"): tipo × canal. Todas encendidas al inicio.
+NOTIFY_KEYS = ["kitchen_popup", "kitchen_sound", "inventory_popup", "inventory_sound", "system_popup", "system_sound"]
+DEFAULT_NOTIFY = {key: True for key in NOTIFY_KEYS}
+
 
 class ResUsers(models.Model):
     _inherit = "res.users"
 
     waiter_role = fields.Selection(ROLES, string="Rol en Waiter", default="waiter")
+    waiter_notify = fields.Char(
+        string="Preferencias de notificación (JSON)", default=lambda self: json.dumps(DEFAULT_NOTIFY),
+        help="Objeto JSON con seis booleanos: kitchen_popup, kitchen_sound, inventory_popup, inventory_sound, "
+             "system_popup, system_sound. Lo escribe el POS con set_waiter_notify.")
 
     @property
     def SELF_READABLE_FIELDS(self):
-        return super().SELF_READABLE_FIELDS + ["waiter_role"]
+        return super().SELF_READABLE_FIELDS + ["waiter_role", "waiter_notify"]
+
+    @property
+    def SELF_WRITEABLE_FIELDS(self):
+        return super().SELF_WRITEABLE_FIELDS + ["waiter_notify"]
+
+    @api.model
+    def _load_pos_data_fields(self, *args, **kwargs):
+        return super()._load_pos_data_fields(*args, **kwargs) + ["waiter_role", "waiter_notify"]
+
+    def get_waiter_notify(self):
+        """Preferencias como dict, completando con el valor por defecto lo que falte o esté mal formado."""
+        self.ensure_one()
+        try:
+            raw = json.loads(self.waiter_notify or "{}")
+        except ValueError:
+            raw = {}
+        if not isinstance(raw, dict):
+            raw = {}
+        return {key: bool(raw.get(key, True)) for key in NOTIFY_KEYS}
+
+    def set_waiter_notify(self, notify):
+        """Guarda las seis preferencias. Acepta un dict o una cadena JSON; las claves desconocidas se ignoran y
+        las que faltan conservan su valor actual. Cada usuario solo cambia las suyas (SELF_WRITEABLE_FIELDS)."""
+        self.ensure_one()
+        if isinstance(notify, str):
+            notify = json.loads(notify or "{}")
+        if not isinstance(notify, dict):
+            raise ValueError("waiter_notify debe ser un objeto JSON")
+        current = self.get_waiter_notify()
+        current.update({key: bool(notify[key]) for key in NOTIFY_KEYS if key in notify})
+        self.write({"waiter_notify": json.dumps(current)})
+        return current
 
     def _group_commands_for(self, role):
         wanted = set(GROUPS_BY_ROLE.get(role, GROUPS_BY_ROLE["waiter"]))
