@@ -2,6 +2,7 @@
   "title": "Mesas",
   "legend": { "available": "Disponible", "unavailable": "No disponible", "ready": "Listo para servir", "reserved": "Reservada" },
   "createOrder": "Crear pedido",
+  "pickTable": { "title": "¿De qué mesa es el pedido?", "body": "Toca la mesa en el plano y vuelve a pulsar «Crear pedido». Así el pedido nace con su mesa y no con la última que se tocó.", "choose": "Elegir en el plano", "noTable": "Es para llevar o a domicilio" },
   "settings": "Ajustes de mesas",
   "floors": "Pisos",
   "floorPicker": "Piso #{number}",

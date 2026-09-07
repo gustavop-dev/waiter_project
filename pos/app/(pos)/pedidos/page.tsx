@@ -77,7 +77,7 @@ export default function PedidosPage() {
             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('search')} aria-label={t('search')} className="flex-1 min-w-0 bg-transparent outline-none text-[15px] text-ink placeholder:text-dim" />
           </label>
           <span className="w-px h-8 bg-border" />
-          <Link href="/pedidos/nuevo" className="h-11 px-4 rounded-md bg-primary text-primary-ink text-[15px] font-bold inline-flex items-center gap-1.5"><Icon name="plus" size={18} />{t('createOrder')}</Link>
+          <Link href="/salon?elegir=mesa" className="h-11 px-4 rounded-md bg-primary text-primary-ink text-[15px] font-bold inline-flex items-center gap-1.5"><Icon name="plus" size={18} />{t('createOrder')}</Link>
         </div>
         <div className="flex items-center gap-2">
           {FILTERS.map((f) => <Chip key={f} label={t(`filters.${f}`)} count={counts[f]} active={f === filter} onClick={() => setFilter(f)} />)}

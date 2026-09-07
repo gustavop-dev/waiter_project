@@ -83,7 +83,7 @@ export default function DashboardPage() {
           </div>
         </div>
         <div className="min-h-0 flex flex-col gap-4">
-          <Link href="/pedidos/nuevo" className="h-12 shrink-0 rounded-md bg-primary text-primary-ink text-[16px] font-bold inline-flex items-center justify-center gap-2"><Icon name="plus" size={20} />{t('createOrder')}</Link>
+          <Link href="/salon?elegir=mesa" className="h-12 shrink-0 rounded-md bg-primary text-primary-ink text-[16px] font-bold inline-flex items-center justify-center gap-2"><Icon name="plus" size={20} />{t('createOrder')}</Link>
           <div className="flex-1 min-h-0 grid grid-rows-3 gap-4">
             <ReadyToServe dishes={ready} onServe={(d) => void deliver(d)} busy={serving} />
             <TablesAvailable floors={catalog?.floors ?? []} tables={catalog?.tables ?? []} busyTableIds={busyTables} />

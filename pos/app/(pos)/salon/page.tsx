@@ -1,9 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Icon } from '@/components/kit/Icon'
 import { KitShell } from '@/components/kit/KitShell'
@@ -14,6 +14,7 @@ import { FloorPlan } from '@/components/tables/FloorPlan'
 import { FloorSettingsPopover } from '@/components/tables/FloorSettingsPopover'
 import { FloorWizard } from '@/components/tables/FloorWizard'
 import { PayModal } from '@/components/tables/PayModal'
+import { PickTablePrompt } from '@/components/tables/PickTablePrompt'
 import { ReservationDetailModal } from '@/components/tables/ReservationDetailModal'
 import { ReservationListModal } from '@/components/tables/ReservationListModal'
 import { TableDetailModal } from '@/components/tables/TableDetailModal'
@@ -32,10 +33,19 @@ import { toast } from '@/lib/stores/toastStore'
 import type { Table } from '@/lib/types'
 
 type Sheet = null | 'reservations' | 'detail' | 'pay' | 'wizard'
+// Las demás pantallas mandan aquí con ?elegir=mesa cuando se pulsa "Crear pedido" sin mesa elegida.
+const PICK_TABLE = 'elegir'
 
 // Fecha de hoy en la zona del dispositivo: es la que el addon usa para "la próxima reserva" de cada mesa.
 const today = (): string => new Date().toLocaleDateString('en-CA')
 const EMPTY_RESERVED: Record<number, TableReservation | null> = {}
+
+// useSearchParams obliga a un límite de Suspense: se aísla aquí para no envolver la pantalla entera.
+function AskedForTable({ onAsk }: { onAsk: () => void }) {
+  const asked = useSearchParams().get(PICK_TABLE) === 'mesa'
+  useEffect(() => { if (asked) onAsk() }, [asked, onAsk])
+  return null
+}
 
 // Pantalla "Mesas" del kit CloudPos (6 – Table): plano real por piso, leyenda, barra de mesa seleccionada,
 // detalle de mesa, cambio de mesa y ajustes de pisos con el editor del plano.
@@ -59,6 +69,7 @@ export default function SalonPage() {
   const [loadedReserved, setLoadedReserved] = useState<{ key: string; map: Record<number, TableReservation | null> } | null>(null)
   const [booking, setBooking] = useState<TableReservation | null>(null)
   const [movingBusy, setMovingBusy] = useState(false)
+  const [pickTable, setPickTable] = useState(false)
 
   const reload = useCallback(async () => { if (session) { await load(session.id); await refreshOpenOrders(session.id) } }, [session, load, refreshOpenOrders])
   useEffect(() => {
@@ -66,6 +77,12 @@ export default function SalonPage() {
     return () => clearInterval(id)
   }, [session, refreshOpenOrders])
   useEffect(() => { if (session) { void refreshOpenOrders(session.id); void refreshShift(session.id) } }, [session, refreshOpenOrders, refreshShift])
+  // Llegar aquí para elegir mesa descarta la que quedara seleccionada de antes: la elección tiene que ser de ahora.
+  const askForTable = useCallback(() => {
+    selectTable(null)
+    setPickTable(true)
+    router.replace('/salon')
+  }, [selectTable, router])
   const refreshFloors = useCallback(async () => { if (catalog) setAllFloors(await listAllFloors(catalog.settings.configId)) }, [catalog])
   const configId = catalog?.settings.configId ?? null
   useEffect(() => {
@@ -143,7 +160,8 @@ export default function SalonPage() {
   }
 
   if (!catalog) return null
-  const newOrderHref = selected ? `/pedidos/nuevo?mesa=${selected.table.id}` : '/pedidos/nuevo'
+  // Un pedido en mesa nace de una mesa elegida a propósito: sin selección se pide antes de abrir el asistente.
+  const newOrderHref = selected ? `/pedidos/nuevo?mesa=${selected.table.id}` : null
   return (
     <KitShell>
       <header className="shrink-0 h-[72px] px-4 flex items-center gap-4 border-b border-border">
@@ -152,7 +170,8 @@ export default function SalonPage() {
           <TableLegend />
           <FloorSwitcher floors={catalog.floors} activeId={floorId} onChange={setFloor} />
           <span aria-hidden className="w-px h-8 bg-border" />
-          <Link href={newOrderHref} className="h-12 px-4 rounded-md bg-primary text-primary-ink flex items-center gap-2 text-[16px] font-semibold"><Icon name="plus" size={20} />{t('createOrder')}</Link>
+          <button type="button" onClick={() => (newOrderHref ? router.push(newOrderHref) : setPickTable(true))}
+            className="h-12 px-4 rounded-md bg-primary text-primary-ink flex items-center gap-2 text-[16px] font-semibold"><Icon name="plus" size={20} />{t('createOrder')}</button>
           {mayManageFloors && (
             <button type="button" aria-label={t('settings')} aria-expanded={settings} onClick={() => setSettings((v) => !v)} className="w-12 h-12 rounded-full border border-border bg-surface grid place-items-center text-ink"><Icon name="cog" size={22} /></button>
           )}
@@ -179,7 +198,7 @@ export default function SalonPage() {
       {booking && <ReservationDetailModal open onClose={() => setBooking(null)} reservationId={booking.id} />}
       {selected && (
         <TableDetailModal open={sheet === 'detail'} onClose={() => setSheet(null)} tableName={String(selected.table.number)} orderId={selected.orderId} imageFor={imageFor}
-          onChangeTable={(detail) => { setSheet(null); setMoving({ detail, fromTableId: selected.table.id }) }} onNewOrder={() => router.push(newOrderHref)} onPay={openPay}
+          onChangeTable={(detail) => { setSheet(null); setMoving({ detail, fromTableId: selected.table.id }) }} onNewOrder={() => newOrderHref && router.push(newOrderHref)} onPay={openPay}
           onServe={serveLine} busy={busy} />
       )}
       {moving && target !== null && (
@@ -190,6 +209,8 @@ export default function SalonPage() {
         <PayModal open={sheet === 'pay'} onClose={() => setSheet(null)} tableNumber={selected.table.number} total={selected.total} lines={payLines} methods={catalog.paymentMethods} busy={busy}
           onSettle={onSettle} receipt={receipt} onCloseReceipt={onCloseReceipt} />
       )}
+      <Suspense><AskedForTable onAsk={askForTable} /></Suspense>
+      <PickTablePrompt open={pickTable} onClose={() => setPickTable(false)} />
       {sheet === 'wizard' && <FloorWizard open onClose={() => setSheet(null)} floors={catalog.floors} configId={catalog.settings.configId} onCreated={async (id) => { await reload(); setFloor(id) }} />}
       {editing && <FloorEditModal open onClose={() => setEditing(null)} floor={editing.floor} tables={editing.tables} configId={catalog.settings.configId} onSaved={reload} />}
     </KitShell>

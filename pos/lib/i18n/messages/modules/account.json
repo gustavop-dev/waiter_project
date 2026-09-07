@@ -1,5 +1,6 @@
 {
-  "brand": "Waiter",
+  "brand": "Waiter.",
+  "brandBy": "waiter by projectapp",
   "terminal": {
     "title": "Inicio de terminal",
     "subtitle": "Entra con el correo del terminal para conectar este dispositivo.",

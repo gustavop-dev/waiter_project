@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
+import { BrandMark } from '@/components/kit/BrandMark'
 import { Icon, type KitIcon } from '@/components/kit/Icon'
 import { NotificationPopover } from '@/components/notifications/NotificationPopover'
 import { TAB_ROUTES, adminSubtabsFor, tabsFor, type AdminSubtab, type KitTab } from '@/lib/domain/navigation'
@@ -26,7 +27,7 @@ export function TopBar({ active, role, userName, unread, activeSubtab, onOpenSet
   return (
     <header className="shrink-0 bg-surface border-b border-border">
       <div className="h-topbar px-5 flex items-center gap-4">
-        <Link href="/dashboard" aria-label="Waiter" className="w-9 h-9 rounded-md bg-primary text-primary-ink grid place-items-center font-semibold">W</Link>
+        <BrandMark href="/dashboard" />
         <nav aria-label={t('main')} className="min-w-0 flex items-center gap-0.5 p-1 rounded-lg bg-muted overflow-x-auto">
           {tabs.map((tab) => (
             <Link key={tab} href={TAB_ROUTES[tab]} aria-current={tab === active ? 'page' : undefined}

@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl'
 
 import { Chip } from '@/components/kit/Chip'
+import { BrandMark } from '@/components/kit/BrandMark'
 import { Icon } from '@/components/kit/Icon'
 import { ALL, LATE, formatClock } from '@/lib/domain/kitchen'
 
@@ -16,7 +17,7 @@ export function KdsHeader({ tabs, counts, active, onTab, avgSeconds, now }: KdsH
   return (
     <header className="shrink-0 bg-surface border-b border-border">
       <div className="h-topbar px-5 flex items-center gap-4">
-        <span aria-label="Waiter" className="w-9 h-9 rounded-md bg-primary text-primary-ink grid place-items-center font-semibold">W</span>
+        <BrandMark />
         <h1 className="h-12 px-4 rounded-md bg-muted flex items-center gap-2 text-[18px] font-semibold text-ink whitespace-nowrap"><Icon name="chef" size={22} />{t('title')}</h1>
         <nav aria-label={t('grid')} className="min-w-0 flex items-center gap-2 overflow-x-auto">
           {tabs.map((tab) => <Chip key={tab} label={label(tab)} count={counts[tab] ?? 0} active={tab === active} onClick={() => onTab(tab)} icon={tab === LATE ? 'alarm' : undefined} />)}

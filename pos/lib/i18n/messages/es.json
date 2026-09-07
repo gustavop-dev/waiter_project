@@ -1,6 +1,7 @@
 {
   "pos": {
-    "brand": "Waiter",
+    "brand": "Waiter.",
+    "brandBy": "waiter by projectapp",
     "nav": {
       "operation": "Operación",
       "sales": "Ventas",
