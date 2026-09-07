@@ -18,7 +18,11 @@
   "tip": "Propina",
   "memberPoints": "Puntos del socio",
   "totalPayment": "Total a pagar",
-  "methods": { "cash": "Efectivo", "card": "Tarjeta", "qr": "Código QR" },
+  "methods": {
+    "cash": "Efectivo",
+    "card": "Tarjeta",
+    "qr": "Código QR"
+  },
   "inputMoney": "Monto recibido",
   "inputMoneyBody": "Digita el efectivo que entrega el cliente.",
   "quickAmount": "Cobrar {amount}",
@@ -60,5 +64,17 @@
   "insufficient": "El efectivo no cubre el monto.",
   "loading": "Cargando pedido…",
   "notFound": "No se encontró el pedido.",
-  "amountLabel": "Efectivo recibido"
+  "amountLabel": "Efectivo recibido",
+  "types": {
+    "1": "En mesa",
+    "2": "Para llevar",
+    "3": "Domicilio"
+  },
+  "tableBadge": "Mesa {n}",
+  "takeAwayBadge": "Llevar",
+  "moreOptions": "Más opciones",
+  "method": "Método",
+  "searchPlaceholder": "Código de socio",
+  "paying": "Registrando el pago…",
+  "payPart": "Cobrar {amount}"
 }
