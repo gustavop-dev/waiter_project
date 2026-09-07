@@ -9,7 +9,10 @@ import { useAuthStore } from '@/lib/stores/authStore'
 import { useNotificationStore } from '@/lib/stores/notificationStore'
 import { toast } from '@/lib/stores/toastStore'
 
-const POLL_MS = 15_000
+// Cinco segundos: la llamada es una sola y diminuta (49 KB/min con todo lo demás incluido), y es la que
+// marca el ritmo de lo urgente. Los pedidos siguen releyéndose cada 10 s, pero un aviso nuevo los despierta
+// en el acto, así que el sonido y la pantalla llegan juntos sin doblar el tráfico pesado.
+const POLL_MS = 5_000
 const SOUND: Record<NotificationKind, SoundId> = { kitchen: 'listo', inventory: 'demora', system: 'tap' }
 const POPUP: Record<NotificationKind, keyof NotifyPrefs> = { kitchen: 'kitchen_popup', inventory: 'inventory_popup', system: 'system_popup' }
 const SOUND_PREF: Record<NotificationKind, keyof NotifyPrefs> = { kitchen: 'kitchen_sound', inventory: 'inventory_sound', system: 'system_sound' }
@@ -21,6 +24,7 @@ export function useNotificationAlerts() {
   const user = useAuthStore((s) => s.user)
   const items = useNotificationStore((s) => s.items)
   const refresh = useNotificationStore((s) => s.refresh)
+  const poll = useNotificationStore((s) => s.poll)
   const prefs = useRef<NotifyPrefs | null>(null)
   const seen = useRef(new Set<number>())
   // Hasta que la primera carga termine no se avisa de nada: lo que ya estaba sin leer no es una novedad,
@@ -37,9 +41,9 @@ export function useNotificationAlerts() {
       useNotificationStore.getState().items.forEach((n) => seen.current.add(n.id))
       primed.current = true
     })
-    const id = setInterval(() => void refresh(), POLL_MS)
+    const id = setInterval(() => void poll(), POLL_MS)
     return () => clearInterval(id)
-  }, [user, refresh])
+  }, [user, refresh, poll])
 
   useEffect(() => {
     if (!user || !primed.current) return

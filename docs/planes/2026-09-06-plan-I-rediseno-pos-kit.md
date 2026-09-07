@@ -147,6 +147,33 @@ panel del Inicio, el detalle de la mesa o la casilla de la tarjeta de Pedidos.
 Cada aviso nuevo suena y salta en pantalla en la tablet del mesero según lo que tenga marcado en
 Ajustes › Notificaciones (`res.users.waiter_notify`): el mesero no vive mirando la pantalla.
 
+#### Cómo viajan los cambios (sondeo, y por qué aguanta)
+
+Todo se sondea; no hay push todavía. Dos ritmos:
+
+| Reloj | Cada | Qué mueve |
+|---|---|---|
+| Latido de avisos | 5 s | Un `search_read` de una fila (el aviso más nuevo). Si cambió, trae la lista y despierta al sondeo de pedidos. |
+| Pedidos abiertos | 10 s | La relectura cara (pedidos + líneas + cursos). El latido la adelanta cuando hay algo. |
+| KDS | 5 s | Comandas del turno. |
+| Plano | 30 s | Estado de las mesas. |
+
+Medido contra el Odoo real (`pos/scripts/bench-sondeo.cjs`, una tablet, 60 s en régimen):
+Pedidos 48 llamadas/min y **20 KB/min**; Inicio 58 y 27 KB; Mesas 18 y 3 KB; KDS 24 y 10 KB.
+De cocina a la pantalla del mesero: **4,8 s** medidos.
+
+El latido es lo que hace barato el ritmo de 5 s: preguntar "¿hay algo nuevo?" cuesta doscientos bytes;
+traer las cincuenta filas del centro de avisos cuesta ocho kilobytes y solo pasa cuando algo cambió.
+
+Lo que aguanta: con 61 pedidos abiertos y 245 líneas, la consulta pesada sigue en 25-35 ms (va por
+índice y apenas se mueve respecto a seis pedidos). El techo no es el dato, es la concurrencia: 40
+peticiones a la vez dan mediana 0,8 s en el contenedor de desarrollo, que corre **sin `workers`**
+(un proceso). Eso son ~50 peticiones/s, y una tablet en Pedidos consume 0,8. En producción hay que
+fijar `workers` (aquí, 6 núcleos → 13) y el techo se multiplica.
+
+Cuando haga falta de verdad —o cuando 5 s se quede largo— el paso siguiente es el bus de Odoo 19
+(websocket) en lugar del latido: el servidor avisa y el sondeo desaparece.
+
 #### Quién cobra
 
 `pos.config.waiter_can_charge` (Configuración › Usuarios). Encendido, el mesero cobra la mesa que

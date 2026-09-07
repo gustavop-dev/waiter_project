@@ -12,6 +12,13 @@ interface RawNotification {
   res_id: number | false; action: string | false; action_done: boolean; read: boolean; create_date: string
 }
 
+// Latido: solo el aviso más nuevo. Es lo que se pregunta cada pocos segundos —doscientos bytes— para
+// saber si hay algo; la lista entera (50 filas, ~8 KB) se pide solo cuando la respuesta cambia.
+export async function peekNotification(): Promise<{ id: number; kind: NotificationKind } | null> {
+  const [row] = await callKw<{ id: number; kind: NotificationKind }[]>(MODEL, 'search_read', [[], ['kind']], { limit: 1, order: 'id desc' })
+  return row ? { id: row.id, kind: row.kind } : null
+}
+
 export async function listNotifications(): Promise<Notification[]> {
   const rows = await callKw<RawNotification[]>(MODEL, 'search_read', [[], FIELDS], { limit: LIMIT, order: 'create_date desc, id desc' })
   return rows.map((r) => ({

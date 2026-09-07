@@ -6,6 +6,7 @@ import { orderStatus, progressPercent, type KitOrder, type KitStatus } from '@/l
 import { listKitOrders } from '@/lib/services/ordersKit'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
+import { useNotificationStore } from '@/lib/stores/notificationStore'
 import { useOrderStore } from '@/lib/stores/orderStore'
 
 const POLL_MS = 10_000
@@ -42,6 +43,9 @@ export function useKitOrders() {
     const id = setInterval(() => { void refresh() }, POLL_MS)
     return () => { clearTimeout(first); clearInterval(id) }
   }, [refresh])
+  // Un plato listo no espera al siguiente sondeo: el aviso de cocina, que llega cada 5 s, releé los pedidos.
+  const kitchenPing = useNotificationStore((s) => s.kitchenPing)
+  useEffect(() => { if (kitchenPing > 0) void refresh() }, [kitchenPing, refresh])
 
   const billingOf = useCallback((o: KitOrder) => o.tableId !== null && (Boolean(flags[o.tableId]?.billing) || calls.some((c) => c.tableId === o.tableId && c.kind === 'bill')), [flags, calls])
   const statusOf = useCallback((o: KitOrder): KitStatus => orderStatus(o, billingOf(o)), [billingOf])
