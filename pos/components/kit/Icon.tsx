@@ -1,11 +1,11 @@
 import { IconAddressBook, IconAdjustments, IconAlarm, IconArmchair, IconArrowLeft, IconArrowRight, IconArrowsMaximize,
   IconArrowsMove, IconBabyCarriage, IconBackspace, IconBell, IconBox, IconBuildingStore, IconCalendarEvent, IconCash,
   IconCashBanknote, IconCashRegister, IconChartBar, IconCheck, IconChefHat, IconChevronDown, IconChevronLeft, IconChevronRight,
-  IconCircleCheck, IconClock, IconCreditCard, IconDeviceDesktop, IconDeviceMobile, IconDots, IconDotsVertical, IconFileInvoice,
-  IconFileText, IconFingerprint, IconHash, IconHistory, IconLanguage, IconLayoutDashboard, IconLoader2, IconLock, IconLogout,
-  IconMail, IconMapPin, IconMinus, IconPackage, IconPencil, IconPhone, IconPhoto, IconPlus, IconPrinter, IconQrcode,
-  IconReceipt, IconRefresh, IconRotate, IconSearch, IconSettings, IconShoppingBag, IconShoppingCart, IconToolsKitchen2,
-  IconTrash, IconTruckDelivery, IconUpload, IconUser, IconUsers, IconX, type IconProps,
+  IconCircleCheck, IconClock, IconCreditCard, IconDeviceDesktop, IconDeviceMobile, IconDots, IconDotsVertical, IconFileCheck,
+  IconFileInvoice, IconFileText, IconFingerprint, IconHash, IconHistory, IconLanguage, IconLayoutDashboard, IconLoader2,
+  IconLock, IconLogout, IconMail, IconMapPin, IconMinus, IconPackage, IconPencil, IconPhone, IconPhoto, IconPlus, IconPrinter,
+  IconProgress, IconQrcode, IconReceipt, IconRefresh, IconRotate, IconSearch, IconSettings, IconShoppingBag, IconShoppingCart,
+  IconToolsKitchen2, IconTrash, IconTruckDelivery, IconUpload, IconUser, IconUsers, IconWallet, IconX, type IconProps,
 } from '@tabler/icons-react'
 import type { ComponentType } from 'react'
 
@@ -23,7 +23,8 @@ const ICONS = {
   language: IconLanguage, babyChair: IconBabyCarriage, delivery: IconTruckDelivery, store: IconBuildingStore,
   moreHorizontal: IconDots, refresh: IconRefresh, upload: IconUpload, bag: IconShoppingBag, hash: IconHash,
   expand: IconArrowsMaximize, armchair: IconArmchair, terminal: IconDeviceMobile, banknote: IconCashBanknote,
-  mapPin: IconMapPin, phone: IconPhone, loader: IconLoader2, circleCheck: IconCircleCheck,
+  mapPin: IconMapPin, phone: IconPhone, loader: IconLoader2, circleCheck: IconCircleCheck, wallet: IconWallet,
+  fileCheck: IconFileCheck, progress: IconProgress,
 } satisfies Record<string, ComponentType<IconProps>>
 
 export type KitIcon = keyof typeof ICONS

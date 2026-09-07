@@ -37,6 +37,7 @@ interface OrderState {
   receipt: ReceiptData | null
   settle: (plan: SettlePlan, ctx: SettleContext) => Promise<boolean>
   closeReceipt: () => void
+  discard: () => void
   refreshOpenOrders: (sessionId: number) => Promise<void>
   attendCall: (tableId: number) => Promise<void>
   refreshShift: (sessionId: number) => Promise<void>
@@ -155,6 +156,8 @@ export const useOrderStore = create<OrderState>((set, get) => {
       }
     },
     closeReceipt: () => set({ receipt: null }),
+    // La ronda del kit (/pedidos/[id]/agregar) usa el borrador como carrito y lo suelta al enviar o al cerrar.
+    discard: () => set({ draft: null, saved: null, error: null }),
     // Sondeos periódicos: un corte de red no debe tumbar la vista ni dejar rechazos sin capturar. Se conserva lo último
     // conocido y se reintenta en el siguiente tick.
     refreshOpenOrders: async (sessionId) => {
