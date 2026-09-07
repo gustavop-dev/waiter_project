@@ -8,12 +8,13 @@ import { Modal } from '@/components/kit/Modal'
 import { Button } from '@/components/ui/Button'
 import { formatCop } from '@/lib/domain/money'
 import { orderCode, orderPrefix, progressPercent } from '@/lib/domain/tablesKit'
-import { getOrderDetail, type OrderDetail, type OrderDetailLine } from '@/lib/services/tables'
+import { getOrderDetail, type LineStatus, type OrderDetail, type OrderDetailLine } from '@/lib/services/tables'
 import { cn } from '@/lib/utils'
 
 interface Props {
   open: boolean; onClose: () => void; tableName: string; orderId: number | null; imageFor: (productId: number) => string | null
   onChangeTable: (detail: OrderDetail) => void; onNewOrder: () => void; onPay: (detail: OrderDetail) => void; load?: (orderId: number) => Promise<OrderDetail>
+  onServe?: (line: OrderDetailLine) => Promise<void> | void; busy?: boolean
 }
 
 // date_order llega en UTC sin zona; se muestra como "lun, 17 feb 12:24 p. m." en la hora del dispositivo.
@@ -33,13 +34,25 @@ function Ring({ percent }: { percent: number }) {
   )
 }
 
-function LineCard({ line, image, t }: { line: OrderDetailLine; image: string | null; t: ReturnType<typeof useTranslations<'tables.detail'>> }) {
-  const ts = useTranslations('tables.state')
-  const served = line.status === 'served'
+// Cabecera de cada plato: la palabra dice en qué punto del viaje va, y solo lo que cocina dejó listo
+// ofrece "Entregar" — es el gesto que el mesero hace al dejar el plato en la mesa.
+const LINE_HEAD: Record<LineStatus, { cls: string; icon: 'alarm' | 'chef' | 'checkFilled' }> = {
+  waiting: { cls: 'bg-muted text-soft', icon: 'alarm' },
+  progress: { cls: 'bg-progress-soft text-progress-ink', icon: 'alarm' },
+  ready: { cls: 'bg-success-soft text-success-ink', icon: 'chef' },
+  served: { cls: 'bg-muted text-soft', icon: 'checkFilled' },
+}
+
+function LineCard({ line, image, t, onServe, busy }: { line: OrderDetailLine; image: string | null; t: ReturnType<typeof useTranslations<'tables.detail'>>; onServe?: (line: OrderDetailLine) => Promise<void> | void; busy?: boolean }) {
+  const tl = useTranslations('orders.lineState')
+  const head = LINE_HEAD[line.status]
   return (
     <li className="rounded-md border border-border overflow-hidden bg-surface">
-      <div className={cn('h-9 px-3 flex items-center gap-2 text-[14px] font-semibold', served ? 'bg-success-soft text-success-ink' : 'bg-progress-soft text-progress-ink')}>
-        <Icon name={served ? 'checkFilled' : 'alarm'} size={18} />{served ? ts('served') : `${ts('inProgress')} •`}
+      <div className={cn('h-10 px-3 flex items-center gap-2 text-[14px] font-semibold', head.cls)}>
+        <Icon name={head.icon} size={18} />{tl(line.status === 'progress' ? 'in_progress' : line.status)}
+        {line.status === 'ready' && onServe && (
+          <Button size="compact" variant="primary" className="ml-auto h-8 px-3 text-[13px]" disabled={busy} onClick={() => void onServe(line)}><Icon name="check" size={14} />{t('deliver')}</Button>
+        )}
       </div>
       <div className="p-3 flex gap-3">
         <span className="w-20 h-20 shrink-0 rounded-sm bg-muted overflow-hidden grid place-items-center text-dim">{image ? <img src={image} alt="" className="w-full h-full object-cover" /> : <Icon name="photo" size={22} />}</span>
@@ -55,21 +68,30 @@ function LineCard({ line, image, t }: { line: OrderDetailLine; image: string | n
 }
 
 // Modal "Detalle de mesa" del kit (Detail Table/Food In Progress.png y Food All Served.png).
-export function TableDetailModal({ open, onClose, tableName, orderId, imageFor, onChangeTable, onNewOrder, onPay, load = getOrderDetail }: Props) {
+export function TableDetailModal({ open, onClose, tableName, orderId, imageFor, onChangeTable, onNewOrder, onPay, load = getOrderDetail, onServe, busy = false }: Props) {
   const t = useTranslations('tables.detail')
   const ts = useTranslations('tables.state')
   const [loaded, setLoaded] = useState<OrderDetail | null>(null)
+  const [tick, setTick] = useState(0)
   useEffect(() => {
     if (!open || orderId === null) return
     let alive = true
     void load(orderId).then((d) => { if (alive) setLoaded(d) })
     return () => { alive = false }
-  }, [open, orderId, load])
+  }, [open, orderId, load, tick])
+  // Mientras el mesero mira la mesa, cocina sigue trabajando: se relee cada 10 s para que "Listo" aparezca solo.
+  useEffect(() => {
+    if (!open || orderId === null) return
+    const id = setInterval(() => setTick((n) => n + 1), 10_000)
+    return () => clearInterval(id)
+  }, [open, orderId])
   // Mientras llega el pedido pedido, el del anterior no se muestra: se compara con el id que se está pidiendo.
   const detail = loaded !== null && loaded.id === orderId ? loaded : null
 
   const allServed = detail !== null && detail.lines.length > 0 && detail.lines.every((l) => l.status === 'served')
-  const inProgress = detail !== null && detail.lines.some((l) => l.status === 'progress')
+  const pending = detail !== null && detail.lines.some((l) => l.status !== 'served')
+  // Si cocina ya dejó algo en el pase, la franja lo dice en verde: el mesero tiene que ir por ello.
+  const anyReady = detail !== null && detail.lines.some((l) => l.status === 'ready')
   const percent = detail ? progressPercent(detail.served, detail.sent) : 0
   const code = detail ? orderCode(orderPrefix(detail.serviceAt), detail.tracking, detail.id) : ''
 
@@ -99,18 +121,20 @@ export function TableDetailModal({ open, onClose, tableName, orderId, imageFor, 
           <div className="flex items-center gap-3">
             <span className="w-10 h-10 shrink-0 rounded-sm bg-primary text-primary-ink grid place-items-center text-[15px] font-semibold">{tableName}</span>
             <div className="flex-1 min-w-0 flex flex-col"><span className="text-[13px] text-dim">{t('customer')}</span><span className="text-[15px] font-semibold text-ink truncate">{detail.customerName || t('noCustomer')}</span></div>
-            {inProgress ? (
+            {pending ? (
               <Button size="compact" className="border-primary text-primary" onClick={() => onChangeTable(detail)}><Icon name="exchange" size={18} />{t('changeTable')}</Button>
             ) : (
               <span className="flex-1 h-11 px-3 rounded-sm bg-success-soft text-success-ink flex items-center gap-2 text-[14px] font-semibold"><Icon name="check" size={16} />{ts('served')}<span className="ml-auto">{t('items', { count: detail.lines.length })}</span><Icon name="arrowRight" size={16} /></span>
             )}
           </div>
-          {inProgress && (
-            <div className="h-11 px-3 rounded-sm bg-progress-soft text-progress-ink flex items-center gap-2 text-[14px] font-semibold">
-              <Ring percent={percent} /><span>{ts('inProgress')} •</span><span className="ml-auto">{t('items', { count: detail.lines.length })}</span><Icon name="arrowRight" size={16} />
+          {pending && (
+            <div className={cn('h-11 px-3 rounded-sm flex items-center gap-2 text-[14px] font-semibold', anyReady ? 'bg-success-soft text-success-ink' : 'bg-progress-soft text-progress-ink')}>
+              {anyReady ? <Icon name="chef" size={18} /> : <Ring percent={percent} />}
+              <span>{anyReady ? ts('ready') : `${ts('inProgress')} •`}</span>
+              <span className="ml-auto">{t('items', { count: detail.lines.length })}</span><Icon name="arrowRight" size={16} />
             </div>
           )}
-          <ul className="flex flex-col gap-3">{detail.lines.map((l) => <LineCard key={l.id} line={l} image={imageFor(l.productId)} t={t} />)}</ul>
+          <ul className="flex flex-col gap-3">{detail.lines.map((l) => <LineCard key={l.id} line={l} image={imageFor(l.productId)} t={t} onServe={onServe ? async (line) => { await onServe(line); setTick((n) => n + 1) } : undefined} busy={busy} />)}</ul>
         </div>
       )}
     </Modal>

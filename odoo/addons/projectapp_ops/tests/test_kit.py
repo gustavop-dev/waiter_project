@@ -227,9 +227,9 @@ class TestUserNotifyAndSeed(KitCase):
         """Atrapa una siembra que duplique al repetirse o que deje el preset Dine In sin service_at=table."""
         counts = lambda: (self.env["pos.preset"].search_count([("name", "in", ["Dine In", "Takeout", "Delivery"])]),
                           self.env["loyalty.program"].search_count([("name", "=", "Puntos Waiter")]),
-                          self.env["hr.employee"].search_count([("name", "in", ["Sofía Mesera", "Carlos Cajero"])]))
+                          self.env["hr.employee"].search_count([("name", "in", ["Sofía Mesera", "Carlos Cajero", "Laura Encargada"])]))
         self.env["waiter.seed"].seed_kit()
-        self.assertEqual(counts(), (3, 1, 2))
+        self.assertEqual(counts(), (3, 1, 3))
         self.assertEqual([self.presets[n].service_at for n in ("Dine In", "Takeout", "Delivery")], ["table", "counter", "delivery"])
         self.assertEqual((self.presets["Takeout"].identification, self.presets["Delivery"].identification), ("name", "address"))
         program = self.env["loyalty.program"].search([("name", "=", "Puntos Waiter")])
@@ -238,4 +238,6 @@ class TestUserNotifyAndSeed(KitCase):
         sofia = self.env["hr.employee"].search([("name", "=", "Sofía Mesera")])
         self.assertEqual((sofia.sudo().pin, sofia.waiter_role, sofia in self.config.basic_employee_ids), ("123456", "waiter", True))
         self.assertEqual(self.env["hr.employee"].search([("name", "=", "Carlos Cajero")]).waiter_role, "cashier")
+        # Sin un empleado administrador, Cocina y Administración quedan fuera del alcance de cualquier tablet.
+        self.assertEqual(self.env["hr.employee"].search([("name", "=", "Laura Encargada")]).waiter_role, "admin")
         self.assertTrue(self.config.use_presets and self.presets["Dine In"] in self.config.available_preset_ids)

@@ -8,6 +8,7 @@
   "seeAll": "Ver todos",
   "emptyInProgress": { "title": "Sin pedidos", "body": "Cuando se cree un pedido, el más reciente aparecerá aquí." },
   "emptyWaiting": { "title": "Sin pedidos", "body": "Los pedidos en estado Esperando pago aparecerán aquí." },
+  "ready": { "title": "Listos para servir", "empty": "Nada en el pase. Cocina te avisará aquí.", "deliver": "Entregar en la mesa", "table": "Mesa {n}", "justNow": "ahora", "minutes": "hace {n} min", "delivered": "{name} entregado", "failed": "No se pudo marcar como entregado" },
   "tables": { "title": "Mesas disponibles", "floor": "Piso", "number": "Número de mesa", "capacity": "Capacidad", "persons": "personas", "empty": "No hay mesas libres en este piso." },
   "outOfStock": { "title": "Agotados", "available": "Disponible:", "noTime": "Sin hora", "emptyTitle": "Todo el menú está listo", "emptyBody": "Todos los platos siguen disponibles." }
 }

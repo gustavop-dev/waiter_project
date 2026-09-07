@@ -43,7 +43,8 @@ export default function PedidosPage() {
   // Marcar un plato lo sirve en Odoo (`action_kitchen_line_served`), no en la memoria de esta tablet: así lo
   // ve el resto del salón y sobrevive a una recarga. El curso se cierra solo cuando ya no queda ninguno pendiente.
   async function toggleLine(order: KitOrder, line: KitLine) {
-    if (lineGroup(order, line) !== 'in_progress') return
+    const group = lineGroup(order, line)
+    if (group !== 'in_progress' && group !== 'ready') return
     setBusy(true)
     try {
       await serveLines([line.id])
@@ -51,6 +52,14 @@ export default function PedidosPage() {
     } catch {
       toast({ title: t('card.serveFailed'), tone: 'danger' })
     } finally { setBusy(false) }
+  }
+
+  // "Entregar" desde el detalle: el mesero llegó a la mesa con toda la tanda que cocina tenía en el pase.
+  async function serveReady(lines: KitLine[]) {
+    setBusy(true)
+    try { await serveLines(lines.map((l) => l.id)); await refresh() }
+    catch { toast({ title: t('card.serveFailed'), tone: 'danger' }) }
+    finally { setBusy(false) }
   }
 
   async function cancelWaiting(order: KitOrder, lines: KitLine[]) {
@@ -85,7 +94,8 @@ export default function PedidosPage() {
         </div>
       </div>
       <OrderDetailModal order={detail} status={detail ? statusOf(detail) : 'in_progress'} percent={detail ? percentOf(detail) : 0} onClose={() => setDetailId(null)}
-        imageOf={imageOf} busy={busy} onCancelWaiting={(lines) => { if (detail) void cancelWaiting(detail, lines) }} />
+        imageOf={imageOf} busy={busy} onCancelWaiting={(lines) => { if (detail) void cancelWaiting(detail, lines) }}
+        onServeReady={(lines) => { if (!busy) void serveReady(lines) }} />
     </KitShell>
   )
 }

@@ -153,9 +153,11 @@
     "groups": {
       "waiting": "Esperando cocina",
       "in_progress": "En progreso",
+      "ready": "Listos para servir",
       "served": "Servido"
     },
     "cancel": "Cancelar",
+    "deliver": "Entregar",
     "note": "Nota:",
     "totalPayment": "Total a pagar",
     "newOrder": "Nuevo pedido",
@@ -190,5 +192,6 @@
     "decrease": "Menos",
     "increase": "Más",
     "notFound": "No se encontró el pedido."
-  }
+  },
+  "lineState": { "waiting": "Sin enviar", "in_progress": "Cocina", "ready": "Listo", "served": "Servido" }
 }

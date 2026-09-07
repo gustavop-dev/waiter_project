@@ -19,6 +19,7 @@ interface Props {
 export function pillFor(state: TableState, t: (key: string) => string): TablePill | null {
   if (state === 'free') return null
   if (state === 'served') return { text: t('served'), icon: 'check' }
+  if (state === 'ready') return { text: t('ready'), icon: 'chef', tone: 'success' }
   if (state === 'billing') return { text: t('billing'), icon: 'receipt' }
   if (state === 'assist') return { text: t('assist'), icon: 'bell' }
   if (state === 'ordering') return { text: t('ordering'), icon: 'cart' }

@@ -22,11 +22,13 @@ it('assist flag wins over the kitchen phase on the same table', () => {
   expect(t2.state).toBe('assist')
 })
 
-// Falla si el salón no pinta "en cocina" cuando Odoo tiene un curso disparado, o "servido" cuando todos se entregaron.
-it('derives kitchen and served states from the order kitchen phase', () => {
-  const cooking = deriveTableViews(tables, [{ ...order, kitchen: 'ready' }], {})[1]
+// Falla si el salón no pinta "en cocina" con un curso disparado, "listo" cuando cocina ya lo dejó en el pase
+// —la mesa a la que el mesero tiene que ir ya— o "servido" cuando todo se entregó.
+it('derives kitchen, ready and served states from the order kitchen phase', () => {
+  const cooking = deriveTableViews(tables, [{ ...order, kitchen: 'cooking' }], {})[1]
+  const ready = deriveTableViews(tables, [{ ...order, kitchen: 'ready' }], {})[1]
   const served = deriveTableViews(tables, [{ ...order, kitchen: 'served' }], {})[1]
-  expect([cooking.state, served.state]).toEqual(['kitchen', 'served'])
+  expect([cooking.state, ready.state, served.state]).toEqual(['kitchen', 'ready', 'served'])
 })
 
 // Falla si la leyenda cuenta mal (la cuenta es lo que el gerente mira de reojo).

@@ -5,7 +5,7 @@
 export type OrderType = 'dine_in' | 'takeout' | 'delivery'
 export type ServiceAt = 'table' | 'counter' | 'delivery'
 export type KitStatus = 'in_progress' | 'ready' | 'served' | 'waiting_payment' | 'completed'
-export type LineGroup = 'waiting' | 'in_progress' | 'served'
+export type LineGroup = 'waiting' | 'in_progress' | 'ready' | 'served'
 export type OrdersFilter = 'all' | KitStatus
 export type OrdersSort = 'latest' | 'oldest' | 'type'
 export type HistoryFilter = 'all' | OrderType
@@ -47,12 +47,17 @@ export function customerName(floatingName: string | false | null, partner: [numb
 
 const courseOf = (order: KitOrder, line: KitLine) => order.courses.find((c) => c.id === line.courseId)
 
-// Esperando cocina: sin curso o curso sin disparar. En progreso: disparado y no servido. Servido: curso con served_date.
+// El viaje de un plato, tal como lo vive el mesero:
+//   waiting     — aún no ha salido a cocina (curso sin disparar)
+//   in_progress — cocina lo está haciendo
+//   ready       — cocina pulsó "Listo" en el KDS: hay que ir por él
+//   served      — el mesero lo dejó en la mesa
 export function lineGroup(order: KitOrder, line: KitLine): LineGroup {
   const course = courseOf(order, line)
   if (!course || !course.fired) return 'waiting'
   // La línea manda: el mesero sirve plato a plato y el curso se cierra cuando ya no queda ninguno pendiente.
-  return line.servedAt || course.servedAt ? 'served' : 'in_progress'
+  if (line.servedAt || course.servedAt) return 'served'
+  return course.readyAt ? 'ready' : 'in_progress'
 }
 
 // % = líneas servidas / líneas enviadas a cocina. Sin nada enviado, 0.
@@ -67,9 +72,20 @@ export function orderStatus(order: KitOrder, billing: boolean): KitStatus {
   if (billing) return 'waiting_payment'
   const groups = order.lines.map((l) => lineGroup(order, l))
   if (groups.length > 0 && groups.every((g) => g === 'served')) return 'served'
-  const fired = order.courses.filter((c) => c.fired)
-  if (fired.length > 0 && fired.every((c) => c.readyAt !== null) && !groups.includes('waiting') && fired.some((c) => c.servedAt === null)) return 'ready'
+  // Basta un plato esperando en el pase para que el pedido reclame al mesero.
+  if (groups.includes('ready')) return 'ready'
   return 'in_progress'
+}
+
+// Lo que cocina ya dejó en el pase y nadie ha llevado: la lista de trabajo del mesero, lo que espera primero.
+export interface ReadyDish { orderId: number; orderNumber: string; lineId: number; name: string; qty: number; tableNumber: number | null; customer: string; since: string }
+export function readyToServe(orders: KitOrder[]): ReadyDish[] {
+  const dishes = orders.flatMap((o) => o.lines.filter((l) => lineGroup(o, l) === 'ready').map((l) => ({
+    orderId: o.id, orderNumber: o.number, lineId: l.id, name: l.name, qty: l.qty,
+    tableNumber: o.tableNumber, customer: o.customer,
+    since: o.courses.find((c) => c.id === l.courseId)?.readyAt ?? o.startedAt,
+  })))
+  return dishes.sort((a, b) => a.since.localeCompare(b.since) || a.lineId - b.lineId)
 }
 
 // Cobrar exige que todo lo pedido esté servido (el kit deshabilita "Pay Bills" mientras haya casillas sin marcar).

@@ -44,7 +44,7 @@ test('terminal login, employee PIN, change PIN in settings and end the shift', a
 
   await startShiftAs(page)
   await page.waitForURL('**/salon')
-  await page.getByRole('button', { name: /\/ Administrador/ }).click()
+  await page.getByRole('button', { name: /\/ Mesero/ }).click()
   const settings = page.getByRole('dialog', { name: 'Ajustes' })
   await expect(settings.getByText(DEMO_EMPLOYEE.name).first()).toBeVisible()
   await expect(settings.getByTestId('shift-clock')).toHaveText(/^\d\d:\d\d:\d\d$/)
@@ -88,7 +88,7 @@ test('the notification toggles are stored on the Odoo user', async ({ page }) =>
   await loginTerminal(page)
   await startShiftAs(page)
   await page.waitForURL('**/salon')
-  await page.getByRole('button', { name: /\/ Administrador/ }).click()
+  await page.getByRole('button', { name: /\/ Mesero/ }).click()
   const settings = page.getByRole('dialog', { name: 'Ajustes' })
   await settings.getByRole('tab', { name: 'Notificaciones' }).click()
   const sound = settings.getByRole('switch', { name: 'Inventario Sonido de notificación' })
@@ -96,7 +96,7 @@ test('the notification toggles are stored on the Odoo user', async ({ page }) =>
   const before = await sound.getAttribute('aria-checked')
   await sound.click()
   await page.reload({ waitUntil: 'domcontentloaded' })
-  await page.getByRole('button', { name: /\/ Administrador/ }).click()
+  await page.getByRole('button', { name: /\/ Mesero/ }).click()
   await settings.getByRole('tab', { name: 'Notificaciones' }).click()
   await expect(sound).toHaveAttribute('aria-checked', before === 'true' ? 'false' : 'true')
   await sound.click()  // se deja como estaba para el resto de specs

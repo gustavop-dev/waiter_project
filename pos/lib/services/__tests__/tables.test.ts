@@ -10,7 +10,10 @@ const LINES = [
   { id: 2, uuid: 'b', product_id: [6, 'Club'], full_product_name: 'Club Colombia', qty: 2, price_unit: 14000, price_subtotal_incl: 33320, customer_note: false, attribute_value_ids: [], course_id: [2, 'C2'] },
   { id: 3, uuid: 'c', product_id: [8, 'Papas'], full_product_name: 'Papas', qty: 1, price_unit: 9000, price_subtotal_incl: 10710, customer_note: false, attribute_value_ids: [], course_id: false },
 ]
-const COURSES = [{ id: 1, fired: true, served_date: '2026-09-06 17:40:00' }, { id: 2, fired: true, served_date: false }]
+const COURSES = [
+  { id: 1, fired: true, ready_date: '2026-09-06 17:35:00', served_date: '2026-09-06 17:40:00' },
+  { id: 2, fired: true, ready_date: '2026-09-06 17:44:00', served_date: false },
+]
 const byModel = (model: string, method: string) => {
   if (model === 'pos.order') return [ORDER]
   if (model === 'pos.order.line') return LINES
@@ -21,12 +24,13 @@ const byModel = (model: string, method: string) => {
 
 beforeEach(() => { m.mockReset(); m.mockImplementation(async (model: string, method: string) => byModel(model, method)) })
 
-// Falla si el plato de un curso entregado no sale "servido", si el que aún no se envió sale servido, o si las
-// adiciones (attribute_value_ids) pierden su nombre. El % del kit se calcula sobre lo enviado (2), no sobre las 3 líneas.
+// Falla si el plato de un curso entregado no sale "servido", si el que cocina ya dejó en el pase no sale "listo",
+// si el que aún no se envió no queda "sin enviar", o si las adiciones (attribute_value_ids) pierden su nombre.
+// El % del kit se calcula sobre lo enviado (2), no sobre las 3 líneas.
 it('reads the order detail with per-line status, additions and sent/served counts', async () => {
   const d = await getOrderDetail(9)
   expect(d).toMatchObject({ tracking: '104', serviceAt: null, customerName: 'Eva', total: 87822, sent: 2, served: 1 })
-  expect(d.lines.map((l) => [l.name, l.status])).toEqual([['Hamburguesa Angus', 'served'], ['Club Colombia', 'progress'], ['Papas', 'progress']])
+  expect(d.lines.map((l) => [l.name, l.status])).toEqual([['Hamburguesa Angus', 'served'], ['Club Colombia', 'ready'], ['Papas', 'waiting']])
   expect(d.lines[0]).toMatchObject({ additions: ['Queso extra'], note: 'Sin cebolla', total: 43911, productId: 3 })
 })
 

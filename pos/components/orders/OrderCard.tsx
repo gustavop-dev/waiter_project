@@ -8,7 +8,7 @@ import { formatOrderDate } from '@/components/orders/format'
 import { ProgressRing } from '@/components/orders/ProgressRing'
 import { Button } from '@/components/ui/Button'
 import { formatCop } from '@/lib/domain/money'
-import { canCharge, lineGroup, type KitLine, type KitOrder, type KitStatus } from '@/lib/domain/orderState'
+import { canCharge, lineGroup, type KitLine, type KitOrder, type KitStatus, type LineGroup } from '@/lib/domain/orderState'
 import { cn } from '@/lib/utils'
 
 const TONE: Record<KitStatus, { bg: string; text: string; icon: KitIcon | null }> = {
@@ -65,14 +65,25 @@ export function StatusBar({ order, status, percent, onItems }: { order: KitOrder
   )
 }
 
+// Cada plato lleva su palabra: el mesero ve de un vistazo qué sigue en cocina, qué le espera en el pase
+// («Listo», en verde) y qué ya dejó en la mesa.
+const LINE_TONE: Record<LineGroup, string> = {
+  waiting: 'bg-muted text-dim', in_progress: 'bg-progress-soft text-progress-ink',
+  ready: 'bg-success-soft text-success-ink', served: 'bg-muted text-soft',
+}
+function LineState({ group }: { group: LineGroup }) {
+  const t = useTranslations('orders')
+  return <span className={cn('shrink-0 h-6 px-1.5 rounded-full text-[11px] font-semibold grid place-items-center whitespace-nowrap', LINE_TONE[group])}>{t(`lineState.${group}`)}</span>
+}
+
 interface LinesTableProps { order: KitOrder; onToggle: (line: KitLine) => void }
 // Tabla Ítems / Cant / Precio con casilla por línea. Solo se puede marcar lo que cocina ya recibió.
 function LinesTable({ order, onToggle }: LinesTableProps) {
   const t = useTranslations('orders')
   return (
     <div className="rounded-md border border-border overflow-hidden flex flex-col">
-      <div className="grid grid-cols-[1fr_44px_84px] gap-2 px-3 h-9 items-center bg-muted text-[13px] text-soft">
-        <span>{t('card.itemsHeader')}</span><span className="text-center">{t('card.qty')}</span><span className="text-right">{t('card.price')}</span>
+      <div className="grid grid-cols-[1fr_auto_34px_78px] gap-1.5 px-3 h-9 items-center bg-muted text-[13px] text-soft">
+        <span>{t('card.itemsHeader')}</span><span aria-hidden /><span className="text-center">{t('card.qty')}</span><span className="text-right">{t('card.price')}</span>
       </div>
       <ul className="max-h-[120px] overflow-y-auto">
         {order.lines.map((l) => {
@@ -80,11 +91,12 @@ function LinesTable({ order, onToggle }: LinesTableProps) {
           const served = group === 'served'
           const label = served ? t('card.servedLine', { name: l.name }) : t('card.markServed', { name: l.name })
           return (
-            <li key={l.id} className="grid grid-cols-[1fr_44px_84px] gap-2 px-3 h-8 items-center text-[14px]">
+            <li key={l.id} className="grid grid-cols-[1fr_auto_34px_78px] gap-1.5 px-3 h-9 items-center text-[14px]">
               <label className={cn('flex items-center gap-2 min-w-0', group === 'waiting' && 'text-dim')}>
                 <input type="checkbox" aria-label={label} className="w-4 h-4 accent-primary shrink-0" checked={served} disabled={served || group === 'waiting'} onChange={() => onToggle(l)} />
                 <span className="truncate">{l.name}</span>
               </label>
+              <LineState group={group} />
               <span className="text-center tabular">{l.qty}</span>
               <span className="text-right tabular text-soft">$ {formatCop(l.total)}</span>
             </li>

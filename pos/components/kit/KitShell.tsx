@@ -6,7 +6,7 @@ import { useState, type ReactNode } from 'react'
 import { SettingsModal } from '@/components/kit/SettingsModal'
 import { TopBar } from '@/components/kit/TopBar'
 import { adminSubtabForPath, tabForPath } from '@/lib/domain/navigation'
-import { effectiveRole } from '@/lib/domain/roles'
+import { useIdentity } from '@/lib/hooks/useIdentity'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
 
@@ -15,14 +15,11 @@ import { useCatalogStore } from '@/lib/stores/catalogStore'
 export function KitShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
-  const user = useAuthStore((s) => s.user)
-  const employee = useAuthStore((s) => s.employee)
   const endShift = useAuthStore((s) => s.endShift)
   const restaurant = useCatalogStore((s) => s.catalog?.company.name ?? '')
   const [settings, setSettings] = useState(false)
   // Manda el empleado que marcó su PIN, no la credencial con la que se abrió la tablet.
-  const role = effectiveRole(user?.role, employee?.role)
-  const shownName = employee?.name ?? user?.name ?? ''
+  const { name: shownName, role } = useIdentity()
   return (
     <div className="h-screen flex flex-col bg-canvas text-ink">
       <TopBar active={tabForPath(pathname)} role={role} userName={shownName} activeSubtab={adminSubtabForPath(pathname)} onOpenSettings={() => setSettings(true)} />

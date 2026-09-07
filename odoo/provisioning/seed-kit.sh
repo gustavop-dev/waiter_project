@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Siembra en un Odoo ya instalado lo que el kit CloudPos necesita (Plan I): presets Dine In / Takeout / Delivery,
-# programa «Puntos Waiter» y los empleados demo Sofía Mesera (PIN 123456) y Carlos Cajero (PIN 654321).
+# programa «Puntos Waiter» y los empleados demo Sofía Mesera (PIN 123456), Carlos Cajero (PIN 654321) y
+# Laura Encargada (PIN 112233, administradora).
 # Idempotente: llama a env['waiter.seed'].seed_kit() (projectapp_ops). El post_init_hook lo hace solo al instalar;
 # tras un `-u projectapp_ops` hay que correr este script una vez.
 # Uso: odoo/provisioning/seed-kit.sh [db] [proyecto-compose]   (por defecto: projectapp, odoo-spike)

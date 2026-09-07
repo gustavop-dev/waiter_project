@@ -1,6 +1,6 @@
 {
   "title": "Mesas",
-  "legend": { "available": "Disponible", "unavailable": "No disponible", "reserved": "Reservada" },
+  "legend": { "available": "Disponible", "unavailable": "No disponible", "ready": "Listo para servir", "reserved": "Reservada" },
   "createOrder": "Crear pedido",
   "settings": "Ajustes de mesas",
   "floors": "Pisos",
@@ -9,7 +9,7 @@
   "emptyFloor": { "title": "Este piso no tiene mesas", "body": "Usa el engranaje para organizar el plano." },
   "table": "Mesa {name}",
   "tableLabel": "Mesa {name}: {state}",
-  "state": { "inProgress": "En progreso", "served": "Servido", "billing": "Esperando pago", "assist": "Pide mesero", "ordering": "Pidiendo", "closed": "Cerrada", "paid": "Pagado" },
+  "state": { "inProgress": "En progreso", "ready": "Listo para servir", "served": "Servido", "billing": "Esperando pago", "assist": "Pide mesero", "ordering": "Pidiendo", "closed": "Cerrada", "paid": "Pagado" },
   "selected": { "label": "Mesa seleccionada:", "clear": "Quitar selección", "reservation": "Info de reserva", "detail": "Detalle de mesa", "moving": "Elige la mesa nueva para el pedido {code}:", "cancelMove": "Cancelar cambio" },
   "reservations": {
     "title": "Lista de reservas", "customer": "Cliente", "date": "Fecha", "time": "Hora", "detail": "Detalle",
@@ -21,6 +21,7 @@
   "detail": {
     "title": "Detalle de mesa", "order": "Pedido#", "type": { "DI": "En mesa", "TA": "Para llevar", "DE": "Domicilio" },
     "customer": "Nombre del cliente", "noCustomer": "Sin nombre", "changeTable": "Cambiar mesa",
+    "deliver": "Entregar", "deliverFailed": "No se pudo marcar como entregado",
     "items": "{count, plural, one {# plato} other {# platos}}", "addition": "Adiciones:", "note": "Nota:",
     "total": "Total a pagar", "newOrder": "Nuevo pedido", "pay": "Ir a pagar", "payHint": "Podrás cobrar cuando todos los platos estén servidos.",
     "emptyTitle": "Sin pedido abierto", "emptyBody": "La mesa {name} está disponible. Crea un pedido para empezar.", "loading": "Cargando el pedido…"
@@ -29,6 +30,7 @@
     "title": "Cambiar mesa", "current": "Mesa actual", "new": "Mesa nueva", "cancel": "Cancelar", "confirm": "Confirmar cambio",
     "done": "Pedido movido a la mesa {name}", "busy": "La mesa {name} ya tiene un pedido.", "failed": "No se pudo mover el pedido."
   },
+  "floorToggle": { "needsClosedSession": "Hay una caja abierta", "needsClosedSessionBody": "Cierra el turno en Ventas antes de activar o desactivar «{name}».", "failed": "No se pudo cambiar el piso" },
   "floorSettings": { "add": "Agregar piso", "edit": "Editar piso {name}", "active": "Piso {name} activo", "empty": "Aún no hay pisos." },
   "wizard": {
     "addTitle": "Agregar plano", "editTitle": "Editar plano", "steps": { "info": "Información", "arrange": "Organizar plano", "success": "Mesas creadas" },

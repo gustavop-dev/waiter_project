@@ -5,6 +5,7 @@
   "tabs": { "all": "Todas", "inventory": "Inventario", "kitchen": "Cocina" },
   "kind": { "inventory": "⚠️", "kitchen": "🍽️", "system": "🔔" },
   "empty": "Sin notificaciones por ahora.",
+  "kitchenReady": { "deliver": "Ir a entregarlo" },
   "lowStock": {
     "request": "Solicitar ingredientes",
     "requested": "Ya solicitado",

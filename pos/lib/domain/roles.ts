@@ -36,4 +36,6 @@ export const can = {
   closeRegister: (role: Role) => role !== 'waiter',
   forceCloseRegister: (role: Role) => role === 'admin',
   manageUsers: (role: Role) => role === 'admin',
+  // Crear, editar o desactivar pisos y planos: configuración del local, no trabajo de sala.
+  manageFloors: (role: Role) => role === 'admin',
 }

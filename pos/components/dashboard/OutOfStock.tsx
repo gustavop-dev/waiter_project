@@ -13,7 +13,7 @@ export function OutOfStock({ products }: { products: Product[] }) {
   const t = useTranslations('dashboard')
   const out = products.filter((p) => p.soldOut)
   return (
-    <section aria-label={t('outOfStock.title')} className="bg-surface border border-border rounded-lg flex flex-col min-h-0">
+    <section aria-label={t('outOfStock.title')} className="bg-surface border border-border rounded-lg flex flex-col min-h-0 min-w-0">
       <h2 className="px-4 h-16 flex items-center text-[17px] font-semibold text-ink border-b border-border shrink-0">{t('outOfStock.title')}</h2>
       {out.length === 0
         ? <KitEmptyState icon="inventory" title={t('outOfStock.emptyTitle')} body={t('outOfStock.emptyBody')} />

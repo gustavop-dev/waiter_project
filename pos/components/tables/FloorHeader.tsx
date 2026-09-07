@@ -17,6 +17,7 @@ export function TableLegend() {
     <ul className="flex items-center gap-4 text-[14px] text-soft" aria-label={t('available')}>
       <li className="flex items-center gap-1.5"><span aria-hidden className="w-2 h-2 rounded-full border border-border bg-surface" />{t('available')}</li>
       <li className="flex items-center gap-1.5"><span aria-hidden className="w-2 h-2 rounded-full bg-progress" />{t('unavailable')}</li>
+      <li className="flex items-center gap-1.5"><span aria-hidden className="w-2 h-2 rounded-full bg-success" />{t('ready')}</li>
       <li className="flex items-center gap-1.5"><span aria-hidden className="w-2 h-2 rounded-full bg-reserved" />{t('reserved')}</li>
     </ul>
   )

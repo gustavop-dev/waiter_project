@@ -3,15 +3,15 @@ import type { TableCall } from '@/lib/services/tables'
 import type { KitchenPhase } from '@/lib/domain/kitchen'
 import type { Table } from '@/lib/types'
 
-export type TableState = 'free' | 'occupied' | 'kitchen' | 'billing' | 'paid' | 'ordering' | 'served' | 'assist' | 'closed'
+export type TableState = 'free' | 'occupied' | 'kitchen' | 'ready' | 'billing' | 'paid' | 'ordering' | 'served' | 'assist' | 'closed'
 export interface LocalFlags { billing?: boolean; assist?: boolean; closed?: boolean; ordering?: boolean }
 export interface TableView { table: Table; state: TableState; total: number; tax: number; orderId: number | null; startedAt: string | null; waiter: string | null; callSince: string | null }
 
-const STATES: TableState[] = ['free', 'occupied', 'kitchen', 'billing', 'paid', 'ordering', 'served', 'assist', 'closed']
+const STATES: TableState[] = ['free', 'occupied', 'kitchen', 'ready', 'billing', 'paid', 'ordering', 'served', 'assist', 'closed']
 
 // Odoo sabe libre / con pedido / pagado y, por los cursos, en cocina / servido (ADR 2026-09-05).
 // Lo demás es estado local (o del registro central más adelante).
-// Prioridad cuando coinciden: closed > assist > billing > served > kitchen.
+// Prioridad cuando coinciden: closed > assist > billing > served > listo > kitchen.
 // Las llamadas del comensal (pidiendo / pide mesero / pide la cuenta) vienen de Odoo; las banderas locales
 // son lo que el mesero marcó en esta tablet. Asistencia gana a todo lo demás.
 function stateFor(order: OpenOrder | undefined, flags: LocalFlags, call: TableCall | undefined): TableState {
@@ -21,8 +21,10 @@ function stateFor(order: OpenOrder | undefined, flags: LocalFlags, call: TableCa
   if (flags.billing || call?.kind === 'bill') return 'billing'
   return phaseState(order.kitchen)
 }
+// "Listo" es su propio estado en el plano: es la mesa a la que el mesero tiene que ir ya.
 function phaseState(phase: KitchenPhase): TableState {
   if (phase === 'served') return 'served'
+  if (phase === 'ready') return 'ready'
   return phase === 'none' ? 'occupied' : 'kitchen'
 }
 

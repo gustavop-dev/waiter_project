@@ -1,6 +1,6 @@
 import {
   canCharge, cartTotals, countByStatus, customerName, filterHistory, greetingFor, lineGroup, matchesOrderSearch, orderNumber,
-  orderStatus, orderTypeOf, progressPercent, sortOrders, type KitCourse, type KitLine, type KitOrder,
+  orderStatus, orderTypeOf, progressPercent, readyToServe, sortOrders, type KitCourse, type KitLine, type KitOrder,
 } from '@/lib/domain/orderState'
 
 const course = (id: number, patch: Partial<KitCourse> = {}): KitCourse => ({ id, fired: true, readyAt: null, servedAt: null, ...patch })
@@ -39,13 +39,30 @@ it('groups lines by kitchen state and computes the progress percent', () => {
   expect(progressPercent(order({ lines: [line(1, null)] }))).toBe(0)
 })
 
+// Falla si un plato que cocina dejó en el pase no queda "listo": es el aviso de que hay que ir por él.
+it('marks a fired course as ready once the kitchen says so, and served when the waiter takes it', () => {
+  const o = order({ courses: [course(1, { readyAt: 'r' })], lines: [line(1, 1)] })
+  expect(lineGroup(o, o.lines[0])).toBe('ready')
+  const taken = order({ courses: [course(1, { readyAt: 'r' })], lines: [{ ...line(1, 1), servedAt: 's' }] })
+  expect(lineGroup(taken, taken.lines[0])).toBe('served')
+})
+
+// Falla si la lista de trabajo del mesero no ordena por lo que lleva más esperando o cuela platos que no están listos.
+it('lists the dishes waiting on the pass, the oldest first', () => {
+  const a = order({ id: 1, number: 'DI001', tableNumber: 3, courses: [course(1, { readyAt: '2026-09-06 20:10:00' })], lines: [line(1, 1)] })
+  const b = order({ id: 2, number: 'DI002', tableNumber: 5, courses: [course(2, { readyAt: '2026-09-06 20:02:00' }), course(3)], lines: [line(2, 2), line(3, 3)] })
+  expect(readyToServe([a, b]).map((d) => [d.orderNumber, d.lineId, d.tableNumber])).toEqual([['DI002', 2, 5], ['DI001', 1, 3]])
+  expect(readyToServe([order({ courses: [course(1)], lines: [line(1, 1)] })])).toEqual([])
+})
+
 // Falla si "esperando pago" no gana a lo demás, si un pedido pagado no es "completado" o si listo/servido se confunden.
 it('derives the kit status from courses, state and the billing flag', () => {
   expect(orderStatus(order({ state: 'paid' }), true)).toBe('completed')
   expect(orderStatus(order({ courses: [course(1, { servedAt: 'x' })], lines: [line(1, 1)] }), true)).toBe('waiting_payment')
   expect(orderStatus(order({ courses: [course(1, { servedAt: 'x' })], lines: [line(1, 1)] }), false)).toBe('served')
   expect(orderStatus(order({ courses: [course(1, { readyAt: 'x' })], lines: [line(1, 1)] }), false)).toBe('ready')
-  expect(orderStatus(order({ courses: [course(1, { readyAt: 'x' }), course(2)], lines: [line(1, 1), line(2, 2)] }), false)).toBe('in_progress')
+  // Basta un plato en el pase para que el pedido reclame al mesero, aunque el resto siga en cocina.
+  expect(orderStatus(order({ courses: [course(1, { readyAt: 'x' }), course(2)], lines: [line(1, 1), line(2, 2)] }), false)).toBe('ready')
   expect(orderStatus(order({ lines: [line(1, null)] }), false)).toBe('in_progress')
 })
 

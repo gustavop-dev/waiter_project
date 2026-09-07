@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
 
@@ -78,6 +79,11 @@ export function NotificationPopover({ open, onClose }: { open: boolean; onClose:
               <div className="flex-1 min-w-0 flex flex-col gap-1.5">
                 <p className="text-[16px] font-semibold text-ink">{t(`kind.${n.kind}`)} {n.title}</p>
                 <p className="text-[15px] text-soft leading-relaxed">{n.body}</p>
+                {n.action === 'serve' && (
+                  <Link href="/dashboard" onClick={onClose} className="mt-1 self-start h-9 px-3 rounded-md bg-primary text-primary-ink text-[14px] font-semibold inline-flex items-center gap-1.5">
+                    <Icon name="check" size={16} />{t('kitchenReady.deliver')}
+                  </Link>
+                )}
                 {n.action === 'request_ingredient' && (canRequest(n)
                   ? <Button variant="primary" size="compact" className="mt-1 self-start" disabled={busy === n.id} onClick={() => void request(n)}>{t('lowStock.request')}</Button>
                   : <span className="mt-1 text-[15px] font-semibold text-dim">{t('lowStock.requested')}</span>)}

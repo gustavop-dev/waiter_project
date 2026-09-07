@@ -7,7 +7,8 @@ antes de crear, así que repetirla no duplica nada.
 - Presets Dine In (`service_at` table), Takeout (counter, identificación por nombre) y Delivery (delivery,
   identificación por dirección), activos en el `pos.config` demo.
 - Programa de fidelización «Puntos Waiter»: 1 punto por cada 1.000 COP; 100 puntos = 1.000 COP de descuento.
-- Empleados demo «Sofía Mesera» (PIN 123456, mesera) y «Carlos Cajero» (PIN 654321, cajero) ligados al
+- Empleados demo «Sofía Mesera» (PIN 123456, mesera), «Carlos Cajero» (PIN 654321, cajero) y «Laura Encargada»
+  (PIN 112233, administradora) ligados al
   `pos.config` demo (`module_pos_hr` encendido para que viajen en `load_data`).
 """
 from odoo import api, fields, models
@@ -26,6 +27,9 @@ DEMO_EMPLOYEES = [
     # (nombre, PIN, rol, correo, vinculación)
     ("Sofía Mesera", "123456", "waiter", "sofia.mesera@example.com", "full_time"),
     ("Carlos Cajero", "654321", "cashier", "carlos.cajero@example.com", "full_time"),
+    # Sin un empleado administrador nadie puede abrir Cocina ni Administración desde la tablet: el rol de la
+    # pantalla es el del PIN marcado, no el de la credencial con la que se abrió el terminal.
+    ("Laura Encargada", "112233", "admin", "laura.encargada@example.com", "full_time"),
 ]
 
 

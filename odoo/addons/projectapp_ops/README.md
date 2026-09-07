@@ -82,7 +82,8 @@ Idempotente; corre en el `post_init_hook` y con `odoo/provisioning/seed-kit.sh [
 - Programa de fidelización **«Puntos Waiter»** (`loyalty.program` tipo `loyalty`, aplica en el pedido actual y
   futuros): regla `money` con `reward_point_amount = 0.001` (1 punto por 1.000 COP, mínimo 1.000 COP) y recompensa
   `discount` `per_point` de 10 COP por punto con `required_points = 100` (100 puntos = 1.000 COP).
-- Empleados demo **Sofía Mesera** (PIN `123456`, `waiter`, `sofia.mesera@example.com`) y **Carlos Cajero** (PIN
+- Empleados demo **Sofía Mesera** (PIN `123456`, `waiter`, `sofia.mesera@example.com`), **Laura Encargada** (PIN
+  `112233`, `admin`, `laura.encargada@example.com`) y **Carlos Cajero** (PIN
   `654321`, `cashier`, `carlos.cajero@example.com`), en `basic_employee_ids` del `pos.config` demo con
   `module_pos_hr = True`. Ojo: con `basic_employee_ids` no vacío, `pos_hr` solo carga en el POS a esos
   empleados (más los de `advanced_employee_ids` / `minimal_employee_ids` y el ligado al usuario del terminal).

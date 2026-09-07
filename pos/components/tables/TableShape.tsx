@@ -6,7 +6,9 @@ import { Icon, type KitIcon } from '@/components/kit/Icon'
 import { chairsFor, templateFor, type KitTableState, type Rect } from '@/lib/domain/tablesKit'
 import { cn } from '@/lib/utils'
 
-export interface TablePill { text: string; icon: KitIcon }
+// `tone: 'success'` es para "Listo para servir": el mesero tiene que reconocer esas mesas de un vistazo
+// desde el otro lado del salón, y el naranja de "en progreso" no las distingue.
+export interface TablePill { text: string; icon: KitIcon; tone?: 'success' }
 interface Props {
   rect: Rect; name: string; state: KitTableState; code?: string | null; pill?: TablePill | null; selected?: boolean; dimmed?: boolean
   label: string; onClick?: () => void; onPointerDown?: (e: React.PointerEvent) => void; children?: ReactNode; className?: string; style?: CSSProperties
@@ -52,7 +54,8 @@ export function TableShape({ rect, name, state, code = null, pill = null, select
         <span className="absolute inset-0 grid place-items-center"><span className="w-11 h-11 rounded-full bg-muted grid place-items-center text-[16px] font-semibold text-ink">{name}</span></span>
       )}
       {pill && (
-        <span className={cn('absolute bottom-2 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[13px] font-semibold whitespace-nowrap', PILL[state])}>
+        <span className={cn('absolute bottom-2 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[13px] font-semibold whitespace-nowrap',
+          pill.tone === 'success' ? 'bg-success text-white' : PILL[state])}>
           <Icon name={pill.icon} size={14} />{pill.text}
         </span>
       )}

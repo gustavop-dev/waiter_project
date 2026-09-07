@@ -3,6 +3,7 @@ import { expect, type Page } from '@playwright/test'
 // Empleados demo sembrados por `projectapp_ops` (seed_employees) en la base compartida.
 export const DEMO_EMPLOYEE = { name: 'Sofía Mesera', pin: '123456' }
 export const DEMO_CASHIER = { name: 'Carlos Cajero', pin: '654321' }
+export const DEMO_ADMIN = { name: 'Laura Encargada', pin: '112233' }
 
 // "Inicio de empleado" del kit: elegir la cuenta, escribir el PIN en el teclado en pantalla e iniciar turno.
 export async function startShiftAs(page: Page, employee = DEMO_EMPLOYEE.name, pin = DEMO_EMPLOYEE.pin) {
@@ -28,8 +29,10 @@ export async function loginAs(page: Page, login: string, password: string, emplo
   await page.waitForURL('**/salon')
 }
 
+// El rol de la pantalla es el del PIN marcado: para trabajar como administrador hay que marcar el de un
+// empleado administrador, no basta con la credencial del terminal.
 export async function loginAsAdmin(page: Page) {
-  await loginAs(page, 'admin', 'admin')
+  await loginAs(page, 'admin', 'admin', DEMO_ADMIN.name, DEMO_ADMIN.pin)
 }
 
 // Cualquier mesa libre del plano. Los recorridos no pueden fijar un número: la base demo es compartida y

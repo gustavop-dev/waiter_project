@@ -117,12 +117,28 @@ El chip de usuario abre el modal "Setting" del kit (perfil, notificaciones, segu
 
 | Kit | Cómo se deriva |
 |---|---|
-| In Progress (n %) | Hay líneas en cursos sin `served_date`; % = líneas servidas / líneas enviadas |
-| Ready to Served | Todos los cursos tienen `ready_date` y alguno no `served_date` |
+| In Progress (n %) | Nada en el pase todavía; % = líneas servidas / líneas enviadas |
+| Ready to Served | Alguna línea con `ready_date` en su curso y sin `served_date`: hay algo que llevar |
 | Served | Todas las líneas servidas |
 | Waiting for Payment | Bandera `billing` (hoy local; pasa a `pos.order.waiter_billing` en `projectapp_ops` para compartir entre tablets) |
 | Completed | `state = paid` |
 | Waiting to cooked (línea) | Línea sin curso o curso sin `fired` |
+
+#### El viaje de un plato (lo que ve el mesero)
+
+Cuatro estados por **línea**, no por curso: el mesero sirve plato a plato y el curso se cierra solo cuando
+no le queda ninguno pendiente (`action_kitchen_line_served` en `projectapp_kitchen`).
+
+| Estado | Lo mueve | Dónde se ve |
+|---|---|---|
+| Sin enviar | el mesero, al crear la ronda | tarjeta del pedido, grupo «Esperando cocina» del detalle |
+| Cocina | el mesero, al lanzar el curso | ficha del KDS, píldora naranja de la mesa |
+| Listo | **cocina**, con «Listo» en el KDS (`ready_date`) | panel «Listos para servir» del Inicio, píldora verde en el plano, campana |
+| En mesa | el mesero, al entregarlo (`served_date` de la línea) | casilla marcada; con todas marcadas se habilita Cobrar |
+
+El panel «Listos para servir» del Inicio es la lista de trabajo: lo que cocina dejó en el pase, ordenado
+por lo que lleva más esperando, con un botón «Entregar en la mesa» por plato. El mismo gesto está en el
+detalle de la mesa (donde el mesero está de pie) y en la casilla de la tarjeta de Pedidos.
 
 ## Oleadas
 

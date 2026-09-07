@@ -13,16 +13,18 @@ import { cn } from '@/lib/utils'
 const GROUPS: { key: LineGroup; icon: KitIcon; cls: string }[] = [
   { key: 'waiting', icon: 'alarm', cls: 'bg-muted text-ink' },
   { key: 'in_progress', icon: 'progress', cls: 'bg-progress-soft text-progress-ink' },
-  { key: 'served', icon: 'circleCheck', cls: 'bg-success-soft text-success-ink' },
+  { key: 'ready', icon: 'chef', cls: 'bg-success-soft text-success-ink' },
+  { key: 'served', icon: 'circleCheck', cls: 'bg-muted text-soft' },
 ]
 
 interface Props {
   order: KitOrder | null; status: KitStatus; percent: number; onClose: () => void
-  imageOf: (productId: number) => string | null; onCancelWaiting: (lines: KitLine[]) => void; busy?: boolean
+  imageOf: (productId: number) => string | null; onCancelWaiting: (lines: KitLine[]) => void
+  onServeReady?: (lines: KitLine[]) => void; busy?: boolean
 }
 
 // "Detail Order" del kit: cabecera del pedido, líneas agrupadas por estado de cocina y pie con total, "+ Nuevo pedido" e "Ir a pagar".
-export function OrderDetailModal({ order, status, percent, onClose, imageOf, onCancelWaiting, busy = false }: Props) {
+export function OrderDetailModal({ order, status, percent, onClose, imageOf, onCancelWaiting, onServeReady, busy = false }: Props) {
   const t = useTranslations('orders')
   if (!order) return null
   const groups = GROUPS.map((g) => ({ ...g, lines: order.lines.filter((l) => lineGroup(order, l) === g.key) })).filter((g) => g.lines.length > 0)
@@ -50,6 +52,11 @@ export function OrderDetailModal({ order, status, percent, onClose, imageOf, onC
           <section key={g.key} aria-label={t(`detail.groups.${g.key}`)} className="rounded-md border border-border overflow-hidden">
             <header className={cn('h-11 px-3 flex items-center justify-between', g.cls)}>
               <span className="inline-flex items-center gap-2 text-[15px] font-semibold"><Icon name={g.icon} size={18} />{t(`detail.groups.${g.key}`)}</span>
+              {g.key === 'ready' && onServeReady && (
+                <button type="button" disabled={busy} onClick={() => onServeReady(g.lines)} className="h-8 px-3 rounded-sm bg-primary text-primary-ink text-[13px] font-semibold inline-flex items-center gap-1 disabled:opacity-40">
+                  <Icon name="check" size={14} />{t('detail.deliver')}
+                </button>
+              )}
               {g.key === 'waiting' && (
                 <button type="button" disabled={busy} onClick={() => onCancelWaiting(g.lines)} className="h-8 px-3 rounded-sm border border-danger text-danger-ink bg-surface text-[13px] font-semibold inline-flex items-center gap-1 disabled:opacity-40">
                   <Icon name="trash" size={14} />{t('detail.cancel')}

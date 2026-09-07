@@ -17,10 +17,13 @@ import { PayModal } from '@/components/tables/PayModal'
 import { ReservationDetailModal } from '@/components/tables/ReservationDetailModal'
 import { ReservationListModal } from '@/components/tables/ReservationListModal'
 import { TableDetailModal } from '@/components/tables/TableDetailModal'
+import { can } from '@/lib/domain/roles'
 import { deriveTableViews } from '@/lib/domain/tableState'
 import { orderCode, orderPrefix, parseFloorName, remainingByTemplate } from '@/lib/domain/tablesKit'
+import { useIdentity } from '@/lib/hooks/useIdentity'
 import { getOrderLines, type OrderLineView } from '@/lib/services/orders'
-import { listAllFloors, listFloorTables, moveOrder, reservedAtByTable, setFloorActive, type FloorSetting, type OrderDetail, type TableReservation } from '@/lib/services/tables'
+import { serveLines } from '@/lib/services/ordersKit'
+import { listAllFloors, listFloorTables, moveOrder, reservedAtByTable, setFloorActive, type FloorSetting, type OrderDetail, type OrderDetailLine, type TableReservation } from '@/lib/services/tables'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
 import { useFloorStore } from '@/lib/stores/floorStore'
@@ -39,6 +42,9 @@ const EMPTY_RESERVED: Record<number, TableReservation | null> = {}
 export default function SalonPage() {
   const t = useTranslations('tables')
   const router = useRouter()
+  // Los pisos son configuración del local: un mesero no los activa ni los edita.
+  const { role } = useIdentity()
+  const mayManageFloors = can.manageFloors(role)
   const session = useAuthStore((s) => s.session)
   const { catalog, load } = useCatalogStore()
   const { activeFloorId, selectedTableId, setFloor, selectTable } = useFloorStore()
@@ -117,7 +123,24 @@ export default function SalonPage() {
   }
   function onCloseReceipt() { closeReceipt(); setSheet(null); selectTable(null) }
   async function openEdit(f: FloorSetting) { setSettings(false); setEditing({ floor: f, tables: await listFloorTables(f.id) }) }
-  async function toggleFloor(f: FloorSetting, active: boolean) { await setFloorActive(f.id, active); await refreshFloors(); await reload() }
+  // Odoo se niega a tocar un piso con la caja abierta (obligaría a recalcular el turno en marcha): se explica
+  // en una nota, no en una pantalla de error.
+  async function toggleFloor(f: FloorSetting, active: boolean) {
+    try {
+      await setFloorActive(f.id, active)
+      await refreshFloors()
+      await reload()
+    } catch (e) {
+      const openSession = e instanceof Error && /PoS Session|sesión/i.test(e.message)
+      toast({ title: openSession ? t('floorToggle.needsClosedSession') : t('floorToggle.failed'), body: openSession ? t('floorToggle.needsClosedSessionBody', { name: f.name }) : '', tone: 'danger' })
+    }
+  }
+
+  // Entregar un plato desde la mesa: lo mismo que marcarlo en Pedidos, guardado en Odoo.
+  async function serveLine(line: OrderDetailLine) {
+    try { await serveLines([line.id]); await reload() }
+    catch { toast({ title: t('detail.deliverFailed'), tone: 'danger' }) }
+  }
 
   if (!catalog) return null
   const newOrderHref = selected ? `/pedidos/nuevo?mesa=${selected.table.id}` : '/pedidos/nuevo'
@@ -130,7 +153,9 @@ export default function SalonPage() {
           <FloorSwitcher floors={catalog.floors} activeId={floorId} onChange={setFloor} />
           <span aria-hidden className="w-px h-8 bg-border" />
           <Link href={newOrderHref} className="h-12 px-4 rounded-md bg-primary text-primary-ink flex items-center gap-2 text-[16px] font-semibold"><Icon name="plus" size={20} />{t('createOrder')}</Link>
-          <button type="button" aria-label={t('settings')} aria-expanded={settings} onClick={() => setSettings((v) => !v)} className="w-12 h-12 rounded-full border border-border bg-surface grid place-items-center text-ink"><Icon name="cog" size={22} /></button>
+          {mayManageFloors && (
+            <button type="button" aria-label={t('settings')} aria-expanded={settings} onClick={() => setSettings((v) => !v)} className="w-12 h-12 rounded-full border border-border bg-surface grid place-items-center text-ink"><Icon name="cog" size={22} /></button>
+          )}
         </div>
       </header>
       <div className="relative flex-1 min-h-0 flex flex-col">
@@ -145,7 +170,7 @@ export default function SalonPage() {
         ) : selected && (
           <SelectedTableBar name={String(selected.table.number)} onClear={() => selectTable(null)} onReservations={() => setSheet('reservations')} onDetail={() => setSheet('detail')} />
         )}
-        <FloorSettingsPopover open={settings} onClose={() => setSettings(false)} floors={allFloors} onAdd={() => { setSettings(false); setSheet('wizard') }} onEdit={openEdit} onToggle={toggleFloor} />
+        <FloorSettingsPopover open={settings && mayManageFloors} onClose={() => setSettings(false)} floors={allFloors} onAdd={() => { setSettings(false); setSheet('wizard') }} onEdit={openEdit} onToggle={toggleFloor} />
       </div>
       {selected && (
         <ReservationListModal open={sheet === 'reservations' && booking === null} onClose={() => setSheet(null)} tableId={selected.table.id}
@@ -154,7 +179,8 @@ export default function SalonPage() {
       {booking && <ReservationDetailModal open onClose={() => setBooking(null)} reservationId={booking.id} />}
       {selected && (
         <TableDetailModal open={sheet === 'detail'} onClose={() => setSheet(null)} tableName={String(selected.table.number)} orderId={selected.orderId} imageFor={imageFor}
-          onChangeTable={(detail) => { setSheet(null); setMoving({ detail, fromTableId: selected.table.id }) }} onNewOrder={() => router.push(newOrderHref)} onPay={openPay} />
+          onChangeTable={(detail) => { setSheet(null); setMoving({ detail, fromTableId: selected.table.id }) }} onNewOrder={() => router.push(newOrderHref)} onPay={openPay}
+          onServe={serveLine} busy={busy} />
       )}
       {moving && target !== null && (
         <ChangeTableModal open onClose={() => setTarget(null)} detail={moving.detail} busy={movingBusy} onConfirm={confirmMove}
