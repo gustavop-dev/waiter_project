@@ -32,5 +32,5 @@ test('the cashier closes the register with the counted cash and opens the next s
   await page.getByLabel(/Efectivo inicial/).fill('50000')
   await page.getByRole('button', { name: 'Abrir caja' }).click()
   await page.waitForURL('**/salon')
-  await expect(page.getByRole('button', { name: /^1\b.*Libre/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Mesa 1: Disponible/ })).toBeVisible()
 })

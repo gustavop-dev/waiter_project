@@ -12,7 +12,8 @@ it('lists the terminal employees with code, role and today shift', async () => {
     { id: 2, name: 'Sofía Mesera', waiter_role: 'waiter', employee_code: 'WT-0001', shift_start: 8, shift_end: 16 },
     { id: 3, name: 'Carlos Cajero', waiter_role: 'cashier', employee_code: false, shift_start: false, shift_end: false },
   ])
-  const list = await listPosEmployees()
+  const list = await listPosEmployees(1)
+  expect(rpc).toHaveBeenCalledWith('hr.employee', 'waiter_login_list', [1])
   expect(list[0]).toEqual({ id: 2, name: 'Sofía Mesera', code: 'WT-0001', role: 'waiter', shift: { from: 8, to: 16 } })
   expect(list[1]).toMatchObject({ code: null, shift: null })
 })

@@ -6,6 +6,7 @@ import { callKw } from '@/lib/services/odoo'
 // (`waiter_check_pin`, `waiter_change_pin`, `waiter_forgot_pin`, `waiter_end_shift`): el POS nunca ve el PIN
 // guardado ni su hash. Es el único archivo que conoce los campos de hr.employee.
 const EMPLOYEE = 'hr.employee'
+const LIST_FIELDS = ['name', 'waiter_role', 'employee_code', 'shift_start', 'shift_end']
 
 export interface PosEmployee { id: number; name: string; code: string | null; role: Role | null; shift: Shift | null }
 export interface EmployeeProfile {
@@ -36,11 +37,12 @@ interface RawPin {
 }
 
 const or = (v: string | false | null | undefined): string | null => (v ? v : null)
-const LIST_FIELDS = ['name', 'waiter_role', 'employee_code', 'shift_start', 'shift_end']
 
 // Selector del "Inicio de empleado": los empleados activos del terminal, con su turno de hoy.
-export async function listPosEmployees(): Promise<PosEmployee[]> {
-  const rows = await callKw<RawEmployee[]>(EMPLOYEE, 'search_read', [[], LIST_FIELDS], { order: 'name asc' })
+// El servidor la resuelve (`waiter_login_list`): el código, el rol y el turno son campos de RR. HH. y un
+// mesero no los puede leer por search_read, así que la lista le llegaba vacía y no podía identificarse.
+export async function listPosEmployees(configId?: number | null): Promise<PosEmployee[]> {
+  const rows = await callKw<RawEmployee[]>(EMPLOYEE, 'waiter_login_list', [configId ?? false])
   return rows.map((r) => ({ id: r.id, name: r.name, code: or(r.employee_code), role: r.waiter_role || null, shift: toShift(r.shift_start, r.shift_end) }))
 }
 
@@ -95,9 +97,12 @@ export async function findOpenAttendance(employeeId: number): Promise<{ id: numb
   return rows.length ? { id: rows[0].id, checkIn: rows[0].check_in } : null
 }
 
+// Por el mismo motivo que la lista: un mesero no puede leer estos campos directamente, así que se piden
+// al servidor y se busca el suyo. Sin esto, recargar la página dejaba al mesero sin empleado activo.
 export async function readEmployee(id: number): Promise<PosEmployee> {
-  const [row] = await callKw<RawEmployee[]>(EMPLOYEE, 'read', [[id], LIST_FIELDS])
-  return { id: row.id, name: row.name, code: or(row.employee_code), role: row.waiter_role || null, shift: toShift(row.shift_start, row.shift_end) }
+  const found = (await listPosEmployees()).find((e) => e.id === id)
+  if (!found) throw new Error(`El empleado ${id} ya no está disponible en este terminal.`)
+  return found
 }
 
 // Preferencias de aviso del usuario del terminal (res.users.get_waiter_notify / set_waiter_notify).

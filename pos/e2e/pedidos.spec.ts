@@ -7,16 +7,16 @@ import { loginAsAdmin } from './helpers/odoo'
 // Historial muestra un pedido pagado. Al final se cobra el pedido para dejar la mesa 7 libre.
 // La base demo es compartida: si una corrida anterior dejó la mesa 7 ocupada, se cobra antes de empezar.
 async function liberarMesa7(page: Page) {
-  const mesa = page.getByRole('button', { name: /^7\b/ }).first()
+  const mesa = page.getByRole('button', { name: /^Mesa 7:/ }).first()
   await mesa.waitFor()
-  if ((await mesa.innerText()).includes('Libre')) return
+  if ((await mesa.getAttribute('aria-label') ?? '').includes('Disponible')) return
   await mesa.click()
   await page.getByText('Toca una mesa para ver su cuenta').waitFor({ state: 'hidden' })
   await page.getByRole('button', { name: /^Cobrar \$/ }).click()
   await page.getByRole('button', { name: 'Agregar pago' }).click()
   await page.getByRole('button', { name: 'Confirmar cobro' }).click()
   await page.getByRole('button', { name: 'Cerrar' }).click()
-  await expect(page.getByRole('button', { name: /^7\b.*Libre/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Mesa 7: Disponible/ })).toBeVisible()
 }
 
 test('dashboard, orders, detail, add round and history follow the kit', async ({ page }) => {
@@ -24,7 +24,7 @@ test('dashboard, orders, detail, add round and history follow the kit', async ({
   test.setTimeout(180_000)
   await loginAsAdmin(page)
   await liberarMesa7(page)
-  await page.getByRole('button', { name: /^7\b.*Libre/ }).click()
+  await page.getByRole('button', { name: /^Mesa 7: Disponible/ }).click()
   await page.getByText('Toca una mesa para ver su cuenta').waitFor({ state: 'hidden' })
   await page.getByRole('button', { name: /Mesa 7/ }).click()
   await page.getByRole('region', { name: 'Carta' }).getByRole('button', { name: /Hamburguesa Angus/ }).click()
@@ -62,10 +62,10 @@ test('dashboard, orders, detail, add round and history follow the kit', async ({
   await expect(page.getByRole('complementary', { name: 'Información de la cuenta' })).toContainText('Total a pagar')
 
   await page.goto('/salon')
-  await page.getByRole('button', { name: /^7\b.*En cocina/ }).click()
+  await page.getByRole('button', { name: /^Mesa 7: En progreso/ }).click()
   await page.getByRole('button', { name: /^Cobrar \$/ }).click()
   await page.getByRole('button', { name: 'Agregar pago' }).click()
   await page.getByRole('button', { name: 'Confirmar cobro' }).click()
   await page.getByRole('button', { name: 'Cerrar' }).click()
-  await expect(page.getByRole('button', { name: /^7\b.*Libre/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Mesa 7: Disponible/ })).toBeVisible()
 })

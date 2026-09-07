@@ -10,7 +10,7 @@ test('top bar, dark theme and logout', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'Administración' })).toBeVisible()
   await page.getByRole('link', { name: 'Reservas' }).click()
   await expect(page).toHaveURL(/\/reservas$/)
-  await expect(page.getByText('Esta pantalla llega en su oleada del Plan I.')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Nueva reserva' })).toBeVisible()
 
   const userChip = page.getByRole('button', { name: /\/ Administrador/ })
   await userChip.click()

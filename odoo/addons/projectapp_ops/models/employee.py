@@ -130,6 +130,27 @@ class HrEmployee(models.Model):
     # --- API que consume el POS (RPC sobre hr.employee) -------------------------------------------
 
     @api.model
+    def waiter_login_list(self, config_id=None):
+        """Empleados que puede elegir el terminal para identificarse, con lo justo para pintar el selector.
+
+        Va con sudo a propósito: `employee_code`, `waiter_role` y el turno son campos de RR. HH. y un mesero
+        no los puede leer por `search_read` (Odoo responde «no están disponibles para los perfiles públicos»),
+        así que sin esto la lista llegaba vacía y nadie sin permisos de RR. HH. podía entrar. No expone el PIN.
+        """
+        self._waiter_require_pos_user()
+        employees = self.sudo()
+        if config_id:
+            config = self.env["pos.config"].sudo().browse(int(config_id)).exists()
+            allowed = config.basic_employee_ids | config.advanced_employee_ids if config else employees.browse()
+            if allowed:
+                employees = allowed
+        employees = (employees if employees else self.sudo().search([])).filtered("active")
+        return [{
+            "id": e.id, "name": e.name, "employee_code": e.employee_code or False,
+            "waiter_role": e.waiter_role or False, "shift_start": e.shift_start, "shift_end": e.shift_end,
+        } for e in employees.sorted("name")]
+
+    @api.model
     def waiter_check_pin(self, employee_id, pin):
         """Valida el PIN en el servidor y abre la asistencia del día.
 

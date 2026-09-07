@@ -26,7 +26,7 @@ export default function LoginPage() {
   const t = useTranslations('account')
   const tl = useTranslations('pos.login')
   const router = useRouter()
-  const { user, hydrated, hydrate, login, startShift } = useAuthStore()
+  const { user, session, hydrated, hydrate, login, startShift } = useAuthStore()
   const [view, setView] = useState<View>('main')
   const [employees, setEmployees] = useState<PosEmployee[] | null>(null)
   const storedEmail = useStored('waiter.email')
@@ -46,9 +46,9 @@ export default function LoginPage() {
   useEffect(() => {
     if (!user) return
     let alive = true
-    listPosEmployees().then((list) => { if (alive) setEmployees(list) }).catch(() => { if (alive) setEmployees([]) })
+    listPosEmployees(session?.configId ?? null).then((list) => { if (alive) setEmployees(list) }).catch(() => { if (alive) setEmployees([]) })
     return () => { alive = false }
-  }, [user])
+  }, [user, session])
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()

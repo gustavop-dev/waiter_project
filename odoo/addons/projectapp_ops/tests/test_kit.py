@@ -136,6 +136,16 @@ class TestEmployeePin(KitCase):
         self.assertTrue(self.Employee.waiter_check_pin(self.employee.id, "654321")["ok"])
         self.assertFalse(self.Employee.waiter_check_pin(self.employee.id, "123456")["ok"])
 
+    def test_a_waiter_without_hr_rights_can_still_list_the_employees_to_log_in(self):
+        """Atrapa el bug que dejaba fuera a los meseros: search_read niega los campos de RR. HH. y la lista
+        del selector llegaba vacía, así que solo podían entrar los administradores."""
+        with self.assertRaises(AccessError, msg="los campos de RR. HH. siguen cerrados por lectura directa"):
+            self.Employee.search_read([], ["name", "waiter_role", "employee_code"])
+        rows = self.Employee.waiter_login_list()
+        mine = next(r for r in rows if r["id"] == self.employee.id)
+        self.assertEqual((mine["name"], mine["waiter_role"]), ("Prueba Mesera", "waiter"))
+        self.assertNotIn("pin", mine, "la lista del login nunca expone el PIN")
+
     def test_changing_someone_elses_pin_needs_proof_of_identity(self):
         """Atrapa la escalada de privilegios: sin token ni PIN actual, una tablet le cambiaba el PIN al jefe."""
         jefe = self.env["hr.employee"].create({"name": "Jefa", "pin": "999999", "waiter_role": "admin"})
