@@ -1,46 +1,27 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
-import { loginAsAdmin } from './helpers/odoo'
+import { chargeTable, createOrder, kitchenReadyAndServe, loginAsAdmin } from './helpers/odoo'
 
 // @flow: kit-orders  @outcome: success
-// Dashboard muestra el pedido en progreso; Pedidos lo lista y abre el detalle; Agregar ronda la envía a cocina;
-// Historial muestra un pedido pagado. Al final se cobra el pedido para dejar la mesa 7 libre.
-// La base demo es compartida: si una corrida anterior dejó la mesa 7 ocupada, se cobra antes de empezar.
-async function liberarMesa7(page: Page) {
-  const mesa = page.getByRole('button', { name: /^Mesa 7:/ }).first()
-  await mesa.waitFor()
-  if ((await mesa.getAttribute('aria-label') ?? '').includes('Disponible')) return
-  await mesa.click()
-  await page.getByText('Toca una mesa para ver su cuenta').waitFor({ state: 'hidden' })
-  await page.getByRole('button', { name: /^Cobrar \$/ }).click()
-  await page.getByRole('button', { name: 'Agregar pago' }).click()
-  await page.getByRole('button', { name: 'Confirmar cobro' }).click()
-  await page.getByRole('button', { name: 'Cerrar' }).click()
-  await expect(page.getByRole('button', { name: /^Mesa 7: Disponible/ })).toBeVisible()
-}
-
+// Recorrido de las cuatro pantallas del kit sobre un mismo pedido: Inicio lo muestra en progreso, Pedidos lo
+// lista y abre su detalle, "Nuevo pedido" agrega una ronda que va a cocina, e Historial muestra su cuenta.
 test('dashboard, orders, detail, add round and history follow the kit', async ({ page }) => {
-  // Recorre cuatro pantallas y además limpia y cobra la mesa 7: no cabe en el minuto por defecto.
+  // Cinco pantallas más el cobro: no cabe en el minuto por defecto.
   test.setTimeout(180_000)
   await loginAsAdmin(page)
-  await liberarMesa7(page)
-  await page.getByRole('button', { name: /^Mesa 7: Disponible/ }).click()
-  await page.getByText('Toca una mesa para ver su cuenta').waitFor({ state: 'hidden' })
-  await page.getByRole('button', { name: /Mesa 7/ }).click()
-  await page.getByRole('region', { name: 'Carta' }).getByRole('button', { name: /Hamburguesa Angus/ }).click()
-  await page.getByRole('button', { name: 'Enviar a cocina' }).click()
-  await page.waitForURL('**/salon')
+  const customer = `Recorrido ${Date.now().toString().slice(-6)}`
+  const mesa = await createOrder(page, { customer })
 
   await page.goto('/dashboard')
-  const inProgress = page.getByRole('region', { name: 'En progreso' })
-  const dashCard = inProgress.getByRole('article').filter({ has: page.getByLabel('Mesa 7') })
+  const dashCard = page.getByRole('region', { name: 'En progreso' }).getByRole('article').filter({ hasText: customer })
   await expect(dashCard).toContainText('En progreso')
   await expect(dashCard).toContainText('1 ítems')
-  await expect(page.getByRole('region', { name: 'Mesas disponibles' })).not.toContainText(/^7$/)
+  // La mesa ya no se ofrece como libre en el panel de la derecha.
+  await expect(page.getByRole('region', { name: 'Mesas disponibles' })).not.toContainText(new RegExp(`^${mesa}$`))
 
   await page.getByRole('link', { name: 'Pedidos' }).click()
   await expect(page).toHaveURL(/\/pedidos$/)
-  const card = page.getByRole('article').filter({ has: page.getByLabel('Mesa 7') })
+  const card = page.getByRole('article').filter({ hasText: customer })
   await expect(card).toContainText('Hamburguesa Angus')
   await expect(card.getByRole('button', { name: 'Cobrar' })).toBeDisabled()
   await card.getByRole('button', { name: 'Ver detalle' }).click()
@@ -61,11 +42,7 @@ test('dashboard, orders, detail, add round and history follow the kit', async ({
   await page.getByRole('button', { name: /^Pedido# (DI|TA|DE)\d+/ }).first().click()
   await expect(page.getByRole('complementary', { name: 'Información de la cuenta' })).toContainText('Total a pagar')
 
-  await page.goto('/salon')
-  await page.getByRole('button', { name: /^Mesa 7: En progreso/ }).click()
-  await page.getByRole('button', { name: /^Cobrar \$/ }).click()
-  await page.getByRole('button', { name: 'Agregar pago' }).click()
-  await page.getByRole('button', { name: 'Confirmar cobro' }).click()
-  await page.getByRole('button', { name: 'Cerrar' }).click()
-  await expect(page.getByRole('button', { name: /^Mesa 7: Disponible/ })).toBeVisible()
+  // Se deja la mesa como se encontró: cocina entrega las dos rondas y se cobra.
+  await kitchenReadyAndServe(page, mesa)
+  await chargeTable(page, mesa)
 })

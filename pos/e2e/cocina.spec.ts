@@ -1,33 +1,22 @@
 import { expect, test } from '@playwright/test'
 
-import { loginAsAdmin, openFreeTable } from './helpers/odoo'
+import { chargeTable, createOrder, kitchenReadyAndServe, loginAsAdmin } from './helpers/odoo'
 
 // @flow: kitchen-ready-served  @outcome: success
+// El relevo entre cocina y sala: cocina marca la comanda lista y la entrega desde "Listos por entregar";
+// el plano pasa la mesa a Servido y solo entonces se puede cobrar.
 test('kitchen marks a ticket ready and served; the salon shows it served and charges it', async ({ page }) => {
   await loginAsAdmin(page)
-  const mesa = await openFreeTable(page)
-  await page.getByText('Toca una mesa para ver su cuenta').waitFor({ state: 'hidden' })
-  await page.getByRole('button', { name: /Mesa 5/ }).click()
-  const carta = page.getByRole('region', { name: 'Carta' })
-  await carta.getByRole('button', { name: /Hamburguesa Angus/ }).click()
-  await carta.getByRole('button', { name: /Hamburguesa Angus/ }).click()
-  await page.getByRole('button', { name: 'Enviar a cocina' }).click()
-  await page.waitForURL('**/salon')
+  const customer = `Cocina ${Date.now().toString().slice(-6)}`
+  const mesa = await createOrder(page, { customer, qty: 2 })
+
+  // Antes de que cocina diga nada, la mesa está en progreso y no hay nada que cobrar.
+  await page.goto('/salon')
   await expect(page.getByRole('button', { name: new RegExp(`^Mesa ${mesa}: En progreso`) })).toBeVisible()
 
-  await page.goto('/kds')
-  const ticket = page.getByRole('article', { name: `Mesa ${mesa}` })
-  await expect(ticket).toContainText('Hamburguesa Angus')
-  await ticket.getByRole('button', { name: 'Listo' }).click()
-  const ready = page.getByRole('complementary', { name: 'Listos por entregar' })
-  await ready.getByRole('button', { name: /Mesa 5 · 2 platos/ }).click()
-  await expect(ready.getByRole('button', { name: /Mesa 5/ })).toHaveCount(0)
+  await kitchenReadyAndServe(page, mesa)
 
   await page.goto('/salon')
-  await page.getByRole('button', { name: new RegExp(`^Mesa ${mesa}: Servido`) }).click()
-  await page.getByRole('button', { name: /^Cobrar \$ 87\.822$/ }).click()
-  await page.getByRole('button', { name: 'Agregar pago' }).click()
-  await page.getByRole('button', { name: 'Confirmar cobro' }).click()
-  await page.getByRole('button', { name: 'Cerrar' }).click()
-  await expect(page.getByRole('button', { name: `Mesa ${mesa}: Disponible` })).toBeVisible()
+  await expect(page.getByRole('button', { name: new RegExp(`^Mesa ${mesa}: Servido`) })).toBeVisible({ timeout: 30_000 })
+  await chargeTable(page, mesa)
 })

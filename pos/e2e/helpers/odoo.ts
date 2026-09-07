@@ -35,12 +35,70 @@ export async function loginAsAdmin(page: Page) {
   await loginAs(page, 'admin', 'admin', DEMO_ADMIN.name, DEMO_ADMIN.pin)
 }
 
-// Cualquier mesa libre del plano. Los recorridos no pueden fijar un número: la base demo es compartida y
-// las corridas anteriores dejan mesas ocupadas o reservadas.
-export async function openFreeTable(page: Page): Promise<string> {
-  const free = page.getByRole('button', { name: /^Mesa \d+: Disponible/ }).first()
-  await expect(free).toBeVisible({ timeout: 30_000 })
-  const label = (await free.getAttribute('aria-label')) ?? ''
-  await free.click()
-  return label.match(/^Mesa (\d+):/)?.[1] ?? ''
+// ——— Pedidos por el asistente del kit ———
+
+export interface NewOrderOptions { customer: string; dish?: string; qty?: number; note?: string; option?: RegExp }
+
+// Recorre el asistente "Crear pedido" (cliente → mesa → menú → resumen) y devuelve el número de la mesa elegida.
+// La base demo es compartida: la mesa es la primera libre del plano, nunca una fija.
+export async function createOrder(page: Page, options: NewOrderOptions): Promise<string> {
+  const { customer, dish = 'Hamburguesa Angus', qty = 1, note, option = /BBQ/ } = options
+  await page.goto('/pedidos/nuevo')
+  await page.getByLabel('Nombre del cliente').fill(customer)
+  await page.getByRole('button', { name: 'Continuar' }).click()
+
+  const table = page.locator('button[aria-pressed="false"]:not([disabled])').filter({ hasText: 'Mesa' }).first()
+  await expect(table).toBeVisible({ timeout: 30_000 })
+  const number = ((await table.innerText()).match(/Mesa (\d+)/) ?? [])[1] ?? ''
+  await table.click()
+  await page.getByRole('button', { name: 'Continuar' }).click()
+
+  await page.getByPlaceholder('Buscar plato').fill(dish)
+  await page.getByRole('button', { name: 'Agregar', exact: true }).first().click()
+  const modal = page.getByRole('dialog')
+  const choice = modal.getByRole('radio', { name: option })
+  if (await choice.count()) await choice.first().click()
+  for (let i = 1; i < qty; i += 1) await modal.getByRole('button', { name: 'Más', exact: true }).click()
+  if (note) await modal.getByLabel('Nota para cocina').fill(note)
+  await modal.getByRole('button', { name: 'Agregar al carrito' }).click()
+
+  await page.getByRole('region', { name: 'Detalle del pedido' }).getByRole('button', { name: 'Continuar' }).click()
+  await page.getByRole('button', { name: 'Crear pedido y enviar a cocina' }).click()
+  await expect(page.getByRole('status')).toContainText(/creado/)
+  return number
+}
+
+// Cobra la mesa desde el salón: se elige en el plano, se abre su detalle y se paga en efectivo.
+// "Ir a pagar" solo se habilita con todos los platos entregados, que es la regla del kit.
+export async function chargeTable(page: Page, mesa: string) {
+  await page.goto('/salon')
+  await page.getByRole('button', { name: new RegExp(`^Mesa ${mesa}: `) }).click()
+  await page.getByRole('button', { name: 'Detalle de mesa' }).click()
+  const detail = page.getByRole('dialog', { name: 'Detalle de mesa' })
+  await detail.getByRole('button', { name: 'Ir a pagar' }).click()
+  await page.getByRole('button', { name: 'Agregar pago' }).click()
+  await page.getByRole('button', { name: 'Confirmar cobro' }).click()
+  await page.getByRole('button', { name: 'Cerrar' }).click()
+  // El plano se sondea cada 30 s; se recarga para no esperar al siguiente sondeo. La mesa queda sin pedido:
+  // se comprueba así y no con "Disponible", porque una reserva del día la deja en "Reservada".
+  await page.reload()
+  await expect(page.getByRole('button', { name: new RegExp(`^Mesa ${mesa}: (En progreso|Listo|Servido|Esperando pago)`) })).toHaveCount(0, { timeout: 30_000 })
+}
+
+// Cocina marca listas todas las comandas de la mesa y las entrega desde "Listos por entregar".
+// Son varias cuando el mesero agregó rondas: cada ronda es un curso y cada curso, una comanda.
+export async function kitchenReadyAndServe(page: Page, mesa: string) {
+  await page.goto('/kds')
+  const tickets = page.getByRole('article', { name: `Mesa ${mesa}` })
+  await expect(tickets.first()).toBeVisible({ timeout: 30_000 })
+  for (let left = await tickets.count(); left > 0; left -= 1) {
+    await tickets.first().getByRole('button', { name: 'Listo' }).click()
+    await expect(tickets).toHaveCount(left - 1)
+  }
+  const ready = page.getByRole('complementary', { name: 'Listos por entregar' })
+  const pending = ready.getByRole('button', { name: new RegExp(`^Mesa ${mesa} ·`) })
+  for (let left = await pending.count(); left > 0; left -= 1) {
+    await pending.first().click()
+    await expect(pending).toHaveCount(left - 1)
+  }
 }

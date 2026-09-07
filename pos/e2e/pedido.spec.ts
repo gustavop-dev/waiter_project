@@ -1,25 +1,22 @@
 import { expect, test } from '@playwright/test'
 
-import { loginAsAdmin, openFreeTable } from './helpers/odoo'
+import { createOrder, loginAsAdmin } from './helpers/odoo'
 
-// @flow: order-send-and-charge  @outcome: success
-test('a waiter opens a table, adds two burgers, sends to kitchen and charges', async ({ page }) => {
+// @flow: order-wizard-to-kitchen  @outcome: success
+// El asistente del kit de punta a punta: cliente, mesa libre, plato con adición y dos unidades, resumen y
+// envío a cocina. Después el plano lo muestra en progreso y Pedidos lo lista sin poder cobrarse todavía.
+test('the wizard opens a free table, adds two burgers and sends them to the kitchen', async ({ page }) => {
   await loginAsAdmin(page)
-  const mesa = await openFreeTable(page)
-  await page.getByText('Toca una mesa para ver su cuenta').waitFor({ state: 'hidden' })
-  await page.getByRole('button', { name: /Mesa 3/ }).click()
-  // Acotado a la región de la carta: tras el primer toque, la línea del panel también se llama así.
-  const carta = page.getByRole('region', { name: 'Carta' })
-  await carta.getByRole('button', { name: /Hamburguesa Angus/ }).click()
-  await carta.getByRole('button', { name: /Hamburguesa Angus/ }).click()
-  await expect(page.getByText('$ 73.800')).toBeVisible()
-  await page.getByRole('button', { name: 'Enviar a cocina' }).click()
-  await page.waitForURL('**/salon')
+  const customer = `Pedido ${Date.now().toString().slice(-6)}`
+  const mesa = await createOrder(page, { customer, qty: 2 })
+
+  await page.goto('/salon')
   await expect(page.getByRole('button', { name: new RegExp(`^Mesa ${mesa}: En progreso`) })).toBeVisible()
-  await page.getByRole('button', { name: new RegExp(`^Mesa ${mesa}: En progreso`) }).click()
-  await page.getByRole('button', { name: /^Cobrar \$ 87\.822$/ }).click()
-  await page.getByRole('button', { name: 'Agregar pago' }).click()
-  await page.getByRole('button', { name: 'Confirmar cobro' }).click()
-  await page.getByRole('button', { name: 'Cerrar' }).click()
-  await expect(page.getByRole('button', { name: `Mesa ${mesa}: Disponible` })).toBeVisible()
+
+  await page.goto('/pedidos')
+  const card = page.getByRole('article').filter({ hasText: customer })
+  await expect(card).toContainText('Hamburguesa Angus')
+  await expect(card).toContainText('2 ítems')
+  // Cobrar sigue apagado: nada se ha entregado en la mesa.
+  await expect(card.getByRole('button', { name: 'Cobrar' })).toBeDisabled()
 })

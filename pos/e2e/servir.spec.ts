@@ -1,8 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-import { DEMO_EMPLOYEE, loginAs, startShiftAs } from './helpers/odoo'
-
-const cart = (page: import('@playwright/test').Page) => page.getByRole('region', { name: 'Detalle del pedido' })
+import { createOrder, DEMO_EMPLOYEE, loginAs, startShiftAs } from './helpers/odoo'
 
 // @flow: kit-serve-dish  @outcome: success
 // Marcar un plato lo sirve en Odoo, no solo en esta tablet: se comprueba recargando la pantalla.
@@ -10,18 +8,7 @@ test('marcar un plato lo deja servido y sobrevive a la recarga', async ({ page }
   await loginAs(page, 'admin', 'admin')
   const customer = `Servido ${Date.now().toString().slice(-6)}`
 
-  await page.goto('/pedidos/nuevo')
-  await page.getByLabel('Nombre del cliente').fill(customer)
-  await page.getByRole('button', { name: 'Continuar' }).click()
-  await page.locator('button[aria-pressed="false"]:not([disabled])').filter({ hasText: 'Mesa' }).first().click()
-  await page.getByRole('button', { name: 'Continuar' }).click()
-  await page.getByPlaceholder('Buscar plato').fill('Hamburguesa Angus')
-  await page.getByRole('button', { name: 'Agregar', exact: true }).first().click()
-  await page.getByRole('radio', { name: /BBQ/ }).click()
-  await page.getByRole('button', { name: 'Agregar al carrito' }).click()
-  await cart(page).getByRole('button', { name: 'Continuar' }).click()
-  await page.getByRole('button', { name: 'Crear pedido y enviar a cocina' }).click()
-  await expect(page.getByRole('status')).toContainText(/creado/)
+  await createOrder(page, { customer })
 
   const card = page.getByRole('article').filter({ hasText: customer })
   const dish = card.getByRole('checkbox').first()

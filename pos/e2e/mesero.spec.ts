@@ -1,27 +1,6 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
-import { DEMO_EMPLOYEE, loginAs, loginAsAdmin } from './helpers/odoo'
-
-const cart = (page: Page) => page.getByRole('region', { name: 'Detalle del pedido' })
-
-// Crea un pedido con un plato en la primera mesa libre y devuelve su número de mesa.
-async function newOrder(page: Page, customer: string): Promise<string> {
-  await page.goto('/pedidos/nuevo')
-  await page.getByLabel('Nombre del cliente').fill(customer)
-  await page.getByRole('button', { name: 'Continuar' }).click()
-  const table = page.locator('button[aria-pressed="false"]:not([disabled])').filter({ hasText: 'Mesa' }).first()
-  const number = ((await table.innerText()).match(/Mesa (\d+)/) ?? [])[1] ?? ''
-  await table.click()
-  await page.getByRole('button', { name: 'Continuar' }).click()
-  await page.getByPlaceholder('Buscar plato').fill('Hamburguesa Angus')
-  await page.getByRole('button', { name: 'Agregar', exact: true }).first().click()
-  await page.getByRole('radio', { name: /BBQ/ }).click()
-  await page.getByRole('button', { name: 'Agregar al carrito' }).click()
-  await cart(page).getByRole('button', { name: 'Continuar' }).click()
-  await page.getByRole('button', { name: 'Crear pedido y enviar a cocina' }).click()
-  await expect(page.getByRole('status')).toContainText(/creado/)
-  return number
-}
+import { createOrder, DEMO_EMPLOYEE, loginAs, loginAsAdmin } from './helpers/odoo'
 
 // @flow: waiter-order-to-served  @outcome: success
 // El viaje completo de un plato visto por el mesero: sale a cocina, cocina lo marca listo, aparece en
@@ -29,7 +8,7 @@ async function newOrder(page: Page, customer: string): Promise<string> {
 test('un plato viaja de cocina al pase y de ahí a la mesa', async ({ page, browser }) => {
   await loginAs(page, 'admin', 'admin')
   const customer = `Mesero ${Date.now().toString().slice(-6)}`
-  const mesa = await newOrder(page, customer)
+  const mesa = await createOrder(page, { customer })
 
   // Mientras cocina no diga nada, el plato está "En cocina" y no hay nada que llevar.
   await page.goto('/pedidos')
