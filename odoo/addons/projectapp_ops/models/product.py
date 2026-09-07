@@ -4,6 +4,9 @@ Documento: docs/diseno/2026-09-05-imagenes-menu.md («Trazabilidad» y «Límite
 generada no representa la porción servida; en Colombia es exposición a reclamo por publicidad
 engañosa. El campo permite listar qué platos siguen con imagen generada (y priorizar la sesión de
 fotos real) y hace que la app del comensal muestre «Imágenes de referencia» cuando aplica.
+
+Kit CloudPos (Plan I): `available_from`, la hora a la que un plato agotado vuelve a estar disponible
+("Available at 18:00" en la tarjeta del producto).
 """
 from odoo import fields, models
 
@@ -28,6 +31,11 @@ class ProductTemplate(models.Model):
              "piezas, picante (0 a 3), etiquetas, alergenos, abv, ibu, tamanos [{nombre, precio}], soloHoy. "
              "Ejemplo: {\"piezas\": 8, \"picante\": 2, \"etiquetas\": [\"popular\"]}. Vacío: sin atributos.")
 
+    available_from = fields.Datetime(
+        string="Disponible desde",
+        help="Cuando el plato está agotado, hora (servidor, UTC) a la que vuelve a estar disponible. "
+             "Vacío: sin hora anunciada.")
+
     def _load_pos_data_fields(self, *args, **kwargs):
         # La experiencia del comensal (experience/) lee la carta con pos.session.load_data, igual que el POS,
         # y load_data solo devuelve los campos de esta lista: sin añadirlos aquí el origen y los atributos nunca
@@ -36,4 +44,4 @@ class ProductTemplate(models.Model):
         fields_ = super()._load_pos_data_fields(*args, **kwargs)
         if not fields_:
             return fields_
-        return fields_ + ["image_origin", "diner_attributes"]
+        return fields_ + ["image_origin", "diner_attributes", "available_from"]
