@@ -30,14 +30,12 @@ test('creating an order asks for the table first, wherever it starts', async ({ 
   await expect(prompt).toBeVisible()
   await prompt.getByRole('button', { name: 'Elegir en el plano' }).click()
 
-  // Con la mesa elegida sí abre, y el asistente la enseña marcada en su paso.
-  const table = page.getByRole('button', { name: /^Mesa \d+: (Disponible|Reservada)/ }).first()
-  const mesa = ((await table.getAttribute('aria-label')) ?? '').match(/^Mesa (\d+):/)?.[1] ?? ''
-  await table.click()
+  // Con la mesa elegida sí abre, y ya no la vuelve a pedir: el asistente pasa del cliente al menú.
+  await page.getByRole('button', { name: /^Mesa \d+: (Disponible|Reservada)/ }).first().click()
   await page.getByRole('button', { name: 'Crear pedido' }).click()
   await expect(page).toHaveURL(/\/pedidos\/nuevo\?mesa=\d+$/)
+  await expect(page.getByText('Seleccionar mesa')).toHaveCount(0)
   await page.getByLabel('Nombre del cliente').fill('Mesa obligatoria')
   await page.getByRole('button', { name: 'Continuar' }).click()
-  await expect(page.getByText('Mesa seleccionada:')).toBeVisible()
-  await expect(page.getByRole('button', { name: new RegExp(`^Mesa ${mesa}\\b`) })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('region', { name: 'Lista del menú' })).toBeVisible()
 })

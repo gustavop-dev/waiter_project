@@ -37,12 +37,14 @@ export async function loginAsAdmin(page: Page) {
 
 // ——— Pedidos por el asistente del kit ———
 
-export interface NewOrderOptions { customer: string; dish?: string; qty?: number; note?: string; option?: RegExp }
+// `dish` acepta varios: cantidad, nota y adición se aplican al primero, que es el que suelen mirar las pruebas.
+export interface NewOrderOptions { customer: string; dish?: string | string[]; qty?: number; note?: string; option?: RegExp }
 
 // Recorre el asistente "Crear pedido" (cliente → mesa → menú → resumen) y devuelve el número de la mesa elegida.
 // La base demo es compartida: la mesa es la primera libre del plano, nunca una fija.
 export async function createOrder(page: Page, options: NewOrderOptions): Promise<string> {
   const { customer, dish = 'Hamburguesa Angus', qty = 1, note, option = /BBQ/ } = options
+  const dishes = Array.isArray(dish) ? dish : [dish]
   await page.goto('/pedidos/nuevo')
   await page.getByLabel('Nombre del cliente').fill(customer)
   await page.getByRole('button', { name: 'Continuar' }).click()
@@ -53,14 +55,18 @@ export async function createOrder(page: Page, options: NewOrderOptions): Promise
   await table.click()
   await page.getByRole('button', { name: 'Continuar' }).click()
 
-  await page.getByPlaceholder('Buscar plato').fill(dish)
-  await page.getByRole('button', { name: 'Agregar', exact: true }).first().click()
-  const modal = page.getByRole('dialog')
-  const choice = modal.getByRole('radio', { name: option })
-  if (await choice.count()) await choice.first().click()
-  for (let i = 1; i < qty; i += 1) await modal.getByRole('button', { name: 'Más', exact: true }).click()
-  if (note) await modal.getByLabel('Nota para cocina').fill(note)
-  await modal.getByRole('button', { name: 'Agregar al carrito' }).click()
+  for (const [i, name] of dishes.entries()) {
+    await page.getByPlaceholder('Buscar plato').fill(name)
+    await page.getByRole('button', { name: 'Agregar', exact: true }).first().click()
+    const modal = page.getByRole('dialog')
+    const choice = modal.getByRole('radio', { name: option })
+    if (await choice.count()) await choice.first().click()
+    if (i === 0) {
+      for (let n = 1; n < qty; n += 1) await modal.getByRole('button', { name: 'Más', exact: true }).click()
+      if (note) await modal.getByLabel('Nota para cocina').fill(note)
+    }
+    await modal.getByRole('button', { name: 'Agregar al carrito' }).click()
+  }
 
   await page.getByRole('region', { name: 'Detalle del pedido' }).getByRole('button', { name: 'Continuar' }).click()
   await page.getByRole('button', { name: 'Crear pedido y enviar a cocina' }).click()
@@ -96,9 +102,9 @@ export async function kitchenReadyAndServe(page: Page, mesa: string) {
     await expect(tickets).toHaveCount(left - 1)
   }
   const ready = page.getByRole('complementary', { name: 'Listos por entregar' })
-  const pending = ready.getByRole('button', { name: new RegExp(`^Mesa ${mesa} ·`) })
-  for (let left = await pending.count(); left > 0; left -= 1) {
-    await pending.first().click()
-    await expect(pending).toHaveCount(left - 1)
+  const cards = ready.getByRole('listitem', { name: `Mesa ${mesa}` })
+  for (let left = await cards.count(); left > 0; left -= 1) {
+    await cards.first().getByRole('button', { name: 'Entregar todo' }).click()
+    await expect(cards).toHaveCount(left - 1)
   }
 }

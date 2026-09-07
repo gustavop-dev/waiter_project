@@ -5,6 +5,7 @@ import { create } from 'zustand'
 import { play, setMuted, setStation } from '@/lib/audio/sounds'
 import { ALL, FRESH_MIN, LATE_MIN, ticketMinutes } from '@/lib/domain/kitchen'
 import { listCompletedCourses, listKitchenTickets, markReady, markServed, type CompletedCourse, type KitchenTicket } from '@/lib/services/kitchen'
+import { serveLines } from '@/lib/services/ordersKit'
 
 type StationOf = (productId: number) => string | null
 const WARN_MIN = 12
@@ -23,6 +24,8 @@ interface KitchenState {
   refresh: (sessionId: number, stationOf: StationOf) => Promise<void>
   ready: (courseId: number, sessionId: number, stationOf: StationOf) => Promise<void>
   serve: (courseId: number, sessionId: number, stationOf: StationOf) => Promise<void>
+  // Un plato suelto: la cocina entrega por partes, no siempre la comanda entera de golpe.
+  serveDish: (lineId: number, sessionId: number, stationOf: StationOf) => Promise<void>
   setTab: (tab: string) => void
   toggleMute: () => void
 }
@@ -61,6 +64,10 @@ export const useKitchenStore = create<KitchenState>((set, get) => ({
   },
   serve: async (courseId, sessionId, stationOf) => {
     await markServed(courseId)
+    await get().refresh(sessionId, stationOf)
+  },
+  serveDish: async (lineId, sessionId, stationOf) => {
+    await serveLines([lineId])
     await get().refresh(sessionId, stationOf)
   },
   setTab: (tab) => set({ tab }),

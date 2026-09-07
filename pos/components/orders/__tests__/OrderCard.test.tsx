@@ -39,6 +39,7 @@ it('links to the payment screen when every line is served', () => {
   const served: KitOrder = { ...order, lines: [line(1, 'Hamburguesa Angus', 1)], courses: [{ id: 1, fired: true, readyAt: 'x', servedAt: 'x' }] }
   ui(<OrderCard order={served} status="served" percent={100} />)
   expect(screen.getByRole('link', { name: 'Cobrar' })).toHaveAttribute('href', '/pago/7')
-  // Dos veces: la franja de estado del pedido y la píldora del plato, que ya está en la mesa.
-  expect(screen.getAllByText('Servido')).toHaveLength(2)
+  // La franja lo dice una vez; la línea no repite la palabra, su casilla marcada ya lo cuenta.
+  expect(screen.getByText('Servido')).toBeInTheDocument()
+  expect(screen.getByRole('checkbox', { name: /Hamburguesa Angus/ })).toBeChecked()
 })

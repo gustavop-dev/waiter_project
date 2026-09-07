@@ -30,14 +30,18 @@ export function OrderHeadline({ order, className }: { order: KitOrder; className
   )
 }
 
-// Chip azul con el número de mesa (solo en mesa) y el nombre del cliente.
+// Chip azul con el número de mesa (solo en mesa) y el nombre del cliente. El número solo no dice de qué es:
+// lleva la palabra "Mesa" encima, que es lo que el mesero busca de un vistazo entre veinte tarjetas.
 export function CustomerRow({ order, size = 'md' }: { order: KitOrder; size?: 'md' | 'sm' }) {
   const t = useTranslations('orders')
   const big = size === 'md'
   return (
     <div className="flex items-center gap-3 min-w-0">
       {order.tableNumber !== null && (
-        <span aria-label={t('card.table', { n: order.tableNumber })} className={cn('shrink-0 rounded-md bg-primary text-primary-ink grid place-items-center font-semibold', big ? 'w-12 h-12 text-[17px]' : 'w-10 h-10 text-[15px]')}>{order.tableNumber}</span>
+        <span aria-label={t('card.table', { n: order.tableNumber })} className={cn('shrink-0 rounded-md bg-primary text-primary-ink flex flex-col items-center justify-center leading-none font-semibold', big ? 'w-12 h-12' : 'w-10 h-10')}>
+          <span className={cn('font-medium opacity-80', big ? 'text-[10px]' : 'text-[9px]')}>{t('card.tableWord')}</span>
+          <span className={cn(big ? 'text-[17px] mt-0.5' : 'text-[15px] mt-px')}>{order.tableNumber}</span>
+        </span>
       )}
       <div className="min-w-0 flex flex-col">
         <span className="text-[13px] text-soft">{t('card.customer')}</span>
@@ -82,8 +86,8 @@ function LinesTable({ order, onToggle }: LinesTableProps) {
   const t = useTranslations('orders')
   return (
     <div className="rounded-md border border-border overflow-hidden flex flex-col">
-      <div className="grid grid-cols-[1fr_auto_34px_78px] gap-1.5 px-3 h-9 items-center bg-muted text-[13px] text-soft">
-        <span>{t('card.itemsHeader')}</span><span aria-hidden /><span className="text-center">{t('card.qty')}</span><span className="text-right">{t('card.price')}</span>
+      <div className="grid grid-cols-[64px_1fr_auto_30px_66px] gap-1.5 px-3 h-9 items-center bg-muted text-[11px] text-soft">
+        <span className="text-center">{t('card.deliveredHeader')}</span><span>{t('card.itemsHeader')}</span><span aria-hidden /><span className="text-center">{t('card.qty')}</span><span className="text-right">{t('card.price')}</span>
       </div>
       <ul className="max-h-[120px] overflow-y-auto">
         {order.lines.map((l) => {
@@ -91,12 +95,11 @@ function LinesTable({ order, onToggle }: LinesTableProps) {
           const served = group === 'served'
           const label = served ? t('card.servedLine', { name: l.name }) : t('card.markServed', { name: l.name })
           return (
-            <li key={l.id} className="grid grid-cols-[1fr_auto_34px_78px] gap-1.5 px-3 h-9 items-center text-[14px]">
-              <label className={cn('flex items-center gap-2 min-w-0', group === 'waiting' && 'text-dim')}>
-                <input type="checkbox" aria-label={label} className="w-4 h-4 accent-primary shrink-0" checked={served} disabled={served || group === 'waiting'} onChange={() => onToggle(l)} />
-                <span className="truncate">{l.name}</span>
-              </label>
-              <LineState group={group} />
+            <li key={l.id} className={cn('grid grid-cols-[56px_1fr_auto_30px_66px] gap-1.5 px-3 h-9 items-center text-[14px]', group === 'waiting' && 'text-dim')}>
+              <input type="checkbox" aria-label={label} className="w-4 h-4 accent-primary justify-self-center" checked={served} disabled={served || group === 'waiting'} onChange={() => onToggle(l)} />
+              <span className="truncate">{l.name}</span>
+              {/* Servido ya lo dice la casilla marcada: la píldora solo aparece cuando falta algo por saber. */}
+              {served ? <span aria-hidden /> : <LineState group={group} />}
               <span className="text-center tabular">{l.qty}</span>
               <span className="text-right tabular text-soft">$ {formatCop(l.total)}</span>
             </li>

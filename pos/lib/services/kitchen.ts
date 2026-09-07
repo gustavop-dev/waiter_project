@@ -2,13 +2,13 @@ import { callKw } from '@/lib/services/odoo'
 
 // La comanda es un restaurant.order.course de Odoo (ADR 2026-09-05). Este archivo es el único
 // que conoce los métodos del addon projectapp_kitchen.
-export interface KitchenLine { id: number; name: string; qty: number; note: string; station: string | null }
+export interface KitchenLine { id: number; name: string; qty: number; note: string; station: string | null; servedAt: string | null }
 export interface KitchenTicket { id: number; orderId: number; tableId: number; tracking: string; waiter: string; note: string; firedAt: string; readyAt: string | null; lines: KitchenLine[] }
 export interface CourseSummary { orderId: number; firedAt: string; readyAt: string | null; servedAt: string | null }
 export interface CompletedCourse { firedAt: string; readyAt: string }
 
 interface RawCourse { id: number; order_id: [number, string]; fired_date: string; ready_date: string | false; served_date: string | false }
-interface RawKitchenLine { id: number; course_id: [number, string] | false; full_product_name: string; qty: number; customer_note: string | false; product_id: [number, string] }
+interface RawKitchenLine { id: number; course_id: [number, string] | false; full_product_name: string; qty: number; customer_note: string | false; product_id: [number, string]; served_date: string | false }
 interface RawKitchenOrder { id: number; table_id: [number, string] | false; user_id: [number, string] | false; tracking_number: string | false; general_customer_note: string | false }
 
 const COURSE = 'restaurant.order.course'
@@ -29,7 +29,7 @@ export async function listKitchenTickets(sessionId: number, stationOf: (productI
   if (courses.length === 0) return []
   const orderIds = [...new Set(courses.map((c) => c.order_id[0]))]
   const [lines, orders] = await Promise.all([
-    callKw<RawKitchenLine[]>('pos.order.line', 'search_read', [[['course_id', 'in', courses.map((c) => c.id)]], ['course_id', 'full_product_name', 'qty', 'customer_note', 'product_id']]),
+    callKw<RawKitchenLine[]>('pos.order.line', 'search_read', [[['course_id', 'in', courses.map((c) => c.id)]], ['course_id', 'full_product_name', 'qty', 'customer_note', 'product_id', 'served_date']]),
     callKw<RawKitchenOrder[]>('pos.order', 'read', [orderIds, ['table_id', 'user_id', 'tracking_number', 'general_customer_note']]),
   ])
   return courses.map((c) => {
@@ -39,7 +39,7 @@ export async function listKitchenTickets(sessionId: number, stationOf: (productI
       tracking: order.tracking_number || String(order.id), waiter: order.user_id ? order.user_id[1] : '', note: order.general_customer_note || '',
       firedAt: c.fired_date, readyAt: c.ready_date || null,
       lines: lines.filter((l) => l.course_id && l.course_id[0] === c.id)
-        .map((l) => ({ id: l.id, name: l.full_product_name, qty: l.qty, note: l.customer_note || '', station: stationOf(l.product_id[0]) })),
+        .map((l) => ({ id: l.id, name: l.full_product_name, qty: l.qty, note: l.customer_note || '', station: stationOf(l.product_id[0]), servedAt: l.served_date || null })),
     }
   })
 }

@@ -10,7 +10,7 @@
   "ready": "Listos por entregar",
   "readyEmpty": "Nada listo todavía",
   "readyBtn": "Listo",
-  "serve": "Entregado",
+  "serve": "Entregado", "serveAll": "Entregar todo", "serveDish": "Entregar", "dishServed": "Entregado",
   "order": "Pedido#",
   "typeTable": "Mesa",
   "typeDelivery": "Domicilio",

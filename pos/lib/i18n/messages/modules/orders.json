@@ -134,6 +134,8 @@
     "noCustomer": "Sin nombre",
     "table": "Mesa {n}",
     "items": "{count} ítems",
+    "tableWord": "Mesa",
+    "deliveredHeader": "Entregado",
     "itemsHeader": "Ítems",
     "qty": "Cant",
     "price": "Precio",

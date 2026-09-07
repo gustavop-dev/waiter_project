@@ -21,8 +21,9 @@ import { toast } from '@/lib/stores/toastStore'
 const NO_GROUPS: OptionGroup[] = []
 
 // Wizard "Create New Order" del kit (carpeta 5): cabecera de pasos, contenido a pantalla completa y salida a /pedidos.
-// La mesa que llega del plano se preselecciona, pero el paso no se salta: el mesero tiene que verla y confirmarla,
-// porque antes se colaba la última mesa que alguien hubiera tocado en Mesas sin que nadie se enterara.
+// Si la mesa llega del plano, su paso se salta: ya se eligió, y volver a pedirla es preguntar dos veces lo mismo.
+// Se puede confiar en ella porque el plano ahora obliga a elegirla a propósito (nunca hereda la última tocada),
+// y el resumen la enseña antes de crear el pedido.
 export function OrderWizard({ presetTableId }: { presetTableId: number | null }) {
   const t = useTranslations('orders.create')
   const router = useRouter()
@@ -36,13 +37,20 @@ export function OrderWizard({ presetTableId }: { presetTableId: number | null })
   useEffect(() => { if (catalog) void w.loadExtras(catalog) }, [catalog]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (session) void refreshOpenOrders(session.id) }, [session, refreshOpenOrders])
 
-  const visible = stepsFor(w.info.type)
+  const skipTable = presetTableId !== null
   const step = currentStep(w)
+  const visible = stepsFor(w.info.type).filter((s) => !(skipTable && s === 'table'))
   const totals = useMemo(() => cartTotals(w.lines, w.taxes), [w.lines, w.taxes])
   const tableNumber = catalog?.tables.find((x) => x.id === w.tableId)?.number ?? null
 
-  const forward = () => w.next()
-  const backward = () => w.back()
+  function forward() {
+    w.next()
+    if (skipTable && currentStep(useOrderWizardStore.getState()) === 'table') w.next()
+  }
+  function backward() {
+    w.back()
+    if (skipTable && currentStep(useOrderWizardStore.getState()) === 'table') w.back()
+  }
 
   function leave(created: { trackingNumber: string } | null) {
     if (created) toast({ title: t('successTitle', { ref: displayReference(w.info.type, created.trackingNumber) }), body: t('successBody') })

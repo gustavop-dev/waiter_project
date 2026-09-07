@@ -21,7 +21,7 @@ export default function KdsPage() {
   const t = useTranslations('kds')
   const session = useAuthStore((s) => s.session)
   const catalog = useCatalogStore((s) => s.catalog)
-  const { tickets, done, tab, muted, refresh, ready, serve, setTab, toggleMute, tick } = useKitchenStore()
+  const { tickets, done, tab, muted, refresh, ready, serve, serveDish, setTab, toggleMute, tick } = useKitchenStore()
   const [now, setNow] = useState(() => Date.now())
 
   // Estación de un producto: la de la primera categoría suya que tenga una.
@@ -52,7 +52,8 @@ export default function KdsPage() {
           {visible.length === 0 && <div className="col-span-3 flex"><KitEmptyState icon="chef" title={t('empty')} body={t('emptyBody')} /></div>}
           {visible.map((tk) => <TicketCard key={tk.id} ticket={tk} tableNumber={tableNumberOf(tk.tableId)} now={now} onReady={(id) => void ready(id, session.id, stationOf)} />)}
         </section>
-        <ReadyList tickets={readyOnes} tableNumberOf={tableNumberOf} now={now} onServed={(id) => void serve(id, session.id, stationOf)} />
+        <ReadyList tickets={readyOnes} tableNumberOf={tableNumberOf} now={now} onServed={(id) => void serve(id, session.id, stationOf)}
+          onServedDish={(id) => void serveDish(id, session.id, stationOf)} />
       </div>
       <KdsFooter muted={muted} onToggleMute={toggleMute} />
     </main>
