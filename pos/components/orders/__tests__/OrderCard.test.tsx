@@ -6,7 +6,7 @@ import { OrderCard } from '@/components/orders/OrderCard'
 import { messages } from '@/lib/i18n/messages'
 import type { KitLine, KitOrder } from '@/lib/domain/orderState'
 
-const line = (id: number, name: string, courseId: number | null): KitLine => ({ id, uuid: `u${id}`, productId: 3, name, qty: 2, unitPrice: 36900, subtotal: 73800, total: 87822, note: '', courseId })
+const line = (id: number, name: string, courseId: number | null): KitLine => ({ id, uuid: `u${id}`, productId: 3, name, qty: 2, unitPrice: 36900, subtotal: 73800, total: 87822, note: '', courseId, servedAt: null })
 const order: KitOrder = {
   id: 7, number: 'DI007', type: 'dine_in', state: 'draft', tableId: 4, tableNumber: 3, customer: 'Eva', startedAt: '2026-09-06 20:00:00', total: 87822, tax: 14022,
   lines: [line(1, 'Hamburguesa Angus', 1), line(2, 'Papas Trufadas', null)], courses: [{ id: 1, fired: true, readyAt: null, servedAt: null }],

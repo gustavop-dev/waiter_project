@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
 import { Button } from '@/components/ui/Button'
-import { allowedPath } from '@/lib/domain/roles'
+import { allowedPath, effectiveRole } from '@/lib/domain/roles'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
 
@@ -27,11 +27,11 @@ export default function PosLayout({ children }: { children: React.ReactNode }) {
     if (!employee) { router.replace('/login'); return }
     if (!session) { router.replace('/caja'); return }
     // Rol: una pantalla que no le toca lo devuelve al salón, sin pantalla de error.
-    if (!allowedPath(user.role, pathname)) { router.replace('/salon'); return }
+    if (!allowedPath(effectiveRole(user.role, employee.role), pathname)) { router.replace('/salon'); return }
     void load(session.id)
   }, [hydrated, user, employee, session, pathname, router, load])
 
-  if (!hydrated || !session || !user || !employee || !allowedPath(user.role, pathname)) return null
+  if (!hydrated || !session || !user || !employee || !allowedPath(effectiveRole(user.role, employee.role), pathname)) return null
   // Sin catálogo no hay pantalla que pintar: se dice por qué en vez de dejar el POS en blanco.
   if (catalogStatus === 'error') {
     return (

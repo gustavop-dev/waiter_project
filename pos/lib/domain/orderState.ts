@@ -13,7 +13,7 @@ export type HistoryFilter = 'all' | OrderType
 export interface KitCourse { id: number; fired: boolean; readyAt: string | null; servedAt: string | null }
 export interface KitLine {
   id: number; uuid: string; productId: number; name: string; qty: number; unitPrice: number; subtotal: number; total: number; note: string
-  courseId: number | null
+  courseId: number | null; servedAt: string | null
 }
 export interface KitOrder {
   id: number; number: string; type: OrderType; state: 'draft' | 'paid' | 'done' | 'invoiced' | 'cancel'
@@ -51,7 +51,8 @@ const courseOf = (order: KitOrder, line: KitLine) => order.courses.find((c) => c
 export function lineGroup(order: KitOrder, line: KitLine): LineGroup {
   const course = courseOf(order, line)
   if (!course || !course.fired) return 'waiting'
-  return course.servedAt ? 'served' : 'in_progress'
+  // La línea manda: el mesero sirve plato a plato y el curso se cierra cuando ya no queda ninguno pendiente.
+  return line.servedAt || course.servedAt ? 'served' : 'in_progress'
 }
 
 // % = líneas servidas / líneas enviadas a cocina. Sin nada enviado, 0.

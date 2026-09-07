@@ -141,7 +141,8 @@
     "details": "Ver detalle",
     "pay": "Cobrar",
     "markServed": "Marcar {name} como servido",
-    "servedLine": "{name} servido"
+    "servedLine": "{name} servido",
+    "serveFailed": "No se pudo marcar el plato como servido"
   },
   "empty": {
     "title": "Sin pedidos",

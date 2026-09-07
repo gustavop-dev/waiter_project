@@ -18,7 +18,7 @@ it('lists open orders with their lines and courses, typed by preset', async () =
     .mockResolvedValueOnce([rawLine, { ...rawLine, id: 9, order_id: [8, 'y'] }]).mockResolvedValueOnce([rawCourse, { ...rawCourse, id: 5, order_id: [8, 'y'] }])
   const [o] = await listKitOrders(16, () => null)
   expect(o).toMatchObject({ id: 115, number: 'TA112', type: 'takeout', customer: 'Eva', tableNumber: null, total: 86275 })
-  expect(o.lines).toEqual([{ id: 228, uuid: 'u1', productId: 3, name: 'Hamburguesa Angus', qty: 1, unitPrice: 36900, subtotal: 36900, total: 43911, note: '', courseId: 114 }])
+  expect(o.lines).toEqual([{ id: 228, uuid: 'u1', productId: 3, name: 'Hamburguesa Angus', qty: 1, unitPrice: 36900, subtotal: 36900, total: 43911, note: '', courseId: 114, servedAt: null }])
   expect(o.courses).toEqual([{ id: 114, fired: true, readyAt: null, servedAt: '2026-09-06 23:38:06' }])
   expect(mock.mock.calls[0][2][0]).toEqual([['session_id', '=', 16], ['state', '=', 'draft']])
 })

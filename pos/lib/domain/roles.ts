@@ -8,6 +8,15 @@ export type NavItem = (typeof NAV_ITEMS)[number]
 export type Role = 'waiter' | 'cashier' | 'admin'
 export const ROLES: Role[] = ['waiter', 'cashier', 'admin']
 
+// Quién manda en la pantalla: el empleado que inició turno, nunca la credencial del terminal. Si la tablet
+// entró como administrador y luego marca su PIN un mesero, la pantalla es la del mesero. Y al revés, un
+// empleado tampoco gana permisos que su terminal no tiene: se aplica el menor de los dos.
+export function effectiveRole(userRole: Role | null | undefined, employeeRole: Role | null | undefined): Role {
+  const user = userRole ?? 'waiter'
+  if (!employeeRole) return user
+  return ROLES.indexOf(employeeRole) < ROLES.indexOf(user) ? employeeRole : user
+}
+
 const NAV: Record<Role, NavItem[]> = {
   waiter: ['operation', 'customers'],
   cashier: ['operation', 'sales', 'customers', 'billing'],

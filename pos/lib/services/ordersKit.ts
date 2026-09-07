@@ -10,13 +10,13 @@ interface RawOrder {
   id: number; tracking_number: string | false; preset_id: [number, string] | false; floating_order_name: string | false; partner_id: [number, string] | false
   table_id: [number, string] | false; date_order: string; amount_total: number; amount_tax: number; state: KitOrder['state']
 }
-interface RawLine { id: number; uuid: string; order_id: [number, string]; product_id: [number, string]; full_product_name: string; qty: number; price_unit: number; price_subtotal: number; price_subtotal_incl: number; customer_note: string | false; course_id: [number, string] | false }
+interface RawLine { id: number; uuid: string; order_id: [number, string]; product_id: [number, string]; full_product_name: string; qty: number; price_unit: number; price_subtotal: number; price_subtotal_incl: number; customer_note: string | false; course_id: [number, string] | false; served_date: string | false }
 interface RawCourse { id: number; order_id: [number, string]; fired: boolean; ready_date: string | false; served_date: string | false }
 interface RawPreset { id: number; service_at: ServiceAt }
 interface RawTax { id: number; amount: number; price_include: boolean }
 
 const ORDER_FIELDS = ['tracking_number', 'preset_id', 'floating_order_name', 'partner_id', 'table_id', 'date_order', 'amount_total', 'amount_tax', 'state']
-const LINE_FIELDS = ['uuid', 'order_id', 'product_id', 'full_product_name', 'qty', 'price_unit', 'price_subtotal', 'price_subtotal_incl', 'customer_note', 'course_id']
+const LINE_FIELDS = ['uuid', 'order_id', 'product_id', 'full_product_name', 'qty', 'price_unit', 'price_subtotal', 'price_subtotal_incl', 'customer_note', 'course_id', 'served_date']
 const PAID = ['paid', 'done', 'invoiced']
 
 let presetCache: Map<number, ServiceAt> | null = null
@@ -32,6 +32,7 @@ export const resetPresetCache = () => { presetCache = null }
 const toLine = (l: RawLine): KitLine => ({
   id: l.id, uuid: l.uuid, productId: l.product_id[0], name: l.full_product_name, qty: l.qty, unitPrice: l.price_unit,
   subtotal: l.price_subtotal, total: l.price_subtotal_incl, note: l.customer_note || '', courseId: l.course_id ? l.course_id[0] : null,
+  servedAt: l.served_date || null,
 })
 const toCourse = (c: RawCourse): KitCourse => ({ id: c.id, fired: c.fired, readyAt: c.ready_date || null, servedAt: c.served_date || null })
 
@@ -74,7 +75,13 @@ export async function getKitOrderLines(orderId: number): Promise<KitLine[]> {
   return rows.map(toLine)
 }
 
-// Marcar servido vive en el curso (projectapp_kitchen): todas las líneas del curso pasan a servidas a la vez.
+// Servir plato a plato (projectapp_kitchen): el servidor marca la línea y cierra el curso cuando ya no
+// queda ninguna sin servir. Antes la casilla solo vivía en la memoria de esta tablet.
+export async function serveLines(lineIds: number[]): Promise<void> {
+  if (lineIds.length === 0) return
+  await callKw('pos.order.line', 'action_kitchen_line_served', [lineIds])
+}
+
 export async function serveCourse(courseId: number): Promise<void> {
   await callKw('restaurant.order.course', 'action_kitchen_served', [[courseId]])
 }

@@ -14,7 +14,7 @@ import { OrderDetailModal } from '@/components/orders/OrderDetailModal'
 import { SortMenu } from '@/components/orders/SortMenu'
 import { countByStatus, filterOrders, lineGroup, matchesOrderSearch, sortOrders, type KitLine, type KitOrder, type OrdersFilter, type OrdersSort } from '@/lib/domain/orderState'
 import { useKitOrders } from '@/lib/hooks/useKitOrders'
-import { cancelLines, serveCourse } from '@/lib/services/ordersKit'
+import { cancelLines, serveLines } from '@/lib/services/ordersKit'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
 import { toast } from '@/lib/stores/toastStore'
 
@@ -28,7 +28,6 @@ export default function PedidosPage() {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<OrdersFilter>('all')
   const [sort, setSort] = useState<OrdersSort>('latest')
-  const [checked, setChecked] = useState<Set<number>>(new Set())
   const [detailId, setDetailId] = useState<number | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -41,18 +40,17 @@ export default function PedidosPage() {
     return p?.hasImage ? templateImage(p.templateId) : null
   }, [catalog])
 
-  // Límite conocido: `served_date` vive en el curso (projectapp_kitchen), no en la línea. Las casillas se marcan en
-  // esta tablet y, cuando todas las líneas de un curso quedan marcadas, el curso entero pasa a servido en Odoo.
+  // Marcar un plato lo sirve en Odoo (`action_kitchen_line_served`), no en la memoria de esta tablet: así lo
+  // ve el resto del salón y sobrevive a una recarga. El curso se cierra solo cuando ya no queda ninguno pendiente.
   async function toggleLine(order: KitOrder, line: KitLine) {
-    if (line.courseId === null || lineGroup(order, line) !== 'in_progress') return
-    const next = new Set(checked)
-    if (next.has(line.id)) next.delete(line.id); else next.add(line.id)
-    const course = order.lines.filter((l) => l.courseId === line.courseId)
-    if (course.every((l) => next.has(l.id))) {
-      setBusy(true)
-      try { await serveCourse(line.courseId); course.forEach((l) => next.delete(l.id)); await refresh() } catch { toast({ title: t('empty.title'), tone: 'danger' }) } finally { setBusy(false) }
-    }
-    setChecked(next)
+    if (lineGroup(order, line) !== 'in_progress') return
+    setBusy(true)
+    try {
+      await serveLines([line.id])
+      await refresh()
+    } catch {
+      toast({ title: t('card.serveFailed'), tone: 'danger' })
+    } finally { setBusy(false) }
   }
 
   async function cancelWaiting(order: KitOrder, lines: KitLine[]) {
@@ -81,7 +79,7 @@ export default function PedidosPage() {
             ? <KitEmptyState icon="orders" title={t('empty.title')} body={t('empty.body')} />
             : <div className="grid grid-cols-3 gap-4">
               {visible.map((o) => (
-                <OrderCard key={o.id} order={o} status={statusOf(o)} percent={percentOf(o)} checked={checked} onToggleLine={(l) => { if (!busy) void toggleLine(o, l) }} onDetails={() => setDetailId(o.id)} />
+                <OrderCard key={o.id} order={o} status={statusOf(o)} percent={percentOf(o)} onToggleLine={(l) => { if (!busy) void toggleLine(o, l) }} onDetails={() => setDetailId(o.id)} />
               ))}
             </div>}
         </div>
