@@ -5,6 +5,11 @@ propio usuario y cada empleado se identifica con un PIN de 6 dígitos (`hr.emplo
 El PIN se compara siempre en el servidor (`waiter_check_pin`), nunca por hash en el cliente como hace el
 POS de Odoo; cinco fallos seguidos bloquean el PIN diez minutos. Validar el PIN abre la asistencia del
 día (`hr.attendance`) y «Log Out» la cierra (`waiter_end_shift`).
+
+Como todos los empleados comparten la sesión de Odoo del terminal, `self.env.user` no dice quién llama:
+validar el PIN emite un **token de sesión de empleado** (`waiter_session_token`, caduca en SESSION_HOURS)
+y las acciones sensibles —cambiar el PIN, cerrar el turno— exigen ese token, el PIN actual, o que quien
+llame sea un encargado. Sin eso, cualquier tablet podría cambiarle el PIN al administrador y suplantarlo.
 """
 import secrets
 from datetime import timedelta
@@ -17,6 +22,8 @@ EMPLOYMENT = [("full_time", "Tiempo completo"), ("part_time", "Medio tiempo"), (
 PIN_MAX_ATTEMPTS = 5
 PIN_LOCK_MINUTES = 10
 PIN_RESET_SECONDS = 60      # mínimo entre correos de «olvidé mi PIN» por empleado
+SESSION_HOURS = 16          # vida del token de sesión de empleado (un turno largo)
+MANAGER_GROUPS = ("point_of_sale.group_pos_manager", "hr.group_hr_manager")
 WAITER_EMPLOYEE_FIELDS = ["waiter_role", "employee_code", "joining_date", "shift_start", "shift_end", "employment_status"]
 
 
@@ -33,6 +40,8 @@ class HrEmployee(models.Model):
     waiter_pin_attempts = fields.Integer(string="Intentos fallidos del PIN", default=0, copy=False)
     waiter_pin_locked_until = fields.Datetime(string="PIN bloqueado hasta", copy=False)
     waiter_pin_reset_at = fields.Datetime(string="Último envío de PIN nuevo", copy=False)
+    waiter_session_token = fields.Char(string="Token de sesión de empleado", copy=False, groups="hr.group_hr_user")
+    waiter_session_expires = fields.Datetime(string="El token caduca", copy=False, groups="hr.group_hr_user")
 
     @api.model
     def _load_pos_data_fields(self, *args, **kwargs):
@@ -70,14 +79,64 @@ class HrEmployee(models.Model):
         if not self.env.user.has_group("point_of_sale.group_pos_user"):
             raise AccessError(_("Solo un usuario del punto de venta puede operar con el PIN de los empleados."))
 
+    def _waiter_is_manager(self):
+        """Ojo: llámalo SIN sudo. Bajo sudo `self.env.user` es el superusuario y no responde por los grupos."""
+        return any(self.env.user.has_group(group) for group in MANAGER_GROUPS)
+
+    def _waiter_new_session(self):
+        """Emite el token que prueba «soy este empleado» durante el turno."""
+        self.ensure_one()
+        token = secrets.token_urlsafe(32)
+        self.write({"waiter_session_token": token, "waiter_session_expires": fields.Datetime.now() + timedelta(hours=SESSION_HOURS)})
+        return token
+
+    def _waiter_session_ok(self, token):
+        """El token identifica a este empleado y no ha caducado. Comparación en tiempo constante."""
+        self.ensure_one()
+        if not token or not self.waiter_session_token or not self.waiter_session_expires:
+            return False
+        if self.waiter_session_expires <= fields.Datetime.now():
+            return False
+        return secrets.compare_digest(self.waiter_session_token, str(token))
+
+    def _waiter_authorize(self, token=None, current_pin=None, is_manager=False):
+        """Autoriza una acción sensible sobre este empleado: su token de sesión, su PIN actual, o un
+        encargado (`is_manager` lo calcula el llamador sin sudo). Un PIN actual equivocado cuenta como
+        intento fallido: si no, el campo sería un oráculo para adivinar el PIN a fuerza bruta."""
+        self.ensure_one()
+        if self._waiter_session_ok(token):
+            return True
+        if current_pin is not None:
+            if self.pin and secrets.compare_digest(self.pin, str(current_pin)):
+                return True
+            self._waiter_register_failure()
+            raise AccessError(_("El PIN actual no coincide."))
+        if is_manager:
+            return True
+        raise AccessError(_("Vuelve a identificarte con tu PIN para hacer este cambio."))
+
+    def _waiter_register_failure(self):
+        """Suma un intento fallido y bloquea al llegar al máximo. Devuelve el resultado para el POS."""
+        self.ensure_one()
+        now = fields.Datetime.now()
+        attempts = self.waiter_pin_attempts + 1
+        if attempts >= PIN_MAX_ATTEMPTS:
+            locked_until = now + timedelta(minutes=PIN_LOCK_MINUTES)
+            self.write({"waiter_pin_attempts": 0, "waiter_pin_locked_until": locked_until})
+            return {"ok": False, "reason": "locked", "locked_until": fields.Datetime.to_string(locked_until)}
+        self.write({"waiter_pin_attempts": attempts})
+        return {"ok": False, "reason": "wrong", "attempts_left": PIN_MAX_ATTEMPTS - attempts}
+
     # --- API que consume el POS (RPC sobre hr.employee) -------------------------------------------
 
     @api.model
     def waiter_check_pin(self, employee_id, pin):
         """Valida el PIN en el servidor y abre la asistencia del día.
 
-        Devuelve `{ok: True, employee: {...}, attendance_id}` o `{ok: False, reason: 'wrong'|'locked'|'unknown',
-        attempts_left, locked_until}`. Tras PIN_MAX_ATTEMPTS fallos el PIN queda bloqueado PIN_LOCK_MINUTES.
+        Devuelve `{ok: True, employee: {...}, attendance_id, token}` o `{ok: False, reason: 'wrong'|'locked'|
+        'unknown', attempts_left, locked_until}`. Tras PIN_MAX_ATTEMPTS fallos el PIN queda bloqueado
+        PIN_LOCK_MINUTES. El `token` prueba la identidad del empleado en las acciones sensibles: guárdalo
+        en el dispositivo y no lo muestres.
         """
         self._waiter_require_pos_user()
         employee = self.sudo().browse(int(employee_id)).exists()
@@ -92,26 +151,26 @@ class HrEmployee(models.Model):
             attendance = employee._waiter_open_attendance()
             if not attendance:
                 attendance = self.env["hr.attendance"].sudo().create({"employee_id": employee.id, "check_in": now})
-            return {"ok": True, "employee": employee._waiter_employee_dict(), "attendance_id": attendance.id}
-        attempts = employee.waiter_pin_attempts + 1
-        values = {"waiter_pin_attempts": attempts}
-        result = {"ok": False, "reason": "wrong", "attempts_left": PIN_MAX_ATTEMPTS - attempts}
-        if attempts >= PIN_MAX_ATTEMPTS:
-            locked_until = now + timedelta(minutes=PIN_LOCK_MINUTES)
-            values.update({"waiter_pin_attempts": 0, "waiter_pin_locked_until": locked_until})
-            result = {"ok": False, "reason": "locked", "locked_until": fields.Datetime.to_string(locked_until)}
-        employee.write(values)
-        return result
+            return {"ok": True, "employee": employee._waiter_employee_dict(), "attendance_id": attendance.id,
+                    "token": employee._waiter_new_session()}
+        return employee._waiter_register_failure()
 
     @api.model
-    def waiter_change_pin(self, employee_id, new_pin):
-        """Cambia el PIN: exactamente 6 dígitos ASCII. Devuelve True."""
+    def waiter_change_pin(self, employee_id, new_pin, token=None, current_pin=None):
+        """Cambia el PIN: exactamente 6 dígitos ASCII. Devuelve True.
+
+        Exige probar que quien llama es ese empleado: el `token` de `waiter_check_pin`, o el `current_pin`.
+        Un encargado (POS o RR. HH.) puede cambiarlo sin nada de eso. Sin prueba, `AccessError`: si no,
+        cualquier tablet con la sesión del terminal podría cambiarle el PIN al administrador.
+        """
         self._waiter_require_pos_user()
         if not self._waiter_valid_pin(str(new_pin) if isinstance(new_pin, int) else new_pin):
             raise UserError(_("El PIN debe tener exactamente 6 dígitos."))
+        is_manager = self._waiter_is_manager()
         employee = self.sudo().browse(int(employee_id)).exists()
         if not employee:
             raise UserError(_("El empleado no existe."))
+        employee._waiter_authorize(token=token, current_pin=current_pin, is_manager=is_manager)
         employee.write({"pin": str(new_pin), "waiter_pin_attempts": 0, "waiter_pin_locked_until": False})
         return True
 
@@ -144,12 +203,18 @@ class HrEmployee(models.Model):
         return True
 
     @api.model
-    def waiter_end_shift(self, employee_id):
+    def waiter_end_shift(self, employee_id, token=None, current_pin=None):
         """Cierra la asistencia abierta (check-out). Devuelve `{ok, attendance_id, worked_hours}`;
-        `ok: False` si no había asistencia abierta."""
+        `ok: False` si no había asistencia abierta. Exige el `token` del empleado, su PIN actual, o un
+        encargado: el turno ajeno no se cierra desde otra tablet. Al cerrar, el token deja de valer."""
         self._waiter_require_pos_user()
+        is_manager = self._waiter_is_manager()
         employee = self.sudo().browse(int(employee_id)).exists()
-        attendance = employee._waiter_open_attendance() if employee else None
+        if not employee:
+            return {"ok": False, "attendance_id": False, "worked_hours": 0.0}
+        employee._waiter_authorize(token=token, current_pin=current_pin, is_manager=is_manager)
+        attendance = employee._waiter_open_attendance()
+        employee.write({"waiter_session_token": False, "waiter_session_expires": False})
         if not attendance:
             return {"ok": False, "attendance_id": False, "worked_hours": 0.0}
         attendance.write({"check_out": fields.Datetime.now()})

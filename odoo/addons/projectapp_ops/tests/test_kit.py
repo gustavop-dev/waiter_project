@@ -8,7 +8,7 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from odoo import fields
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 from odoo.tests import TransactionCase, tagged
 from odoo.tests.common import new_test_user
 
@@ -103,10 +103,13 @@ class TestEmployeePin(KitCase):
         self.assertRegex(result["employee"]["employee_code"], r"^WT-\d{4}$")
         attendance = self.env["hr.attendance"].browse(result["attendance_id"])
         self.assertEqual((attendance.employee_id, attendance.check_out), (self.employee, False))
-        self.assertEqual(self.Employee.waiter_check_pin(self.employee.id, "123456")["attendance_id"], attendance.id)
-        ended = self.Employee.waiter_end_shift(self.employee.id)
+        again = self.Employee.waiter_check_pin(self.employee.id, "123456")
+        self.assertEqual(again["attendance_id"], attendance.id)
+        self.assertNotEqual(again["token"], result["token"], "cada validación emite un token nuevo")
+        ended = self.Employee.waiter_end_shift(self.employee.id, token=again["token"])
         self.assertEqual((ended["ok"], ended["attendance_id"], bool(attendance.check_out)), (True, attendance.id, True))
-        self.assertFalse(self.Employee.waiter_end_shift(self.employee.id)["ok"])
+        with self.assertRaises(AccessError, msg="cerrar el turno invalida el token"):
+            self.Employee.waiter_end_shift(self.employee.id, token=again["token"])
 
     def test_wrong_pin_counts_attempts_and_locks_for_ten_minutes(self):
         """Atrapa un PIN que se pueda forzar: 5 fallos bloquean 10 minutos, incluso con el PIN correcto."""
@@ -129,9 +132,40 @@ class TestEmployeePin(KitCase):
         for bad in ("12345", "1234567", "abcdef", "١٢٣٤٥٦", ""):
             with self.assertRaises(UserError, msg=bad):
                 self.Employee.waiter_change_pin(self.employee.id, bad)
-        self.assertTrue(self.Employee.waiter_change_pin(self.employee.id, "654321"))
+        self.assertTrue(self.Employee.waiter_change_pin(self.employee.id, "654321", current_pin="123456"))
         self.assertTrue(self.Employee.waiter_check_pin(self.employee.id, "654321")["ok"])
         self.assertFalse(self.Employee.waiter_check_pin(self.employee.id, "123456")["ok"])
+
+    def test_changing_someone_elses_pin_needs_proof_of_identity(self):
+        """Atrapa la escalada de privilegios: sin token ni PIN actual, una tablet le cambiaba el PIN al jefe."""
+        jefe = self.env["hr.employee"].create({"name": "Jefa", "pin": "999999", "waiter_role": "admin"})
+        with self.assertRaises(AccessError):
+            self.Employee.waiter_change_pin(jefe.id, "111111")
+        mio = self.Employee.waiter_check_pin(self.employee.id, "123456")["token"]
+        with self.assertRaises(AccessError, msg="el token de un empleado no vale para otro"):
+            self.Employee.waiter_change_pin(jefe.id, "111111", token=mio)
+        with self.assertRaises(AccessError):
+            self.Employee.waiter_end_shift(jefe.id, token=mio)
+        self.assertTrue(self.env["hr.employee"].sudo().browse(jefe.id).pin == "999999", "el PIN del jefe sigue intacto")
+
+    def test_a_wrong_current_pin_counts_as_a_failed_attempt(self):
+        """Atrapa un oráculo de fuerza bruta: probar PIN actual en el cambio no puede ser gratis."""
+        # Sin `assertRaises`: el de Odoo envuelve en un savepoint y revertiría el contador que queremos ver.
+        try:
+            self.Employee.waiter_change_pin(self.employee.id, "111111", current_pin="000000")
+            self.fail("un PIN actual equivocado no puede cambiar nada")
+        except AccessError:
+            pass
+        self.env.invalidate_all()
+        self.assertEqual(self.env["hr.employee"].sudo().browse(self.employee.id).waiter_pin_attempts, 1)
+        self.assertTrue(self.Employee.waiter_check_pin(self.employee.id, "123456")["ok"], "el PIN no cambió")
+
+    def test_a_manager_can_reset_a_pin_without_the_old_one(self):
+        manager = new_test_user(self.env, login="jefe_kit", groups="base.group_user,point_of_sale.group_pos_user")
+        manager.write({"group_ids": [(4, self.env.ref("point_of_sale.group_pos_manager").id)]})
+        self.assertTrue(manager.has_group("point_of_sale.group_pos_manager"), "el encargado necesita el grupo")
+        self.assertTrue(self.env["hr.employee"].with_user(manager).waiter_change_pin(self.employee.id, "222222"))
+        self.assertTrue(self.Employee.waiter_check_pin(self.employee.id, "222222")["ok"])
 
     def test_forgot_pin_mails_a_new_pin_without_revealing_the_email(self):
         """Atrapa una respuesta distinta para correos desconocidos, o un PIN nuevo que no llegue por mail.mail."""
