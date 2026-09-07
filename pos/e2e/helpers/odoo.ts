@@ -1,7 +1,8 @@
 import type { Page } from '@playwright/test'
 
-// Empleado demo del terminal (hr.employee "Mesero Demo", PIN 123456, sembrado en la base demo compartida).
-export const DEMO_EMPLOYEE = { name: 'Mesero Demo', pin: '123456' }
+// Empleados demo sembrados por `projectapp_ops` (seed_employees) en la base compartida.
+export const DEMO_EMPLOYEE = { name: 'Sofía Mesera', pin: '123456' }
+export const DEMO_CASHIER = { name: 'Carlos Cajero', pin: '654321' }
 
 // "Inicio de empleado" del kit: elegir la cuenta, escribir el PIN en el teclado en pantalla e iniciar turno.
 export async function startShiftAs(page: Page, employee = DEMO_EMPLOYEE.name, pin = DEMO_EMPLOYEE.pin) {

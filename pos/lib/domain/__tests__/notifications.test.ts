@@ -1,29 +1,24 @@
-import { buildNotifications, filterByTab, readReadIds, storeReadIds, unreadCount } from '@/lib/domain/notifications'
+import { canRequest, filterByTab, productOf, unreadCount, type Notification } from '@/lib/domain/notifications'
 
-const stock = [{ productId: 7, name: 'Salmón', qtyOnHand: 1, minQty: 5, requested: false, at: '2026-09-06 10:00:00' }]
-const dishes = [{ courseId: 3, dish: 'Pollo a la mantequilla', table: 'A8', at: '2026-09-06 11:00:00' }, { courseId: 4, dish: 'Pasta', table: 'B12', at: '2026-09-06 09:00:00' }]
-
-beforeEach(() => localStorage.clear())
-
-// Falla si las notificaciones pierden el orden por fecha (recientes primero) o el id estable por origen.
-it('builds a single list, newest first, with stable ids', () => {
-  const items = buildNotifications(stock, dishes)
-  expect(items.map((n) => n.id)).toEqual(['dish:3', 'stock:7', 'dish:4'])
-  expect(items[1].stock?.name).toBe('Salmón')
+const make = (over: Partial<Notification>): Notification => ({
+  id: 1, kind: 'inventory', title: 'Stock bajo', body: '', resModel: 'product.product', resId: 7,
+  action: 'request_ingredient', actionDone: false, read: false, at: '2026-09-06 10:00:00', ...over,
 })
 
-// Falla si la pestaña Inventario o Cocina deja pasar notificaciones del otro tipo.
-it('filters by tab and counts unread against the stored read set', () => {
-  const items = buildNotifications(stock, dishes)
-  expect(filterByTab(items, 'inventory')).toHaveLength(1)
-  expect(filterByTab(items, 'kitchen')).toHaveLength(2)
+// Falla si la pestaña Inventario o Cocina deja pasar avisos del otro tipo, o si el conteo cuenta leídos.
+it('filters by tab and counts only the unread ones', () => {
+  const items = [make({}), make({ id: 2, kind: 'kitchen', read: true }), make({ id: 3, kind: 'system' })]
   expect(filterByTab(items, 'all')).toHaveLength(3)
-  storeReadIds(new Set(['dish:3']))
-  expect(unreadCount(items, readReadIds())).toBe(2)
+  expect(filterByTab(items, 'inventory').map((n) => n.id)).toEqual([1])
+  expect(filterByTab(items, 'kitchen').map((n) => n.id)).toEqual([2])
+  expect(unreadCount(items)).toBe(2)
 })
 
-// Falla si un valor corrupto en localStorage rompe la lectura del estado leído.
-it('ignores a corrupt read set in localStorage', () => {
-  localStorage.setItem('waiter.notifications.read', '{oops')
-  expect(readReadIds().size).toBe(0)
+// Falla si "Solicitar ingredientes" aparece en un aviso ya atendido, de cocina, o sin producto en res_id.
+it('offers the ingredient request only on a pending inventory alert with a product', () => {
+  expect(productOf(make({}))).toBe(7)
+  expect(canRequest(make({}))).toBe(true)
+  expect(canRequest(make({ actionDone: true }))).toBe(false)
+  expect(canRequest(make({ kind: 'kitchen', resModel: 'pos.order', action: 'serve' }))).toBe(false)
+  expect(canRequest(make({ resId: null }))).toBe(false)
 })

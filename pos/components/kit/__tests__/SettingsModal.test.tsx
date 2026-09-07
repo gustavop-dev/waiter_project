@@ -4,10 +4,13 @@ import { NextIntlClientProvider } from 'next-intl'
 
 import { SettingsModal } from '@/components/kit/SettingsModal'
 import { messages } from '@/lib/i18n/messages'
-import { changePin, getEmployeeProfile } from '@/lib/services/employees'
+import { changePin, getEmployeeProfile, getNotifyPrefs, setNotifyPrefs } from '@/lib/services/employees'
 import { useAuthStore } from '@/lib/stores/authStore'
 
-jest.mock('@/lib/services/employees', () => ({ getEmployeeProfile: jest.fn(), changePin: jest.fn(async () => undefined), openAttendance: jest.fn(), closeAttendance: jest.fn(), findOpenAttendance: jest.fn(), employeeName: jest.fn() }))
+jest.mock('@/lib/services/employees', () => ({
+  getEmployeeProfile: jest.fn(), changePin: jest.fn(async () => true), endShift: jest.fn(), findOpenAttendance: jest.fn(), readEmployee: jest.fn(),
+  getNotifyPrefs: jest.fn(), setNotifyPrefs: jest.fn(async () => undefined),
+}))
 jest.mock('@/lib/services/session', () => ({ currentUser: jest.fn(), getOpenSession: jest.fn(), login: jest.fn(), logout: jest.fn() }))
 jest.mock('@/lib/services/cashRegister', () => ({ openRegister: jest.fn() }))
 
@@ -15,17 +18,21 @@ const wrap = (ui: React.ReactElement) => render(<NextIntlClientProvider locale="
 const modal = (onLogout = async () => undefined) => <SettingsModal open onClose={() => undefined} user={{ name: 'Ana', role: 'admin' }} restaurant="" onLogout={onLogout} />
 beforeEach(() => {
   localStorage.clear(); delete document.documentElement.dataset.theme
-  useAuthStore.setState({ employee: { id: 2, name: 'Mesero Demo', checkIn: new Date(Date.now() - 65_000).toISOString(), attendanceId: 9 } })
-  ;(getEmployeeProfile as jest.Mock).mockResolvedValue({ id: 2, name: 'Mesero Demo', phone: '300', email: null, address: 'Calle 10', joiningDate: '2025-01-01', accessRole: 'waiter', employmentType: 'employee', manager: 'Administrator', shift: { from: 10, to: 14 } })
+  useAuthStore.setState({
+    user: { uid: 7, name: 'Ana', companyId: 1, role: 'admin' },
+    employee: { id: 2, name: 'Sofía Mesera', code: 'WT-0001', role: 'waiter', shift: { from: 10, to: 14 }, userId: null, checkIn: new Date(Date.now() - 65_000).toISOString(), attendanceId: 9 },
+  })
+  ;(getEmployeeProfile as jest.Mock).mockResolvedValue({ id: 2, name: 'Sofía Mesera', code: 'WT-0001', phone: '300', email: null, address: 'Calle 10', joiningDate: '2025-01-01', accessRole: 'waiter', employmentStatus: 'full_time', manager: 'Administrator', jobTitle: null, shift: { from: 10, to: 14 } })
+  ;(getNotifyPrefs as jest.Mock).mockResolvedValue({ kitchen_popup: true, kitchen_sound: true, inventory_popup: true, inventory_sound: true, system_popup: true, system_sound: true })
 })
 
 // Falla si la pestaña Empleado no muestra el perfil leído de Odoo con "—" en lo que falta, o si el cronómetro no corre.
 it('employee tab shows the profile from Odoo with dashes for missing data and the shift clock', async () => {
   wrap(modal())
-  expect(await screen.findByText('Mesero Demo', { selector: 'span' })).toBeInTheDocument()
+  expect(await screen.findByText('Sofía Mesera', { selector: 'span' })).toBeInTheDocument()
+  expect(screen.getByText('WT-0001')).toBeInTheDocument()
   expect(screen.getByText('10:00 a. m. – 2:00 p. m.')).toBeInTheDocument()
-  expect(screen.getByText('Administrator')).toBeInTheDocument()
-  expect(screen.getByText('Mesero')).toBeInTheDocument()
+  expect(screen.getByText('Tiempo completo')).toBeInTheDocument()
   expect(screen.getAllByText('—')).toHaveLength(1)
   expect(screen.getByTestId('shift-clock')).toHaveTextContent(/00:01:0\d/)
 })
@@ -56,12 +63,15 @@ it('display tab switches the theme and lists the languages with only Spanish ena
   expect(grid.querySelector('[lang="en"]')).toBeDisabled()
 })
 
-// Falla si un toggle de notificaciones no se recuerda en el dispositivo.
-it('notification toggles persist locally', async () => {
+// Falla si un toggle de notificaciones no guarda la preferencia en res.users (set_waiter_notify).
+it('notification toggles are saved on the Odoo user', async () => {
   wrap(modal())
   await userEvent.click(screen.getByRole('tab', { name: 'Notificaciones' }))
-  await userEvent.click(screen.getByRole('switch', { name: 'Novedades de cocina Sonido de notificación' }))
-  expect(JSON.parse(localStorage.getItem('waiter.notify') ?? '{}')).toEqual({ 'kitchen.sound': false })
+  const sound = await screen.findByRole('switch', { name: 'Novedades de cocina Sonido de notificación' })
+  expect(sound).toBeChecked()
+  await userEvent.click(sound)
+  expect(setNotifyPrefs).toHaveBeenCalledWith(7, { kitchen_sound: false })
+  expect(sound).not.toBeChecked()
 })
 
 // Falla si "Cerrar sesión" sale sin confirmar o si la confirmación no llama a onLogout.

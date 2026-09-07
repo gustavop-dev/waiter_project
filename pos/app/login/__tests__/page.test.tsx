@@ -3,21 +3,20 @@ import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 
 import LoginPage from '@/app/login/page'
-import { sha1 } from '@/lib/domain/employees'
 import { messages } from '@/lib/i18n/messages'
-import { listPosEmployees } from '@/lib/services/employees'
+import { checkPin, listPosEmployees } from '@/lib/services/employees'
 import { useAuthStore } from '@/lib/stores/authStore'
 
 const push = jest.fn()
 jest.mock('next/navigation', () => ({ useRouter: () => ({ push }) }))
 jest.mock('@/lib/services/activation', () => ({ requestCode: jest.fn(async () => undefined), activate: jest.fn() }))
-jest.mock('@/lib/services/employees', () => ({ listPosEmployees: jest.fn(), openAttendance: jest.fn(), closeAttendance: jest.fn(), findOpenAttendance: jest.fn(), employeeName: jest.fn() }))
+jest.mock('@/lib/services/employees', () => ({ listPosEmployees: jest.fn(), checkPin: jest.fn(), forgotPin: jest.fn(async () => true), endShift: jest.fn(), findOpenAttendance: jest.fn(), readEmployee: jest.fn() }))
 jest.mock('@/lib/services/session', () => ({ currentUser: jest.fn(), getOpenSession: jest.fn(), login: jest.fn(), logout: jest.fn() }))
 jest.mock('@/lib/services/cashRegister', () => ({ openRegister: jest.fn() }))
 
 const wrap = () => render(<NextIntlClientProvider locale="es" messages={messages}><LoginPage /></NextIntlClientProvider>)
-const demo = { id: 2, name: 'Mesero Demo', userId: null, pinHash: sha1('123456'), shift: { from: 12, to: 22 } }
-const admin = { id: 1, name: 'Administrator', userId: 2, pinHash: null, shift: null }
+const demo = { id: 2, name: 'Sofía Mesera', code: 'WT-0001', role: 'waiter' as const, shift: { from: 12, to: 22 } }
+const admin = { id: 1, name: 'Administrator', code: 'WT-0002', role: 'admin' as const, shift: null }
 const hydrateAs = (user: boolean) => { useAuthStore.setState({ hydrated: true, user: user ? { uid: 2, name: 'Admin', companyId: 1, role: 'admin' } : null, session: user ? { id: 16, configId: 1, state: 'opened' } : null, employee: null }) }
 
 beforeEach(() => { push.mockReset(); localStorage.clear(); useAuthStore.setState({ hydrate: async () => undefined }); (listPosEmployees as jest.Mock).mockResolvedValue([demo, admin]) })
@@ -36,24 +35,26 @@ it('without an Odoo session asks the terminal for email and password', async () 
 it('with a session lists the employees with today shift and rejects a wrong PIN', async () => {
   hydrateAs(true)
   wrap()
-  await waitFor(() => expect(screen.getByRole('button', { name: 'Empleado' })).toHaveTextContent('Mesero Demo'))
+  ;(checkPin as jest.Mock).mockResolvedValue({ ok: false, reason: 'wrong', attemptsLeft: 3 })
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Empleado' })).toHaveTextContent('Sofía Mesera'))
   await userEvent.click(screen.getByRole('button', { name: 'Empleado' }))
-  const option = screen.getByRole('option', { name: /Mesero Demo/ })
+  const option = screen.getByRole('option', { name: /Sofía Mesera/ })
   expect(option).toHaveTextContent('12:00 p. m. – 10:00 p. m.')
   await userEvent.click(option)
   for (const d of '111111') await userEvent.click(screen.getByRole('button', { name: d }))
   await userEvent.click(screen.getByRole('button', { name: 'Iniciar turno' }))
-  expect(await screen.findByRole('alert')).toHaveTextContent('PIN incorrecto')
+  expect(await screen.findByRole('alert')).toHaveTextContent('Te quedan 3 intentos')
   expect(push).not.toHaveBeenCalled()
 })
 
 // Falla si el PIN correcto no inicia el turno (empleado activo) ni lleva al salón.
 it('a correct PIN starts the shift and enters the POS', async () => {
   hydrateAs(true)
-  useAuthStore.setState({ startShift: async (e) => { useAuthStore.setState({ employee: { id: e.id, name: e.name, checkIn: '', attendanceId: null } }) } })
+  ;(checkPin as jest.Mock).mockResolvedValue({ ok: true, attendanceId: 9, employee: { ...demo, userId: null } })
+  useAuthStore.setState({ startShift: async (e, id) => { useAuthStore.setState({ employee: { ...e, checkIn: '', attendanceId: id } }) } })
   wrap()
   await userEvent.click(await screen.findByRole('button', { name: 'Empleado' }))
-  await userEvent.click(screen.getByRole('option', { name: /Mesero Demo/ }))
+  await userEvent.click(screen.getByRole('option', { name: /Sofía Mesera/ }))
   await act(async () => { for (const d of '123456') window.dispatchEvent(new KeyboardEvent('keydown', { key: d })) })
   await userEvent.click(screen.getByRole('button', { name: 'Iniciar turno' }))
   await waitFor(() => expect(push).toHaveBeenCalledWith('/salon'))

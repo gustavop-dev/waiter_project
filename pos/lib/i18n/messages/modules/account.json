@@ -20,7 +20,12 @@
     "wrongPin": "PIN incorrecto. Inténtalo de nuevo.",
     "noEmployees": "No hay empleados para este terminal. Crea empleados en Odoo (Empleados) o revisa el terminal.",
     "noShift": "Sin horario",
-    "loading": "Cargando empleados…"
+    "loading": "Cargando empleados…",
+    "pinLength": "Escribe los 6 dígitos de tu PIN.",
+    "wrongPinLeft": "PIN incorrecto. Te quedan {left} intentos antes de bloquearlo.",
+    "locked": "PIN bloqueado por demasiados intentos. Vuelve a intentarlo en {minutes} minutos.",
+    "unknown": "Este empleado ya no está disponible. Elige otra cuenta.",
+    "pinFailed": "No se pudo validar el PIN. Revisa la conexión con Odoo."
   },
   "forgot": {
     "title": "¿Olvidaste tu PIN?",
@@ -38,14 +43,32 @@
   "mockup": {
     "greeting": "Buenos días",
     "motto": "Da lo mejor de ti a los clientes, ¡feliz jornada!",
-    "tabs": ["Inicio", "Pedidos", "Mesas", "Reservas", "Historial"],
-    "kpis": ["Ventas de hoy", "En progreso", "Listos para servir"],
-    "columns": ["En progreso", "Esperando pago"],
+    "tabs": [
+      "Inicio",
+      "Pedidos",
+      "Mesas",
+      "Reservas",
+      "Historial"
+    ],
+    "kpis": [
+      "Ventas de hoy",
+      "En progreso",
+      "Listos para servir"
+    ],
+    "columns": [
+      "En progreso",
+      "Esperando pago"
+    ],
     "seeAll": "Ver todos los pedidos"
   },
   "settings": {
     "title": "Ajustes",
-    "tabs": { "profile": "Empleado", "notifications": "Notificaciones", "security": "Seguridad", "display": "Pantalla" },
+    "tabs": {
+      "profile": "Empleado",
+      "notifications": "Notificaciones",
+      "security": "Seguridad",
+      "display": "Pantalla"
+    },
     "time": "Tiempo",
     "logout": "Cerrar sesión",
     "logoutTitle": "¿Cerrar sesión?",
@@ -67,14 +90,27 @@
       "employmentStatus": "Estado laboral",
       "manager": "Responsable",
       "noEmployee": "Este dispositivo no tiene un empleado activo. Vuelve al inicio de empleado para elegir uno.",
-      "employmentType": { "employee": "Empleado", "worker": "Obrero", "student": "Estudiante", "trainee": "Practicante", "contractor": "Contratista", "freelance": "Independiente" }
+      "employmentStatusValue": {
+        "full_time": "Tiempo completo",
+        "part_time": "Medio tiempo",
+        "contract": "Contrato"
+      }
     },
     "notify": {
       "popup": "Aviso en pantalla",
       "sound": "Sonido de notificación",
-      "kitchen": { "title": "Novedades de cocina", "body": "Avisos de cocina para informar sobre los pedidos." },
-      "inventory": { "title": "Inventario", "body": "Avisos de inventario para informar sobre las existencias de ingredientes." },
-      "system": { "title": "Actualizaciones del sistema", "body": "Avisos sobre actualizaciones del sistema." }
+      "kitchen": {
+        "title": "Novedades de cocina",
+        "body": "Avisos de cocina para informar sobre los pedidos."
+      },
+      "inventory": {
+        "title": "Inventario",
+        "body": "Avisos de inventario para informar sobre las existencias de ingredientes."
+      },
+      "system": {
+        "title": "Actualizaciones del sistema",
+        "body": "Avisos sobre actualizaciones del sistema."
+      }
     },
     "security": {
       "heading": "Seguridad",

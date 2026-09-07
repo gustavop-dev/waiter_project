@@ -3,18 +3,13 @@
   "bell": "Notificaciones, {count} sin leer",
   "markAllRead": "Marcar todas como leídas",
   "tabs": { "all": "Todas", "inventory": "Inventario", "kitchen": "Cocina" },
+  "kind": { "inventory": "⚠️", "kitchen": "🍽️", "system": "🔔" },
   "empty": "Sin notificaciones por ahora.",
   "lowStock": {
-    "title": "⚠️ ¡Stock bajo!",
-    "body": "El stock de <b>{name}</b> está <low>bajo</low>. Reabastece pronto para evitar interrupciones.",
     "request": "Solicitar ingredientes",
     "requested": "Ya solicitado",
     "sent": "¡Solicitud enviada!",
-    "sentBody": "Se creó una orden de compra en borrador para {name}.",
-    "noSupplier": "{name} no tiene proveedor en Odoo. Asígnale uno en Compras para poder solicitarlo."
-  },
-  "dishReady": {
-    "title": "🍽️ ¡Plato listo para servir!",
-    "body": "La cocina terminó de preparar <b>{dish}</b>. Sírvelo en la mesa <b>{table}</b> cuanto antes."
+    "sentBody": "Se creó la orden de compra {order} para {partner}.",
+    "failed": "No se pudo solicitar el ingrediente."
   }
 }

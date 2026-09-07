@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button'
 export const LOGIN_INPUT = 'w-full h-12 px-4 rounded-md border border-border bg-surface text-[16px] text-ink placeholder:text-dim focus:outline-none focus:border-primary'
 
 // "Forgot PIN?" y "Check your email" del kit (2 – Forgot PIN/Home.png y Check Email.png).
-// Hoy pide el código por /waiter/auth/request_code; el reenvío del PIN real llega con el backend (informe).
+// `waiter_forgot_pin` siempre responde igual: nunca revela si el correo pertenece a un empleado.
 export function ForgotPin({ initialEmail = '', onRequest, onBack }: { initialEmail?: string; onRequest: (email: string) => Promise<void>; onBack: () => void }) {
   const t = useTranslations('account.forgot')
   const [email, setEmail] = useState(initialEmail)

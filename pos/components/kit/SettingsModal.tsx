@@ -1,7 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { ChangePinModal } from '@/components/account/ChangePinModal'
 import { EmployeeInfoPanel } from '@/components/account/EmployeeInfoPanel'
@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button'
 import { THEME_MODES, type ThemeMode } from '@/lib/design/tokens'
 import type { Role } from '@/lib/domain/roles'
 import { useTheme } from '@/lib/hooks/useTheme'
+import { getNotifyPrefs, setNotifyPrefs, type NotifyKey, type NotifyPrefs } from '@/lib/services/employees'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { cn } from '@/lib/utils'
 
@@ -21,8 +22,6 @@ const TABS: [Tab, KitIcon][] = [['profile', 'user'], ['notifications', 'bell'], 
 type Tab = 'profile' | 'notifications' | 'security' | 'display'
 const CHANNELS = ['kitchen', 'inventory', 'system'] as const
 const MODES = ['popup', 'sound'] as const
-const NOTIFY_KEY = 'waiter.notify'
-const readNotify = (): Record<string, boolean> => { try { return JSON.parse(localStorage.getItem(NOTIFY_KEY) || '{}') } catch { return {} } }
 const PANEL_TITLE: Record<Tab, string> = { profile: 'profile.heading', notifications: 'tabs.notifications', security: 'security.heading', display: 'display.heading' }
 
 // Miniatura de cada modo de color (tarjetas "System / Light / Dark" del kit): barras del panel en claro, oscuro o partido.
@@ -36,8 +35,8 @@ function ModePreview({ mode }: { mode: ThemeMode }) {
 }
 
 // Modal "Setting" del kit (10 – Account Setting/*.png): pestañas verticales, panel con cabecera, tarjeta
-// "Tiempo" con el cronómetro del turno y "Cerrar sesión" (cierra la asistencia; la sesión de Odoo sigue).
-// Las preferencias de aviso viven en el dispositivo hasta que la oleada I.5 las lleve a Odoo.
+// "Tiempo" con el cronómetro del turno y "Cerrar sesión" (cierra la asistencia con `waiter_end_shift`;
+// la sesión de Odoo del terminal sigue). Los seis avisos son `res.users.waiter_notify`.
 export function SettingsModal({ open, onClose, onLogout }: { open: boolean; onClose: () => void; user: { name: string; role: Role }; restaurant?: string; onLogout: () => Promise<void> }) {
   const t = useTranslations('account.settings')
   const [tab, setTab] = useState<Tab>('profile')
@@ -46,9 +45,20 @@ export function SettingsModal({ open, onClose, onLogout }: { open: boolean; onCl
   const [choosingLanguage, setChoosingLanguage] = useState(false)
   const { mode, setMode } = useTheme()
   const employee = useAuthStore((s) => s.employee)
-  const [notify, setNotify] = useState<Record<string, boolean>>(readNotify)
-  const flip = (key: string, v: boolean) => { const next = { ...notify, [key]: v }; setNotify(next); try { localStorage.setItem(NOTIFY_KEY, JSON.stringify(next)) } catch { /* sin almacenamiento */ } }
-  const on = (key: string) => notify[key] ?? true
+  const uid = useAuthStore((s) => s.user?.uid ?? null)
+  const [notify, setNotify] = useState<NotifyPrefs | null>(null)
+  // Las preferencias son del usuario del terminal (res.users.waiter_notify): se leen al abrir el modal.
+  useEffect(() => {
+    if (!open || !uid) return
+    let alive = true
+    getNotifyPrefs(uid).then((p) => { if (alive) setNotify(p) }).catch(() => undefined)
+    return () => { alive = false }
+  }, [open, uid])
+  const flip = (key: NotifyKey, v: boolean) => {
+    setNotify((prev) => (prev ? { ...prev, [key]: v } : prev))
+    if (uid) void setNotifyPrefs(uid, { [key]: v }).catch(() => undefined)
+  }
+  const on = (key: NotifyKey) => notify?.[key] ?? true
   const language = LANGUAGES.find((l) => l.code === ACTIVE_LANGUAGE)?.name ?? ''
 
   return (
@@ -66,7 +76,9 @@ export function SettingsModal({ open, onClose, onLogout }: { open: boolean; onCl
             </div>
             <div className="mt-auto p-3 rounded-md border border-border bg-muted flex flex-col gap-3">
               <div className="flex items-center justify-between"><span className="text-[13px] font-semibold text-ink">{t('time')}</span><ShiftClock checkIn={employee?.checkIn ?? null} /></div>
-              <Button onClick={() => setConfirming(true)} className="w-full bg-danger text-primary-ink border-danger hover:bg-danger/90"><Icon name="logout" size={18} />{t('logout')}</Button>
+              <Button onClick={() => setConfirming(true)}
+                className={cn('w-full', employee ? 'bg-muted text-soft border-border' : 'bg-danger text-primary-ink border-danger hover:bg-danger/90')}>
+                <Icon name="logout" size={18} />{t('logout')}</Button>
             </div>
           </aside>
           <section className="flex-1 min-w-0 p-4 pl-0">
@@ -79,7 +91,7 @@ export function SettingsModal({ open, onClose, onLogout }: { open: boolean; onCl
                     <div className="pb-3 border-b border-border"><p className="text-[16px] font-semibold text-ink">{t(`notify.${ch}.title`)}</p><p className="text-[13px] text-soft">{t(`notify.${ch}.body`)}</p></div>
                     {MODES.map((m) => (
                       <div key={m} className="flex items-center gap-4 text-[15px] text-ink">
-                        <Toggle checked={on(`${ch}.${m}`)} onChange={(v) => flip(`${ch}.${m}`, v)} label={`${t(`notify.${ch}.title`)} ${t(`notify.${m}`)}`} /><span>{t(`notify.${m}`)}</span>
+                        <Toggle checked={on(`${ch}_${m}`)} onChange={(v) => flip(`${ch}_${m}`, v)} label={`${t(`notify.${ch}.title`)} ${t(`notify.${m}`)}`} /><span>{t(`notify.${m}`)}</span>
                       </div>
                     ))}
                   </div>

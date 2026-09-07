@@ -18,7 +18,7 @@ export function LanguageModal({ open, onClose }: { open: boolean; onClose: () =>
   const t = useTranslations('account.settings.display')
   return (
     <Modal open={open} onClose={onClose} title={t('chooseLanguage')}>
-      <div role="radiogroup" aria-label={t('chooseLanguage')} className="p-5 grid grid-cols-2 gap-3">
+      <div role="radiogroup" aria-label={t('chooseLanguage')} className="p-5 grid grid-cols-3 gap-x-4 gap-y-2">
         {LANGUAGES.map((l) => {
           const active = l.code === ACTIVE_LANGUAGE
           return (

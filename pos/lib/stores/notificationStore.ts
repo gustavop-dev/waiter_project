@@ -2,34 +2,31 @@
 
 import { create } from 'zustand'
 
-import { buildNotifications, readReadIds, storeReadIds, unreadCount, type Notification } from '@/lib/domain/notifications'
-import { listLowStock, listReadyDishes } from '@/lib/services/notifications'
+import { productOf, unreadCount, type Notification } from '@/lib/domain/notifications'
+import { listNotifications, markAllRead as markAllReadRequest, markRead } from '@/lib/services/notifications'
 
 interface NotificationState {
   items: Notification[]
-  read: Set<string>
-  refresh: (sessionId: number | null) => Promise<void>
-  markAllRead: () => void
-  setRequested: (productId: number) => void
+  refresh: () => Promise<void>
+  markAllRead: () => Promise<void>
+  markRead: (ids: number[]) => Promise<void>
+  setActionDone: (productId: number) => void
   unread: () => number
 }
 
-// Estado leído en el dispositivo (localStorage) hasta que exista `waiter.notification` en Odoo.
+// Todo el estado vive en Odoo (`waiter.notification`): leído y "ya solicitado" son campos del modelo.
 export const useNotificationStore = create<NotificationState>((set, get) => ({
   items: [],
-  read: readReadIds(),
-  refresh: async (sessionId) => {
-    const [stock, dishes] = await Promise.all([
-      listLowStock().catch(() => []),
-      sessionId ? listReadyDishes(sessionId).catch(() => []) : Promise.resolve([]),
-    ])
-    set({ items: buildNotifications(stock, dishes) })
+  refresh: async () => set({ items: await listNotifications().catch(() => get().items) }),
+  markAllRead: async () => {
+    set({ items: get().items.map((n) => ({ ...n, read: true })) })
+    await markAllReadRequest().catch(() => undefined)
   },
-  markAllRead: () => {
-    const read = new Set([...get().read, ...get().items.map((n) => n.id)])
-    storeReadIds(read)
-    set({ read })
+  markRead: async (ids) => {
+    set({ items: get().items.map((n) => (ids.includes(n.id) ? { ...n, read: true } : n)) })
+    await markRead(ids).catch(() => undefined)
   },
-  setRequested: (productId) => set({ items: get().items.map((n) => (n.stock?.productId === productId ? { ...n, stock: { ...n.stock, requested: true } } : n)) }),
-  unread: () => unreadCount(get().items, get().read),
+  // El servidor cierra todas las de inventario del producto: aquí se refleja lo mismo sin esperar al sondeo.
+  setActionDone: (productId) => set({ items: get().items.map((n) => (productOf(n) === productId ? { ...n, actionDone: true } : n)) }),
+  unread: () => unreadCount(get().items),
 }))

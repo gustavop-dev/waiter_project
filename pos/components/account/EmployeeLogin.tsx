@@ -16,24 +16,26 @@ const PIN_LENGTH = 6
 
 // "Employee Login" del kit (Select Employee.png y Select Employee-1.png): selector desplegable con foto,
 // nombre y turno de hoy, seis casillas de PIN, teclado numérico e "Iniciar turno".
-export function EmployeeLogin({ employees, loading, onStart, onForgot }: { employees: PosEmployee[]; loading: boolean; onStart: (employee: PosEmployee, pin: string) => Promise<boolean>; onForgot: () => void }) {
+export function EmployeeLogin({ employees, loading, onStart, onForgot }: { employees: PosEmployee[]; loading: boolean; onStart: (employee: PosEmployee, pin: string) => Promise<string | null>; onForgot: () => void }) {
   const t = useTranslations('account.employee')
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [open, setOpen] = useState(false)
   const [pin, setPin] = useState('')
-  const [wrong, setWrong] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const selected = employees.find((e) => e.id === selectedId) ?? employees[0] ?? null
   const label = (e: PosEmployee) => shiftLabel(e.shift, t('noShift'))
-  const digit = (d: string) => { setWrong(false); setPin((p) => (p + d).slice(0, PIN_LENGTH)) }
+  const digit = (d: string) => { setError(null); setPin((p) => (p + d).slice(0, PIN_LENGTH)) }
   const backspace = () => setPin((p) => p.slice(0, -1))
 
   async function start() {
     if (!selected || busy) return
+    // Cinco fallos bloquean el PIN diez minutos: un PIN a medias no llega al servidor.
+    if (pin.length !== PIN_LENGTH) { setError(t('pinLength')); return }
     setBusy(true)
     try {
-      const ok = await onStart(selected, pin)
-      if (!ok) { setWrong(true); setPin('') }
+      const failure = await onStart(selected, pin)
+      if (failure) { setError(failure); setPin('') }
     } finally { setBusy(false) }
   }
 
@@ -71,7 +73,7 @@ export function EmployeeLogin({ employees, loading, onStart, onForgot }: { emplo
             {employees.map((e) => {
               const active = e.id === selected?.id
               return (
-                <li key={e.id} role="option" aria-selected={active} onClick={() => { setSelectedId(e.id); setOpen(false); setPin(''); setWrong(false) }}
+                <li key={e.id} role="option" aria-selected={active} onClick={() => { setSelectedId(e.id); setOpen(false); setPin(''); setError(null) }}
                   className={cn('flex items-center gap-3 h-[70px] px-3 rounded-md cursor-pointer', active ? 'bg-primary-soft text-primary' : 'text-ink hover:bg-muted')}>
                   <EmployeeAvatar id={e.id} name={e.name} />
                   <span className="flex-1 min-w-0 flex flex-col leading-tight"><span className="text-[17px] font-semibold truncate">{e.name}</span><span className={cn('text-[14px]', active ? 'text-primary/80' : 'text-dim')}>{label(e)}</span></span>
@@ -85,7 +87,7 @@ export function EmployeeLogin({ employees, loading, onStart, onForgot }: { emplo
 
       <p className="mt-9 text-[15px] text-dim">{t('pinHint')}</p>
       <div className="mt-3"><PinInput value={pin} label={t('pin')} /></div>
-      {wrong && <p role="alert" className="mt-2 text-[14px] text-danger-ink">{t('wrongPin')}</p>}
+      {error && <p role="alert" className="mt-2 text-center text-[14px] text-danger-ink">{error}</p>}
       <button type="button" onClick={onForgot} className="mt-3 text-[15px] font-semibold text-primary">{t('forgot')}</button>
 
       <div className="mt-8"><NumericKeypad onDigit={digit} onBackspace={backspace} disabled={!selected || busy} /></div>

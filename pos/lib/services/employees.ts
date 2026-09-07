@@ -1,102 +1,108 @@
-import { odooWeekday, sha1, toOdooDatetime, todayShift, type CalendarSlot, type Shift } from '@/lib/domain/employees'
+import { toShift, type Shift } from '@/lib/domain/employees'
 import type { Role } from '@/lib/domain/roles'
 import { callKw } from '@/lib/services/odoo'
 
-// Empleados del terminal (pos_hr) y su asistencia (hr_attendance). Es el único archivo que conoce
-// `_pin` de load_data, hr.attendance y los campos de hr.employee.
-export interface PosEmployee { id: number; name: string; userId: number | null; pinHash: string | null; shift: Shift | null }
-export interface EmployeeProfile {
-  id: number; name: string; phone: string | null; email: string | null; address: string | null; joiningDate: string | null
-  accessRole: Role | null; employmentType: string | null; manager: string | null; shift: Shift | null
-}
-export interface Attendance { id: number; checkIn: string }
-
-interface RawPosEmployee { id: number; name: string; user_id: number | false; _pin?: string | false }
-interface RawCalendarRef { id: number; resource_calendar_id: [number, string] | false }
-interface RawSlot extends CalendarSlot { calendar_id: [number, string] }
-interface RawPublic { id: number; name: string; work_phone: string | false; mobile_phone: string | false; work_email: string | false; parent_id: [number, string] | false; user_id: [number, string] | false; resource_calendar_id: [number, string] | false }
-interface RawPrivate { private_email: string | false; private_street: string | false; private_city: string | false; contract_date_start: string | false; employee_type: string | false }
-interface RawUser { waiter_role: Role | false; email: string | false; phone: string | false }
-interface RawAttendance { id: number; check_in: string }
-
+// Empleados del terminal. Todo el PIN se resuelve en el servidor con los métodos de `projectapp_ops`
+// (`waiter_check_pin`, `waiter_change_pin`, `waiter_forgot_pin`, `waiter_end_shift`): el POS nunca ve el PIN
+// guardado ni su hash. Es el único archivo que conoce los campos de hr.employee.
 const EMPLOYEE = 'hr.employee'
-const ATTENDANCE = 'hr.attendance'
-const or = (v: string | false | undefined): string | null => (v ? v : null)
 
-// Turnos de hoy por calendario: del primer inicio al último fin de las franjas de resource.calendar.
-async function shiftsByCalendar(calendarIds: number[], today: Date): Promise<Map<number, Shift | null>> {
-  const out = new Map<number, Shift | null>()
-  if (calendarIds.length === 0) return out
-  const slots = await callKw<RawSlot[]>('resource.calendar.attendance', 'search_read',
-    [[['calendar_id', 'in', calendarIds], ['dayofweek', '=', odooWeekday(today)]], ['calendar_id', 'dayofweek', 'hour_from', 'hour_to']])
-  for (const id of calendarIds) out.set(id, todayShift(slots.filter((s) => s.calendar_id[0] === id), today))
-  return out
+export interface PosEmployee { id: number; name: string; code: string | null; role: Role | null; shift: Shift | null }
+export interface EmployeeProfile {
+  id: number; name: string; code: string | null; phone: string | null; email: string | null; address: string | null
+  joiningDate: string | null; accessRole: Role | null; employmentStatus: string | null; manager: string | null
+  jobTitle: string | null; shift: Shift | null
+}
+export interface CheckedEmployee { id: number; name: string; code: string | null; role: Role | null; shift: Shift | null; userId: number | null }
+export type PinResult =
+  | { ok: true; employee: CheckedEmployee; attendanceId: number }
+  | { ok: false; reason: 'wrong'; attemptsLeft: number }
+  | { ok: false; reason: 'locked'; lockedUntil: string }
+  | { ok: false; reason: 'unknown' }
+
+interface RawEmployee {
+  id: number; name: string; waiter_role: Role | false; employee_code: string | false
+  shift_start: number | false; shift_end: number | false
+}
+interface RawProfile extends RawEmployee {
+  work_phone: string | false; mobile_phone: string | false; work_email: string | false; job_title: string | false
+  parent_id: [number, string] | false; joining_date: string | false; employment_status: string | false
+}
+interface RawPrivate { private_street: string | false; private_city: string | false; private_email: string | false; private_phone: string | false }
+interface RawPin {
+  ok: boolean; reason?: 'wrong' | 'locked' | 'unknown'; attempts_left?: number; locked_until?: string
+  attendance_id?: number
+  employee?: { id: number; name: string; waiter_role: Role | false; employee_code: string | false; shift_start: number; shift_end: number; user_id: number | false }
 }
 
-async function calendarOf(ids: number[]): Promise<Map<number, number | null>> {
-  const rows = await callKw<RawCalendarRef[]>(EMPLOYEE, 'search_read', [[['id', 'in', ids]], ['resource_calendar_id']])
-  return new Map(rows.map((r) => [r.id, r.resource_calendar_id ? r.resource_calendar_id[0] : null]))
+const or = (v: string | false | null | undefined): string | null => (v ? v : null)
+const LIST_FIELDS = ['name', 'waiter_role', 'employee_code', 'shift_start', 'shift_end']
+
+// Selector del "Inicio de empleado": los empleados activos del terminal, con su turno de hoy.
+export async function listPosEmployees(): Promise<PosEmployee[]> {
+  const rows = await callKw<RawEmployee[]>(EMPLOYEE, 'search_read', [[], LIST_FIELDS], { order: 'name asc' })
+  return rows.map((r) => ({ id: r.id, name: r.name, code: or(r.employee_code), role: r.waiter_role || null, shift: toShift(r.shift_start, r.shift_end) }))
 }
 
-// Con sesión abierta, pos.session.load_data trae los empleados del terminal con `_pin` en sha1 (pos_hr).
-// Sin sesión (caja cerrada) se leen de hr.employee y se hashea aquí: solo lo logra un usuario de RR. HH.
-async function rawEmployees(sessionId: number | null): Promise<RawPosEmployee[]> {
-  if (sessionId) {
-    const data = await callKw<{ 'hr.employee'?: RawPosEmployee[] }>('pos.session', 'load_data', [[sessionId], []])
-    return data['hr.employee'] ?? []
+// "Iniciar turno": el servidor compara el PIN, cuenta los fallos, bloquea diez minutos tras cinco y abre la asistencia.
+export async function checkPin(employeeId: number, pin: string): Promise<PinResult> {
+  const raw = await callKw<RawPin>(EMPLOYEE, 'waiter_check_pin', [employeeId, pin])
+  if (raw.ok && raw.employee) {
+    const e = raw.employee
+    return {
+      ok: true, attendanceId: raw.attendance_id as number,
+      employee: { id: e.id, name: e.name, code: or(e.employee_code), role: e.waiter_role || null, shift: toShift(e.shift_start, e.shift_end), userId: e.user_id || null },
+    }
   }
-  const rows = await callKw<{ id: number; name: string; user_id: [number, string] | false; pin: string | false }[]>(EMPLOYEE, 'search_read', [[], ['name', 'user_id', 'pin']])
-  return rows.map((r) => ({ id: r.id, name: r.name, user_id: r.user_id ? r.user_id[0] : false, _pin: r.pin ? sha1(r.pin) : false }))
+  if (raw.reason === 'locked') return { ok: false, reason: 'locked', lockedUntil: raw.locked_until ?? '' }
+  if (raw.reason === 'unknown') return { ok: false, reason: 'unknown' }
+  return { ok: false, reason: 'wrong', attemptsLeft: raw.attempts_left ?? 0 }
 }
 
-export async function listPosEmployees(sessionId: number | null, today = new Date()): Promise<PosEmployee[]> {
-  const raw = await rawEmployees(sessionId)
-  if (raw.length === 0) return []
-  const calendars = await calendarOf(raw.map((r) => r.id))
-  const shifts = await shiftsByCalendar([...new Set([...calendars.values()].filter((c): c is number => c !== null))], today)
-  return raw
-    .map((r) => ({ id: r.id, name: r.name, userId: r.user_id || null, pinHash: r._pin || null, shift: shifts.get(calendars.get(r.id) ?? -1) ?? null }))
-    .sort((a, b) => a.name.localeCompare(b.name, 'es'))
+export const changePin = (employeeId: number, newPin: string): Promise<true> =>
+  callKw<true>(EMPLOYEE, 'waiter_change_pin', [employeeId, newPin])
+
+// Siempre devuelve true: el servidor nunca revela si el correo existe.
+export const forgotPin = (email: string): Promise<true> => callKw<true>(EMPLOYEE, 'waiter_forgot_pin', [email])
+
+export interface EndShift { ok: boolean; attendanceId: number | false; workedHours: number }
+export async function endShift(employeeId: number): Promise<EndShift> {
+  const raw = await callKw<{ ok: boolean; attendance_id: number | false; worked_hours: number }>(EMPLOYEE, 'waiter_end_shift', [employeeId])
+  return { ok: raw.ok, attendanceId: raw.attendance_id, workedHours: raw.worked_hours }
 }
 
-// Perfil para "Información del empleado". Los campos privados y de contrato solo los lee RR. HH.: si Odoo los niega, quedan en null ("—").
-export async function getEmployeeProfile(id: number, today = new Date()): Promise<EmployeeProfile> {
-  const [pub] = await callKw<RawPublic[]>(EMPLOYEE, 'read', [[id], ['name', 'work_phone', 'mobile_phone', 'work_email', 'parent_id', 'user_id', 'resource_calendar_id']])
-  const priv = await callKw<RawPrivate[]>(EMPLOYEE, 'read', [[id], ['private_email', 'private_street', 'private_city', 'contract_date_start', 'employee_type']]).then((r) => r[0]).catch(() => null)
-  const user = pub.user_id ? await callKw<RawUser[]>('res.users', 'read', [[pub.user_id[0]], ['waiter_role', 'email', 'phone']]).then((r) => r[0]).catch(() => null) : null
-  const calendarId = pub.resource_calendar_id ? pub.resource_calendar_id[0] : null
-  const shift = calendarId ? (await shiftsByCalendar([calendarId], today)).get(calendarId) ?? null : null
+// Perfil de "Información del empleado". Los campos privados solo los lee RR. HH.: si Odoo los niega quedan en null ("—").
+export async function getEmployeeProfile(id: number): Promise<EmployeeProfile> {
+  const [pub] = await callKw<RawProfile[]>(EMPLOYEE, 'read',
+    [[id], [...LIST_FIELDS, 'work_phone', 'mobile_phone', 'work_email', 'job_title', 'parent_id', 'joining_date', 'employment_status']])
+  const priv = await callKw<RawPrivate[]>(EMPLOYEE, 'read', [[id], ['private_street', 'private_city', 'private_email', 'private_phone']])
+    .then((r) => r[0]).catch(() => null)
   const address = [or(priv?.private_street), or(priv?.private_city)].filter(Boolean).join(', ')
   return {
-    id, name: pub.name, phone: or(pub.work_phone) ?? or(pub.mobile_phone) ?? or(user?.phone), email: or(pub.work_email) ?? or(priv?.private_email) ?? or(user?.email),
-    address: address || null, joiningDate: or(priv?.contract_date_start), accessRole: user?.waiter_role || null, employmentType: or(priv?.employee_type),
-    manager: pub.parent_id ? pub.parent_id[1] : null, shift,
+    id, name: pub.name, code: or(pub.employee_code), phone: or(pub.work_phone) ?? or(pub.mobile_phone) ?? or(priv?.private_phone),
+    email: or(pub.work_email) ?? or(priv?.private_email), address: address || null, joiningDate: or(pub.joining_date),
+    accessRole: pub.waiter_role || null, employmentStatus: or(pub.employment_status), manager: pub.parent_id ? pub.parent_id[1] : null,
+    jobTitle: or(pub.job_title), shift: toShift(pub.shift_start, pub.shift_end),
   }
 }
 
-export async function employeeName(id: number): Promise<string> {
-  const [row] = await callKw<{ name: string }[]>(EMPLOYEE, 'read', [[id], ['name']])
-  return row.name
-}
-
-export async function findOpenAttendance(employeeId: number): Promise<Attendance | null> {
-  const rows = await callKw<RawAttendance[]>(ATTENDANCE, 'search_read', [[['employee_id', '=', employeeId], ['check_out', '=', false]], ['check_in']], { limit: 1, order: 'check_in desc' })
+interface RawAttendance { id: number; check_in: string }
+export async function findOpenAttendance(employeeId: number): Promise<{ id: number; checkIn: string } | null> {
+  const rows = await callKw<RawAttendance[]>('hr.attendance', 'search_read',
+    [[['employee_id', '=', employeeId], ['check_out', '=', false]], ['check_in']], { limit: 1, order: 'check_in desc' })
   return rows.length ? { id: rows[0].id, checkIn: rows[0].check_in } : null
 }
 
-// Entrada del turno: reutiliza la asistencia abierta (una recarga no duplica) o crea una con check_in ahora.
-export async function openAttendance(employeeId: number, now = new Date()): Promise<Attendance> {
-  const open = await findOpenAttendance(employeeId)
-  if (open) return open
-  const checkIn = toOdooDatetime(now)
-  const id = await callKw<number>(ATTENDANCE, 'create', [{ employee_id: employeeId, check_in: checkIn }])
-  return { id, checkIn }
+export async function readEmployee(id: number): Promise<PosEmployee> {
+  const [row] = await callKw<RawEmployee[]>(EMPLOYEE, 'read', [[id], LIST_FIELDS])
+  return { id: row.id, name: row.name, code: or(row.employee_code), role: row.waiter_role || null, shift: toShift(row.shift_start, row.shift_end) }
 }
 
-export function closeAttendance(attendanceId: number, now = new Date()): Promise<void> {
-  return callKw<void>(ATTENDANCE, 'write', [[attendanceId], { check_out: toOdooDatetime(now) }])
-}
+// Preferencias de aviso del usuario del terminal (res.users.get_waiter_notify / set_waiter_notify).
+export type NotifyPrefs = Record<NotifyKey, boolean>
+export type NotifyKey = 'kitchen_popup' | 'kitchen_sound' | 'inventory_popup' | 'inventory_sound' | 'system_popup' | 'system_sound'
+export const NOTIFY_KEYS: NotifyKey[] = ['kitchen_popup', 'kitchen_sound', 'inventory_popup', 'inventory_sound', 'system_popup', 'system_sound']
 
-export function changePin(employeeId: number, pin: string): Promise<void> {
-  return callKw<void>(EMPLOYEE, 'write', [[employeeId], { pin }])
-}
+export const getNotifyPrefs = (uid: number): Promise<NotifyPrefs> => callKw<NotifyPrefs>('res.users', 'get_waiter_notify', [[uid]])
+export const setNotifyPrefs = (uid: number, prefs: Partial<NotifyPrefs>): Promise<NotifyPrefs> =>
+  callKw<NotifyPrefs>('res.users', 'set_waiter_notify', [[uid], prefs])

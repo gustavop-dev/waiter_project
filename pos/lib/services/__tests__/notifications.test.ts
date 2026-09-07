@@ -1,4 +1,4 @@
-import { listLowStock, listReadyDishes, NoSupplierError, requestIngredients } from '@/lib/services/notifications'
+import { listNotifications, markAllRead, markRead, requestIngredient } from '@/lib/services/notifications'
 import { callKw } from '@/lib/services/odoo'
 
 jest.mock('@/lib/services/odoo', () => ({ callKw: jest.fn() }))
@@ -6,30 +6,31 @@ const rpc = callKw as jest.Mock
 
 beforeEach(() => rpc.mockReset())
 
-// Falla si un producto por encima del mínimo aparece como stock bajo o si "Ya solicitado" ignora las RFQ en borrador.
-it('lists only orderpoints below their minimum and flags the ones with a draft purchase', async () => {
+// Falla si las notificaciones no salen de waiter.notification con los falsos de Odoo normalizados a null.
+it('reads waiter.notification newest first and normalizes the Odoo falses', async () => {
   rpc.mockResolvedValueOnce([
-    { id: 1, product_id: [7, 'Salmón'], product_min_qty: 5, product_max_qty: 20, qty_on_hand: 1, write_date: '2026-09-06 10:00:00' },
-    { id: 2, product_id: [8, 'Arroz'], product_min_qty: 5, product_max_qty: 20, qty_on_hand: 9, write_date: '2026-09-06 10:00:00' },
-  ]).mockResolvedValueOnce([{ product_id: [7, 'Salmón'] }])
-  const rows = await listLowStock()
-  expect(rows).toEqual([{ productId: 7, name: 'Salmón', qtyOnHand: 1, minQty: 5, requested: true, at: '2026-09-06 10:00:00' }])
+    { id: 4, kind: 'inventory', title: 'Stock bajo', body: 'Salmón: quedan 1 kg', res_model: 'product.product', res_id: 7, action: 'request_ingredient', action_done: false, read: false, create_date: '2026-09-06 10:00:00' },
+    { id: 3, kind: 'system', title: 'Aviso', body: false, res_model: false, res_id: false, action: false, action_done: false, read: true, create_date: '2026-09-06 09:00:00' },
+  ])
+  const items = await listNotifications()
+  expect(rpc.mock.calls[0].slice(0, 2)).toEqual(['waiter.notification', 'search_read'])
+  expect(rpc.mock.calls[0][3]).toMatchObject({ order: 'create_date desc, id desc' })
+  expect(items[0]).toMatchObject({ id: 4, kind: 'inventory', resId: 7, action: 'request_ingredient' })
+  expect(items[1]).toMatchObject({ body: '', resModel: null, resId: null, action: null, read: true })
 })
 
-// Falla si un curso listo pierde sus platos o la mesa del pedido.
-it('lists ready courses with their dishes and table', async () => {
-  rpc.mockResolvedValueOnce([{ id: 3, order_id: [40, 'Pedido'], ready_date: '2026-09-06 11:00:00', line_ids: [5, 6] }])
-    .mockResolvedValueOnce([{ id: 5, full_product_name: 'Pollo', qty: 2 }, { id: 6, full_product_name: 'Pasta', qty: 1 }])
-    .mockResolvedValueOnce([{ id: 40, table_id: [2, 'A8'] }])
-  expect(await listReadyDishes(16)).toEqual([{ courseId: 3, dish: '2 × Pollo, Pasta', table: 'A8', at: '2026-09-06 11:00:00' }])
+// Falla si marcar como leídas se resuelve en el dispositivo en vez de en el servidor.
+it('marks read on the server', async () => {
+  rpc.mockResolvedValue(true)
+  await markAllRead()
+  expect(rpc).toHaveBeenCalledWith('waiter.notification', 'waiter_mark_all_read', [])
+  await markRead([4, 5])
+  expect(rpc).toHaveBeenLastCalledWith('waiter.notification', 'waiter_mark_read', [[4, 5]])
 })
 
-// Falla si la solicitud crea la compra sin proveedor o con una cantidad que no repone hasta el máximo.
-it('requestIngredients creates a draft purchase to the supplier or refuses without one', async () => {
-  const row = { productId: 7, name: 'Salmón', qtyOnHand: 1, minQty: 5, requested: false, at: '' }
-  rpc.mockResolvedValueOnce([])
-  await expect(requestIngredients(row)).rejects.toBeInstanceOf(NoSupplierError)
-  rpc.mockResolvedValueOnce([{ partner_id: [12, 'Pesquera'] }]).mockResolvedValueOnce([{ product_max_qty: 20 }]).mockResolvedValueOnce(77)
-  expect(await requestIngredients(row)).toBe(77)
-  expect(rpc).toHaveBeenLastCalledWith('purchase.order', 'create', [{ partner_id: 12, origin: 'Waiter POS', order_line: [[0, 0, { product_id: 7, product_qty: 19 }]] }])
+// Falla si "Solicitar ingredientes" deja de crear la compra en el servidor o pierde el proveedor devuelto.
+it('requestIngredient asks the server for the draft purchase', async () => {
+  rpc.mockResolvedValueOnce({ purchase_id: 77, name: 'P00012', partner_id: 12, partner_name: 'Pesquera', product_qty: 19 })
+  expect(await requestIngredient(7)).toEqual({ purchaseId: 77, name: 'P00012', partnerName: 'Pesquera', qty: 19 })
+  expect(rpc).toHaveBeenCalledWith('waiter.notification', 'waiter_request_ingredient', [7, null])
 })

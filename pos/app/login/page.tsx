@@ -10,9 +10,9 @@ import { LoginFrame } from '@/components/account/LoginFrame'
 import { Icon } from '@/components/kit/Icon'
 import { Toggle } from '@/components/kit/Toggle'
 import { Button } from '@/components/ui/Button'
-import { pinMatches } from '@/lib/domain/employees'
+import { lockMinutesLeft } from '@/lib/domain/employees'
 import { activate, requestCode } from '@/lib/services/activation'
-import { listPosEmployees, type PosEmployee } from '@/lib/services/employees'
+import { checkPin, forgotPin, listPosEmployees, type PosEmployee } from '@/lib/services/employees'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useStored } from '@/lib/hooks/useStored'
 import { cn } from '@/lib/utils'
@@ -26,7 +26,7 @@ export default function LoginPage() {
   const t = useTranslations('account')
   const tl = useTranslations('pos.login')
   const router = useRouter()
-  const { user, session, hydrated, hydrate, login, startShift } = useAuthStore()
+  const { user, hydrated, hydrate, login, startShift } = useAuthStore()
   const [view, setView] = useState<View>('main')
   const [employees, setEmployees] = useState<PosEmployee[] | null>(null)
   const storedEmail = useStored('waiter.email')
@@ -46,9 +46,9 @@ export default function LoginPage() {
   useEffect(() => {
     if (!user) return
     let alive = true
-    listPosEmployees(session?.id ?? null).then((list) => { if (alive) setEmployees(list) }).catch(() => { if (alive) setEmployees([]) })
+    listPosEmployees().then((list) => { if (alive) setEmployees(list) }).catch(() => { if (alive) setEmployees([]) })
     return () => { alive = false }
-  }, [user, session?.id])
+  }, [user])
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -66,12 +66,19 @@ export default function LoginPage() {
       await login(email.trim(), newPassword); write('waiter.email', email.trim()); setView('main')
     } catch { setCodeState('invalid') } finally { setBusy(false) }
   }
-  // Validación como el POS de Odoo: sha1 del PIN contra el hash que trae load_data; luego entrada en hr.attendance.
-  async function onStart(employee: PosEmployee, pin: string): Promise<boolean> {
-    if (!pinMatches(pin, employee.pinHash)) return false
-    await startShift(employee)
+  // El PIN se valida en el servidor (`waiter_check_pin`), que cuenta los fallos, bloquea diez minutos tras
+  // cinco y abre la asistencia. Devuelve el mensaje de error, o null si el turno arrancó.
+  async function onStart(employee: PosEmployee, pin: string): Promise<string | null> {
+    const result = await checkPin(employee.id, pin).catch(() => null)
+    if (!result) return t('employee.pinFailed')
+    if (!result.ok) {
+      if (result.reason === 'locked') return t('employee.locked', { minutes: lockMinutesLeft(result.lockedUntil) })
+      if (result.reason === 'unknown') return t('employee.unknown')
+      return result.attemptsLeft > 0 ? t('employee.wrongPinLeft', { left: result.attemptsLeft }) : t('employee.wrongPin')
+    }
+    await startShift(result.employee, result.attendanceId)
     router.push('/salon')
-    return true
+    return null
   }
 
   if (!hydrated) return <LoginFrame><p className="pt-20 text-dim">{t('employee.loading')}</p></LoginFrame>
@@ -80,7 +87,7 @@ export default function LoginPage() {
     return (
       <LoginFrame>
         {view === 'forgot'
-          ? <ForgotPin initialEmail={storedEmail} onRequest={(e) => requestCode(e)} onBack={() => setView('main')} />
+          ? <ForgotPin initialEmail={storedEmail} onRequest={async (e) => { await forgotPin(e) }} onBack={() => setView('main')} />
           : <EmployeeLogin employees={employees ?? []} loading={employees === null} onStart={onStart} onForgot={() => setView('forgot')} />}
       </LoginFrame>
     )
