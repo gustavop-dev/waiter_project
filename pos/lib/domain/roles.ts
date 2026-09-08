@@ -41,4 +41,7 @@ export const can = {
   // Cobrar. Lo decide el restaurante en Configuración: con `waiterCanCharge` apagado, cobrar es de caja y
   // el mesero deja la mesa servida para que el cajero la elija en el plano.
   charge: (role: Role, waiterCanCharge: boolean) => role !== 'waiter' || waiterCanCharge,
+  // Ver el inventario lo hace cualquiera; crear, editar o borrar platos e ingredientes, no. Apagado por
+  // defecto para la sala; el restaurante lo enciende si quiere dárselo.
+  editInventory: (role: Role, waiterCanEditInventory: boolean) => role !== 'waiter' || waiterCanEditInventory,
 }

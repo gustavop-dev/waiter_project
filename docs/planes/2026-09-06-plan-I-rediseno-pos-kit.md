@@ -191,12 +191,18 @@ La ventana manda en los tres sitios: el plano solo pinta «Reservada» dentro de
 reservas se mide con el margen de las dos partes, y el paso 1 del asistente lo elige y dice en texto
 de cuándo a cuándo quedará apartada.
 
-#### Quién cobra
+#### Lo que la sala puede hacer
 
-`pos.config.waiter_can_charge` (Configuración › Usuarios). Encendido, el mesero cobra la mesa que
-atendió. Apagado, cobrar es solo de caja: el mesero deja la mesa servida y el cajero la elige en el
-plano y cobra —no hace falta que el mesero mande nada, la mesa servida ya es la señal—. La tarjeta del
-mesero dice «Cobra la caja» en lugar de ofrecer el botón.
+Dos permisos en `pos.config`, los dos en Configuración › Usuarios, porque quién hace qué lo decide el
+restaurante y no el código:
+
+| Permiso | Por defecto | Apagado |
+|---|---|---|
+| `waiter_can_charge` | sí | Cobrar es de caja: el mesero deja la mesa servida y el cajero la elige en el plano y cobra. No hace falta que el mesero mande nada, la mesa servida ya es la señal. La tarjeta dice «Cobra la caja». |
+| `waiter_can_edit_inventory` | no | El mesero ve el inventario y puede solicitar ingredientes al proveedor, pero no crear, editar ni borrar platos e ingredientes. |
+
+`can.charge` y `can.editInventory` (`lib/domain/roles.ts`) los aplican; los dos son de la forma
+«el rol que no es mesero siempre puede».
 
 ## Oleadas
 

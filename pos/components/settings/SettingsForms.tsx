@@ -28,22 +28,31 @@ export function SaveBar({ state, onSave, disabled, error }: { state: State; onSa
   )
 }
 
-// Quién puede cobrar. Apagarlo deja el cobro en caja: el mesero sirve y el cajero elige la mesa en el plano
-// y cobra, sin que el mesero tenga que mandar nada. Vive en pos.config y lo ven todas las tablets.
-export function ChargePermissionForm({ initial, onSave }: { initial: Settings; onSave: (s: Settings) => Promise<void> }) {
+// Lo que la sala puede hacer y el restaurante decide. Vive en pos.config y lo ven todas las tablets.
+// Cobrar: apagado, el mesero sirve y el cajero elige la mesa en el plano y cobra, sin que nadie mande nada.
+// Inventario: verlo lo hace cualquiera; crear, editar o borrar platos e ingredientes es otra cosa.
+const PERMISSIONS = [
+  { key: 'waiterCanCharge', text: 'charge' },
+  { key: 'waiterCanEditInventory', text: 'inventory' },
+] as const
+
+export function WaiterPermissionsForm({ initial, onSave }: { initial: Settings; onSave: (s: Settings) => Promise<void> }) {
   const t = useTranslations('pos.settings')
   const [state, save] = useSaveState()
-  const [on, setOn] = useState(initial.waiterCanCharge)
+  const [values, setValues] = useState(initial)
   return (
-    <div className="mb-6 p-4 rounded-md border border-border bg-canvas flex flex-col gap-3 max-w-2xl">
-      <div className="flex items-start gap-4">
-        <Toggle checked={on} label={t('charge.label')} onChange={(v) => { setOn(v); void save(() => onSave({ ...initial, waiterCanCharge: v })) }} />
-        <div className="min-w-0 flex flex-col gap-1">
-          <span className="text-[15px] font-semibold text-ink">{t('charge.label')}</span>
-          <span className="text-[14px] text-soft leading-relaxed">{on ? t('charge.onHint') : t('charge.offHint')}</span>
+    <div className="mb-6 rounded-md border border-border bg-canvas divide-y divide-border max-w-2xl">
+      {PERMISSIONS.map(({ key, text }) => (
+        <div key={key} className="p-4 flex items-start gap-4">
+          <Toggle checked={values[key]} label={t(`${text}.label`)}
+            onChange={(v) => { const next = { ...values, [key]: v }; setValues(next); void save(() => onSave(next)) }} />
+          <div className="min-w-0 flex flex-col gap-1">
+            <span className="text-[15px] font-semibold text-ink">{t(`${text}.label`)}</span>
+            <span className="text-[14px] text-soft leading-relaxed">{values[key] ? t(`${text}.onHint`) : t(`${text}.offHint`)}</span>
+          </div>
+          <span className="ml-auto shrink-0">{state === 'saving' && <span className="text-[14px] text-soft">{t('saving')}</span>}</span>
         </div>
-        <span className="ml-auto shrink-0">{state === 'saving' && <span className="text-[14px] text-soft">{t('saving')}</span>}</span>
-      </div>
+      ))}
     </div>
   )
 }

@@ -1,7 +1,7 @@
 {
   "pos": {
     "brand": "Waiter.",
-    "brandBy": "waiter by projectapp",
+    "brandBy": "By ProjectApp.",
     "nav": {
       "operation": "Operación",
       "sales": "Ventas",
@@ -498,6 +498,11 @@
         "label": "Los meseros pueden cobrar",
         "onHint": "El mesero cobra la mesa que atendió, desde su propia pantalla.",
         "offHint": "Cobrar es solo de caja: el mesero deja la mesa servida y el cajero la elige en el plano y cobra."
+      },
+      "inventory": {
+        "label": "Los meseros pueden editar el inventario",
+        "onHint": "El mesero crea y edita platos e ingredientes desde su pantalla.",
+        "offHint": "El mesero ve el inventario y puede solicitar ingredientes al proveedor, pero no crear, editar ni borrar."
       },
       "title": "Configuración",
       "sections": {

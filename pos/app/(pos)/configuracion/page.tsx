@@ -9,7 +9,7 @@ import { KitShell } from '@/components/kit/KitShell'
 import { BrandForm } from '@/components/settings/BrandForm'
 import { CompanyForm, DisplayForm, FloorsForm, PaymentMethodsList, TaxesList, UsersForm } from '@/components/settings/KitSettingsForms'
 import { MenuTemplateForm } from '@/components/settings/MenuTemplateForm'
-import { ChargePermissionForm, ThresholdsForm } from '@/components/settings/SettingsForms'
+import { ThresholdsForm, WaiterPermissionsForm } from '@/components/settings/SettingsForms'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { getCompany, listFloors, listPaymentMethods, listTaxes, listUsers, saveSettings, type CompanyInfo, type FloorInfo, type PaymentMethodInfo, type TaxInfo, type UserInfo } from '@/lib/services/settings'
 import { useAuthStore } from '@/lib/stores/authStore'
@@ -60,7 +60,7 @@ function ConfiguracionInner() {
               {section === 'floors' && <FloorsForm floors={floors} configId={catalog.settings.configId} onChanged={reloadFloors} />}
               {section === 'payments' && <PaymentMethodsList methods={methods} />}
               {section === 'taxes' && <TaxesList taxes={taxes} />}
-              {section === 'users' && <><ChargePermissionForm initial={catalog.settings} onSave={onSaveSettings} /><UsersForm users={users} onChanged={reloadUsers} /></>}
+              {section === 'users' && <><WaiterPermissionsForm initial={catalog.settings} onSave={onSaveSettings} /><UsersForm users={users} onChanged={reloadUsers} /></>}
               {section === 'alerts' && <ThresholdsForm key="alerts" initial={catalog.settings} section="alerts" onSave={onSaveSettings} />}
               {section === 'roi' && <ThresholdsForm key="roi" initial={catalog.settings} section="roi" onSave={onSaveSettings} />}
               {section === 'display' && <DisplayForm />}

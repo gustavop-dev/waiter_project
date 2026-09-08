@@ -34,6 +34,10 @@ test('the admin can take charging away from the waiters', async ({ page, browser
     await expect(card).toBeVisible({ timeout: 30_000 })
     await expect(card.getByText('Cobra la caja')).toBeVisible()
     await expect(card.getByRole('link', { name: 'Cobrar' })).toHaveCount(0)
+    // Y el inventario: lo ve, pero no lo edita (el permiso viene apagado de fábrica).
+    await waiter.goto('/inventario')
+    await expect(waiter.getByRole('tab', { name: 'Menú' })).toBeVisible({ timeout: 30_000 })
+    await expect(waiter.getByRole('button', { name: 'Agregar plato' })).toHaveCount(0)
     await tablet.close()
   } finally {
     await page.goto('/configuracion')

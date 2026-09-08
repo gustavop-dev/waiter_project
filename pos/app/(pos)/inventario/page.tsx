@@ -15,11 +15,14 @@ import { IngredientRow } from '@/components/pantry/IngredientRow'
 import { PantryHeader } from '@/components/pantry/PantryHeader'
 import { RequestList } from '@/components/pantry/RequestList'
 import { Button } from '@/components/ui/Button'
+import { can } from '@/lib/domain/roles'
+import { useIdentity } from '@/lib/hooks/useIdentity'
 import {
   PANTRY_CATEGORIES, STOCK_LEVELS, dishAvailable, filterDishes, filterIngredients, groupCounts,
   type Dish, type Ingredient, type LevelFilter, type PantryCategory, type RecipeLine,
 } from '@/lib/domain/pantry'
 import { archiveIngredient, recipeLines, requestIngredient } from '@/lib/services/pantry'
+import { useCatalogStore } from '@/lib/stores/catalogStore'
 import { usePantryStore } from '@/lib/stores/pantryStore'
 import { toast } from '@/lib/stores/toastStore'
 
@@ -29,6 +32,9 @@ type IngredientModal = { kind: 'add' } | { kind: 'edit'; ingredient: Ingredient 
 export default function InventarioPage() {
   const t = useTranslations('pantry')
   const s = usePantryStore()
+  const { role } = useIdentity()
+  const canEditSetting = useCatalogStore((c) => c.catalog?.settings.waiterCanEditInventory ?? false)
+  const mayEdit = can.editInventory(role, canEditSetting)
   const [detail, setDetail] = useState<Dish | null>(null)
   const [recipe, setRecipe] = useState<RecipeLine[]>([])
   const [recipeLoading, setRecipeLoading] = useState(false)
@@ -96,10 +102,11 @@ export default function InventarioPage() {
     } catch (e) { toast({ title: t('error'), body: e instanceof Error ? e.message : String(e), tone: 'danger' }) }
   }
 
+  // Ver el inventario lo hace cualquiera; crear, editar o borrar es un permiso que da el restaurante.
   const header = s.tab === 'menu'
-    ? { query: s.dishFilters.query, onQuery: (query: string) => s.setDishFilters({ query }), placeholder: t('search.dish'), action: t('actions.addDish'), onAction: () => setAddDish(true) }
+    ? { query: s.dishFilters.query, onQuery: (query: string) => s.setDishFilters({ query }), placeholder: t('search.dish'), action: mayEdit ? t('actions.addDish') : undefined, onAction: mayEdit ? () => setAddDish(true) : undefined }
     : s.tab === 'ingredients'
-      ? { query: s.ingredientFilters.query, onQuery: (query: string) => s.setIngredientFilters({ query }), placeholder: t('search.ingredient'), action: t('actions.addIngredient'), onAction: () => setIngredientModal({ kind: 'add' }) }
+      ? { query: s.ingredientFilters.query, onQuery: (query: string) => s.setIngredientFilters({ query }), placeholder: t('search.ingredient'), action: mayEdit ? t('actions.addIngredient') : undefined, onAction: mayEdit ? () => setIngredientModal({ kind: 'add' }) : undefined }
       : { query: s.requestQuery, onQuery: s.setRequestQuery, placeholder: t('search.request'), action: undefined, onAction: undefined }
   const listTitle = t(s.tab === 'menu' ? 'menu.listTitle' : s.tab === 'ingredients' ? 'ingredients.listTitle' : 'requests.listTitle')
 
@@ -118,7 +125,7 @@ export default function InventarioPage() {
               : <div className="p-2.5 grid grid-cols-3 gap-2.5 content-start">{dishes.map((d) => <DishCard key={d.id} dish={d} category={posCategoryName(d.categoryIds)} onOpen={() => void openDetail(d)} />)}</div>)}
             {s.tab === 'ingredients' && (ingredients.length === 0 && !s.loading
               ? <KitEmptyState icon="inventory" title={t('ingredients.empty')} body={t('ingredients.emptyBody')} />
-              : <ul className="p-2.5 flex flex-col gap-2">{ingredients.map((i) => <IngredientRow key={i.id} ingredient={i} onEdit={() => setIngredientModal({ kind: 'edit', ingredient: i })} onRequest={() => void request(i)} onDelete={() => setIngredientModal({ kind: 'delete', ingredient: i })} />)}</ul>)}
+              : <ul className="p-2.5 flex flex-col gap-2">{ingredients.map((i) => <IngredientRow key={i.id} ingredient={i} onEdit={() => setIngredientModal({ kind: 'edit', ingredient: i })} onRequest={() => void request(i)} onDelete={() => setIngredientModal({ kind: 'delete', ingredient: i })} mayEdit={mayEdit} />)}</ul>)}
             {s.tab === 'requests' && <RequestList requests={s.requests} query={s.requestQuery} />}
           </div>
         </section>

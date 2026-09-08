@@ -10,7 +10,7 @@ interface RawFloor { id: number; name: string; table_ids: number[]; floor_backgr
 interface RawTable { id: number; table_number: number; floor_id: number; seats: number; active: boolean; position_h: number; position_v: number; width: number; height: number; shape: 'square' | 'round'; color: string | false }
 interface RawMethod { id: number; name: string; type: PaymentMethod['type'] }
 interface RawCompany { id: number; name: string }
-interface RawConfig { id: number; name: string; waiter_can_charge: boolean; alert_late_minutes: number; alert_bill_minutes: number; roi_hour_cost: number; roi_minutes_per_order: number; roi_baseline_hours_per_100: number; roi_monthly_cost: number; roi_start_date: string | false; tip_product_id: number | false }
+interface RawConfig { id: number; name: string; waiter_can_charge: boolean; waiter_can_edit_inventory: boolean; alert_late_minutes: number; alert_bill_minutes: number; roi_hour_cost: number; roi_minutes_per_order: number; roi_baseline_hours_per_100: number; roi_monthly_cost: number; roi_start_date: string | false; tip_product_id: number | false }
 interface RawLoad {
   'product.product': RawProduct[]; 'product.template': RawTemplate[]; 'pos.category': RawCategory[]
   'restaurant.floor': RawFloor[]; 'restaurant.table': RawTable[]; 'pos.payment.method': RawMethod[]; 'res.company': RawCompany[]; 'pos.config': RawConfig[]
@@ -45,7 +45,7 @@ export async function loadPosData(sessionId: number): Promise<Catalog> {
   const paymentMethods: PaymentMethod[] = raw['pos.payment.method'].map(({ id, name, type }) => ({ id, name, type }))
   const company = { name: raw['res.company'][0]?.name ?? '' }
   const c = raw['pos.config'][0]
-  const settings: Settings = { configId: c.id, configName: c.name, waiterCanCharge: c.waiter_can_charge !== false, alertLateMinutes: c.alert_late_minutes, alertBillMinutes: c.alert_bill_minutes,
+  const settings: Settings = { configId: c.id, configName: c.name, waiterCanCharge: c.waiter_can_charge !== false, waiterCanEditInventory: c.waiter_can_edit_inventory === true, alertLateMinutes: c.alert_late_minutes, alertBillMinutes: c.alert_bill_minutes,
     roiHourCost: c.roi_hour_cost, roiMinutesPerOrder: c.roi_minutes_per_order, roiBaselineHoursPer100: c.roi_baseline_hours_per_100,
     roiMonthlyCost: c.roi_monthly_cost, roiStartDate: c.roi_start_date || null, tipProductId: c.tip_product_id || null }
   return { company, settings, products, categories, floors, tables, paymentMethods }

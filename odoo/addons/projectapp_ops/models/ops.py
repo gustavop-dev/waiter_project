@@ -124,6 +124,10 @@ class PosConfig(models.Model):
         string="Los meseros pueden cobrar", default=True,
         help="Con esto apagado, cobrar es solo de caja: el mesero deja la mesa servida y el cajero la elige "
              "en el plano y cobra. No hace falta que el mesero mande nada.")
+    waiter_can_edit_inventory = fields.Boolean(
+        string="Los meseros pueden editar el inventario", default=False,
+        help="Ver el inventario lo hace cualquiera; crear platos o ingredientes, borrarlos o editarlos es "
+             "otra cosa. Apagado por defecto: se enciende para el restaurante que quiera dárselo a la sala.")
     alert_late_minutes = fields.Integer(string="Minutos para 'demorado'", default=18)
     alert_bill_minutes = fields.Integer(string="Minutos con la cuenta pedida sin cobrar", default=10)
     roi_hour_cost = fields.Float(string="Costo hora de atención (COP)", default=20000.0)
@@ -138,7 +142,7 @@ class PosConfig(models.Model):
         fields_ = super()._load_pos_data_fields(*args, **kwargs)
         if not fields_:
             return fields_
-        return fields_ + ["waiter_can_charge", "alert_late_minutes", "alert_bill_minutes", "roi_hour_cost", "roi_minutes_per_order",
+        return fields_ + ["waiter_can_charge", "waiter_can_edit_inventory", "alert_late_minutes", "alert_bill_minutes", "roi_hour_cost", "roi_minutes_per_order",
                           "roi_baseline_hours_per_100", "roi_monthly_cost", "roi_start_date"]
 
 
