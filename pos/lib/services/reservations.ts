@@ -25,7 +25,7 @@ export interface ReservationDetail extends ReservationCard { customerEmail: stri
 export interface Timeline { date: string; slots: Slot[]; floors: { id: number; name: string }[]; tables: TimelineTable[] }
 export interface NewReservation {
   customerName: string; customerEmail: string; customerPhone: string; people: number; babyChair: boolean
-  notes: string; date: string; timeStart: number; tableId: number; configId: number
+  notes: string; date: string; timeStart: number; tableId: number; configId: number; prepMinutes: string
 }
 export interface PreorderLine { productId: number; qty: number; note?: string }
 
@@ -50,9 +50,9 @@ export async function getTimeline(configId: number, date: string, floorId?: numb
 
 export const getSlots = (configId: number, date: string): Promise<Slot[]> => callKw<Slot[]>(MODEL, 'waiter_slots', [configId, date])
 
-export async function getAvailableTables(configId: number, date: string, timeStart: number, people: number): Promise<AvailableTable[]> {
+export async function getAvailableTables(configId: number, date: string, timeStart: number, people: number, prepMinutes: string = '30'): Promise<AvailableTable[]> {
   const raw = await callKw<(RawTable & { status: AvailableTable['status']; available: boolean; reserved_at: string | false })[]>(
-    MODEL, 'waiter_available_tables', [configId, date, timeStart, people, false, true])
+    MODEL, 'waiter_available_tables', [configId, date, timeStart, people, false, true, prepMinutes])
   return raw.map((t) => ({ id: t.id, tableNumber: t.table_number, name: t.name, seats: t.seats, floorId: t.floor_id, floorName: t.floor_name, shape: t.shape, status: t.status, available: t.available, reservedAt: t.reserved_at }))
 }
 
@@ -61,6 +61,7 @@ export async function createReservation(input: NewReservation, lines: PreorderLi
     customer_name: input.customerName, customer_email: input.customerEmail || false, customer_phone: input.customerPhone || false,
     people: input.people, baby_chair: input.babyChair, notes: input.notes || false,
     date: input.date, time_start: input.timeStart, table_id: input.tableId, config_id: input.configId,
+    prep_minutes: input.prepMinutes,
   }
   const raw = await callKw<RawDetail>(MODEL, 'waiter_create', [vals, lines.map((l) => ({ product_id: l.productId, qty: l.qty, note: l.note ?? '' }))])
   return detail(raw)

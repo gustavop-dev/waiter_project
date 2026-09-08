@@ -83,7 +83,7 @@ export const useReservationsStore = create<ReservationsState>((set, get) => ({
     const { draft } = get()
     if (!draft.date || draft.timeStart === null) return
     set({ busy: true })
-    try { set({ tables: await getAvailableTables(configId, draft.date, draft.timeStart, draft.people), busy: false }) }
+    try { set({ tables: await getAvailableTables(configId, draft.date, draft.timeStart, draft.people, draft.prepMinutes), busy: false }) }
     catch (e) { set({ busy: false, error: message(e) }) }
   },
 
@@ -100,7 +100,7 @@ export const useReservationsStore = create<ReservationsState>((set, get) => ({
       const created = await createReservation({
         customerName: draft.customerName.trim(), customerEmail: draft.customerEmail.trim(), customerPhone: draft.customerPhone.trim(),
         people: draft.people, babyChair: draft.babyChair, notes: draft.notes.trim(),
-        date: draft.date, timeStart: draft.timeStart, tableId: draft.tableId, configId,
+        date: draft.date, timeStart: draft.timeStart, tableId: draft.tableId, configId, prepMinutes: draft.prepMinutes,
       }, lines.map((l) => ({ productId: l.productId, qty: l.qty, note: l.note })))
       set({ busy: false, open: false, date: draft.date })
       await get().load(configId)

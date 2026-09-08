@@ -51,7 +51,17 @@
     "no": "No",
     "notes": "Notas",
     "notesPlaceholder": "Cumpleaños, alergias, mesa junto a la ventana…",
-    "continue": "Continuar"
+    "continue": "Continuar",
+    "prep": "Apartar la mesa desde",
+    "prepChoice": {
+      "0": "A la hora",
+      "15": "15 min antes",
+      "30": "30 min antes",
+      "60": "1 hora antes",
+      "120": "2 horas antes"
+    },
+    "prepHint": "La mesa deja de ofrecerse de {from} a {to}. Ese margen es para prepararla, no porque el comensal ya esté aquí: el resto del día la mesa se usa con normalidad.",
+    "prepHintNoTime": "Ese margen es para preparar la mesa, no porque el comensal ya esté aquí: el resto del día la mesa se usa con normalidad."
   },
   "wizard": {
     "title": "Nueva reserva",

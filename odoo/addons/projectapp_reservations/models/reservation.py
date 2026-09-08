@@ -13,6 +13,11 @@ from odoo.exceptions import UserError, ValidationError
 ACTIVE_STATES = ("confirmed", "seated")
 DEFAULT_DURATION_HOURS = 1.5
 SLOT_HOURS = 0.5
+# Minutos que la mesa se aparta ANTES de la hora reservada. No es que el comensal ya esté ahí: es el
+# tiempo de preparar la mesa. Fuera de esa ventana la mesa se usa con normalidad, que es lo que evita que
+# una reserva de las 20:00 deje la mesa muerta desde el almuerzo.
+PREP_CHOICES = [("0", "Sin margen"), ("15", "15 minutos antes"), ("30", "30 minutos antes"),
+                ("60", "1 hora antes"), ("120", "2 horas antes")]
 
 
 def hour_label(value):
@@ -33,6 +38,14 @@ class WaiterReservation(models.Model):
     date = fields.Date(string="Fecha", required=True, default=fields.Date.context_today, index=True)
     time_start = fields.Float(string="Hora de inicio", required=True, help="Horas; franjas de 30 minutos (17.5 = 17:30).")
     time_end = fields.Float(string="Hora de fin", required=True, help="Por defecto, inicio + 1,5 h.")
+    prep_minutes = fields.Selection(
+        PREP_CHOICES, string="Apartar desde", default="30", required=True,
+        help="Cuánto antes de la hora reservada deja de ofrecerse la mesa, para prepararla. No implica que "
+             "el comensal esté ya en el local.")
+    hold_start = fields.Float(
+        string="Apartada desde", compute="_compute_hold_start", store=True,
+        help="Hora a partir de la cual la mesa deja de estar libre: inicio menos el margen de preparación.")
+
     people = fields.Integer(string="Personas", required=True, default=2)
     baby_chair = fields.Boolean(string="Silla de bebé", default=False)
     table_id = fields.Many2one("restaurant.table", string="Mesa", required=True, ondelete="restrict", index=True)
@@ -48,6 +61,12 @@ class WaiterReservation(models.Model):
     currency_id = fields.Many2one(related="preorder_id.currency_id")
     amount_total = fields.Monetary(related="preorder_id.amount_total", string="Total del pre-pedido", currency_field="currency_id")
 
+    @api.depends("time_start", "prep_minutes")
+    def _compute_hold_start(self):
+        for reservation in self:
+            margin = int(reservation.prep_minutes or "0") / 60.0
+            reservation.hold_start = max(0.0, (reservation.time_start or 0.0) - margin)
+
     # ------------------------------------------------------------------ reglas
     @api.constrains("time_start", "time_end", "people")
     def _check_slot(self):
@@ -59,7 +78,7 @@ class WaiterReservation(models.Model):
             if abs(reservation.time_start * 2 - round(reservation.time_start * 2)) > 1e-6:
                 raise ValidationError(_("La hora de inicio debe caer en una franja de 30 minutos (por ejemplo 17:00 o 17:30)."))
 
-    @api.constrains("table_id", "date", "time_start", "time_end", "state")
+    @api.constrains("table_id", "date", "time_start", "time_end", "state", "prep_minutes")
     def _check_overlap(self):
         for reservation in self.filtered(lambda r: r.state in ACTIVE_STATES):
             clash = self.search(reservation._overlap_domain(), limit=1)
@@ -74,7 +93,9 @@ class WaiterReservation(models.Model):
         self.ensure_one()
         return [
             ("id", "!=", self.id), ("table_id", "=", self.table_id.id), ("date", "=", self.date),
-            ("state", "in", ACTIVE_STATES), ("time_start", "<", self.time_end), ("time_end", ">", self.time_start),
+            # El choque se mide sobre la ventana real, margen de preparación incluido: si una mesa se
+            # aparta a las 19:30 para una reserva de las 20:00, otra reserva no puede acabar a las 19:45.
+            ("state", "in", ACTIVE_STATES), ("hold_start", "<", self.time_end), ("time_end", ">", self.hold_start),
         ]
 
     # ------------------------------------------------------------------ ciclo de vida
@@ -148,19 +169,22 @@ class WaiterReservation(models.Model):
         return slots
 
     @api.model
-    def waiter_available_tables(self, config_id, date, time_start, people, time_end=None, include_unavailable=False):
+    def waiter_available_tables(self, config_id, date, time_start, people, time_end=None, include_unavailable=False, prep_minutes="30"):
         """Mesas del punto de venta sin reserva activa que solape y con ``seats >= people``.
 
         Con ``include_unavailable=True`` devuelve todas con ``status`` = available | reserved | unavailable
         (leyenda del kit "Available / Reserved / Can't Select") y ``reserved_at`` de la reserva que choca.
+        El choque se mide con el margen de preparación de las dos partes: el de la reserva que ya existe y
+        el de la que se está creando.
         """
         config = self.env["pos.config"].browse(config_id)
         date = fields.Date.to_date(date)
         time_end = time_end or time_start + DEFAULT_DURATION_HOURS
+        hold_start = max(0.0, time_start - int(prep_minutes or "0") / 60.0)
         tables = config.floor_ids.filtered("active").table_ids.filtered("active")
         clashes = self.search([
             ("table_id", "in", tables.ids), ("date", "=", date), ("state", "in", ACTIVE_STATES),
-            ("time_start", "<", time_end), ("time_end", ">", time_start),
+            ("hold_start", "<", time_end), ("time_end", ">", hold_start),
         ], order="time_start, id")
         clash_by_table = {}
         for reservation in clashes:
@@ -251,6 +275,7 @@ class WaiterReservation(models.Model):
             "id": self.id, "name": self.name, "customer_name": self.customer_name, "people": self.people,
             "baby_chair": self.baby_chair, "state": self.state, "date": fields.Date.to_string(self.date),
             "time_start": self.time_start, "time_end": self.time_end, "label": hour_label(self.time_start),
+            "prep_minutes": self.prep_minutes, "hold_start": self.hold_start, "hold_label": hour_label(self.hold_start),
             "time_label": self.waiter_time_label(), "table_id": self.table_id.id, "table_number": self.table_id.table_number,
             "floor_id": self.floor_id.id, "floor_name": self.floor_id.name or "",
         }

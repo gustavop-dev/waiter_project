@@ -180,6 +180,17 @@ Lo que aguanta: con 61 pedidos abiertos y 245 líneas la consulta pesada sigue e
 índice). El techo era la concurrencia del sondeo y el bus se lo lleva casi entero. En producción
 sigue tocando fijar `workers` (aquí, 6 núcleos → 13); el contenedor de desarrollo corre con uno.
 
+#### Reservas: apartar no es bloquear el día
+
+Una reserva de las 20:00 no puede dejar la mesa muerta desde el almuerzo. `prep_minutes` (a la hora,
+15, 30, 60 o 120 minutos; 30 por defecto) dice cuánto antes se aparta la mesa **para prepararla** —no
+porque el comensal esté ya en el local— y `hold_start = time_start − margen` es la hora desde la que
+deja de ofrecerse. Fuera de esa ventana la mesa se usa con normalidad.
+
+La ventana manda en los tres sitios: el plano solo pinta «Reservada» dentro de ella, el choque entre
+reservas se mide con el margen de las dos partes, y el paso 1 del asistente lo elige y dice en texto
+de cuándo a cuándo quedará apartada.
+
 #### Quién cobra
 
 `pos.config.waiter_can_charge` (Configuración › Usuarios). Encendido, el mesero cobra la mesa que

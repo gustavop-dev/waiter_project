@@ -30,16 +30,28 @@ export function cardPlacement(card: { timeStart: number; timeEnd: number }, slot
   return { index, span }
 }
 
+// Cuánto antes de la hora reservada se aparta la mesa. Es tiempo para prepararla, no porque el comensal
+// esté ya en el local: fuera de esa ventana la mesa se usa con normalidad.
+export const PREP_CHOICES = ['0', '15', '30', '60', '120'] as const
+export type PrepMinutes = (typeof PREP_CHOICES)[number]
+
 export interface ReservationDraft {
   customerName: string; customerEmail: string; customerPhone: string
   people: number; babyChair: boolean; notes: string
-  date: string | null; timeStart: number | null; tableId: number | null
+  date: string | null; timeStart: number | null; tableId: number | null; prepMinutes: PrepMinutes
 }
 
 export const emptyDraft = (): ReservationDraft => ({
   customerName: '', customerEmail: '', customerPhone: '', people: 2, babyChair: false, notes: '',
-  date: null, timeStart: null, tableId: null,
+  date: null, timeStart: null, tableId: null, prepMinutes: '30',
 })
+
+// "20:00" con 30 minutos de margen → "19:30": la hora desde la que el plano deja de ofrecer la mesa.
+export function holdLabel(timeStart: number, prep: PrepMinutes): string {
+  const hold = Math.max(0, timeStart - Number(prep) / 60)
+  const total = Math.round(hold * 60)
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
+}
 
 /** El paso 1 pide nombre, personas y cuándo. El correo, si se escribe, debe parecer un correo. */
 export function infoStepReady(draft: ReservationDraft): boolean {

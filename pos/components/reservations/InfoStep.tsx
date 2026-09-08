@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { Icon } from '@/components/kit/Icon'
 import { Stepper } from '@/components/orders/Stepper'
 import { Button } from '@/components/ui/Button'
-import { hourLabel, infoStepReady, type ReservationDraft } from '@/lib/domain/reservations'
+import { holdLabel, hourLabel, infoStepReady, PREP_CHOICES, type ReservationDraft } from '@/lib/domain/reservations'
 import { cn } from '@/lib/utils'
 
 const INPUT = 'h-12 px-4 rounded-md border border-border bg-surface text-[16px] text-ink focus:outline-none focus:border-primary'
@@ -55,6 +55,25 @@ export function InfoStep({ draft, onChange, onPickMoment, onContinue }: {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Cuánto antes se aparta la mesa. Es tiempo para prepararla, no para el comensal: fuera de esa
+            ventana la mesa se usa con normalidad, y por eso una reserva de la noche no mata la mesa al mediodía. */}
+        <div className="flex flex-col gap-2">
+          <span className="text-[15px] font-medium text-ink">{t('prep')}</span>
+          <div role="radiogroup" aria-label={t('prep')} className="flex flex-wrap gap-2">
+            {PREP_CHOICES.map((value) => (
+              <button key={value} type="button" role="radio" aria-checked={draft.prepMinutes === value} onClick={() => onChange({ prepMinutes: value })}
+                className={cn('h-12 px-4 rounded-md border text-[15px] font-semibold', draft.prepMinutes === value ? 'bg-primary-soft border-primary/40 text-primary' : 'bg-surface border-border text-soft')}>
+                {t(`prepChoice.${value}`)}
+              </button>
+            ))}
+          </div>
+          <p className="text-[14px] text-soft leading-relaxed">
+            {draft.timeStart === null
+              ? t('prepHintNoTime')
+              : t('prepHint', { from: holdLabel(draft.timeStart, draft.prepMinutes), to: hourLabel(draft.timeStart) })}
+          </p>
         </div>
 
         <label className="flex flex-col gap-2 text-[15px] font-medium text-ink">{t('notes')}

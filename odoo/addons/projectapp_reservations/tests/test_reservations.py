@@ -4,6 +4,7 @@ Corren con el runner de Odoo (`-u projectapp_reservations --test-enable --test-t
 """
 from datetime import date
 
+from odoo import fields
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
@@ -34,18 +35,41 @@ class TestReservations(TransactionCase):
 
     def test_overlapping_reservations_on_the_same_table_are_rejected(self):
         """Falla si dos reservas activas comparten mesa y franja, si una cancelada sigue bloqueando o si la hora no es de 30 min."""
-        first = self._reserve(self.t4, 12.0)
+        first = self._reserve(self.t4, 12.0, prep_minutes="0")
         self.assertEqual((first.time_end, first.state, first.floor_id), (13.5, "confirmed", self.floor))
         with self.assertRaises(ValidationError):
-            self._reserve(self.t4, 13.0)
+            self._reserve(self.t4, 13.0, prep_minutes="0")
         with self.assertRaises(ValidationError):
-            self._reserve(self.t4, 11.0, time_end=12.5)
-        self._reserve(self.t4, 13.5)
-        self._reserve(self.t2, 12.0)
+            self._reserve(self.t4, 11.0, time_end=12.5, prep_minutes="0")
+        self._reserve(self.t4, 13.5, prep_minutes="0")
+        self._reserve(self.t2, 12.0, prep_minutes="0")
         first.action_cancel()
-        self._reserve(self.t4, 12.0)
+        self._reserve(self.t4, 12.0, prep_minutes="0")
         with self.assertRaises(ValidationError):
             self._reserve(self.t8, 12.25)
+
+    def test_the_prep_margin_holds_the_table_before_the_hour_and_frees_the_rest_of_the_day(self):
+        """El margen es para preparar la mesa, no porque el comensal esté ya ahí: una reserva de la noche
+        no puede dejar la mesa muerta desde el almuerzo, y media hora antes sí la aparta."""
+        night = self._reserve(self.t4, 20.0, prep_minutes="30")
+        self.assertEqual((night.hold_start, night.time_end), (19.5, 21.5))
+        # A mediodía la mesa se usa con normalidad.
+        self.assertIn(self.t4.id, [t["id"] for t in self.Reservation.waiter_available_tables(self.config.id, self.day, 13.0, 3)])
+        # Dentro del margen ya no: una reserva que acabe a las 19:45 pisa la preparación.
+        with self.assertRaises(ValidationError):
+            self._reserve(self.t4, 18.5, time_end=19.75, prep_minutes="0")
+        # Sin margen, esa misma reserva cabe.
+        night.write({"prep_minutes": "0"})
+        self.assertEqual(night.hold_start, 20.0)
+        self._reserve(self.t4, 18.5, time_end=19.75, prep_minutes="0")
+
+    def test_the_floor_only_shows_the_reservation_that_holds_the_table_now(self):
+        """Falla si el plano pinta "Reservada" por una reserva de dentro de seis horas."""
+        table = self.env["restaurant.table"].create({"floor_id": self.floor.id, "table_number": 904, "seats": 4})
+        today = fields.Date.context_today(self.Reservation)
+        now = self.Reservation._waiter_now_hour()
+        self._reserve(table, min(23.0, float(int(now + 4)) ), date=today, prep_minutes="30")
+        self.assertFalse(table.waiter_reserved_at(today)[table.id], "todavía no la aparta")
 
     def test_slots_follow_the_config_hours_and_available_tables_skip_clashes_and_small_tables(self):
         """Falla si las franjas no van de 10:00 a 21:30 cada 30 min, si el pos.config no las configura o si una mesa ocupada o pequeña se ofrece."""
@@ -54,13 +78,13 @@ class TestReservations(TransactionCase):
         self.assertEqual((slots[0], slots[-1]["label"]), ({"time": 10.0, "label": "10:00", "past": False}, "21:30"))
         self.config.write({"reservation_open": 12.0, "reservation_close": 14.0})
         self.assertEqual([s["label"] for s in self.Reservation.waiter_slots(self.config.id, self.day)], ["12:00", "12:30", "13:00", "13:30"])
-        self._reserve(self.t4, 12.0)
-        free = [t["id"] for t in self.Reservation.waiter_available_tables(self.config.id, self.day, 13.0, 3)]
+        self._reserve(self.t4, 12.0, prep_minutes="0")
+        free = [t["id"] for t in self.Reservation.waiter_available_tables(self.config.id, self.day, 13.0, 3, prep_minutes="0")]
         self.assertNotIn(self.t4.id, free)
         self.assertNotIn(self.t2.id, free)
         self.assertIn(self.t8.id, free)
-        self.assertIn(self.t4.id, [t["id"] for t in self.Reservation.waiter_available_tables(self.config.id, self.day, 13.5, 3)])
-        by_id = {t["id"]: t for t in self.Reservation.waiter_available_tables(self.config.id, self.day, 13.0, 3, include_unavailable=True)}
+        self.assertIn(self.t4.id, [t["id"] for t in self.Reservation.waiter_available_tables(self.config.id, self.day, 13.5, 3, prep_minutes="0")])
+        by_id = {t["id"]: t for t in self.Reservation.waiter_available_tables(self.config.id, self.day, 13.0, 3, include_unavailable=True, prep_minutes="0")}
         self.assertEqual((by_id[self.t4.id]["status"], by_id[self.t4.id]["reserved_at"], by_id[self.t2.id]["status"]), ("reserved", "12:00", "unavailable"))
 
     def test_waiter_create_builds_the_dine_in_preorder_and_queues_the_confirmation_mail(self):
