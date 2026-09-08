@@ -36,7 +36,8 @@ export default function KdsPage() {
 
   // La pantalla de cocina no lleva armazón (es un dispositivo, no un mesero): abre el bus ella misma.
   const startBus = useBusStore((s) => s.start)
-  useEffect(() => { startBus() }, [startBus])
+  const releaseBus = useBusStore((s) => s.release)
+  useEffect(() => { startBus(); return releaseBus }, [startBus, releaseBus])
   const busUp = useBusStore((s) => s.up)
   const kitchenTick = useBusStore((s) => s.ticks.kitchen)
   const ordersTick = useBusStore((s) => s.ticks.orders)

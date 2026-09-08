@@ -27,14 +27,27 @@ it('switches to a dropdown with four or more floors', async () => {
   expect(onChange).toHaveBeenCalledWith(4)
 })
 
-// Falla si la barra pierde alguna de sus tres acciones o el nombre de la mesa.
-it('selected bar carries the table name, clear, reservation and detail actions', async () => {
-  const onDetail = jest.fn(), onClear = jest.fn()
-  wrap(<SelectedTableBar name="11" onClear={onClear} onReservations={() => undefined} onDetail={onDetail} />)
+// Falla si la barra pierde el nombre de la mesa, el detalle, el aspa o el pedido nuevo: con la mesa ya
+// elegida, esta barra es donde empieza el trabajo.
+it('selected bar carries the table name, clear, detail and new order', async () => {
+  const onDetail = jest.fn(), onClear = jest.fn(), onNewOrder = jest.fn()
+  wrap(<SelectedTableBar name="11" hasReservation={false} onClear={onClear} onReservations={() => undefined} onDetail={onDetail} onNewOrder={onNewOrder} />)
   expect(screen.getByRole('toolbar')).toHaveTextContent('Mesa seleccionada:Mesa 11')
   await userEvent.click(screen.getByRole('button', { name: 'Detalle de mesa' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Crear pedido' }))
   await userEvent.click(screen.getByRole('button', { name: 'Quitar selección' }))
-  expect([onDetail.mock.calls.length, onClear.mock.calls.length]).toEqual([1, 1])
+  expect([onDetail.mock.calls.length, onNewOrder.mock.calls.length, onClear.mock.calls.length]).toEqual([1, 1, 1])
+})
+
+// Falla si "Info de reserva" sale en una mesa sin reservas: un botón que abre una lista vacía es ruido.
+it('offers the reservation list only when the table actually has one', async () => {
+  const onReservations = jest.fn()
+  const bar = (has: boolean) => <SelectedTableBar name="11" hasReservation={has} onClear={jest.fn()} onReservations={onReservations} onDetail={jest.fn()} onNewOrder={jest.fn()} />
+  const { rerender } = wrap(bar(false))
+  expect(screen.queryByRole('button', { name: 'Info de reserva' })).not.toBeInTheDocument()
+  rerender(<NextIntlClientProvider locale="es" messages={messages}>{bar(true)}</NextIntlClientProvider>)
+  await userEvent.click(screen.getByRole('button', { name: 'Info de reserva' }))
+  expect(onReservations).toHaveBeenCalled()
 })
 
 // Falla si el chip del piso no muestra el tipo o esconde las mesas libres al abrirse.

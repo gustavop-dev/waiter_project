@@ -22,10 +22,11 @@ export function KitShell({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState(false)
   // Una sola conexión al bus por tablet: el servidor avisa de lo que cambia y el sondeo pasa a ser red
   // de seguridad. Sonido y aviso en pantalla de cada notificación nueva, esté donde esté el mesero.
-  // Sin cierre al desmontar: cada pantalla monta su propio armazón y cerrar aquí reconectaría el bus en
-  // cada navegación. La conexión se cierra al salir (authStore), que es cuando deja de tener dueño.
+  // Se suelta al desmontar, no se cierra: cada pantalla monta su propio armazón y la conexión sobrevive a
+  // la navegación (ver busStore). Al salir de verdad, authStore la cierra.
   const startBus = useBusStore((s) => s.start)
-  useEffect(() => { startBus() }, [startBus])
+  const releaseBus = useBusStore((s) => s.release)
+  useEffect(() => { startBus(); return releaseBus }, [startBus, releaseBus])
   useNotificationAlerts()
   // Manda el empleado que marcó su PIN, no la credencial con la que se abrió la tablet.
   const { name: shownName, role } = useIdentity()

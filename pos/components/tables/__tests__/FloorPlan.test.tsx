@@ -15,7 +15,8 @@ const wrap = (ui: React.ReactElement) => render(<NextIntlClientProvider locale="
 // nombre accesible deja de decir el estado (los E2E y el lector de pantalla dependen de él).
 it('paints available and unavailable tables with the kit colors, code and state pill', () => {
   wrap(<FloorPlan views={[view(1, 'free'), view(2, 'kitchen', 9)]} selectedId={null} onSelect={() => undefined} codeFor={() => 'DI104'} />)
-  expect(screen.getByRole('button', { name: 'Mesa 1: Disponible' })).toHaveClass('bg-surface')
+  // Azul, no blanco: sobre el lienzo casi blanco una mesa libre no se distinguía del fondo.
+  expect(screen.getByRole('button', { name: 'Mesa 1: Disponible' })).toHaveClass('bg-primary')
   const busy = screen.getByRole('button', { name: 'Mesa 2: En progreso' })
   expect(busy).toHaveClass('bg-progress')
   expect(busy).toHaveTextContent('DI104')

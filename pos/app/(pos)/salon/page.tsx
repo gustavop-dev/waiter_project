@@ -173,8 +173,7 @@ export default function SalonPage() {
           <TableLegend />
           <FloorSwitcher floors={catalog.floors} activeId={floorId} onChange={setFloor} />
           <span aria-hidden className="w-px h-8 bg-border" />
-          <button type="button" onClick={() => (newOrderHref ? router.push(newOrderHref) : setPickTable(true))}
-            className="h-12 px-4 rounded-md bg-primary text-primary-ink flex items-center gap-2 text-[16px] font-semibold"><Icon name="plus" size={20} />{t('createOrder')}</button>
+          {/* Crear pedido vive en la barra de la mesa seleccionada: aquí arriba pedía la mesa que allí ya está elegida. */}
           {mayManageFloors && (
             <button type="button" aria-label={t('settings')} aria-expanded={settings} onClick={() => setSettings((v) => !v)} className="w-12 h-12 rounded-full border border-border bg-surface grid place-items-center text-ink"><Icon name="cog" size={22} /></button>
           )}
@@ -190,7 +189,9 @@ export default function SalonPage() {
             <button type="button" onClick={() => { setMoving(null); setTarget(null) }} className="h-11 px-3.5 rounded-sm bg-[#F7F7F7] text-[#0F172A] flex items-center gap-2"><Icon name="close" size={18} />{t('selected.cancelMove')}</button>
           </div>
         ) : selected && (
-          <SelectedTableBar name={String(selected.table.number)} onClear={() => selectTable(null)} onReservations={() => setSheet('reservations')} onDetail={() => setSheet('detail')} />
+          <SelectedTableBar name={String(selected.table.number)} hasReservation={Boolean(reserved[selected.table.id])}
+            onClear={() => selectTable(null)} onReservations={() => setSheet('reservations')} onDetail={() => setSheet('detail')}
+            onNewOrder={() => newOrderHref && router.push(newOrderHref)} />
         )}
         <FloorSettingsPopover open={settings && mayManageFloors} onClose={() => setSettings(false)} floors={allFloors} onAdd={() => { setSettings(false); setSheet('wizard') }} onEdit={openEdit} onToggle={toggleFloor} />
       </div>

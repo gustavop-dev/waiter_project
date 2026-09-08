@@ -15,7 +15,7 @@ export function TableLegend() {
   const t = useTranslations('tables.legend')
   return (
     <ul className="flex items-center gap-4 text-[14px] text-soft" aria-label={t('available')}>
-      <li className="flex items-center gap-1.5"><span aria-hidden className="w-2 h-2 rounded-full border border-border bg-surface" />{t('available')}</li>
+      <li className="flex items-center gap-1.5"><span aria-hidden className="w-2 h-2 rounded-full bg-primary" />{t('available')}</li>
       <li className="flex items-center gap-1.5"><span aria-hidden className="w-2 h-2 rounded-full bg-progress" />{t('unavailable')}</li>
       <li className="flex items-center gap-1.5"><span aria-hidden className="w-2 h-2 rounded-full bg-success" />{t('ready')}</li>
       <li className="flex items-center gap-1.5"><span aria-hidden className="w-2 h-2 rounded-full bg-reserved" />{t('reserved')}</li>
@@ -88,8 +88,12 @@ export function FloorInfoChip({ type, remaining }: { type: FloorType; remaining:
   )
 }
 
-// Barra flotante del kit (Table Selected.png): "Mesa seleccionada: [Mesa A11 ✕] | Info de reserva · Detalle de mesa".
-export function SelectedTableBar({ name, onClear, onReservations, onDetail }: { name: string; onClear: () => void; onReservations: () => void; onDetail: () => void }) {
+// Barra flotante del kit (Table Selected.png). Es donde empieza el trabajo con una mesa concreta, así que
+// aquí está "Crear pedido": la mesa ya está elegida. "Info de reserva" solo si la mesa tiene alguna; un
+// botón que siempre abre una lista vacía no es un botón, es ruido.
+export function SelectedTableBar({ name, hasReservation, onClear, onReservations, onDetail, onNewOrder }: {
+  name: string; hasReservation: boolean; onClear: () => void; onReservations: () => void; onDetail: () => void; onNewOrder: () => void
+}) {
   const t = useTranslations('tables')
   return (
     <div role="toolbar" aria-label={t('selected.label')} className="absolute left-1/2 -translate-x-1/2 bottom-8 z-20 h-14 pl-4 pr-1.5 rounded-md bg-overlay text-[#F7F7F7] shadow-xl flex items-center gap-3 whitespace-nowrap">
@@ -99,8 +103,11 @@ export function SelectedTableBar({ name, onClear, onReservations, onDetail }: { 
         <button type="button" onClick={onClear} aria-label={t('selected.clear')} className="w-8 h-8 grid place-items-center rounded-sm hover:bg-black/10"><Icon name="close" size={18} /></button>
       </span>
       <span aria-hidden className="w-px h-6 bg-[#51525C]" />
-      <button type="button" onClick={onReservations} className="h-11 px-3.5 rounded-sm bg-[#F7F7F7] text-[#0F172A] flex items-center gap-2 text-[15px] font-semibold"><Icon name="reservations" size={20} />{t('selected.reservation')}</button>
-      <button type="button" onClick={onDetail} className="h-11 px-3.5 rounded-sm bg-primary text-primary-ink flex items-center gap-2 text-[15px] font-semibold"><Icon name="tables" size={20} />{t('selected.detail')}</button>
+      {hasReservation && (
+        <button type="button" onClick={onReservations} className="h-11 px-3.5 rounded-sm bg-[#F7F7F7] text-[#0F172A] flex items-center gap-2 text-[15px] font-semibold"><Icon name="reservations" size={20} />{t('selected.reservation')}</button>
+      )}
+      <button type="button" onClick={onDetail} className="h-11 px-3.5 rounded-sm bg-[#F7F7F7] text-[#0F172A] flex items-center gap-2 text-[15px] font-semibold"><Icon name="tables" size={20} />{t('selected.detail')}</button>
+      <button type="button" onClick={onNewOrder} className="h-11 px-3.5 rounded-sm bg-primary text-primary-ink flex items-center gap-2 text-[15px] font-semibold"><Icon name="plus" size={20} />{t('createOrder')}</button>
     </div>
   )
 }

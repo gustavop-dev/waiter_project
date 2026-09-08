@@ -16,13 +16,14 @@ interface Props {
   inert?: boolean
 }
 
+// Una mesa libre en blanco sobre el lienzo casi blanco no se veía: va en azul, que además es el color
+// con el que el mesero ya asocia "puedes usarla" en el resto de la interfaz.
 const BOX: Record<KitTableState, string> = {
-  available: 'bg-surface border border-border text-ink', unavailable: 'bg-progress text-progress-ink', reserved: 'bg-reserved text-reserved-ink',
+  available: 'bg-primary text-primary-ink', unavailable: 'bg-progress text-progress-ink', reserved: 'bg-reserved text-reserved-ink',
 }
-// Las sillas de una mesa libre son gris claro macizo (en el kit se ven sobre el lienzo, no se pierden en él).
-const CHAIR: Record<KitTableState, string> = { available: 'bg-muted', unavailable: 'bg-progress', reserved: 'bg-reserved' }
-const CHIP: Record<KitTableState, string> = { available: 'bg-muted text-ink', unavailable: 'bg-progress-soft text-progress-ink', reserved: 'bg-muted text-ink' }
-const PILL: Record<KitTableState, string> = { available: 'bg-muted text-ink', unavailable: 'bg-progress-soft text-progress-ink', reserved: 'bg-surface text-ink' }
+const CHAIR: Record<KitTableState, string> = { available: 'bg-primary/45', unavailable: 'bg-progress', reserved: 'bg-reserved' }
+const CHIP: Record<KitTableState, string> = { available: 'bg-primary-ink/15 text-primary-ink', unavailable: 'bg-progress-soft text-progress-ink', reserved: 'bg-muted text-ink' }
+const PILL: Record<KitTableState, string> = { available: 'bg-primary-ink/15 text-primary-ink', unavailable: 'bg-progress-soft text-progress-ink', reserved: 'bg-surface text-ink' }
 const CHAIR_THICK = 10
 const CHAIR_GAP = 6
 
@@ -51,7 +52,7 @@ export function TableShape({ rect, name, state, code = null, pill = null, select
           <span>{name}</span>{code && <span>{code}</span>}
         </span>
       ) : name !== '' && (
-        <span className="absolute inset-0 grid place-items-center"><span className="w-11 h-11 rounded-full bg-muted grid place-items-center text-[16px] font-semibold text-ink">{name}</span></span>
+        <span className="absolute inset-0 grid place-items-center"><span className="w-11 h-11 rounded-full bg-primary-ink/15 grid place-items-center text-[16px] font-semibold text-primary-ink">{name}</span></span>
       )}
       {pill && (
         <span className={cn('absolute bottom-2 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[13px] font-semibold whitespace-nowrap',
