@@ -6,10 +6,14 @@ import { orderStatus, progressPercent, type KitOrder, type KitStatus } from '@/l
 import { listKitOrders } from '@/lib/services/ordersKit'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
+import { useBusStore } from '@/lib/stores/busStore'
 import { useNotificationStore } from '@/lib/stores/notificationStore'
 import { useOrderStore } from '@/lib/stores/orderStore'
 
+// Con el bus vivo el sondeo es solo red de seguridad (por si un aviso se pierde); sin él, es lo único
+// que hay y vuelve al ritmo corto.
 const POLL_MS = 10_000
+const POLL_WITH_BUS_MS = 60_000
 
 // Pedidos abiertos del turno en el lenguaje del kit, sondeados cada 10 s. "Esperando pago" sale de la bandera local
 // `billing` del orderStore o de que el comensal pidiera la cuenta desde su móvil (llamada de mesa en Odoo).
@@ -37,15 +41,23 @@ export function useKitOrders() {
     }
   }, [session, catalog, tableNumberOf, refreshOpenOrders])
 
+  const busUp = useBusStore((s) => s.up)
   useEffect(() => {
     // Primera carga fuera del cuerpo del efecto (sin setState síncrono) y sondeo periódico después.
     const first = setTimeout(() => { void refresh() }, 0)
-    const id = setInterval(() => { void refresh() }, POLL_MS)
+    const id = setInterval(() => { void refresh() }, busUp ? POLL_WITH_BUS_MS : POLL_MS)
     return () => { clearTimeout(first); clearInterval(id) }
-  }, [refresh])
-  // Un plato listo no espera al siguiente sondeo: el aviso de cocina, que llega cada 5 s, releé los pedidos.
+  }, [refresh, busUp])
+  // Un plato listo no espera a ningún reloj: el bus avisa y se relee. El latido de avisos hace lo mismo
+  // cuando el bus no está.
+  const ordersTick = useBusStore((s) => s.ticks.orders)
   const kitchenPing = useNotificationStore((s) => s.kitchenPing)
-  useEffect(() => { if (kitchenPing > 0) void refresh() }, [kitchenPing, refresh])
+  useEffect(() => {
+    if (ordersTick === 0 && kitchenPing === 0) return
+    // Fuera del cuerpo del efecto, como la primera carga: releer escribe estado y hacerlo aquí encadena renders.
+    const id = setTimeout(() => { void refresh() }, 0)
+    return () => clearTimeout(id)
+  }, [ordersTick, kitchenPing, refresh])
 
   const billingOf = useCallback((o: KitOrder) => o.tableId !== null && (Boolean(flags[o.tableId]?.billing) || calls.some((c) => c.tableId === o.tableId && c.kind === 'bill')), [flags, calls])
   const statusOf = useCallback((o: KitOrder): KitStatus => orderStatus(o, billingOf(o)), [billingOf])

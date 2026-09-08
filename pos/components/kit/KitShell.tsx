@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 
 import { SettingsModal } from '@/components/kit/SettingsModal'
 import { TopBar } from '@/components/kit/TopBar'
@@ -9,6 +9,7 @@ import { adminSubtabForPath, tabForPath } from '@/lib/domain/navigation'
 import { useIdentity } from '@/lib/hooks/useIdentity'
 import { useNotificationAlerts } from '@/lib/hooks/useNotificationAlerts'
 import { useAuthStore } from '@/lib/stores/authStore'
+import { useBusStore } from '@/lib/stores/busStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
 
 // Armazón del kit: barra superior por rol, contenido sobre el lienzo y el modal de ajustes.
@@ -19,7 +20,12 @@ export function KitShell({ children }: { children: ReactNode }) {
   const endShift = useAuthStore((s) => s.endShift)
   const restaurant = useCatalogStore((s) => s.catalog?.company.name ?? '')
   const [settings, setSettings] = useState(false)
-  // Sonido y aviso en pantalla de cada notificación nueva, esté el mesero en la pantalla que esté.
+  // Una sola conexión al bus por tablet: el servidor avisa de lo que cambia y el sondeo pasa a ser red
+  // de seguridad. Sonido y aviso en pantalla de cada notificación nueva, esté donde esté el mesero.
+  // Sin cierre al desmontar: cada pantalla monta su propio armazón y cerrar aquí reconectaría el bus en
+  // cada navegación. La conexión se cierra al salir (authStore), que es cuando deja de tener dueño.
+  const startBus = useBusStore((s) => s.start)
+  useEffect(() => { startBus() }, [startBus])
   useNotificationAlerts()
   // Manda el empleado que marcó su PIN, no la credencial con la que se abrió la tablet.
   const { name: shownName, role } = useIdentity()

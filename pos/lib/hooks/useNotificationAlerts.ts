@@ -6,6 +6,7 @@ import { play, setStation, type SoundId } from '@/lib/audio/sounds'
 import type { NotificationKind } from '@/lib/domain/notifications'
 import { getNotifyPrefs, type NotifyPrefs } from '@/lib/services/employees'
 import { useAuthStore } from '@/lib/stores/authStore'
+import { useBusStore } from '@/lib/stores/busStore'
 import { useNotificationStore } from '@/lib/stores/notificationStore'
 import { toast } from '@/lib/stores/toastStore'
 
@@ -13,6 +14,7 @@ import { toast } from '@/lib/stores/toastStore'
 // marca el ritmo de lo urgente. Los pedidos siguen releyéndose cada 10 s, pero un aviso nuevo los despierta
 // en el acto, así que el sonido y la pantalla llegan juntos sin doblar el tráfico pesado.
 const POLL_MS = 5_000
+const POLL_WITH_BUS_MS = 60_000
 const SOUND: Record<NotificationKind, SoundId> = { kitchen: 'listo', inventory: 'demora', system: 'tap' }
 const POPUP: Record<NotificationKind, keyof NotifyPrefs> = { kitchen: 'kitchen_popup', inventory: 'inventory_popup', system: 'system_popup' }
 const SOUND_PREF: Record<NotificationKind, keyof NotifyPrefs> = { kitchen: 'kitchen_sound', inventory: 'inventory_sound', system: 'system_sound' }
@@ -25,6 +27,8 @@ export function useNotificationAlerts() {
   const items = useNotificationStore((s) => s.items)
   const refresh = useNotificationStore((s) => s.refresh)
   const poll = useNotificationStore((s) => s.poll)
+  const busUp = useBusStore((s) => s.up)
+  const notifyTick = useBusStore((s) => s.ticks.notify)
   const prefs = useRef<NotifyPrefs | null>(null)
   const seen = useRef(new Set<number>())
   // Hasta que la primera carga termine no se avisa de nada: lo que ya estaba sin leer no es una novedad,
@@ -41,9 +45,12 @@ export function useNotificationAlerts() {
       useNotificationStore.getState().items.forEach((n) => seen.current.add(n.id))
       primed.current = true
     })
-    const id = setInterval(() => void poll(), POLL_MS)
+    const id = setInterval(() => void poll(), busUp ? POLL_WITH_BUS_MS : POLL_MS)
     return () => clearInterval(id)
-  }, [user, refresh, poll])
+  }, [user, refresh, poll, busUp])
+
+  // El servidor avisa de que hay un aviso nuevo: se lee en el acto.
+  useEffect(() => { if (user && notifyTick > 0) void poll() }, [notifyTick, user, poll])
 
   useEffect(() => {
     if (!user || !primed.current) return

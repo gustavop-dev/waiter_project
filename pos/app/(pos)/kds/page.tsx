@@ -11,9 +11,12 @@ import { KitEmptyState } from '@/components/kit/KitEmptyState'
 import { ALL, LATE, averagePrepSeconds, countTickets, filterTickets, stations } from '@/lib/domain/kitchen'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
+import { useBusStore } from '@/lib/stores/busStore'
 import { useKitchenStore } from '@/lib/stores/kitchenStore'
 
+// Igual que en la sala: con el bus vivo el sondeo es red de seguridad.
 const POLL_MS = 5_000
+const POLL_WITH_BUS_MS = 60_000
 
 // Pantalla fija de cocina en modo oscuro del kit (data-theme="dark" propio, independiente del tema del usuario):
 // sondea Odoo cada 5 s, cronómetros cada segundo. Sin barra superior: la cocina es un dispositivo, no un mesero.
@@ -31,12 +34,24 @@ export default function KdsPage() {
     return (productId: number) => (byProduct.get(productId) ?? []).map((id) => byCategory.get(id) ?? null).find((s) => s !== null) ?? null
   }, [catalog])
 
+  // La pantalla de cocina no lleva armazón (es un dispositivo, no un mesero): abre el bus ella misma.
+  const startBus = useBusStore((s) => s.start)
+  useEffect(() => { startBus() }, [startBus])
+  const busUp = useBusStore((s) => s.up)
+  const kitchenTick = useBusStore((s) => s.ticks.kitchen)
+  const ordersTick = useBusStore((s) => s.ticks.orders)
   useEffect(() => {
     if (!session || !catalog) return
     void refresh(session.id, stationOf)
-    const id = setInterval(() => void refresh(session.id, stationOf), POLL_MS)
+    const id = setInterval(() => void refresh(session.id, stationOf), busUp ? POLL_WITH_BUS_MS : POLL_MS)
     return () => clearInterval(id)
-  }, [session, catalog, stationOf, refresh])
+  }, [session, catalog, stationOf, refresh, busUp])
+  // Una comanda que sale del salón aparece aquí en cuanto el servidor lo dice, no en el siguiente reloj.
+  useEffect(() => {
+    if (!session || !catalog || (kitchenTick === 0 && ordersTick === 0)) return
+    const id = setTimeout(() => void refresh(session.id, stationOf), 0)
+    return () => clearTimeout(id)
+  }, [kitchenTick, ordersTick, session, catalog, stationOf, refresh])
   useEffect(() => { const id = setInterval(() => { const n = Date.now(); setNow(n); tick(n) }, 1_000); return () => clearInterval(id) }, [tick])
 
   if (!session || !catalog) return null

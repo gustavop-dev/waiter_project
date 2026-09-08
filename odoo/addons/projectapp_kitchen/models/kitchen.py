@@ -20,6 +20,14 @@ from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 
+def _announce(env, records, event):
+    """Avisa por el bus a las tablets del terminal de esos pedidos (cursos o líneas: los dos llevan
+    `order_id`). El aviso va después de escribir, nunca antes: quien lo recibe vuelve a leer y tiene
+    que encontrar el cambio ya hecho."""
+    sessions = records.mapped("order_id.session_id")
+    env["waiter.bus"].waiter_send(sessions.mapped("config_id").ids, event)
+
+
 class RestaurantOrderCourse(models.Model):
     _inherit = "restaurant.order.course"
 
@@ -44,6 +52,8 @@ class RestaurantOrderCourse(models.Model):
             "fired_date": fields.Datetime.now(),
             "line_ids": [(6, 0, line_ids)],
         })
+        # La comanda que acaba de salir tiene que estar en la pantalla de cocina ya, no dentro de cinco segundos.
+        _announce(self.env, course, "kitchen")
         return course.id
 
     def action_kitchen_ready(self):
@@ -51,6 +61,7 @@ class RestaurantOrderCourse(models.Model):
         now = fields.Datetime.now()
         self.write({"ready_date": now})
         self.line_ids.filtered(lambda line: not line.waiter_ready_date and not line.waiter_cancelled).write({"waiter_ready_date": now})
+        _announce(self.env, self, "orders")
         return True
 
     def action_kitchen_served(self):
@@ -63,6 +74,7 @@ class RestaurantOrderCourse(models.Model):
             raise UserError(_("Cocina todavía no ha marcado ningún plato como listo."))
         ready.write({"served_date": now})
         self._kitchen_close_if_all_served(now)
+        _announce(self.env, self, "orders")
         return True
 
     def _kitchen_close_if_all_ready(self, now):
@@ -99,6 +111,7 @@ class PosOrderLine(models.Model):
         lines.filtered(lambda line: not line.waiter_ready_date).write({"waiter_ready_date": now})
         courses = lines.course_id
         courses._kitchen_close_if_all_ready(now)
+        _announce(self.env, lines, "orders")
         return courses.filtered("ready_date").ids
 
     @api.model
@@ -115,6 +128,7 @@ class PosOrderLine(models.Model):
         lines.filtered(lambda line: not line.served_date).write({"served_date": now})
         courses = lines.course_id
         courses._kitchen_close_if_all_served(now)
+        _announce(self.env, lines, "orders")
         return courses.filtered("served_date").ids
 
     @api.model

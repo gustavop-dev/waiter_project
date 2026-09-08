@@ -3,6 +3,7 @@
 import { create } from 'zustand'
 
 import { fromOdooDatetime, readStoredEmployee, storeEmployee, type Shift } from '@/lib/domain/employees'
+import { useBusStore } from '@/lib/stores/busStore'
 import type { Role } from '@/lib/domain/roles'
 import { openRegister as openRegisterRequest } from '@/lib/services/cashRegister'
 import { endShift as endShiftRequest, findOpenAttendance, readEmployee, type CheckedEmployee } from '@/lib/services/employees'
@@ -88,6 +89,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: async () => {
     await logoutRequest()
     storeEmployee(null)
+    // El bus deja de tener dueño: se cierra con la sesión, no en cada navegación.
+    useBusStore.getState().stop()
     set({ user: null, session: null, employee: null })
   },
 }))

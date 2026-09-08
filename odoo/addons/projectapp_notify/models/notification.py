@@ -36,6 +36,14 @@ class WaiterNotification(models.Model):
     user_id = fields.Many2one("res.users", string="Usuario", index=True, ondelete="cascade",
                               help="Vacío: para todos los usuarios del terminal.")
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        # El aviso tiene que sonar en la tablet ahora, no en el siguiente latido.
+        configs = self.env["pos.config"].search([]).ids
+        self.env["waiter.bus"].waiter_send(configs, "notify")
+        return records
+
     # --- Lectura y marcado ------------------------------------------------------------------------
 
     @api.model

@@ -6,7 +6,7 @@
     "license": "LGPL-3",
     "author": "ProjectApp",
     "category": "Point of Sale",
-    "depends": ["projectapp_kitchen", "stock", "purchase"],
+    "depends": ["projectapp_kitchen", "projectapp_bus", "stock", "purchase"],
     "data": [
         "security/ir.model.access.csv",
         "security/rules.xml",

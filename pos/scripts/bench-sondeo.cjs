@@ -24,6 +24,14 @@ async function login(page, employee, pin) {
   const b = await chromium.launch()
   const ctx = await b.newContext({ viewport: { width: 1194, height: 834 } })
   const page = await ctx.newPage()
+  // BLOQUEAR_BUS=1 corta el bus para medir el modo de respaldo: sin websocket, todo vuelve al sondeo.
+  if (process.env.BLOQUEAR_BUS) {
+    await ctx.route('**/odoo/web/dataset/call_kw', async (route) => {
+      const body = route.request().postData() || ''
+      if (body.includes('waiter_bus_info')) return route.abort()
+      return route.fallback()
+    })
+  }
   await login(page, 'Laura Encargada', '112233')
 
   for (const [name, path] of [['salon', '/salon'], ['pedidos', '/pedidos'], ['inicio', '/dashboard'], ['kds', '/kds']]) {
