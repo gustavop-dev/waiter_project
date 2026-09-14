@@ -1,207 +1,363 @@
 'use client'
 
-import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/20/solid'
-import { useTranslations } from 'next-intl'
-import { useEffect, useId, useMemo, useState, type KeyboardEvent } from 'react'
+/* eslint-disable @next/next/no-img-element -- Photos already come resized from the restaurant API; logos can be local upload previews. */
 
-import { loadBrandFonts, loadTemplateFonts } from '@/components/settings/googleFonts'
-import { SaveBar, useSaveState } from '@/components/settings/SettingsForms'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/Button'
+import { SaveBar, useSaveState } from '@/components/settings/SettingsForms'
 import { Field, Select, TextInput } from '@/components/ui/Field'
-import { FONTS, MIN_CONTRAST, contrast, inkFor, isHex } from '@/lib/domain/brand'
-import { DEFAULT_TEMPLATE, gateway, listTemplates, previewUrl, type ColorToken, type Family, type MenuSettings, type MenuSettingsContext, type TemplateCatalog, type TemplateSpec } from '@/lib/services/menuTemplates'
-import { cn } from '@/lib/utils'
+import { contrast, inkFor, isHex } from '@/lib/domain/brand'
+import {
+  imageDataUrl,
+  LOGO_TYPES,
+  resizeImage,
+  validateLogoFile,
+} from '@/lib/domain/image'
+import {
+  getBrand,
+  getBrandLogo,
+  saveBrandGreeting,
+  saveBrandLogo,
+  type BrandInfo,
+  type LogoChange,
+} from '@/lib/services/settings'
+import {
+  gateway,
+  listTemplates,
+  previewUrl,
+  type ColorToken,
+  type MenuSettings,
+  type MenuSettingsContext,
+  type TemplateSpec,
+} from '@/lib/services/menuTemplates'
+import { loadTemplateFonts } from './googleFonts'
 
-// Configuración › Plantilla del menú (Plan H, Contrato 5). El POS solo elige y personaliza: el catálogo lo sirve
-// experience, la elección se guarda por la pasarela del addon y la vista previa es la app del comensal de verdad
-// (iframe con ?vista_previa=). Solo viajan los colores y la fuente que el restaurante pisó; lo demás lo resuelve
-// experience con la plantilla y la marca del Plan G.
-const PREVIEW_DEBOUNCE_MS = 400
-const PREVIEW_WIDTH = 360
-const PREVIEW_HEIGHT = 720
-
-type Palette = Partial<Record<ColorToken, string>>
-const errorMessage = (e: unknown) => (e instanceof Error && e.message ? e.message : String(e))
-
-// El catálogo recibido ya incorpora la marca de la sede. Conservar los colores explícitos,
-// aunque coincidan con ese catálogo; borrar una clave restaura la misma base que se previsualiza.
-function toSettings(spec: TemplateSpec, palette: Palette, font: string): MenuSettings {
-  const paleta: Palette = {}
-  for (const token of spec.personalizable.colores) {
-    const raw = palette[token]
-    if (raw !== undefined && isHex(raw)) paleta[token] = raw.toUpperCase()
-  }
-  return { plantilla: spec.codigo, paleta, tipografia: font && font !== spec.tokens.displayFont ? { display: font } : {} }
-}
-
+const COLORS: { key: ColorToken; label: string }[] = [
+  { key: 'acento', label: 'Botones y color principal' },
+  { key: 'tintaTerciaria', label: 'Categorías y destacados' },
+  { key: 'fondo', label: 'Fondo del menú' },
+  { key: 'superficie', label: 'Tarjetas' },
+  { key: 'tinta', label: 'Texto' },
+]
+const FONTS = [
+  'Mulish',
+  'DM Sans',
+  'Nunito Sans',
+  'Lato',
+  'Instrument Serif',
+  'Playfair Display',
+  'Fraunces',
+  'DM Serif Display',
+  'Lora',
+  'Cormorant Garamond',
+]
 export function MenuTemplateForm() {
-  const t = useTranslations('pos.settings.menuTemplate')
-  const ui = useTranslations('pos.ui')
-  const ids = useId()
   const [ctx, setCtx] = useState<MenuSettingsContext | null>(null)
-  const [catalog, setCatalog] = useState<TemplateCatalog | null>(null)
-  const [failed, setFailed] = useState<string | null>(null)
-  const [code, setCode] = useState(DEFAULT_TEMPLATE)
-  const [family, setFamily] = useState<Family>('B')
-  const [palette, setPalette] = useState<Palette>({})
-  const [font, setFont] = useState('')
-  // Lo que ve el iframe: sigue a los ajustes con un retraso para no recargar al comensal en cada tecla.
-  const [previewSettings, setPreviewSettings] = useState<MenuSettings | null>(null)
-  const [saveError, setSaveError] = useState<string | null>(null)
+  const [spec, setSpec] = useState<TemplateSpec | null>(null)
+  const [brand, setBrand] = useState<BrandInfo | null>(null)
+  const [palette, setPalette] = useState<MenuSettings['paleta']>({})
+  const [font, setFont] = useState('DM Sans')
+  const [logo, setLogo] = useState<string | null>(null)
+  const [logoChange, setLogoChange] = useState<LogoChange | undefined>()
+  const [greeting, setGreeting] = useState('')
+  const [preview, setPreview] = useState<MenuSettings | null>(null)
+  const [previewVersion, setPreviewVersion] = useState(0)
+  const [error, setError] = useState<string | null>(null)
+  const [logoError, setLogoError] = useState<string | null>(null)
+  const [failed, setFailed] = useState(false)
   const [state, save] = useSaveState()
-
-  useEffect(() => { loadBrandFonts() }, [])
-
+  const fileRef = useRef<HTMLInputElement>(null)
   useEffect(() => {
     let alive = true
-    void gateway('get').then(async (c) => {
-      const cat = await listTemplates(c.experienceUrl, c.restaurante, c.sede)
-      if (!alive) return
-      const saved = c.ajustes
-      const initial = cat.plantillas.find((p) => p.codigo === saved?.plantilla) ?? cat.plantillas.find((p) => p.codigo === DEFAULT_TEMPLATE) ?? cat.plantillas[0]
-      setCtx(c)
-      setCatalog(cat)
-      if (initial) {
-        setCode(initial.codigo)
-        setFamily(initial.familia)
-        if (saved?.plantilla === initial.codigo) { setPalette(saved.paleta ?? {}); setFont(saved.tipografia?.display ?? '') }
-      }
-    }).catch((e: unknown) => { if (alive) setFailed(errorMessage(e)) })
-    return () => { alive = false }
+    void Promise.all([gateway('get'), getBrand()])
+      .then(async ([c, b]) => {
+        const [catalog, image] = await Promise.all([
+          listTemplates(c.experienceUrl, c.restaurante, c.sede),
+          b.hasLogo ? getBrandLogo(b.companyId) : Promise.resolve(null),
+        ])
+        if (!alive) return
+        const s = catalog.plantillas.find((p) => p.codigo === 'S1')
+        if (!s)
+          throw new Error(
+            'Actualiza el servicio del menú para cargar Smart Menu.',
+          )
+        setCtx(c)
+        setBrand(b)
+        setGreeting(b.greeting ?? '')
+        setSpec(s)
+        setLogo(image)
+        setPalette(c.ajustes.plantilla === 'S1' ? c.ajustes.paleta : {})
+        setFont(
+          c.ajustes.plantilla === 'S1'
+            ? c.ajustes.tipografia.display || s.tokens.displayFont
+            : s.tokens.displayFont,
+        )
+        loadTemplateFonts(FONTS)
+      })
+      .catch((e: unknown) => {
+        if (alive) {
+          setError(e instanceof Error ? e.message : String(e))
+          setFailed(true)
+        }
+      })
+    return () => {
+      alive = false
+    }
   }, [])
-
-  const spec = useMemo(() => catalog?.plantillas.find((p) => p.codigo === code) ?? null, [catalog, code])
-  useEffect(() => { if (spec) loadTemplateFonts(spec.fuentesGoogle) }, [spec])
-
-  const settingsKey = spec ? JSON.stringify(toSettings(spec, palette, font)) : null
+  const serialized = JSON.stringify({
+    plantilla: 'S1',
+    paleta: palette,
+    tipografia: { display: font },
+  })
   useEffect(() => {
-    if (!settingsKey) return
-    const id = setTimeout(() => setPreviewSettings(JSON.parse(settingsKey) as MenuSettings), PREVIEW_DEBOUNCE_MS)
-    return () => clearTimeout(id)
-  }, [settingsKey])
-
-  if (failed) return <p role="alert" className="text-[15px] text-busy-ink">{t('loadFailed', { reason: failed })}</p>
-  if (!ctx || !catalog || !spec) return <p className="text-[15px] text-soft">{ui('loading')}</p>
-
-  const families = (Object.keys(catalog.familias) as Family[]).sort()
-  const shown = catalog.plantillas.filter((p) => p.familia === family)
-  // Elegir otra plantilla parte de su diseño; volver a la guardada recupera lo que el restaurante ya había pisado.
-  const choose = (p: TemplateSpec) => {
-    setCode(p.codigo)
-    const saved = ctx.ajustes
-    if (saved?.plantilla === p.codigo) { setPalette(saved.paleta ?? {}); setFont(saved.tipografia?.display ?? '') } else { setPalette({}); setFont('') }
-  }
-  const onTabKey = (e: KeyboardEvent<HTMLButtonElement>) => {
-    const i = families.indexOf(family)
-    const next = e.key === 'ArrowRight' ? families[(i + 1) % families.length] : e.key === 'ArrowLeft' ? families[(i - 1 + families.length) % families.length] : null
-    if (!next) return
-    e.preventDefault()
-    setFamily(next)
-    document.getElementById(`${ids}-tab-${next}`)?.focus()
-  }
-
-  const raw = (token: ColorToken) => palette[token] ?? spec.tokens[token]
-  const effective = (token: ColorToken) => { const v = palette[token]; return v !== undefined && isHex(v) ? v.toUpperCase() : spec.tokens[token] }
-  const setColor = (token: ColorToken, value: string) => { const c = value.trim(); setPalette((p) => ({ ...p, [token]: isHex(c) ? c.toUpperCase() : c })) }
-  const resetColor = (token: ColorToken) => setPalette((p) => { const { [token]: _omit, ...rest } = p; void _omit; return rest })
-  const hexOk = spec.personalizable.colores.every((token) => { const v = palette[token]; return v === undefined || isHex(v) })
-  const acento = effective('acento')
-  // El texto sobre la acción lo calcula la misma regla que la marca (Plan G): experience resuelve acentoTinta igual.
-  const actionRatio = contrast(acento, inkFor(acento))
-  const textRatio = contrast(effective('tinta'), effective('fondo'))
-  const overridden = (token: ColorToken) => { const v = palette[token]; return v !== undefined && isHex(v) }
-  // Se bloquea solo lo que el restaurante pisó: un valor del diseño que no llega a 4.5 se señala, pero no impide
-  // guardar la plantilla tal cual (la valida experience contra el catálogo).
-  const contrastOk = !(actionRatio < MIN_CONTRAST && overridden('acento')) && !(textRatio < MIN_CONTRAST && (overridden('tinta') || overridden('fondo')))
-  const fontOptions: string[] = (FONTS as readonly string[]).includes(spec.tokens.displayFont) ? [...FONTS] : [spec.tokens.displayFont, ...FONTS]
-  const settings = toSettings(spec, palette, font)
-  const src = previewSettings ? previewUrl(ctx.dinerUrl, ctx.restaurante, ctx.sede, previewSettings) : null
-
-  const onSave = () => {
-    setSaveError(null)
-    return save(async () => {
-      try { await gateway('set', settings) } catch (e) { setSaveError(errorMessage(e)); throw e }
-      setCtx((c) => c && { ...c, ajustes: settings })
+    const timer = setTimeout(
+      () => setPreview(JSON.parse(serialized) as MenuSettings),
+      400,
+    )
+    return () => clearTimeout(timer)
+  }, [serialized])
+  if (failed) return <p role="alert">No pudimos cargar el menú. {error}</p>
+  if (!ctx || !spec || !brand)
+    return <p className="text-soft">Cargando tu menú…</p>
+  const effective = (key: ColorToken) =>
+    isHex(palette[key] ?? '') ? palette[key]! : spec.tokens[key]
+  const valid = Object.values(palette).every((value) => isHex(value ?? ''))
+  const readable =
+    contrast(effective('tinta'), effective('fondo')) >= 4.5 &&
+    contrast(effective('tinta'), effective('superficie')) >= 4.5
+  const shownLogo = logoChange
+    ? 'remove' in logoChange
+      ? null
+      : logoChange.base64
+    : logo
+  const src = preview
+    ? previewUrl(ctx.dinerUrl, ctx.restaurante, ctx.sede, preview)
+    : null
+  const onSave = () =>
+    save(async () => {
+      setError(null)
+      try {
+        if (logoChange) {
+          await saveBrandLogo(brand.companyId, logoChange)
+          setLogo('remove' in logoChange ? null : logoChange.base64)
+          setLogoChange(undefined)
+          setBrand({ ...brand, hasLogo: !('remove' in logoChange) })
+        }
+        if (greeting.trim() !== (brand.greeting ?? '')) {
+          await saveBrandGreeting(brand.companyId, greeting)
+          setBrand({ ...brand, greeting: greeting.trim() })
+        }
+        await gateway('set', JSON.parse(serialized) as MenuSettings)
+        setPreviewVersion((v) => v + 1)
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e))
+        throw e
+      }
     })
-  }
-
-  const readout = (ok: boolean, text: string) => ok
-    ? <p className="flex items-center gap-1.5 text-[13px] text-free-ink"><CheckCircleIcon className="h-4 w-4 shrink-0" aria-hidden />{text}</p>
-    : <p role="alert" className="flex items-start gap-1.5 text-[13px] text-busy-ink"><ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />{text} · {t('noContrast')}</p>
-
   return (
     <div>
-      <p className="mb-5 max-w-2xl text-[15px] text-soft">{t('help')}</p>
-      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="flex min-w-0 flex-col gap-5">
-          <div role="tablist" aria-label={t('families')} className="flex flex-wrap gap-2">
-            {families.map((f) => {
-              const on = f === family
-              return (
-                <button key={f} id={`${ids}-tab-${f}`} type="button" role="tab" aria-selected={on} aria-controls={`${ids}-panel`} tabIndex={on ? 0 : -1} onClick={() => setFamily(f)} onKeyDown={onTabKey}
-                  className={cn('h-tap-min rounded-full border px-4 text-[15px] flex items-center gap-2', on ? 'bg-primary text-primary-ink border-primary font-bold' : 'bg-surface border-border hover:bg-muted')}>
-                  <span className={cn('font-mono text-[13px]', on ? 'opacity-70' : 'text-soft')}>{f}</span>{catalog.familias[f]}
-                </button>
-              )
-            })}
-          </div>
-          <div id={`${ids}-panel`} role="tabpanel" aria-label={t('gallery', { family: catalog.familias[family] })} className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3">
-            {shown.map((p) => {
-              const on = p.codigo === code
-              return (
-                <button key={p.codigo} type="button" aria-pressed={on} onClick={() => choose(p)}
-                  className={cn('flex flex-col overflow-hidden rounded-[14px] border-2 bg-surface text-left focus-visible:outline-2 focus-visible:outline-brand-500', on ? 'border-brand-500' : 'border-border hover:border-primary-3')}>
-                  {/* eslint-disable-next-line @next/next/no-img-element -- la miniatura la sirve experience (otro origen, PNG estático con caché larga); con images.unoptimized next/image no aporta nada y exigiría registrar el host. */}
-                  <img src={ctx.experienceUrl.replace(/\/+$/, '') + p.miniatura} alt="" loading="lazy" width={744} height={1040} className="aspect-[93/130] w-full bg-muted object-cover object-top" />
-                  <div className="flex flex-col gap-1.5 p-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="text-[15px] font-bold leading-[1.25]">{p.nombre}</span>
-                      {on && <CheckCircleIcon className="h-5 w-5 shrink-0 text-brand-500" aria-hidden />}
-                      {on && <span className="sr-only">{t('current')}</span>}
-                    </div>
-                    <span className="text-[13px] leading-[1.35] text-soft">{p.descripcion}</span>
-                    <span className="mt-1 inline-flex h-6 w-fit items-center rounded-full bg-muted px-2 text-[12px] font-medium text-soft">{t('photos', { need: t(`photoNeed.${p.fotos.requiere}`) })}</span>
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-          <section aria-labelledby={`${ids}-customize`} className="flex max-w-md flex-col gap-4 rounded-[18px] border border-border bg-surface p-5">
-            <div className="flex flex-col gap-1">
-              <h3 id={`${ids}-customize`} className="text-[17px] font-bold">{t('customize')} · {spec.nombre}</h3>
-              <p className="text-[13px] text-soft">{t('customizeHint')}</p>
-            </div>
-            {spec.personalizable.colores.map((token) => {
-              const label = t(`colors.${token}`)
-              const valid = palette[token] === undefined || isHex(palette[token] ?? '')
-              return (
-                <div key={token} className="flex flex-col gap-1.5">
-                  <div className="flex flex-wrap items-end gap-3">
-                    <Field label={label}>{(id) => <input id={id} type="color" value={effective(token).toLowerCase()} onChange={(e) => setColor(token, e.target.value)} className="h-tap-min w-tap-min cursor-pointer rounded-[10px] border border-border bg-surface p-1" />}</Field>
-                    <TextInput label={t('hex', { color: label })} value={raw(token)} onChange={(e) => setColor(token, e.target.value)} maxLength={7} spellCheck={false} autoCapitalize="characters" className="w-40 font-mono uppercase" />
-                    {palette[token] !== undefined && <Button size="compact" onClick={() => resetColor(token)}>{t('reset')}</Button>}
-                  </div>
-                  {!valid && <p role="alert" className="text-[13px] text-busy-ink">{t('invalidHex')}</p>}
-                </div>
-              )
-            })}
-            <div className="flex flex-col gap-1">
-              {readout(actionRatio >= MIN_CONTRAST, t('contrastAction', { ratio: actionRatio.toFixed(2) }))}
-              {readout(textRatio >= MIN_CONTRAST, t('contrastText', { ratio: textRatio.toFixed(2) }))}
-            </div>
-            {spec.personalizable.tipografiaDisplay && (
-              <Select label={t('font')} value={font || spec.tokens.displayFont} onChange={(e) => setFont(e.target.value === spec.tokens.displayFont ? '' : e.target.value)} style={{ fontFamily: `'${font || spec.tokens.displayFont}', serif` }}>
-                {fontOptions.map((f) => <option key={f} value={f} style={{ fontFamily: `'${f}', serif` }}>{f === spec.tokens.displayFont ? t('fontOfTemplate', { font: f }) : f}</option>)}
-              </Select>
-            )}
-            <SaveBar state={state} onSave={onSave} disabled={!hexOk || !contrastOk} error={saveError} />
+      <div className="mb-6 max-w-2xl">
+        <span className="text-[12px] font-bold uppercase tracking-widest text-primary">
+          Smart Menu
+        </span>
+        <h2 className="mt-2 text-2xl font-bold">
+          Tu restaurante, tu identidad
+        </h2>
+        <p className="mt-2 text-[15px] text-soft">
+          Un solo diseño para el menú, los favoritos, los pedidos y el perfil.
+          Cambia colores, tipografía y logo; la distribución conserva el diseño
+          en todas las pantallas.
+        </p>
+      </div>
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_390px]">
+        <div className="flex max-w-xl flex-col gap-6">
+          <section className="rounded-[20px] border border-border bg-surface p-5">
+            <h3 className="mb-4 text-lg font-bold">Saludo del menú</h3>
+            <TextInput
+              label="Saludo"
+              hint="Arriba del menú, seguido del nombre del comensal cuando tiene cuenta y de la sede debajo. Vacío: «Hola»."
+              placeholder="Hola"
+              maxLength={40}
+              value={greeting}
+              onChange={(e) => setGreeting(e.target.value)}
+            />
+            <p className="mt-3 text-sm text-soft">
+              Así se ve: <strong>{greeting.trim() || 'Hola'}, Camila</strong> · {ctx.sede}
+            </p>
           </section>
+          <section className="rounded-[20px] border border-border bg-surface p-5">
+            <h3 className="mb-4 text-lg font-bold">Logo del restaurante</h3>
+            <div className="mb-4 grid h-24 place-items-center rounded-xl bg-muted">
+              {shownLogo ? (
+                <img
+                  src={imageDataUrl(shownLogo)}
+                  alt="Logo del restaurante"
+                  className="max-h-20 max-w-48 object-contain"
+                />
+              ) : (
+                <span className="text-soft">
+                  Se mostrará el nombre del restaurante
+                </span>
+              )}
+            </div>
+            <input
+              ref={fileRef}
+              aria-label="Subir logo del restaurante"
+              type="file"
+              accept={LOGO_TYPES.join(',')}
+              className="w-full text-sm"
+              onChange={async (e) => {
+                const file = e.target.files?.[0]
+                if (!file) return
+                const problem = validateLogoFile(file)
+                if (problem) {
+                  setLogoError('Usa una imagen PNG o JPG de hasta 1 MB.')
+                  return
+                }
+                try {
+                  setLogoChange({ base64: await resizeImage(file) })
+                  setLogoError(null)
+                } catch {
+                  setLogoError('No pudimos leer la imagen.')
+                }
+              }}
+            />
+            <p className="mt-2 text-xs text-soft">
+              PNG o JPG. El logo se adapta sin deformarse. La vista previa del
+              menú lo mostrará al guardar.
+            </p>
+            {shownLogo && (
+              <Button
+                size="compact"
+                className="mt-3"
+                onClick={() => {
+                  setLogoChange({ remove: true })
+                  if (fileRef.current) fileRef.current.value = ''
+                }}
+              >
+                Quitar logo
+              </Button>
+            )}
+            {logoError && (
+              <p role="alert" className="mt-2 text-busy-ink">
+                {logoError}
+              </p>
+            )}
+          </section>
+          <section className="flex flex-col gap-5 rounded-[20px] border border-border bg-surface p-5">
+            <h3 className="text-lg font-bold">Colores de tu marca</h3>
+            {COLORS.map(({ key, label }) => (
+              <div key={key} className="flex flex-wrap items-end gap-3">
+                <Field label={label}>
+                  {(id) => (
+                    <input
+                      id={id}
+                      type="color"
+                      value={effective(key)}
+                      onChange={(e) =>
+                        setPalette({
+                          ...palette,
+                          [key]: e.target.value.toUpperCase(),
+                        })
+                      }
+                      className="h-11 w-14 cursor-pointer rounded-lg border border-border bg-surface p-1"
+                    />
+                  )}
+                </Field>
+                <TextInput
+                  label={`${label} · HEX`}
+                  value={palette[key] ?? spec.tokens[key]}
+                  onChange={(e) =>
+                    setPalette({
+                      ...palette,
+                      [key]: e.target.value.toUpperCase(),
+                    })
+                  }
+                  maxLength={7}
+                  className="w-32 font-mono"
+                />
+              </div>
+            ))}
+            {!valid && (
+              <p role="alert" className="text-busy-ink">
+                Usa colores en formato #RRGGBB.
+              </p>
+            )}
+            {!readable && (
+              <p role="alert" className="text-busy-ink">
+                El texto debe contrastar con el fondo y las tarjetas. Ajusta
+                esos colores para que se lea bien.
+              </p>
+            )}
+            <p className="text-xs text-soft">
+              El color del texto sobre los botones se calcula automáticamente
+              para mantener la lectura (
+              {contrast(
+                effective('acento'),
+                inkFor(effective('acento')),
+              ).toFixed(1)}
+              :1).
+            </p>
+            <Button
+              size="compact"
+              onClick={() => {
+                setPalette({})
+                setFont('DM Sans')
+              }}
+            >
+              Restaurar colores y tipografía del diseño
+            </Button>
+          </section>
+          <section className="rounded-[20px] border border-border bg-surface p-5">
+            <Select
+              label="Tipografía del menú"
+              value={font}
+              onChange={(e) => setFont(e.target.value)}
+            >
+              {FONTS.map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                  {f === 'DM Sans' ? ' · original del diseño' : ''}
+                </option>
+              ))}
+            </Select>
+            <p className="mt-2 text-xs text-soft">
+              Se aplica a todo el menú, incluidos títulos, botones y perfil.
+            </p>
+          </section>
+          <SaveBar
+            state={state}
+            onSave={onSave}
+            disabled={!valid || !readable || !!logoError}
+            error={error}
+          />
         </div>
-        <aside aria-label={t('preview')} className="flex flex-col gap-2 self-start xl:sticky xl:top-0">
-          <span className="text-[13px] font-medium uppercase tracking-[0.1em] text-ink-3">{t('preview')}</span>
-          {/* key: cambiar los ajustes recarga el iframe entero (la vista previa vive en la URL). */}
-          {src && <iframe key={src} title={t('preview')} src={src} width={PREVIEW_WIDTH} height={PREVIEW_HEIGHT} className="max-w-full rounded-[22px] border border-border bg-surface" />}
-          <p className="text-[13px] text-soft">{t('previewHint')}</p>
+        <aside className="self-start xl:sticky xl:top-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="font-bold">Vista previa</h3>
+            <a
+              href={`${ctx.dinerUrl}/${ctx.restaurante}/${ctx.sede}/`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-sm font-medium text-primary"
+            >
+              Abrir menú ↗
+            </a>
+          </div>
+          {src && (
+            <iframe
+              key={`${src}-${previewVersion}`}
+              src={src}
+              title="Vista previa del menú"
+              width={390}
+              height={780}
+              className="max-w-full rounded-[26px] border border-border bg-surface"
+            />
+          )}
+          <p className="mt-3 text-xs text-soft">
+            Explora el diseño antes de guardar. Los cambios de color y fuente
+            solo aparecen aquí hasta que los guardes.
+          </p>
         </aside>
       </div>
     </div>

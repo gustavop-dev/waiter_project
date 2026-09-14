@@ -120,3 +120,6 @@ Thumbs.db
 
 # Figma binario del kit del POS (215 MB): no se versiona
 *.fig
+
+# Kits de diseño descargados (60–95 MB); las referencias útiles ya están en docs/design y diner/public/smart-menu
+/*.zip

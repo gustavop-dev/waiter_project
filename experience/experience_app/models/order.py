@@ -6,6 +6,8 @@ from django.db import models
 class Order(models.Model):
     """Una confirmación del carrito. Su id es el uuid que Odoo usa para no duplicar en los reintentos."""
 
+    CHECKOUT = 'checkout'
+    requires_payment = models.BooleanField(default=False)
     PENDING, SENT, FAILED = 'pending', 'sent', 'failed'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

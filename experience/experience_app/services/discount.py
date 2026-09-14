@@ -44,6 +44,18 @@ def view(lines: list[CartLine], diner: Diner, percent: float) -> dict:
     """Sobre las líneas del comensal: `monto` es lo ya descontado en las confirmadas más lo que descontará en las abiertas."""
     mine = [line for line in lines if line.diner_id == diner.id]
     applied = sum((line.discount_amount for line in mine if line.discount), Decimal(0))
+    if diner.coupon_code:
+        from experience_app.services import benefits
+        pending = [line for line in mine if line.status == CartLine.OPEN and line.order_id is None]
+        result = {'codigo': diner.coupon_code, 'porcentaje': float(max((line.discount for line in mine), default=0)), 'monto': 0}
+        error = ''
+        if pending:
+            try:
+                result = benefits.quote(diner.session, diner, diner.coupon_code)
+            except OdooError as exc:
+                error = str(exc)
+        return {**result, 'monto': float(applied) + result['monto'], 'aplicable': bool(pending) and not error,
+                'aplicado': applied > 0, 'registrado': bool(diner.account_id), 'error': error}
     projected = Decimal(0)
     can_apply = percent > 0 and applicable(diner)
     if can_apply:

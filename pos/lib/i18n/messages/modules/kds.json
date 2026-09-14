@@ -1,4 +1,5 @@
 {
+  "received": "Recibida", "preparing": "En preparación", "startPreparation": "Iniciar preparación",
   "title": "Cocina",
   "screen": "Pantalla de cocina",
   "tabs": { "all": "Todas", "late": "Demorados" },

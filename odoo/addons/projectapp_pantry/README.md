@@ -68,3 +68,12 @@ ingrediente con stock inicial, siembra idempotente.
 ```
 odoo -d projectapp -u projectapp_pantry --test-enable --test-tags /projectapp_pantry --stop-after-init
 ```
+
+
+## Inventario operativo del restaurante
+
+La ficha de recetas ahora permite editar ingredientes y rendimiento por lote, consultar costo por plato y el ingrediente limitante. `servings_available` descuenta los compromisos de pedidos pendientes antes de calcular las raciones. Las salidas reales de `pos_mrp` se ejecutan desde `action_pos_order_paid` del POS propio; repetir el cobro no repite el albarán.
+
+API adicional: `waiter_recipe_detail`, `waiter_update_recipe`, `waiter_inventory_detail`, `waiter_inventory_move` y `waiter_inventory_settings`. Las mutaciones nuevas validan el PIN del administrador. Entradas, mermas y diferencias de conteo usan `stock.move`, con referencia, empleado y clave única de reintento. Los conteos se bloquean si hay compromisos pendientes o la existencia consultada cambió.
+
+El alcance, comparación con Vástago y límites operativos se documentan en `docs/decisiones/2026-09-08-inventario-restaurante.md` del repositorio.

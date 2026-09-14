@@ -30,7 +30,7 @@ def test_same_uuid_twice_updates_instead_of_duplicating(client):
     assert first.total == 87822
     assert pos.fire_course(client, first.id) is not None
     assert pos.fire_course(client, first.id) is None
-    assert pos.read_order_status(client, first.id).kitchen == 'cooking'
+    assert pos.read_order_status(client, first.id).kitchen == 'received'
     pos.pay_order(client, first.id, pos.cash_payment_method_id(client), first.total)
     assert pos.read_order_status(client, first.id).state == 'paid'
 

@@ -9,6 +9,7 @@ import { ReservationDetailModal } from '@/components/reservations/ReservationDet
 import { ReservationTimeline } from '@/components/reservations/ReservationTimeline'
 import { ReservationWizard } from '@/components/reservations/ReservationWizard'
 import { Button } from '@/components/ui/Button'
+import { useCatalogStore } from '@/lib/stores/catalogStore'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useReservationsStore } from '@/lib/stores/reservationsStore'
 import { toast } from '@/lib/stores/toastStore'
@@ -18,7 +19,8 @@ import { cn } from '@/lib/utils'
 export default function ReservasPage() {
   const t = useTranslations('reservations')
   const session = useAuthStore((s) => s.session)
-  const configId = session?.configId ?? null
+  const catalog = useCatalogStore((s) => s.catalog)
+  const configId = session?.configId ?? catalog?.settings.configId ?? null
   const r = useReservationsStore()
   const [detail, setDetail] = useState<number | null>(null)
 

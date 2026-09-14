@@ -91,6 +91,11 @@ class HrEmployee(models.Model):
     def _waiter_new_session(self):
         """Emite el token que prueba «soy este empleado» durante el turno."""
         self.ensure_one()
+        # Un segundo acceso con PIN no debe expulsar las otras pantallas del turno.
+        self.env.cr.execute("SELECT id FROM hr_employee WHERE id = %s FOR UPDATE", [self.id])
+        self.invalidate_recordset(["waiter_session_token", "waiter_session_expires"])
+        if self._waiter_session_ok(self.waiter_session_token):
+            return self.waiter_session_token
         token = secrets.token_urlsafe(32)
         self.write({"waiter_session_token": token, "waiter_session_expires": fields.Datetime.now() + timedelta(hours=SESSION_HOURS)})
         return token

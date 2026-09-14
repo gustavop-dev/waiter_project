@@ -44,3 +44,12 @@ it('errors release busy and fireKitchen fires the unsent lines', async () => {
   await act(() => useOrderWizardStore.getState().fireKitchen(40))
   expect(fireUnsentLines).toHaveBeenCalledWith(40)
 })
+
+it('retries a failed kitchen dispatch without creating a duplicate order', async () => {
+  mCreate.mockResolvedValue({ id: 40, reference: '40', trackingNumber: '40', total: 100, tax: 0 })
+  await useOrderWizardStore.getState().createOrder(16, labels)
+  ;(fireUnsentLines as jest.Mock).mockRejectedValueOnce(new Error('Cocina no responde'))
+  expect(await useOrderWizardStore.getState().fireKitchen(40)).toBe(false)
+  expect((await useOrderWizardStore.getState().createOrder(16, labels))?.id).toBe(40)
+  expect(mCreate).toHaveBeenCalledTimes(1)
+})

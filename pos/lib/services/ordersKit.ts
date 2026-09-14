@@ -7,15 +7,16 @@ import { callKw } from '@/lib/services/odoo'
 // sirviendo al salón y al cobro; aquí solo se lee y se completa lo que esas pantallas necesitan.
 
 interface RawOrder {
+  waiter_channel?: 'whatsapp' | false; delivery_phone?: string | false
   id: number; tracking_number: string | false; preset_id: [number, string] | false; floating_order_name: string | false; partner_id: [number, string] | false
   table_id: [number, string] | false; date_order: string; amount_total: number; amount_tax: number; state: KitOrder['state']
 }
 interface RawLine { id: number; uuid: string; order_id: [number, string]; product_id: [number, string]; full_product_name: string; qty: number; price_unit: number; price_subtotal: number; price_subtotal_incl: number; customer_note: string | false; course_id: [number, string] | false; waiter_ready_date: string | false; served_date: string | false }
-interface RawCourse { id: number; order_id: [number, string]; fired: boolean; ready_date: string | false; served_date: string | false }
+interface RawCourse { id: number; order_id: [number, string]; fired: boolean; preparation_date: string | false; ready_date: string | false; served_date: string | false }
 interface RawPreset { id: number; service_at: ServiceAt }
 interface RawTax { id: number; amount: number; price_include: boolean }
 
-const ORDER_FIELDS = ['tracking_number', 'preset_id', 'floating_order_name', 'partner_id', 'table_id', 'date_order', 'amount_total', 'amount_tax', 'state']
+const ORDER_FIELDS = ['tracking_number', 'preset_id', 'floating_order_name', 'partner_id', 'table_id', 'date_order', 'amount_total', 'amount_tax', 'state', 'waiter_channel', 'delivery_phone']
 const LINE_FIELDS = ['uuid', 'order_id', 'product_id', 'full_product_name', 'qty', 'price_unit', 'price_subtotal', 'price_subtotal_incl', 'customer_note', 'course_id', 'waiter_ready_date', 'served_date']
 const PAID = ['paid', 'done', 'invoiced']
 
@@ -35,12 +36,13 @@ const toLine = (l: RawLine): KitLine => ({
   readyAt: l.waiter_ready_date || null,
   servedAt: l.served_date || null,
 })
-const toCourse = (c: RawCourse): KitCourse => ({ id: c.id, fired: c.fired, readyAt: c.ready_date || null, servedAt: c.served_date || null })
+const toCourse = (c: RawCourse): KitCourse => ({ id: c.id, fired: c.fired, preparationAt: c.preparation_date || null, readyAt: c.ready_date || null, servedAt: c.served_date || null })
 
 function toOrder(r: RawOrder, serviceAt: Map<number, ServiceAt>, tableNumberOf: (id: number) => number | null, lines: KitLine[], courses: KitCourse[]): KitOrder {
   const type = orderTypeOf(r.preset_id ? serviceAt.get(r.preset_id[0]) ?? null : null, r.table_id !== false)
   return {
     id: r.id, number: orderNumber(type, r.tracking_number || r.id), type, state: r.state,
+    channel: r.waiter_channel || null, phone: r.delivery_phone || '',
     tableId: r.table_id ? r.table_id[0] : null, tableNumber: r.table_id ? tableNumberOf(r.table_id[0]) : null,
     customer: customerName(r.floating_order_name, r.partner_id), startedAt: r.date_order, total: r.amount_total, tax: r.amount_tax, lines, courses,
   }
@@ -56,7 +58,7 @@ export async function listKitOrders(sessionId: number, tableNumberOf: (id: numbe
   const ids = rows.map((r) => r.id)
   const [lines, courses] = await Promise.all([
     callKw<RawLine[]>('pos.order.line', 'search_read', [[['order_id', 'in', ids]], LINE_FIELDS], { order: 'id asc' }),
-    callKw<RawCourse[]>('restaurant.order.course', 'search_read', [[['order_id', 'in', ids]], ['order_id', 'fired', 'ready_date', 'served_date']]),
+    callKw<RawCourse[]>('restaurant.order.course', 'search_read', [[['order_id', 'in', ids]], ['order_id', 'fired', 'preparation_date', 'ready_date', 'served_date']]),
   ])
   return rows.map((r) => toOrder(r, serviceAt, tableNumberOf,
     lines.filter((l) => l.order_id[0] === r.id).map(toLine), courses.filter((c) => c.order_id[0] === r.id).map(toCourse)))
@@ -87,11 +89,11 @@ export async function serveCourse(courseId: number): Promise<void> {
   await callKw('restaurant.order.course', 'action_kitchen_served', [[courseId]])
 }
 
-// Cancelar solo lo que cocina no ha recibido: líneas sin curso disparado. Luego Odoo recalcula el total.
+// El servidor cancela solo antes de preparar y recalcula el total en la misma transacción.
 export async function cancelLines(orderId: number, lineIds: number[]): Promise<void> {
   if (lineIds.length === 0) return
-  await callKw('pos.order.line', 'unlink', [lineIds])
-  await callKw('pos.order', 'recompute_prices', [[orderId]])
+  void orderId
+  await callKw('pos.order.line', 'waiter_cancel_lines', [lineIds])
 }
 
 // Nueva ronda sobre un pedido abierto: se agregan las líneas, Odoo recalcula precios e impuestos y se dispara

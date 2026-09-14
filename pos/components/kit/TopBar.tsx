@@ -16,7 +16,7 @@ const ICON: Record<KitTab, KitIcon> = { dashboard: 'dashboard', orders: 'orders'
 
 // Barra superior del kit (Dashboard / Filled.png): logo, pestañas en píldora gris, campana con punto, chip de usuario.
 // `unread` fuerza el conteo (galería y pruebas); sin él, la campana lee las no leídas del centro de notificaciones.
-export function TopBar({ active, role, userName, unread, activeSubtab, onOpenSettings }: { active: KitTab | null; role: Role; userName: string; unread?: number; activeSubtab?: AdminSubtab | null; onOpenSettings: () => void }) {
+export function TopBar({ active, role, userName, unread, activeSubtab, onOpenSettings, administrationOnly = false }: { administrationOnly?: boolean; active: KitTab | null; role: Role; userName: string; unread?: number; activeSubtab?: AdminSubtab | null; onOpenSettings: () => void }) {
   const t = useTranslations('pos.kit.nav')
   const storeUnread = useNotificationStore((s) => s.unread())
   const count = unread ?? storeUnread
@@ -34,14 +34,14 @@ export function TopBar({ active, role, userName, unread, activeSubtab, onOpenSet
     const ro = new ResizeObserver(move)
     if (nav.current) ro.observe(nav.current)
     return () => ro.disconnect()
-  }, [active, role])
+  }, [active, role, administrationOnly])
   const tr = useTranslations('pos.nav.roles')
-  const tabs = tabsFor(role)
+  const tabs = tabsFor(role).filter((tab) => !administrationOnly || !['dashboard', 'orders', 'kitchen'].includes(tab))
   const subtabs = adminSubtabsFor(role)
   return (
     <header className="shrink-0 bg-surface border-b border-border">
       <div className="h-topbar px-5 flex items-center gap-4">
-        <BrandMark href="/dashboard" />
+        <BrandMark href={administrationOnly ? '/configuracion' : '/dashboard'} />
         <nav ref={nav} aria-label={t('main')} className="relative min-w-0 flex items-center gap-0.5 p-1 rounded-lg bg-muted overflow-x-auto">
           {pill && <span aria-hidden className="absolute top-1 bottom-1 rounded-md bg-primary transition-[left,width] duration-300 ease-out" style={{ left: pill.left, width: pill.width }} />}
           {tabs.map((tab) => (

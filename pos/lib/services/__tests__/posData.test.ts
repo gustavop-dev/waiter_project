@@ -56,3 +56,20 @@ it('reads the table floor as a bare id with its plan geometry and keeps the cash
   expect(c.floors[0]).toEqual({ id: 2, name: 'Terraza', tableIds: [6], hasBackground: false })
   expect(c.paymentMethods.find((m) => m.type === 'cash')?.name).toBe('Efectivo')
 })
+
+it('loads administration without reading or creating a cash session and normalizes relations', async () => {
+  mockCallKw.mockImplementation(async (model: keyof typeof RAW, method: string, args: unknown[]) => {
+    expect(method).toBe('search_read')
+    const fields = args[1] as string[]
+    if (fields.includes('qty_available')) return [{ id: 6, qty_available: 2 }]
+    if (model === 'pos.config') return [{ ...RAW[model][0], company_id: [1, 'La Provincia'], payment_method_ids: [1, 2] }]
+    if (model === 'product.product') return RAW[model].map((p) => ({ ...p, product_tmpl_id: [p.product_tmpl_id, p.display_name] }))
+    if (model === 'restaurant.table') return RAW[model].map((t) => ({ ...t, floor_id: [t.floor_id, 'Terraza'] }))
+    return RAW[model]
+  })
+  const data = await loadPosData(null)
+  expect(data.tables[0].floorId).toBe(2)
+  expect(data.products[0].templateId).toBe(3)
+  expect(data.settings.configId).toBe(1)
+  expect(mockCallKw.mock.calls.some(([model]) => model === 'pos.session')).toBe(false)
+})

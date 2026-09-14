@@ -38,6 +38,7 @@ export function PaymentModal({ orderId, onClose, onPaid }: { orderId: number; on
   const [order, setOrder] = useState<PayableOrder | null>(null)
   const [program, setProgram] = useState<LoyaltyProgram | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
+  const [benefitError,setBenefitError]=useState('')
   const [code, setCode] = useState('')
   const [member, setMember] = useState<Member | null>(null)
   const [memberMissing, setMemberMissing] = useState(false)
@@ -71,7 +72,8 @@ export function PaymentModal({ orderId, onClose, onPaid }: { orderId: number; on
   const base = order?.total ?? 0
   const tip = tipMode === 'none' ? 0 : tipMode === 'suggested' ? suggestedTip(base) : customTip
   const rate = useMemo(() => ({ copPerPoint: program?.copPerPoint ?? 0 }), [program])
-  const discount = usePoints && member ? pointsDiscount(member.points, rate, base + tip) : 0
+  const candidateDiscount = usePoints && member ? pointsDiscount(member.points, rate, base) : 0
+  const discount = pointsToRedeem(candidateDiscount, rate) >= (program?.minimumPoints??0) ? candidateDiscount : 0
   const grand = Math.max(0, base + tip - discount)
   const left = remaining(grand, payments)
   const due = Math.min(left, splitEqual(grand, parts)[Math.min(payments.length, parts - 1)] ?? left)
@@ -79,7 +81,8 @@ export function PaymentModal({ orderId, onClose, onPaid }: { orderId: number; on
   const finish = useCallback(async (all: Payment[]) => {
     if (!order || !catalog) return
     if (discount > 0 && member && program) {
-      await redeemPoints(order.id, member, program, pointsToRedeem(discount, rate), discount, order.total)
+      try { await redeemPoints(order.id, member, program, pointsToRedeem(discount, rate), discount, order.total) }
+      catch(e) {setBenefitError(e instanceof Error?e.message:'No se pudo canjear');setPayments([]);return}
     }
     const ok = await settle({ tip, payments: all }, {
       existing: { orderId: order.id, tableId: order.tableId ?? 0 }, tipProductId: catalog.settings.tipProductId,
@@ -162,6 +165,7 @@ export function PaymentModal({ orderId, onClose, onPaid }: { orderId: number; on
                     aria-label={t('memberCode')} className="flex-1 min-w-0 h-12 px-3.5 rounded-md border border-border bg-surface text-[15px] text-ink placeholder:text-dim focus:outline-2 focus:outline-primary disabled:opacity-60" />
                   <Button variant="primary" className="rounded-md" disabled={!program} onClick={() => void search()}>{t('search')}</Button>
                 </div>
+                {benefitError&&<p role="alert" className="text-danger-ink">{benefitError}</p>}
                 {memberMissing && <p role="alert" className="text-[13px] text-danger-ink">{t('memberNotFound')}</p>}
                 {member && (
                   <div className="p-3.5 rounded-md bg-canvas border border-border flex flex-col gap-1.5">
@@ -186,7 +190,7 @@ export function PaymentModal({ orderId, onClose, onPaid }: { orderId: number; on
                 {order.lines.map((l) => (
                   <li key={l.uuid} className="flex justify-between gap-3">
                     <span className="min-w-0">
-                      <span className="block text-[15px] text-ink truncate">{l.name}</span>
+                      <span className="block text-[15px] text-ink truncate">{l.name}</span>{l.couponCode&&<span className="block text-[12px] text-success-ink">Cupón {l.couponCode} · −{l.discount}%</span>}
                       <span className="block text-[13px] text-soft tabular-nums">$ {formatCop(l.unitPrice)}</span>
                     </span>
                     <span className="text-right shrink-0">

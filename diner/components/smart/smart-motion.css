@@ -1,0 +1,63 @@
+/* Short, interruptible transitions; no timers or delays in navigation/actions. */
+.smart-menu { --sm-ease-out:cubic-bezier(.22,1,.36,1); }
+@media (prefers-reduced-motion:no-preference) {
+  .smart-menu dialog {
+    opacity:0;
+    transform:translateY(20px) scale(.99);
+    transition:opacity 220ms ease, transform 320ms var(--sm-ease-out),
+      display 320ms allow-discrete, overlay 320ms allow-discrete;
+  }
+  .smart-menu dialog.sm-navigation { transform:translateX(-100%); }
+  .smart-menu dialog[open] { opacity:1; transform:none; animation:none; }
+  .smart-menu dialog::backdrop {
+    opacity:0;
+    transition:opacity 240ms ease, display 320ms allow-discrete, overlay 320ms allow-discrete;
+  }
+  .smart-menu dialog[open]::backdrop { opacity:1; }
+  @starting-style {
+    .smart-menu dialog[open] { opacity:0; transform:translateY(20px) scale(.99); }
+    .smart-menu dialog.sm-navigation[open] { transform:translateX(-100%); }
+    .smart-menu dialog[open]::backdrop { opacity:0; }
+  }
+  /* Fallback for browsers without discrete display transitions. */
+  @supports not (transition-behavior:allow-discrete) {
+    .smart-menu dialog[open] { animation:sm-panel-in 280ms var(--sm-ease-out); }
+    .smart-menu dialog.sm-navigation[open] { animation:sm-drawer-in 320ms var(--sm-ease-out); }
+  }
+  .sm-greeting,.sm-home-title,.sm-dish-heading,.sm-section-heading {
+    animation:sm-content-in 360ms var(--sm-ease-out);
+  }
+  .sm-home-options > a,.sm-menu-sections > section,.sm-food-list > article {
+    animation:sm-content-in 400ms var(--sm-ease-out) both;
+  }
+  .sm-home-options > a:nth-child(2),.sm-menu-sections > section:nth-child(2),.sm-food-list > article:nth-child(2) { animation-delay:40ms; }
+  .sm-menu-sections > section:nth-child(3),.sm-food-list > article:nth-child(3) { animation-delay:80ms; }
+  .sm-cart-float { animation:sm-content-in 280ms var(--sm-ease-out); }
+  .sm-categories button,.sm-answer-chips button,.sm-heart,.sm-extra-counter button,
+  .sm-primary,.sm-secondary,.sm-icon {
+    transition:background-color 180ms ease, color 180ms ease,
+      box-shadow 180ms ease, scale 180ms var(--sm-ease-out);
+  }
+  .sm-primary:active:not(:disabled),.sm-secondary:active:not(:disabled),
+  .sm-icon:active:not(:disabled),.sm-heart:active:not(:disabled) { scale:.97; }
+  .sm-heart[aria-pressed=true] svg { animation:sm-heart-in 280ms var(--sm-ease-out); }
+  .sm-feedback .sm-rating-hero img { animation:sm-content-in 300ms var(--sm-ease-out); }
+  .sm-feedback .sm-dish-ratings button img { transition:width 200ms var(--sm-ease-out), height 200ms var(--sm-ease-out), margin 200ms var(--sm-ease-out); }
+  @media (hover:hover) and (pointer:fine) {
+    .sm-home-card,.sm-featured { transition:translate 240ms var(--sm-ease-out), box-shadow 240ms ease; }
+    .sm-home-card:hover,.sm-featured:hover { translate:0 -3px; }
+    .sm-navigation nav a { transition:translate 180ms var(--sm-ease-out), color 180ms ease; }
+    .sm-navigation nav a:hover { translate:4px 0; }
+  }
+  @keyframes sm-content-in { from { opacity:0; translate:0 10px; } to { opacity:1; translate:0 0; } }
+  @keyframes sm-panel-in { from { opacity:0; transform:translateY(20px) scale(.99); } to { opacity:1; transform:none; } }
+  @keyframes sm-drawer-in { from { opacity:0; transform:translateX(-100%); } to { opacity:1; transform:none; } }
+  @keyframes sm-heart-in { from { scale:.8; } 55% { scale:1.12; } to { scale:1; } }
+}
+@media (prefers-reduced-motion:reduce) {
+  .smart-menu *,.smart-menu *::before,.smart-menu *::after {
+    animation:none !important;
+    transition:none !important;
+    scroll-behavior:auto !important;
+  }
+}

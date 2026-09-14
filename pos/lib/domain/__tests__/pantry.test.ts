@@ -24,12 +24,13 @@ it('formats the stock with its unit', () => {
   expect(formatStock(900, 'g')).toBe('900 g')
   expect(formatStock(84, 'Units')).toBe('84 Unidades')
   expect(formatQty(0.25)).toBe('0,25')
+  expect(formatStock(0.005, 'kg')).toBe('0,005 kg')
   expect(unitLabel('Manojo')).toBe('Manojo')
 })
 
 // Falla si las unidades del kit no se reconocen por el nombre que tienen en uom.uom.
 it('recognises the kit units by their Odoo name', () => {
-  expect([kitUnitKey('kg'), kitUnitKey('Units'), kitUnitKey('Manojo'), kitUnitKey('L')]).toEqual(['kilogram', 'pieces', 'bunch', null])
+  expect([kitUnitKey('kg'), kitUnitKey('Units'), kitUnitKey('Manojo'), kitUnitKey('L')]).toEqual(['kilogram', 'pieces', 'bunch', 'liter'])
 })
 
 // Falla si un plato agotado sigue "Disponible", o si uno sin receta pierde el "Sin receta" del kit.

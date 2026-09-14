@@ -100,3 +100,30 @@ BRAND_CACHE_SECONDS = int(os.getenv('BRAND_CACHE_SECONDS', '60'))
 TEMPLATE_CACHE_SECONDS = int(os.getenv('TEMPLATE_CACHE_SECONDS', '60'))
 TENANT_CACHE_SECONDS = int(os.getenv('TENANT_CACHE_SECONDS', '120'))
 ODOO_TIMEOUT_SECONDS = int(os.getenv('ODOO_TIMEOUT_SECONDS', '20'))
+
+# Recuperación de cuenta: se habilita únicamente con un proveedor de correo configurado.
+DINER_EMAIL_ENABLED = os.getenv('DINER_EMAIL_ENABLED', 'false').lower() in {'1', 'true', 'yes', 'on'}
+DINER_PUBLIC_URL = os.getenv('DINER_PUBLIC_URL', 'http://192.168.56.10:3001').rstrip('/')
+MAILERS = {'default': {
+    'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
+    'OPTIONS': {
+        'host': os.getenv('EMAIL_HOST', 'localhost'),
+        'port': int(os.getenv('EMAIL_PORT', '587')),
+        'username': os.getenv('EMAIL_HOST_USER', ''),
+        'password': os.getenv('EMAIL_HOST_PASSWORD', ''),
+        'use_tls': os.getenv('EMAIL_USE_TLS', 'true').lower() in {'1', 'true', 'yes', 'on'},
+        'timeout': 10,
+    },
+}}
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'no-reply@example.invalid')
+
+# Agente: solo backend. Sin modelo implícito ni clave en el repositorio.
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
+WA_AGENT_MODEL = os.getenv('WA_AGENT_MODEL', '')
+
+AGENT_DAILY_LIMIT = int(os.getenv('AGENT_DAILY_LIMIT', '200'))
+
+# Gateway secrets use a separate, backed-up Fernet key; never derive it from DEBUG/SECRET_KEY.
+PAYMENTS_FERNET_KEY = os.getenv('PAYMENTS_FERNET_KEY', '')
+PAYMENTS_LIVE_ENABLED = os.getenv('PAYMENTS_LIVE_ENABLED', 'false').lower() == 'true'
+PAYMENTS_PUBLIC_URL = os.getenv('PAYMENTS_PUBLIC_URL', '').rstrip('/')

@@ -8,11 +8,14 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { Icon } from '@/components/kit/Icon'
 import { KitShell } from '@/components/kit/KitShell'
 import { ChangeTableModal } from '@/components/tables/ChangeTableModal'
-import { FloorEditModal } from '@/components/tables/FloorEditModal'
+import { FloorEditor } from '@/components/tables/FloorEditor'
+import { FloorZones } from '@/components/tables/FloorZones'
+import type { FloorDocument } from '@/lib/domain/floorPlan'
+import { readPlan } from '@/lib/services/floorPlan'
 import { FloorInfoChip, FloorSwitcher, SelectedTableBar, TableLegend } from '@/components/tables/FloorHeader'
 import { FloorPlan } from '@/components/tables/FloorPlan'
 import { FloorSettingsPopover } from '@/components/tables/FloorSettingsPopover'
-import { FloorWizard } from '@/components/tables/FloorWizard'
+
 import { PayModal } from '@/components/tables/PayModal'
 import { PickTablePrompt } from '@/components/tables/PickTablePrompt'
 import { ReservationDetailModal } from '@/components/tables/ReservationDetailModal'
@@ -24,13 +27,13 @@ import { orderCode, orderPrefix, parseFloorName, remainingByTemplate } from '@/l
 import { useIdentity } from '@/lib/hooks/useIdentity'
 import { getOrderLines, type OrderLineView } from '@/lib/services/orders'
 import { serveLines } from '@/lib/services/ordersKit'
-import { listAllFloors, listFloorTables, moveOrder, reservedAtByTable, setFloorActive, type FloorSetting, type OrderDetail, type OrderDetailLine, type TableReservation } from '@/lib/services/tables'
+import { listAllFloors, moveOrder, reservedAtByTable, setFloorActive, type FloorSetting, type OrderDetail, type OrderDetailLine, type TableReservation } from '@/lib/services/tables'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
 import { useFloorStore } from '@/lib/stores/floorStore'
 import { useOrderStore } from '@/lib/stores/orderStore'
 import { toast } from '@/lib/stores/toastStore'
-import type { Table } from '@/lib/types'
+
 
 type Sheet = null | 'reservations' | 'detail' | 'pay' | 'wizard'
 // Las demás pantallas mandan aquí con ?elegir=mesa cuando se pulsa "Crear pedido" sin mesa elegida.
@@ -62,7 +65,9 @@ export default function SalonPage() {
   const [sheet, setSheet] = useState<Sheet>(null)
   const [settings, setSettings] = useState(false)
   const [allFloors, setAllFloors] = useState<FloorSetting[]>([])
-  const [editing, setEditing] = useState<{ floor: FloorSetting; tables: Table[] } | null>(null)
+  const [editing, setEditing] = useState<FloorDocument | null>(null)
+  const [plan, setPlan] = useState<FloorDocument | null>(null)
+  const [visibleIds, setVisibleIds] = useState<number[] | null>(null)
   const [moving, setMoving] = useState<{ detail: OrderDetail; fromTableId: number } | null>(null)
   const [target, setTarget] = useState<number | null>(null)
   const [payLines, setPayLines] = useState<OrderLineView[]>([])
@@ -71,7 +76,7 @@ export default function SalonPage() {
   const [movingBusy, setMovingBusy] = useState(false)
   const [pickTable, setPickTable] = useState(false)
 
-  const reload = useCallback(async () => { if (session) { await load(session.id); await refreshOpenOrders(session.id) } }, [session, load, refreshOpenOrders])
+  const reload = useCallback(async () => { await load(session?.id ?? null); if (session) await refreshOpenOrders(session.id) }, [session, load, refreshOpenOrders])
   useEffect(() => {
     const id = setInterval(() => { if (session) void refreshOpenOrders(session.id) }, 30_000)
     return () => clearInterval(id)
@@ -88,13 +93,19 @@ export default function SalonPage() {
   useEffect(() => {
     if (!settings || configId === null) return
     let alive = true
-    void listAllFloors(configId).then((f) => { if (alive) setAllFloors(f) })
+    void listAllFloors(configId).then((f) => { if (alive) setAllFloors(f) }).catch(() => { if (alive) toast({ title: 'No se pudo cargar la lista de pisos. Puedes editar el piso actual.', tone: 'danger' }) })
     return () => { alive = false }
   }, [settings, configId])
 
   // Piso mostrado: el elegido si sigue existiendo, si no el primero del catálogo (sin escribir en el store).
   const floorId = catalog && activeFloorId !== null && catalog.floors.some((f) => f.id === activeFloorId) ? activeFloorId : catalog?.floors[0]?.id ?? null
-  const views = useMemo(() => (catalog ? deriveTableViews(catalog.tables.filter((x) => x.floorId === floorId), openOrders, flags, calls) : []), [catalog, floorId, openOrders, flags, calls])
+  useEffect(() => {
+    if (floorId === null) return
+    let alive = true
+    void readPlan(floorId).then(p => { if (alive) { setPlan(p); setVisibleIds(null) } }).catch(() => { if (alive) setPlan(null) })
+    return () => { alive = false }
+  }, [floorId, catalog])
+  const views = useMemo(() => (catalog ? deriveTableViews(catalog.tables.filter((x) => x.floorId === floorId), session ? openOrders : [], session ? flags : {}, session ? calls : []) : []), [catalog, floorId, openOrders, flags, calls, session])
   // Reservas del día por mesa: pintan la mesa en tinta con su hora, como en el kit.
   const tableIds = useMemo(() => views.map((v) => v.table.id).join(','), [views])
   useEffect(() => {
@@ -139,7 +150,15 @@ export default function SalonPage() {
     if (ok) await reload()
   }
   function onCloseReceipt() { closeReceipt(); setSheet(null); selectTable(null) }
-  async function openEdit(f: FloorSetting) { setSettings(false); setEditing({ floor: f, tables: await listFloorTables(f.id) }) }
+  async function openEdit(f: FloorSetting) {
+    if (session) { toast({ title: 'Cierra la caja para editar el plano. Las asignaciones de zonas se cambian durante el turno.', tone: 'danger' }); return }
+    try { const document = await readPlan(f.id); setSettings(false); setEditing(document) }
+    catch { toast({ title: 'No se pudo abrir el editor del piso. Intenta de nuevo.', tone: 'danger' }) }
+  }
+  function addFloor() {
+    if (session) { toast({ title: 'Cierra la caja para crear un piso.', tone: 'danger' }); return }
+    setSettings(false); setEditing({id:null,name:'Nuevo piso',revision:0,tables:[],walls:[],zones:[]})
+  }
   // Odoo se niega a tocar un piso con la caja abierta (obligaría a recalcular el turno en marcha): se explica
   // en una nota, no en una pantalla de error.
   async function toggleFloor(f: FloorSetting, active: boolean) {
@@ -161,6 +180,9 @@ export default function SalonPage() {
   }
 
   if (!catalog) return null
+  if (editing) return <FloorEditor initial={editing} configId={catalog.settings.configId}
+    background={editing.id && catalog.floors.find(f => f.id === editing.id)?.hasBackground ? `/odoo/web/image/restaurant.floor/${editing.id}/floor_background_image?unique=${editing.revision}` : null}
+    onCancel={() => setEditing(null)} onSaved={async (saved) => { await reload(); setPlan(saved); setFloor(saved.id!); setEditing(null); toast({ title: 'Plano guardado' }) }} />
   // Cobrar puede ser solo de caja: lo decide el restaurante en Configuración.
   const mayCharge = can.charge(role, catalog.settings.waiterCanCharge)
   // Un pedido en mesa nace de una mesa elegida a propósito: sin selección se pide antes de abrir el asistente.
@@ -179,21 +201,22 @@ export default function SalonPage() {
           )}
         </div>
       </header>
+      {plan?.id === floorId && <FloorZones key={floorId} plan={plan} onFilter={setVisibleIds} />}
       <div className="relative flex-1 min-h-0 flex flex-col">
         {floor && <FloorInfoChip type={parseFloorName(floor.name).type} remaining={remainingByTemplate(views.filter((v) => !reserved[v.table.id]))} />}
-        <FloorPlan views={views} selectedId={moving ? moving.fromTableId : selectedTableId} onSelect={onSelect} pickFree={moving !== null} codeFor={codeFor} reserved={reserved}
-          background={floor?.hasBackground ? `/odoo/web/image/restaurant.floor/${floor.id}/floor_background_image` : null} />
+        <FloorPlan plan={plan?.id === floorId ? plan : null} visibleIds={visibleIds} views={views} selectedId={moving ? moving.fromTableId : selectedTableId} onSelect={onSelect} pickFree={moving !== null} codeFor={codeFor} reserved={reserved}
+          background={floor?.hasBackground ? `/odoo/web/image/restaurant.floor/${floor.id}/floor_background_image?unique=${plan?.id === floor.id ? plan.revision : 0}` : null} />
         {moving ? (
           <div role="toolbar" aria-label={t('change.title')} className="absolute left-1/2 -translate-x-1/2 bottom-8 z-20 h-14 pl-4 pr-1.5 rounded-md bg-overlay text-[#F7F7F7] shadow-xl flex items-center gap-3 whitespace-nowrap text-[15px] font-semibold">
             <span>{t('selected.moving', { code: orderCode(orderPrefix(moving.detail.serviceAt), moving.detail.tracking, moving.detail.id) })}</span>
             <button type="button" onClick={() => { setMoving(null); setTarget(null) }} className="h-11 px-3.5 rounded-sm bg-[#F7F7F7] text-[#0F172A] flex items-center gap-2"><Icon name="close" size={18} />{t('selected.cancelMove')}</button>
           </div>
-        ) : selected && (
+        ) : selected && session && (
           <SelectedTableBar name={String(selected.table.number)} hasReservation={Boolean(reserved[selected.table.id])}
             onClear={() => selectTable(null)} onReservations={() => setSheet('reservations')} onDetail={() => setSheet('detail')}
             onNewOrder={() => newOrderHref && router.push(newOrderHref)} />
         )}
-        <FloorSettingsPopover open={settings && mayManageFloors} onClose={() => setSettings(false)} floors={allFloors} onAdd={() => { setSettings(false); setSheet('wizard') }} onEdit={openEdit} onToggle={toggleFloor} />
+        <FloorSettingsPopover open={settings && mayManageFloors} onClose={() => setSettings(false)} floors={allFloors} currentFloor={floor ? { id: floor.id, name: floor.name, active: true, tableCount: floor.tableIds.length } : null} onAdd={addFloor} onEdit={openEdit} onToggle={toggleFloor} />
       </div>
       {selected && (
         <ReservationListModal open={sheet === 'reservations' && booking === null} onClose={() => setSheet(null)} tableId={selected.table.id}
@@ -215,8 +238,6 @@ export default function SalonPage() {
       )}
       <Suspense><AskedForTable onAsk={askForTable} /></Suspense>
       <PickTablePrompt open={pickTable} onClose={() => setPickTable(false)} />
-      {sheet === 'wizard' && <FloorWizard open onClose={() => setSheet(null)} floors={catalog.floors} configId={catalog.settings.configId} onCreated={async (id) => { await reload(); setFloor(id) }} />}
-      {editing && <FloorEditModal open onClose={() => setEditing(null)} floor={editing.floor} tables={editing.tables} configId={catalog.settings.configId} onSaved={reload} />}
     </KitShell>
   )
 }

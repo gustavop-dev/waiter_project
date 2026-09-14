@@ -4,7 +4,7 @@ import { create } from 'zustand'
 
 import { play, setMuted, setStation } from '@/lib/audio/sounds'
 import { ALL, FRESH_MIN, LATE_MIN, ticketMinutes } from '@/lib/domain/kitchen'
-import { listCompletedCourses, listKitchenTickets, markLineReady, markReady, markServed, type CompletedCourse, type KitchenTicket } from '@/lib/services/kitchen'
+import { startPreparation, listCompletedCourses, listKitchenTickets, markLineReady, markReady, markServed, type CompletedCourse, type KitchenTicket } from '@/lib/services/kitchen'
 
 type StationOf = (productId: number) => string | null
 const WARN_MIN = 12
@@ -21,6 +21,7 @@ interface KitchenState {
   alarms: Record<number, { warned: boolean; lastCritical: number }>
   tick: (now: number) => void
   refresh: (sessionId: number, stationOf: StationOf) => Promise<void>
+  start: (courseId: number, sessionId: number, stationOf: StationOf) => Promise<void>
   ready: (courseId: number, sessionId: number, stationOf: StationOf) => Promise<void>
   // Un plato suelto: cocina saca de uno en uno y el mesero se lo lleva sin esperar al resto.
   readyDish: (lineId: number, sessionId: number, stationOf: StationOf) => Promise<void>
@@ -55,6 +56,10 @@ export const useKitchenStore = create<KitchenState>((set, get) => ({
       else if (min >= WARN_MIN && !a.warned) { play('demora'); alarms[t.id] = { ...a, warned: true }; changed = true }
     })
     if (changed) set({ alarms })
+  },
+  start: async (courseId, sessionId, stationOf) => {
+    await startPreparation(courseId)
+    await get().refresh(sessionId, stationOf)
   },
   ready: async (courseId, sessionId, stationOf) => {
     play('listo')

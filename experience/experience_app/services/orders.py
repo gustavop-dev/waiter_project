@@ -14,11 +14,11 @@ from experience_app.adapters.odoo import pos
 from experience_app.adapters.odoo.client import OdooClient, OdooError
 from experience_app.adapters.registry.client import resolve
 from experience_app.models import CartLine, Diner, DinerAccount, Order, TableSession, SignupDiscountClaim
-from experience_app.services import discount
+from experience_app.services import benefits, discount
 from experience_app.services.sessions import PAID_STATES, close_paid, open_lines
 from experience_app.utils.errors import ConfirmationBusy, NothingToConfirm, SessionAlreadyPaid
 
-STATUS_BY_KITCHEN = {'none': 'enviado', 'cooking': 'en_cocina', 'ready': 'listo', 'served': 'servido'}
+STATUS_BY_KITCHEN = {'none': 'enviado', 'received': 'enviado', 'cooking': 'en_cocina', 'ready': 'listo', 'served': 'servido'}
 
 
 def _line_uuid(order: Order, line: CartLine) -> str:
@@ -28,12 +28,12 @@ def _line_uuid(order: Order, line: CartLine) -> str:
 
 def _to_odoo_lines(order: Order, lines: list[CartLine]) -> list[pos.OrderLine]:
     return [pos.OrderLine(uuid=_line_uuid(order, line), product_id=line.product_id, name=line.name, unit_price=float(line.unit_price),
-                          qty=line.qty, note=line.note, tax_ids=list(line.tax_ids), discount=float(line.discount)) for line in lines]
+                          qty=line.qty, note=' · '.join(part for part in [('Para llevar' if line.takeaway else ''), line.note, ('Notas del comensal: ' + line.checkout_note if line.checkout_note else ''), ('ALERGIAS / ALÉRGENOS: ' + line.allergens if line.allergens else '')] if part), tax_ids=list(line.tax_ids), discount=float(line.discount), loyalty_card_id=line.loyalty_card_id, coupon_code=line.coupon_code) for line in lines]
 
 
 def _first_purchase_discount(tenant, diner: Diner | None, new_lines: list[CartLine], order: Order) -> tuple[Decimal, list[CartLine]]:
     """Reserva atómica antes de RPC; un resultado remoto incierto conserva las líneas del reintento."""
-    if diner is None or diner.account_id is None:
+    if diner is None or diner.account_id is None or diner.coupon_code:
         return Decimal(0), []
     reserved = [line for line in new_lines if line.discount and line.diner_id == diner.id]
     if reserved:
@@ -62,47 +62,68 @@ def _reserve_account_discount(diner, mine, order, percent):
     return percent, mine
 
 
-def confirm(session: TableSession, diner: Diner | None = None) -> tuple[Order, bool]:
+def confirm(session: TableSession, diner: Diner | None = None, takeaway: bool | None = None, *, prepay: bool = False, checkout_note: str | None = None, allergens: str | None = None) -> tuple[Order, bool]:
     # CAS persistente: serializa confirmaciones de una mesa incluso en SQLite.
     if not TableSession.objects.filter(id=session.id, confirming=False, state__in=TableSession.OPEN_STATES).update(confirming=True):
         raise ConfirmationBusy()
     try:
-        return _confirm(session, diner)
+        return _confirm(session, diner, takeaway, prepay=prepay, checkout_note=checkout_note, allergens=allergens)
     finally:
         TableSession.objects.filter(id=session.id).update(confirming=False)
 
 
-def _confirm(session: TableSession, diner: Diner | None = None) -> tuple[Order, bool]:
+def _confirm(session: TableSession, diner: Diner | None = None, takeaway: bool | None = None, *, prepay: bool = False, checkout_note: str | None = None, allergens: str | None = None) -> tuple[Order, bool]:
     """Devuelve (pedido, hubo_algo_nuevo). Sin líneas nuevas, comprueba en Odoo que sigue abierto y devuelve el pedido.
 
     `diner` es quien confirma: si tiene cuenta verificada con el descuento de primera compra sin usar, SUS líneas nuevas
     van a Odoo con `discount` y la cuenta queda marcada; las de los demás comensales de la mesa no.
     """
+    if diner is not None and takeaway is not None:
+        open_lines(session).filter(diner=diner, order__isnull=True).update(takeaway=takeaway)
+    from experience_app.services.online_payments import ACTIVE, PaymentConflict
+    if session.payments.filter(status__in=ACTIVE).exists():
+        raise PaymentConflict('Hay un pago en curso. Espera su resultado antes de modificar la cuenta.')
+    if diner is not None:
+        details = {}
+        if checkout_note is not None:
+            details['checkout_note'] = checkout_note
+        if allergens is not None:
+            details['allergens'] = allergens
+        elif diner.account_id and diner.account.verified:
+            details['allergens'] = diner.account.allergens
+        if details:
+            open_lines(session).filter(diner=diner, order__isnull=True).update(**details)
     new_lines = list(open_lines(session))
     order = session.orders.order_by('created_at').first()
-    if not new_lines and (order is None or order.state != Order.SENT):
+    if not new_lines and (order is None or order.state not in (Order.SENT, Order.CHECKOUT)):
         raise NothingToConfirm()
     tenant = resolve(session.restaurant_slug, session.venue_slug, session.table_token)
     client = OdooClient(tenant.odoo)
     # También se verifica al pagar sin líneas nuevas: el POS puede haber cobrado entretanto.
-    if order is not None and order.state == Order.SENT and order.odoo_order_id and pos.read_order_status(client, order.odoo_order_id).state in PAID_STATES:
-        close_paid(session)
-        raise SessionAlreadyPaid()
+    if order is not None and order.state in (Order.SENT, Order.CHECKOUT) and order.odoo_order_id:
+        status = pos.read_order_status(client, order.odoo_order_id)
+        if status.state in PAID_STATES:
+            if order.requires_payment and status.kitchen != 'served':
+                raise PaymentConflict('Este pedido ya está pagado. Puedes seguir su preparación desde el estado del pedido.')
+            close_paid(session)
+            raise SessionAlreadyPaid()
     if not new_lines:
         return order, False
-    order = order or Order.objects.create(session=session)
+    order = order or Order.objects.create(session=session, requires_payment=prepay)
     with transaction.atomic():
         session.lines.filter(id__in=[line.id for line in new_lines]).update(order=order)
         # Releer después de reservar: PATCH/DELETE solo pueden tocar líneas sin pedido.
         new_lines = list(open_lines(session).filter(order=order))
+        benefits.reserve(tenant, new_lines)
         _first_purchase_discount(tenant, diner, new_lines, order)
     all_lines = list(session.lines.filter(status=CartLine.CONFIRMED).order_by('created_at')) + new_lines
     try:
         pos_session_id = pos.ensure_open_session(client, tenant.odoo.pos_config_id)
         odoo_order = pos.create_order(client, pos_session_id=pos_session_id, table_id=session.odoo_table_id, order_uuid=str(order.id),
                                       guests=max(1, session.diners.count()), lines=_to_odoo_lines(order, all_lines),
-                                      date_order=timezone.now().strftime('%Y-%m-%d %H:%M:%S'))
-        pos.fire_course(client, odoo_order.id)
+                                      date_order=timezone.now().strftime('%Y-%m-%d %H:%M:%S'), requires_payment=order.requires_payment)
+        if not order.requires_payment:
+            pos.fire_course(client, odoo_order.id)
     except OdooError as exc:
         order.state, order.attempts, order.last_error = Order.FAILED, order.attempts + 1, str(exc)
         order.save(update_fields=['state', 'attempts', 'last_error'])
@@ -113,11 +134,16 @@ def _confirm(session: TableSession, diner: Diner | None = None) -> tuple[Order, 
         except OdooError:
             pass  # La comanda ya llegó; un fallo al limpiar la llamada no invalida la confirmación.
     with transaction.atomic():
-        order.state, order.attempts, order.last_error = Order.SENT, order.attempts + 1, ''
-        order.odoo_order_id, order.total, order.tax, order.sent_at = odoo_order.id, Decimal(str(odoo_order.total)), Decimal(str(odoo_order.tax)), timezone.now()
+        order.state, order.attempts, order.last_error = (Order.CHECKOUT if order.requires_payment else Order.SENT), order.attempts + 1, ''
+        order.odoo_order_id, order.total, order.tax, order.sent_at = odoo_order.id, Decimal(str(odoo_order.total)), Decimal(str(odoo_order.tax)), (None if order.requires_payment else timezone.now())
         order.save()
+        for line in new_lines:
+            if line.diner.account_id and not line.account_id:
+                line.account_id = line.diner.account_id
+                line.save(update_fields=['account'])
         session.lines.filter(id__in=[line.id for line in new_lines]).update(status=CartLine.CONFIRMED, order=order)
-        DinerAccount.objects.filter(discount_order=order, discount_used_at=None).update(discount_used_at=timezone.now())
+        if not order.requires_payment:
+            DinerAccount.objects.filter(discount_order=order, discount_used_at=None).update(discount_used_at=timezone.now())
         session.state = TableSession.CONFIRMED
         session.save(update_fields=['state'])
     return order, True
@@ -128,11 +154,19 @@ def status_view(order: Order) -> dict:
     pct = max((line.discount for line in order.lines.all()), default=0)
     base = {'id': str(order.id), 'sesion': str(order.session_id), 'total': float(order.total or 0), 'impuestos': float(order.tax or 0), 'intentos': order.attempts,
             'descuento': {'porcentaje': float(pct), 'monto': float(saved), 'aplicado': bool(saved)}}
-    if order.state != Order.SENT:
+    if order.state not in (Order.SENT, Order.CHECKOUT):
         return {**base, 'estado': 'fallido', 'detalle': order.last_error}
     session = order.session
     tenant = resolve(session.restaurant_slug, session.venue_slug, session.table_token)
     status = pos.read_order_status(OdooClient(tenant.odoo), order.odoo_order_id)
+    if order.requires_payment:
+        if status.state not in PAID_STATES:
+            # Only authenticated, authorized staff can release an unpaid menu order in Odoo.
+            return {**base, 'estado': 'pendiente_pago' if status.kitchen == 'none' else STATUS_BY_KITCHEN[status.kitchen]}
+        Order.objects.filter(id=order.id, state=Order.CHECKOUT).update(state=Order.SENT, sent_at=timezone.now())
+        DinerAccount.objects.filter(discount_order=order, discount_used_at=None).update(discount_used_at=timezone.now())
+        if status.kitchen != 'served':
+            return {**base, 'estado': STATUS_BY_KITCHEN[status.kitchen]}
     if status.state in PAID_STATES:
         close_paid(session)  # la siguiente sesión de la mesa empieza limpia
         return {**base, 'estado': 'pagado'}

@@ -3,7 +3,7 @@ import {
   orderStatus, orderTypeOf, progressPercent, readyToServe, sortOrders, type KitCourse, type KitLine, type KitOrder,
 } from '@/lib/domain/orderState'
 
-const course = (id: number, patch: Partial<KitCourse> = {}): KitCourse => ({ id, fired: true, readyAt: null, servedAt: null, ...patch })
+const course = (id: number, patch: Partial<KitCourse> = {}): KitCourse => ({ id, fired: true, preparationAt: '2026-09-08 10:00:00', readyAt: null, servedAt: null, ...patch })
 const line = (id: number, courseId: number | null): KitLine => ({ id, uuid: `u${id}`, productId: 3, name: 'Angus', qty: 1, unitPrice: 36900, subtotal: 36900, total: 43911, note: '', courseId, readyAt: null, servedAt: null })
 const order = (patch: Partial<KitOrder> = {}): KitOrder => ({
   id: 7, number: 'DI007', type: 'dine_in', state: 'draft', tableId: 4, tableNumber: 3, customer: 'Eva', startedAt: '2026-09-06 20:00:00', total: 0, tax: 0, lines: [], courses: [], ...patch,
@@ -102,4 +102,11 @@ it('computes cart totals with real Odoo tax rates and greets by hour', () => {
   expect(greetingFor(9)).toBe('morning')
   expect(greetingFor(15)).toBe('afternoon')
   expect(greetingFor(21)).toBe('evening')
+})
+
+it('allows cancellation after receipt until preparation starts', () => {
+  const o = order({ courses: [course(1, { preparationAt: null })], lines: [line(1, 1)] })
+  expect(lineGroup(o, o.lines[0])).toBe('waiting')
+  o.courses[0].preparationAt = '2026-09-08 10:01:00'
+  expect(lineGroup(o, o.lines[0])).toBe('in_progress')
 })

@@ -33,3 +33,42 @@ it('edits the diner attributes in the third step', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Guardar' }))
   await waitFor(() => expect(onSave).toHaveBeenCalledWith({ ...initial, dinerAttributes: { picante: 2, etiquetas: ['popular', 'sin gluten'], tamanos: [{ nombre: 'Doble', precio: 36900 }], soloHoy: true } }))
 })
+
+// Falla si la tarjeta del comensal pierde los minutos de preparación o el precio anterior tachado, o si se guardan como texto.
+it('saves the preparation minutes and the previous price shown struck through', async () => {
+  const onSave = jest.fn().mockResolvedValue(undefined)
+  wrap(<ProductForm initial={initial} isNew={false} categories={categories} taxes={taxes} onSave={onSave} onClose={jest.fn()} />)
+  fireEvent.click(screen.getByRole('tab', { name: /Atributos/ }))
+  fireEvent.change(screen.getByLabelText(/Tiempo de preparación/), { target: { value: '15' } })
+  fireEvent.change(screen.getByLabelText(/Precio anterior/), { target: { value: '42000' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Guardar' }))
+  await waitFor(() => expect(onSave).toHaveBeenCalledWith({ ...initial, dinerAttributes: { tiempoPreparacion: 15, precioAntes: 42000 } }))
+})
+
+// Falla si la ficha exige nutrición o pierde ingredientes, peso y valores cero al guardar.
+it('saves optional dish information and allows clearing nutrition', async () => {
+  const onSave = jest.fn().mockResolvedValue(undefined)
+  wrap(<ProductForm initial={initial} isNew={false} categories={categories} taxes={taxes} onSave={onSave} onClose={jest.fn()} />)
+  fireEvent.change(screen.getByLabelText(/Descripción/), {target:{value:'Pan tostado con huevo'}})
+  fireEvent.click(screen.getByRole('tab', {name:/Atributos/}))
+  fireEvent.blur(screen.getByLabelText(/Ingredientes del plato/), {target:{value:'Pan, Huevo'}})
+  fireEvent.change(screen.getByLabelText('Peso de la porción (g)'), {target:{value:'180.5'}})
+  fireEvent.change(screen.getByLabelText('Grasa (g)'), {target:{value:'0'}})
+  fireEvent.click(screen.getByRole('button', {name:'Guardar'}))
+  await waitFor(() => expect(onSave).toHaveBeenLastCalledWith({...initial,description:'Pan tostado con huevo',dinerAttributes:{ingredientes:['Pan','Huevo'],nutricion:{peso:180.5,grasa:0}}}))
+  fireEvent.change(screen.getByLabelText('Peso de la porción (g)'), {target:{value:''}})
+  fireEvent.change(screen.getByLabelText('Grasa (g)'), {target:{value:''}})
+  fireEvent.click(screen.getByRole('button', {name:'Guardar'}))
+  await waitFor(() => expect(onSave).toHaveBeenLastCalledWith({...initial,description:'Pan tostado con huevo',dinerAttributes:{ingredientes:['Pan','Huevo'],nutricion:{peso:undefined,grasa:undefined}}}))
+})
+
+it('builds a fixed combo from catalog products and keeps its own selling price',async()=>{
+ const onSave=jest.fn().mockResolvedValue(undefined)
+ wrap(<ProductForm initial={initial} isNew categories={categories} taxes={taxes} extraProducts={[{id:3,name:'Hamburguesa'},{id:7,name:'Bebida'}]} onSave={onSave} onClose={jest.fn()}/>)
+ fireEvent.click(screen.getByRole('switch',{name:'Es un combo'}))
+ fireEvent.change(screen.getByLabelText('Producto 1'),{target:{value:'3'}})
+ fireEvent.change(screen.getByLabelText('Producto 2'),{target:{value:'7'}})
+ fireEvent.change(screen.getByLabelText(/Precio/),{target:{value:'45000'}})
+ fireEvent.click(screen.getByRole('button',{name:'Guardar'}))
+ await waitFor(()=>expect(onSave).toHaveBeenCalledWith(expect.objectContaining({price:45000,dinerAttributes:{combo:[{producto:3,cantidad:1},{producto:7,cantidad:1}]}})))
+})

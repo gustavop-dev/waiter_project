@@ -44,13 +44,14 @@
 }
 
 :root { --r-brand: #C1873A; --r-brand-ink: #FFFFFF; --r-brand-soft: #FDF6EA; --r-display: 'Instrument Serif'; --r-radius: 14px; }
-/* Por defecto = B1 (docs/diseno/plantillas/B1/spec.json); DEFAULT_TEMPLATE en lib/domain/template.ts debe dar exactamente esto. */
+/* Valores de respaldo del menú S1; también se usan mientras llega la marca del restaurante. */
 :root {
-  --t-fondo: #FFFFFF; --t-superficie: #FAF8F5; --t-tinta: #1A1815; --t-tinta-suave: #7A7166; --t-tinta-terciaria: #9A8F7E;
-  --t-borde: #EFE9E0; --t-acento: #C1873A; --t-acento-tinta: #1A1815; --t-acento-suave: #FDF6EA;
-  --t-display: 'Ubuntu', system-ui, sans-serif; --t-display-peso: 700; --t-display-tracking: -0.02em; --t-display-transform: none;
-  --t-cuerpo: 'Ubuntu', system-ui, sans-serif; --t-mono: 'IBM Plex Mono', ui-monospace, monospace;
-  --t-radio-tarjeta: 14px; --t-radio-boton: 12px; --t-radio-chip: 999px;
+  --t-fondo: #F8F8FA; --t-superficie: #FFFFFF; --t-tinta: #32324D; --t-tinta-suave: #666687; --t-tinta-terciaria: #FFB01D;
+  --t-borde: #EAEAEF; --t-acento: #6755A0; --t-acento-tinta: #FFFFFF; --t-acento-suave: #EEEBF5;
+  --t-display: 'DM Sans', system-ui, sans-serif; --t-display-peso: 500; --t-display-tracking: -0.025em; --t-display-transform: none;
+  --t-cuerpo: 'Mulish', system-ui, sans-serif; --t-mono: 'Mulish', ui-monospace, monospace;
+  --t-radio-tarjeta: 16px; --t-radio-boton: 16px; --t-radio-chip: 16px;
+  --sm-highlight-ink: #1A1815;
 }
 html { font-family: var(--font-ui); background: var(--t-fondo); color: var(--t-tinta); -webkit-font-smoothing: antialiased; }
 .tabular { font-variant-numeric: tabular-nums; }

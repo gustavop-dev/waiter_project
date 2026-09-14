@@ -14,7 +14,7 @@ const TONE: Record<IngredientStatus, PillTone> = { request: 'danger', normal: 'p
 // Fila de "Ingredients List": foto, nombre, categoría • stock • nivel, PROVEEDOR, ESTADO y menú ⋯ (Editar / Solicitar / Eliminar).
 // `mayEdit` decide si el menú ofrece editar y borrar. Solicitar al proveedor se queda siempre: es pedir,
 // no cambiar el inventario, y quien ve que algo se acaba suele ser el de la sala.
-export function IngredientRow({ ingredient, onEdit, onRequest, onDelete, mayEdit = true }: { ingredient: Ingredient; onEdit: () => void; onRequest: () => void; onDelete: () => void; mayEdit?: boolean }) {
+export function IngredientRow({ ingredient, onEdit, onRequest, onDelete, onControl, mayEdit = true }: { ingredient: Ingredient; onEdit: () => void; onRequest: () => void; onDelete: () => void; mayEdit?: boolean; onControl?:()=>void }) {
   const t = useTranslations('pantry')
   const [open, setOpen] = useState(false)
   const box = useRef<HTMLDivElement>(null)
@@ -52,6 +52,7 @@ export function IngredientRow({ ingredient, onEdit, onRequest, onDelete, mayEdit
           className="w-10 h-10 rounded-md border border-border bg-surface grid place-items-center text-ink hover:bg-muted"><Icon name="moreHorizontal" size={20} /></button>
         {open && (
           <div role="menu" className="absolute right-0 top-full mt-1 z-20 w-[200px] p-1.5 rounded-md border border-border bg-surface shadow-lg flex flex-col">
+            {onControl&&<button type="button" role="menuitem" onClick={pick(onControl)} className="h-10 px-2.5 text-left text-sm hover:bg-muted">Existencias y movimientos</button>}
             {mayEdit && <button type="button" role="menuitem" onClick={pick(onEdit)} className="h-10 px-2.5 rounded-sm flex items-center gap-2.5 text-[14px] font-medium text-ink hover:bg-muted"><Icon name="edit" size={18} />{t('actions.edit')}</button>}
             <button type="button" role="menuitem" onClick={pick(onRequest)} className="h-10 px-2.5 rounded-sm flex items-center gap-2.5 text-[14px] font-medium text-ink hover:bg-muted"><Icon name="catalog" size={18} />{t('actions.request')}</button>
             <span className="my-1 border-t border-border" aria-hidden />

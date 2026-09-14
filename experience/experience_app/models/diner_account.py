@@ -11,9 +11,11 @@ class DinerAccount(models.Model):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    password = models.CharField(max_length=128, blank=True)
     name = models.CharField(max_length=60)
     email = models.EmailField(max_length=120)
     phone = models.CharField(max_length=20, blank=True)
+    allergens = models.CharField(max_length=500, blank=True)
     accepts_data = models.BooleanField(default=False)  # política de datos: obligatoria para crear la cuenta
     marketing = models.BooleanField(default=False)  # novedades del restaurante: sin marcar por ley
     verified = models.BooleanField(default=False)
@@ -35,3 +37,11 @@ class DinerAccount(models.Model):
 class SignupDiscountClaim(models.Model):
     key = models.CharField(max_length=64, unique=True)
     order = models.ForeignKey('experience_app.Order', on_delete=models.PROTECT)
+
+
+class DinerPasswordReset(models.Model):
+    account = models.ForeignKey(DinerAccount, on_delete=models.CASCADE)
+    token_hash = models.CharField(max_length=64, unique=True)
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)

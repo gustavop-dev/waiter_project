@@ -1,5 +1,5 @@
 import { callKw } from '@/lib/services/odoo'
-import { getBrand, getBrandLogo, saveBrand, type BrandInfo } from '@/lib/services/settings'
+import { getBrand, getBrandLogo, saveBrand, saveBrandGreeting, type BrandInfo } from '@/lib/services/settings'
 
 jest.mock('@/lib/services/odoo', () => ({ callKw: jest.fn() }))
 const m = callKw as jest.Mock
@@ -46,4 +46,13 @@ it('uploads or removes the logo when asked', async () => {
   expect(m.mock.calls[0][2][1]).toMatchObject({ brand_color: false, brand_radius: false, brand_logo: 'QUJD' })
   await saveBrand(BRAND, { remove: true })
   expect(m.mock.calls[1][2][1].brand_logo).toBe(false)
+})
+
+// Falla si el saludo del menú pisa el resto de la marca (color, fuente, logo) o si vacío viaja como '' en vez de false.
+it('saves only the menu greeting and clears it with false', async () => {
+  m.mockResolvedValue(true)
+  await saveBrandGreeting(1, '  Buenas noches  ')
+  expect(m.mock.calls[0]).toEqual(['res.company', 'write', [[1], { brand_greeting: 'Buenas noches' }]])
+  await saveBrandGreeting(1, '   ')
+  expect(m.mock.calls[1]).toEqual(['res.company', 'write', [[1], { brand_greeting: false }]])
 })

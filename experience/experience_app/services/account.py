@@ -8,6 +8,7 @@ import re
 
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from experience_app.adapters.registry.client import resolve, RegistryUnavailable, TenantNotFound
@@ -57,6 +58,12 @@ def register(data: dict, diner: Diner) -> DinerAccount:
     """Una cuenta nueva vinculada al dispositivo; demo nunca recupera identidades por correo."""
     require_demo()
     fields = _clean(data)
+    password = data.get('clave')
+    if password is not None:
+        if not isinstance(password, str) or not 10 <= len(password) <= 128 or password.isnumeric() or password.lower() in {fields['email'], fields['name'].lower()}:
+            raise InvalidRegistration('Usa una contraseña de 10 a 128 caracteres que no sea solo numérica ni tu nombre o correo.')
+        from django.contrib.auth.hashers import make_password
+        fields['password'] = make_password(password)
     pending = DinerAccount.objects.filter(email=fields['email'], verified=False, registration_key=diner.key).first()
     if pending:
         pending.created_at = timezone.now()
@@ -85,13 +92,14 @@ def verify(account: DinerAccount, diner: Diner, code) -> DinerAccount:
 
 def logout(diner: Diner) -> None:
     if diner.account_id is not None:
+        CartLine.objects.filter(diner=diner, order__isnull=False, account__isnull=True).update(account=diner.account)
         diner.account = None
         diner.save(update_fields=['account'])
 
 
 def profile_view(account: DinerAccount) -> dict:
-    return {'id': str(account.id), 'nombre': account.name, 'correo': account.email, 'celular': account.phone,
-            'novedades': account.marketing, 'verificada': account.verified,
+    return {'id': str(account.id), 'nombre': account.name, 'correo': account.email, 'celular': account.phone, 'alergenos': account.allergens,
+            'tieneClave': bool(account.password), 'novedades': account.marketing, 'verificada': account.verified,
             'descuentoDisponible': account.discount_available,
             'descuentoUsado': account.discount_used_at.isoformat() if account.discount_used_at else None,
             'creada': account.created_at.isoformat()}
@@ -102,7 +110,7 @@ def history(account: DinerAccount) -> list[dict]:
 
     El estado sale de la sesión (pagada por el salón o no), sin ir a Odoo por cada pedido viejo.
     """
-    orders = (Order.objects.filter(state=Order.SENT, session__diners__account=account)
+    orders = (Order.objects.filter(Q(lines__account=account) | Q(lines__account__isnull=True, session__diners__account=account), state__in=(Order.SENT, Order.CHECKOUT))
               .distinct().select_related('session').order_by('-created_at'))
     orders = list(orders)
     groups = {}
@@ -115,12 +123,15 @@ def history(account: DinerAccount) -> list[dict]:
             states = client.call_kw('pos.order', 'read', [[o.odoo_order_id for o in pending], ['state']])
             paid = {row['id'] for row in states if row['state'] in PAID_STATES}
             for order in pending:
-                if order.odoo_order_id in paid:
+                if order.requires_payment and order.odoo_order_id in paid:
+                    from experience_app.services.orders import status_view
+                    order._diner_status = status_view(order)['estado']
+                elif order.odoo_order_id in paid and not order.requires_payment:
                     close_paid(order.session)
         except (OdooError, RegistryUnavailable, TenantNotFound):
             pass  # Historial disponible con el último estado conocido si el salón no responde.
     diner_ids = set(account.diners.values_list('id', flat=True))
-    lines = CartLine.objects.filter(order__in=orders, diner_id__in=diner_ids).order_by('created_at')
+    lines = CartLine.objects.filter(Q(account=account) | Q(account__isnull=True, diner_id__in=diner_ids), order__in=orders).order_by('created_at')
     mine_by_order: dict = {}
     lines_by_order: dict = {}
     for line in lines:
@@ -135,7 +146,7 @@ def history(account: DinerAccount) -> list[dict]:
         # `local` es el nombre legible del restaurante; la sesión solo guarda slugs (el nombre real llega con el contexto).
         out.append({'id': str(order.id), 'fecha': order.created_at.isoformat(), 'total': float(mine), 'totalMesa': float(order.total or 0),
                     'mio': float(mine), 'descuento': float(saved), 'mesa': order.session.table_number,
-                    'estado': 'pagado' if order.session.state == TableSession.PAID else 'enviado',
+                    'estado': getattr(order, '_diner_status', 'pagado' if order.session.state == TableSession.PAID else 'pendiente_pago' if order.state == Order.CHECKOUT else 'enviado'),
                     'restaurante': order.session.restaurant_slug, 'sede': order.session.venue_slug,
                     'local': order.session.restaurant_slug.replace('-', ' ').title(),
                     'items': sum(line['cantidad'] for line in mine_lines), 'lineas': mine_lines})

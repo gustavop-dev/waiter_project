@@ -38,3 +38,8 @@ export function pathAllowed(role: Role, pathname: string): boolean {
   const sub = adminSubtabForPath(pathname)
   return sub ? SUBTABS_BY_ROLE[role].includes(sub) : role === 'admin'
 }
+
+// Las operaciones de pedidos y cocina requieren caja; la configuración del restaurante no.
+export function administrationPath(pathname: string): boolean {
+  return /^\/(salon|inventario|reservas|historial|ventas|catalogo|clientes|facturacion|automatizacion|configuracion|kit)(\/|$)/.test(pathname)
+}

@@ -1,22 +1,20 @@
 # projectapp_kitchen
 
-Addon **sin interfaz**: solo campos y métodos para que el KDS propio (`pos/`,
-ruta `/kds`) y el detalle del pedido del kit CloudPos trabajen sobre los cursos de Odoo.
+Flujo del POS y de cocina sobre `restaurant.order.course`:
 
-| Qué | Dónde |
-|---|---|
-| `ready_date`, `served_date` | `restaurant.order.course`; viajan en `load_data` junto a `fired_date` |
-| `kitchen_fire(order_id, line_ids)` | crea el curso disparado; hora del servidor |
-| `action_kitchen_ready()` / `action_kitchen_served()` | marcan las horas del curso; **servir el curso marca `served_date` en cada línea** |
-| `served_date` (Datetime), `waiter_cancelled` (Boolean) | `pos.order.line`; viajan en `load_data` |
-| `action_kitchen_line_served(line_ids)` (`@api.model`) | marca las líneas servidas; cuando todas las líneas de un curso están servidas o canceladas el curso queda `served_date`. Devuelve los ids de los cursos cerrados |
-| `waiter_cancel_lines(line_ids)` (`@api.model`) | marca `waiter_cancelled`; `UserError` si alguna línea está en un curso `fired` |
-| `kitchen_station` | `pos.category`; llega al cliente por `load_data` |
+1. **Recibida**: `kitchen_fire` registra la comanda. El mesero aún puede cancelar.
+2. **En preparación**: cocina pulsa `action_kitchen_start`; `preparation_date` bloquea cambios y cancelaciones.
+3. **Lista para entregar**: cocina marca platos o toda la comanda listos (`waiter_ready_date` / `ready_date`).
+4. **Entregada**: el mesero marca la entrega (`served_date` por plato y comanda).
 
-Estados del kit (Plan I): «In Progress (n %)» = líneas servidas / líneas enviadas; «Ready to Served» = todos los
-cursos con `ready_date` y alguno sin `served_date`; «Served» = todas las líneas servidas; «Waiting to cooked»
-(línea) = sin curso o curso sin `fired`, la única que se puede cancelar.
+`waiter_cancel_lines` elimina las líneas pendientes, recalcula el total y cancela el pedido cuando queda vacío.
+El servidor bloquea el pedido durante la cancelación y el inicio de preparación para evitar carreras entre tablets.
+La edición de cantidad, producto y nota, y la eliminación directa, también comprueban la preparación.
+Los pedidos pagados siguen visibles en cocina hasta entregarse; los cancelados quedan fuera.
+El envío repetido de las mismas líneas no duplica comandas.
 
-Instalación: `odoo -d <db> -i projectapp_kitchen --stop-after-init`. Actualizar: `-u projectapp_kitchen`.
-Pruebas: `-u projectapp_kitchen --test-enable --test-tags /projectapp_kitchen` (`tests/test_kitchen.py`).
-Decisión: `docs/decisiones/2026-09-05-cocina-sobre-cursos-odoo.md`.
+`kitchen_station` en `pos.category` permite filtrar estaciones.
+Los campos de fechas viajan en `load_data`.
+
+Actualizar: `odoo -d <db> -u projectapp_kitchen --stop-after-init` y reiniciar Odoo.
+Pruebas: `-u projectapp_kitchen --test-enable --test-tags /projectapp_kitchen` en un puerto libre.

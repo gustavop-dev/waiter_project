@@ -12,6 +12,13 @@ const rawCourse = { id: 114, order_id: [115, 'x'], fired: true, ready_date: fals
 
 beforeEach(() => { mock.mockReset(); resetPresetCache() })
 
+it('preserves WhatsApp origin and customer phone from the POS', async () => {
+  mock.mockResolvedValueOnce([{ ...rawOrder, waiter_channel: 'whatsapp', delivery_phone: '+573001234567' }])
+    .mockResolvedValueOnce(presets).mockResolvedValueOnce([]).mockResolvedValueOnce([])
+  const [order] = await listKitOrders(16, () => null)
+  expect(order).toMatchObject({ channel: 'whatsapp', phone: '+573001234567', type: 'takeout', state: 'draft' })
+})
+
 // Falla si el listado no arma número DI/TA desde el preset, o si mezcla líneas y cursos de otro pedido.
 it('lists open orders with their lines and courses, typed by preset', async () => {
   mock.mockResolvedValueOnce([rawOrder]).mockResolvedValueOnce(presets)
@@ -19,7 +26,7 @@ it('lists open orders with their lines and courses, typed by preset', async () =
   const [o] = await listKitOrders(16, () => null)
   expect(o).toMatchObject({ id: 115, number: 'TA112', type: 'takeout', customer: 'Eva', tableNumber: null, total: 86275 })
   expect(o.lines).toEqual([{ id: 228, uuid: 'u1', productId: 3, name: 'Hamburguesa Angus', qty: 1, unitPrice: 36900, subtotal: 36900, total: 43911, note: '', courseId: 114, readyAt: null, servedAt: null }])
-  expect(o.courses).toEqual([{ id: 114, fired: true, readyAt: null, servedAt: '2026-09-06 23:38:06' }])
+  expect(o.courses).toEqual([{ id: 114, fired: true, preparationAt: null, readyAt: null, servedAt: '2026-09-06 23:38:06' }])
   expect(mock.mock.calls[0][2][0]).toEqual([['session_id', '=', 16], ['state', '=', 'draft']])
 })
 
@@ -46,7 +53,7 @@ it('addRound writes the lines, recomputes prices and fires a new course', async 
 it('cancelLines unlinks the given lines and recomputes; does nothing with an empty list', async () => {
   mock.mockResolvedValue(true)
   await cancelLines(115, [229, 230])
-  expect(mock.mock.calls).toEqual([['pos.order.line', 'unlink', [[229, 230]]], ['pos.order', 'recompute_prices', [[115]]]])
+  expect(mock.mock.calls).toEqual([['pos.order.line', 'waiter_cancel_lines', [[229, 230]]]])
   await cancelLines(115, [])
-  expect(mock).toHaveBeenCalledTimes(2)
+  expect(mock).toHaveBeenCalledTimes(1)
 })

@@ -66,3 +66,23 @@ class ResCompany(models.Model):
                 head = b""
             if not head.startswith(RASTER_SIGNATURES):
                 raise ValidationError(_("El logo debe ser una imagen PNG, JPEG o GIF (no SVG)."))
+
+    waiter_latitude = fields.Char(string='Latitud del restaurante')
+    waiter_longitude = fields.Char(string='Longitud del restaurante')
+
+    @api.constrains('waiter_latitude', 'waiter_longitude')
+    def _check_menu_location(self):
+        import math
+        for company in self:
+            pair = (company.waiter_latitude, company.waiter_longitude)
+            if bool(pair[0]) != bool(pair[1]):
+                raise ValidationError('Completa latitud y longitud, o deja ambas vacías.')
+            for value, limit in zip(pair, (90, 180)):
+                if not value:
+                    continue
+                try:
+                    valid = math.isfinite(float(value)) and abs(float(value)) <= limit
+                except ValueError:
+                    valid = False
+                if not valid:
+                    raise ValidationError('Las coordenadas del restaurante no son válidas.')

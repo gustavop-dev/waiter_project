@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+import { effectiveRole } from '@/lib/domain/roles'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
@@ -17,7 +19,7 @@ import { useAuthStore } from '@/lib/stores/authStore'
 export default function CajaPage() {
   const t = useTranslations('cash.open')
   const router = useRouter()
-  const { user, session, hydrated, hydrate, openRegister } = useAuthStore()
+  const { user, employee, session, hydrated, hydrate, openRegister } = useAuthStore()
   const [configs, setConfigs] = useState<RegisterConfig[]>([])
   const [configId, setConfigId] = useState<number | null>(null)
   const [cash, setCash] = useState('')
@@ -28,16 +30,17 @@ export default function CajaPage() {
   useEffect(() => {
     if (!hydrated) return
     if (!user) { router.replace('/login'); return }
+    if (!employee) { router.replace('/login'); return }
     if (session) { router.replace('/salon'); return }
     void listConfigs().then((c) => { setConfigs(c); setConfigId((id) => id ?? c[0]?.id ?? null) })
-  }, [hydrated, user, session, router])
+  }, [hydrated, user, employee, session, router])
 
   async function open() {
     if (configId === null) return
     setBusy(true)
     try { await openRegister(configId, Number(cash || '0'), notes); router.replace('/salon') } finally { setBusy(false) }
   }
-  if (!hydrated || !user || session) return null
+  if (!hydrated || !user || !employee || session) return null
   return (
     <main className="min-h-screen grid place-items-center bg-canvas text-ink p-6">
       <form onSubmit={(e) => { e.preventDefault(); void open() }} className="w-[900px] max-w-full rounded-xl bg-surface border border-border shadow-xl overflow-hidden flex flex-col">
@@ -49,6 +52,7 @@ export default function CajaPage() {
         <div className="flex">
           <section className="w-[400px] shrink-0 p-6 border-r border-border flex flex-col gap-4">
             <p className="text-[15px] text-soft leading-relaxed">{t('body')}</p>
+            {effectiveRole(user.role, employee.role) === 'admin' && <Link href="/configuracion" className="rounded-md border border-primary p-3 text-primary font-semibold">Entrar a administración sin abrir caja</Link>}
             <Select label={t('config')} value={configId ?? ''} onChange={(e) => setConfigId(Number(e.target.value))}>{configs.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>
             <TextInput label={t('notes')} value={notes} onChange={(e) => setNotes(e.target.value)} />
           </section>

@@ -18,6 +18,9 @@ prueba que su integración externa exista.
 
 ## Orden de lectura
 
+La integración de WhatsApp comienza por el [puente de pedidos al POS](planes/2026-09-14-whatsapp-pos.md).
+El [chat del menú](planes/2026-09-14-chat-menu.md) ya utiliza un núcleo de conversación compartido. Meta y la pasarela siguen pendientes.
+
 1. [Arquitectura modular](arquitectura/2026-09-04-arquitectura-modular.md) y
    [API del bloque 3](arquitectura/2026-09-04-bloque-3-experiencia.md).
 2. Planes A/B/C/E para operación; D/F para backend y PWA; G para marca.
@@ -33,3 +36,6 @@ Los planes anteriores conservan instrucciones y supuestos históricos. Los ADR d
 las decisiones de su fecha. `diseno/` contiene referencias visuales; promociones, tarjetas
 guardadas, verificación real, facturas y sellos que aparezcan allí no deben presentarse como
 servicios ya implementados. El contrato ejecutado de H prevalece para sus flujos demo.
+
+- [Pagos Wompi dentro del menú: configuración, pruebas y conciliación](planes/2026-09-14-wompi.md)
+- [Carta del comensal: saludo en la cabecera y tarjeta con el precio primero](decisiones/2026-09-14-carta-saludo-y-tarjeta.md)

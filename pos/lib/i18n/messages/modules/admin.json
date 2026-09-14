@@ -71,6 +71,10 @@
       "removeSize": "Quitar tamaño",
       "onlyToday": "Solo hoy",
       "onlyTodayHint": "Se anuncia como plato del día en la carta.",
+      "prepTime": "Tiempo de preparación (min)",
+      "prepTimeHint": "Minutos que ve el comensal en la tarjeta del plato.",
+      "previousPrice": "Precio anterior (COP)",
+      "previousPriceHint": "Se muestra tachado con el % de rebaja. Se cobra el precio de arriba.",
       "save": "Guardar",
       "saved": "Guardado. La carta del comensal se actualiza en un minuto."
     },
@@ -165,17 +169,18 @@
     "sections": {
       "restaurant": "Restaurante",
       "brand": "Marca",
-      "menuTemplate": "Plantilla del menú",
+      "menuTemplate": "Diseño del menú",
       "floors": "Pisos y mesas",
       "payments": "Métodos de pago",
       "taxes": "Impuestos",
       "users": "Usuarios",
       "alerts": "Umbrales de alerta",
       "roi": "Supuestos del ROI",
-      "display": "Pantalla y sonido"
+      "display": "Pantalla y sonido",
+      "benefits": "Cupones y puntos"
     },
     "floors": { "tables": "{n, plural, one {# mesa} other {# mesas}}", "number": "Número", "seats": "Puestos", "active": "Activa", "newTable": "Agregar mesa", "newFloor": "Nuevo piso", "floorName": "Nombre del piso", "table": "Mesa {n}" },
-    "payments": { "hint": "Los métodos se crean en Odoo por el aprovisionamiento; aquí se ven los del canal.", "type": { "cash": "Efectivo", "bank": "Datáfono / banco", "pay_later": "Cuenta de cliente" } },
+    "payments": { "hint": "Los métodos se crean en Odoo por el aprovisionamiento; aquí se ven los del canal.", "type": {"cash": "Efectivo", "bank": "Datáfono / banco", "pay_later": "Cuenta de cliente"} },
     "taxes": { "hint": "Impuestos de venta disponibles para la carta." },
     "users": { "list": "Usuarios del restaurante", "invite": "Invitar usuario", "active": "Activa", "pending": "Invitación pendiente", "lastLogin": "Último ingreso", "never": "Nunca", "resend": "Reenviar código", "resent": "Código reenviado", "role": "Rol", "name": "Nombre", "email": "Correo", "emailHint": "Le llegará un código para activar su cuenta y elegir su contraseña.", "roleHint": "Mesero: salón y pedidos. Cajero: además caja, ventas y facturación. Administrador: todo." },
     "display": { "density": "Densidad de la interfaz", "compact": "Compacta", "balanced": "Equilibrada", "wide": "Amplia", "station": "Esta pantalla es", "kds": "Cocina (alto)", "tablet": "Tablet de mesero (medio)", "caja": "Caja (bajo)", "sounds": "Probar sonidos", "test": "Probar", "localHint": "La densidad y el volumen se guardan en este dispositivo.", "theme": "Modo de color", "themeHint": "Sistema, claro u oscuro. También se cambia desde el chip de usuario." }

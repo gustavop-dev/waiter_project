@@ -73,7 +73,19 @@ scripts/demo-comensal.sh
   dividir, recibo), caja con arqueo, roles (mesero / cajero / administrador),
   buscar plato, nota a cocina, fotos, buscar mesa. `pos/` es PWA instalable.
 
+## Menú actual · Smart Menu
+
+La carta pública usa un único diseño adaptado del kit Figma entregado: menú, detalle, carrito, seguimiento, perfil, favoritos personales e historial. En el POS se personaliza desde **Configuración → Diseño del menú**: colores, tipografía y logo. La galería de 30 plantillas queda como antecedente del Plan H.
+
+[Alcance, activación y pruebas](docs/decisiones/2026-09-12-smart-menu.md). Registro por código y pago en línea continúan en modo demo; los pedidos sí llegan al POS real.
+
 ## Próximos pasos
+
+Ya está disponible la [primera integración de WhatsApp al POS](docs/planes/2026-09-14-whatsapp-pos.md):
+API interna para cotizar pedidos para recoger y confirmarlos en cocina sin cobrar,
+con referencia idempotente. En desarrollo hay una comanda `WhatsApp · Demo WhatsApp`
+para revisar en Pedidos. La conexión a Meta y el agente conversacional son el siguiente corte;
+la pasarela se incorporará después.
 
 1. Pasarela de pago en el bloque 3: hoy el pago del comensal está maquetado
    (`pago/simulado/`, insignia «Demo · sin cobro real»); al `pago aprobado`,

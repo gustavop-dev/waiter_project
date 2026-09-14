@@ -77,7 +77,7 @@ export default function LoginPage() {
       return result.attemptsLeft > 0 ? t('employee.wrongPinLeft', { left: result.attemptsLeft }) : t('employee.wrongPin')
     }
     await startShift(result.employee, result.attendanceId, result.token)
-    router.push('/salon')
+    router.push(session ? '/salon' : '/caja')
     return null
   }
 

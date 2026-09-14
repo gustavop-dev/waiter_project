@@ -5,3 +5,11 @@ from . import ops
 from . import product
 from . import seed
 from . import users
+
+from . import floor_plan
+
+from . import menu_benefits
+from . import channel_orders
+from . import gateway_payments
+
+from . import menu_banners

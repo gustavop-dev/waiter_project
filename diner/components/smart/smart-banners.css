@@ -1,0 +1,17 @@
+.sm-banner-rail { display:flex; gap:16px; overflow-x:auto; scroll-snap-type:x mandatory; margin:24px 0; padding:2px 0 12px; }
+.sm-promo-banner { flex:0 0 min(100%,560px); min-width:0; min-height:220px; border:0; border-radius:24px; padding:24px; display:flex; align-items:center; gap:16px; text-align:left; scroll-snap-align:start; overflow:hidden; position:relative; color:#fff; background:#6755a0; }
+.sm-banner-amber { background:#ffb01d; color:#282739; }
+.sm-banner-dark { background:#282739; color:#fff; }
+.sm-banner-copy { min-width:0; flex:1; position:relative; z-index:1; }
+.sm-banner-label { font-size:11px; text-transform:uppercase; letter-spacing:1px; opacity:.85; }
+.sm-banner-copy h2 { font-size:22px; line-height:1.2; margin:10px 0; overflow-wrap:anywhere; }
+.sm-banner-copy p { font-size:13px; line-height:1.5; overflow-wrap:anywhere; }
+.sm-banner-copy strong { display:block; font-size:13px; margin-top:12px; }
+.sm-banner-cta { display:flex; align-items:center; gap:8px; margin-top:16px; font-size:13px; }
+.sm-promo-banner .sm-food-photo,.sm-banner-photo { width:36%; flex-shrink:0; aspect-ratio:1; height:auto; object-fit:contain; }
+.sm-promo-banner.sm-banner-image { padding:0; min-height:0; aspect-ratio:2 / 1; }
+.sm-banner-full { width:100%; height:100%; object-fit:contain; }
+.sm-banner-promotion .sm-banner-copy h2 { font-size:30px; }
+.sm-banner-notice { min-height:160px; border-radius:16px; }
+.sm-banner-category { border-radius:80px 24px 24px 24px; }
+@media(prefers-reduced-motion:reduce) { .sm-banner-rail { scroll-behavior:auto; } }

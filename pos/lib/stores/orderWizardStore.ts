@@ -13,7 +13,7 @@ import type { Catalog } from '@/lib/types'
 export interface NoteLabels { babyChair: string; delivery: (address: string, phone: string) => string }
 
 interface WizardState {
-  info: CustomerInfo; tableId: number | null; lines: CartLine[]; stepIndex: number
+  requestUuid: string; info: CustomerInfo; tableId: number | null; lines: CartLine[]; stepIndex: number
   extras: MenuExtras | null; taxes: TaxRate[]; created: CreatedOrder | null; busy: boolean; error: string | null
   reset: (initial?: { tableId?: number | null }) => void
   setInfo: (patch: Partial<CustomerInfo>) => void
@@ -34,8 +34,8 @@ const EMPTY = { info: DEFAULT_INFO, tableId: null, lines: [] as CartLine[], step
 
 // Estado del wizard "Create New Order": vive mientras el mesero lo recorre; el pedido solo existe en Odoo al crearlo.
 export const useOrderWizardStore = create<WizardState>((set, get) => ({
-  ...EMPTY, extras: null, taxes: [],
-  reset: (initial) => set({ ...EMPTY, tableId: initial?.tableId ?? null }),
+  ...EMPTY, requestUuid: uuid(), extras: null, taxes: [],
+  reset: (initial) => set({ ...EMPTY, requestUuid: uuid(), tableId: initial?.tableId ?? null }),
   setInfo: (patch) => set((s) => ({ info: { ...s.info, ...patch }, stepIndex: patch.type && patch.type !== s.info.type ? 0 : s.stepIndex })),
   setTable: (id) => set({ tableId: id }),
   next: () => set((s) => ({ stepIndex: Math.min(s.stepIndex + 1, stepsFor(s.info.type).length - 1) })),
@@ -55,10 +55,12 @@ export const useOrderWizardStore = create<WizardState>((set, get) => ({
     } catch (e) { set({ error: message(e) }) }
   },
   createOrder: async (sessionId, labels) => {
-    const { info, tableId, lines } = get()
+    if (get().busy) return null
+    if (get().created) return get().created
+    const { info, tableId, lines, requestUuid } = get()
     set({ busy: true, error: null })
     try {
-      const created = await createKitOrder(toKitPayload({ uuid: uuid(), sessionId, tableId, info, note: orderNote(info, labels), lines }), lines)
+      const created = await createKitOrder(toKitPayload({ uuid: requestUuid, sessionId, tableId, info, note: orderNote(info, labels), lines }), lines)
       set({ created, busy: false })
       return created
     } catch (e) {
@@ -69,7 +71,7 @@ export const useOrderWizardStore = create<WizardState>((set, get) => ({
   },
   fireKitchen: async (orderId) => {
     set({ busy: true })
-    try { await fireUnsentLines(orderId); set({ busy: false }); return true } catch (e) { set({ busy: false, error: message(e) }); return false }
+    try { await fireUnsentLines(orderId); set({ busy: false, error: null }); return true } catch (e) { set({ busy: false, error: message(e) }); return false }
   },
 }))
 

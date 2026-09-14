@@ -198,3 +198,22 @@ test('refreshBill reads a fresh personal split without calling the waiter or con
   expect(api.requestBill).not.toHaveBeenCalled()
   expect(api.confirmOrder).not.toHaveBeenCalled()
 })
+
+test('deduplicates concurrent session requests so the account cookie is not replaced', async () => {
+  useDinerStore.setState({ keys, session: null })
+  api.openSession.mockResolvedValue({ sesion: { id: 'one-session' } })
+  const [one, two] = await Promise.all([useDinerStore.getState().ensureSession(), useDinerStore.getState().ensureSession()])
+  expect(one).toEqual(two)
+  expect(api.openSession).toHaveBeenCalledTimes(1)
+})
+
+test('preview cannot send a command, register an account or simulate a payment', async () => {
+  useDinerStore.setState({ keys, preview: DEFAULT_TEMPLATE })
+  await useDinerStore.getState().add(3, 1, '')
+  await useDinerStore.getState().confirm()
+  await useDinerStore.getState().simulatePay('tarjeta')
+  expect(api.addLine).not.toHaveBeenCalled()
+  expect(api.confirmOrder).not.toHaveBeenCalled()
+  expect(api.simulatePayment).not.toHaveBeenCalled()
+  expect(useDinerStore.getState().error).toMatch(/vista previa/)
+})

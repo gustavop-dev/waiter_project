@@ -46,7 +46,7 @@ class ProductTemplate(models.Model):
     pantry_supplier_id = fields.Many2one("res.partner", string="Proveedor", compute="_compute_pantry_supplier")
     has_recipe = fields.Boolean(string="Tiene receta", compute="_compute_servings")
     servings_available = fields.Integer(string="Raciones servibles", compute="_compute_servings",
-                                        help="Mínimo de existencias del ingrediente / cantidad por ración de la receta. 0 sin receta.")
+                                        help="Mínimo de ingredientes libres después de pedidos pendientes / cantidad por plato. 0 sin receta.")
 
     # ------------------------------------------------------------------ cálculos
     def _pantry_orderpoints(self):
@@ -132,7 +132,11 @@ class ProductTemplate(models.Model):
         existing = Purchase.search([("state", "in", ("draft", "sent")), ("order_line.product_id", "=", variant.id)], order="id desc", limit=1)
         if existing:
             return existing.waiter_request_vals(created=False)
-        qty = qty or max(template.pantry_max - template.qty_available, seller.min_qty, 1.0)
+        purchase_unit = seller.product_uom_id or template.uom_id
+        if qty is not None and (not isinstance(qty, (int, float)) or isinstance(qty, bool) or not math.isfinite(qty) or qty <= 0):
+            raise UserError(_("La cantidad solicitada debe ser mayor que cero."))
+        stock_qty = qty if qty is not None else max(template.pantry_max - template.qty_available, 1.0)
+        qty = max(template.uom_id._compute_quantity(stock_qty, purchase_unit, round=False), seller.min_qty)
         order = Purchase.create({
             "partner_id": seller.partner_id.id, "origin": _("Despensa"), "waiter_pantry_request": True,
             "order_line": [Command.create({
@@ -254,7 +258,7 @@ class MrpBomLine(models.Model):
     def _waiter_qty_per_serving(self):
         """Cantidad del ingrediente por ración, en la unidad del ingrediente."""
         self.ensure_one()
-        qty = self.product_uom_id._compute_quantity(self.product_qty, self.product_id.uom_id)
+        qty = self.product_uom_id._compute_quantity(self.product_qty, self.product_id.uom_id, round=False)
         return qty / (self.bom_id.product_qty or 1.0)
 
     def _waiter_servings(self):

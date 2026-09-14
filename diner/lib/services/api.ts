@@ -35,8 +35,8 @@ export async function updateLine(sessionId: string, lineId: number, patch: { can
 export async function removeLine(sessionId: string, lineId: number): Promise<Cart> {
   return (await http.delete<Cart>(`/api/v1/sesiones/${sessionId}/lineas/${lineId}/`)).data
 }
-export async function confirmOrder(sessionId: string): Promise<{ pedido: string; estado: string; total: number; cuenta: Bill }> {
-  return (await http.post(`/api/v1/sesiones/${sessionId}/confirmar/`)).data
+export async function confirmOrder(sessionId: string, takeaway?: boolean, details?: {notas: string; alergenos: string}): Promise<{ pedido: string; estado: string; total: number; cuenta: Bill }> {
+  return (await http.post(`/api/v1/sesiones/${sessionId}/confirmar/`, details ? {...details, ...(takeaway === undefined ? {} : {para_llevar:takeaway})} : takeaway === undefined ? undefined : {para_llevar: takeaway})).data
 }
 export async function getOrder(orderId: string): Promise<OrderStatus> {
   return (await http.get<OrderStatus>(`/api/v1/pedidos/${orderId}/`)).data
@@ -71,4 +71,58 @@ export async function logoutAccount(): Promise<void> {
 // No toca Odoo: devuelve { estado: 'aprobado', referencia, demo: true }. El POS sigue cobrando en la mesa.
 export async function simulatePayment(sessionId: string, metodo: PayMethod, reparto: PayScope = 'all'): Promise<PayResult> {
   return (await http.post<PayResult>(`/api/v1/sesiones/${sessionId}/pago/simulado/`, { metodo, reparto })).data
+}
+
+export async function getFavorites(rest: string, venue: string): Promise<number[]> {
+  return (await http.get<{ favoritos: number[] }>(`/api/v1/${rest}/${venue}/favoritos/`)).data.favoritos
+}
+export async function setFavorite(rest: string, venue: string, productId: number, favorite: boolean): Promise<number[]> {
+  const url = `/api/v1/${rest}/${venue}/favoritos/${productId}/`
+  return (await (favorite ? http.put<{ favoritos: number[] }>(url) : http.delete<{ favoritos: number[] }>(url))).data.favoritos
+}
+
+export async function updateAccount(patch: Partial<{nombre: string; celular: string; novedades: boolean; alergenos: string}>): Promise<AccountSummary> {
+  return (await http.patch<AccountSummary>('/api/v1/cuenta/', patch)).data
+}
+
+export async function addBundle(sessionId: string, lineas: {producto_id:number;cantidad:number;nota:string}[]): Promise<Cart> {
+ return (await http.post<Cart>(`/api/v1/sesiones/${sessionId}/platos/`,{lineas})).data
+}
+
+export async function getVenueLocation(rest:string,venue:string):Promise<import('@/lib/types').VenueLocation> {
+ return (await http.get(`/api/v1/${rest}/${venue}/ubicacion/`)).data
+}
+export async function getRewards(rest:string,venue:string):Promise<import('@/lib/types').DinerRewards> {
+ return (await http.get(`/api/v1/${rest}/${venue}/recompensas/`)).data
+}
+export async function applyCoupon(sessionId:string,code:string|null):Promise<Cart> {
+ const url=`/api/v1/sesiones/${sessionId}/cupon/`
+ return (await (code===null?http.delete<Cart>(url):http.put<Cart>(url,{codigo:code}))).data
+}
+
+export interface ChatTurn {
+  id: string
+  mensaje: string
+  respuesta: string
+  accion: 'preguntar' | 'recomendar' | 'cotizar' | 'agregar' | 'humano'
+  opciones?: string[]
+  selecciones?: ChatSelection[]
+  carrito?: Cart
+  resultado_carrito?: string
+  lineas: { producto: number; cantidad: number; nombre: string; nota?: string }[]
+}
+export async function getChat(sessionId: string): Promise<{ disponible: boolean; mensajes: ChatTurn[]; selecciones?: ChatSelection[] }> {
+  return (await http.get(`/api/v1/sesiones/${sessionId}/asistente/`)).data
+}
+export async function sendChat(sessionId: string, id: string, mensaje: string): Promise<ChatTurn> {
+  return (await http.post(`/api/v1/sesiones/${sessionId}/asistente/`, { id, mensaje }, { timeout: 45_000 })).data
+}
+
+export interface ChatSelection { message_id: string; product_id: number; qty: number }
+export async function addChatSelection(sessionId: string, mensaje: string, producto: number, cantidad: number, nota: string): Promise<{carrito: Cart; selecciones: ChatSelection[]}> {
+  return (await http.post(`/api/v1/sesiones/${sessionId}/asistente/agregar/`, {mensaje, producto, cantidad, nota}, {timeout: 45_000})).data
+}
+
+export async function newChat(sessionId: string): Promise<{disponible: boolean; mensajes: ChatTurn[]}> {
+  return (await http.delete(`/api/v1/sesiones/${sessionId}/asistente/`)).data
 }

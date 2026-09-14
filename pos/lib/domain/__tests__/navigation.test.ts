@@ -1,4 +1,4 @@
-import { ADMIN_SUBTABS, TAB_ROUTES, adminSubtabsFor, tabForPath, tabsFor } from '@/lib/domain/navigation'
+import { administrationPath, ADMIN_SUBTABS, TAB_ROUTES, adminSubtabsFor, tabForPath, tabsFor } from '@/lib/domain/navigation'
 import { allowedPath } from '@/lib/domain/roles'
 
 // Falla si el mesero ve pestañas de cocina o administración, o si el cajero y el admin las pierden.
@@ -32,4 +32,9 @@ it('allowedPath follows the tabs and the admin row', () => {
   expect(allowedPath('admin', '/configuracion')).toBe(true)
   expect(allowedPath('admin', '/kit')).toBe(true)
   expect(allowedPath('cashier', '/kit')).toBe(false)
+})
+
+it('keeps restaurant management available without cash while blocking order operations', () => {
+  for (const path of ['/salon', '/inventario', '/reservas', '/catalogo', '/configuracion', '/ventas', '/historial']) expect(administrationPath(path)).toBe(true)
+  for (const path of ['/pedidos', '/pedidos/nuevo', '/mesas/4', '/kds', '/dashboard']) expect(administrationPath(path)).toBe(false)
 })

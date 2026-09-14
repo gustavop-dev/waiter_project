@@ -88,3 +88,18 @@ class WaiterAdmin(http.Controller):
             body = {"plantilla": plantilla, "paleta": paleta or {}, "tipografia": tipografia or {}}
             return _call("PUT", url, p["internal_key"], json=body)
         raise UserError(_("Acción desconocida: %s (usa get o set).") % action)
+
+    @http.route("/waiter/admin/payment_gateways", type="jsonrpc", auth="user", methods=["POST"])
+    def payment_gateways(self, action="get", configuration=None, environment="test", **kw):
+        if not request.env.user.has_group("point_of_sale.group_pos_manager"):
+            raise AccessError("Solo un administrador del POS puede configurar las pasarelas de pago.")
+        if kw or action not in ("get", "set", "test"):
+            raise UserError("Acción de pasarela inválida.")
+        p = _params()
+        url = "%s/internal/v1/%s/%s/pasarelas/" % (p["experience_url"].rstrip("/"), p["restaurant"], p["venue"])
+        # Tenant comes from this Odoo database, never from a browser-supplied slug.
+        if action == "get":
+            return _call("GET", url, p["internal_key"])
+        if action == "test":
+            return _call("POST", url, p["internal_key"], json={"environment": environment})
+        return _call("PUT", url, p["internal_key"], json=configuration)

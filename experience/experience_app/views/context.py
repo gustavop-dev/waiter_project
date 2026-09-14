@@ -7,7 +7,7 @@ from rest_framework.response import Response
 
 from experience_app.adapters.registry.client import resolve
 from experience_app.plantillas import services as templates
-from experience_app.services import brand, catalog
+from experience_app.services import brand, catalog, ratings
 
 
 def _context(tenant):
@@ -30,4 +30,10 @@ def _photo_url(restaurant, venue):
 def entry(request, restaurant, venue, token=None):
     tenant = resolve(restaurant, venue, token)
     menu = catalog.menu_view(catalog.get_catalog(tenant), photo_url=_photo_url(restaurant, venue))
-    return Response({'contexto': _context(tenant), 'carta': menu})
+    scores = ratings.for_menu(restaurant, venue)
+    for category in menu['categorias']:
+        for product in category['productos']:
+            if product['id'] in scores:
+                product['valoracion'] = scores[product['id']]
+    from experience_app.services.banners import for_menu
+    return Response({'contexto': _context(tenant), 'carta': menu, 'banners': for_menu(tenant, menu)})

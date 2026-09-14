@@ -1,27 +1,54 @@
 import type { PreviewPayload, Template, TemplateFamily, TemplateSpec, TemplateTokens } from '@/lib/types'
 
-// Plantilla por defecto cuando la sede no eligió (o experience aún no manda `plantilla`): B1, la rejilla con foto,
-// con los tokens de docs/diseno/plantillas/B1/spec.json. Debe coincidir con el :root de app/globals.css (hay test).
+// Copia del contrato S1 del backend: disponible incluso antes de cargar la entrada.
 export const DEFAULT_TEMPLATE: Template = {
-  codigo: 'B1',
-  nombre: 'Rejilla con foto',
-  familia: 'B',
-  tokens: {
-    modo: 'claro',
-    fondo: '#FFFFFF', superficie: '#FAF8F5', tinta: '#1A1815', tintaSuave: '#7A7166', tintaTerciaria: '#9A8F7E',
-    borde: '#EFE9E0', acento: '#C1873A', acentoTinta: '#1A1815', acentoSuave: '#FDF6EA',
-    displayFont: 'Ubuntu', displayPeso: 700, displayTracking: '-0.02em', displayTransform: 'none',
-    cuerpoFont: 'Ubuntu', monoFont: 'IBM Plex Mono',
-    radioTarjeta: 14, radioBoton: 12, radioChip: 999, densidad: 'media',
+  "codigo": "S1",
+  "nombre": "Smart Menu",
+  "familia": "B",
+  "tokens": {
+    "modo": "claro",
+    "fondo": "#F8F8FA",
+    "superficie": "#FFFFFF",
+    "tinta": "#32324D",
+    "tintaSuave": "#666687",
+    "tintaTerciaria": "#FFB01D",
+    "borde": "#EAEAEF",
+    "acento": "#6755A0",
+    "acentoTinta": "#FFFFFF",
+    "acentoSuave": "#EEEBF5",
+    "displayFont": "DM Sans",
+    "displayPeso": 500,
+    "displayTracking": "-0.025em",
+    "displayTransform": "none",
+    "cuerpoFont": "Mulish",
+    "monoFont": "Mulish",
+    "radioTarjeta": 16,
+    "radioBoton": 16,
+    "radioChip": 16,
+    "densidad": "amplia"
   },
-  // B1 pide el historial «tarjetas»; hasta que llegue su patrón, el registro cae al genérico (porMes).
-  layouts: { menu: 'B1', carrito: 'familia-B', pago: 'familia-B', registro: 'banner5', codigo: 'casillas', historial: 'tarjetas' },
-  fotos: { requiere: 'todas', recorte: '3x2' },
-  fuentesGoogle: [],
-  descuento: { porcentaje: 5, activo: true },
+  "fotos": {
+    "requiere": "todas",
+    "recorte": "1x1"
+  },
+  "fuentesGoogle": [
+    "DM Sans",
+    "Mulish"
+  ],
+  "layouts": {
+    "menu": "S1",
+    "carrito": "smart",
+    "pago": "smart",
+    "registro": "banner5",
+    "codigo": "casillas",
+    "historial": "tarjetas"
+  },
+  "descuento": {
+    "porcentaje": 5,
+    "activo": true
+  }
 }
 
-// Tokens de color que una paleta puede pisar (contrato 1: `personalizable.colores`; la validación fuerte es del backend).
 export const COLOR_TOKENS = ['fondo', 'superficie', 'tinta', 'tintaSuave', 'tintaTerciaria', 'borde', 'acento', 'acentoTinta', 'acentoSuave'] as const
 type ColorToken = (typeof COLOR_TOKENS)[number]
 const HEX = /^#[0-9a-f]{6}$/i
@@ -33,6 +60,7 @@ const quote = (font: string) => `'${font.replace(/'/g, '')}'`
 export function templateVars(t: Template): Record<string, string> {
   const k = t.tokens
   return {
+    '--sm-highlight-ink': accentTokens(k.tintaTerciaria, k.fondo).acentoTinta,
     '--t-fondo': k.fondo, '--t-superficie': k.superficie, '--t-tinta': k.tinta, '--t-tinta-suave': k.tintaSuave, '--t-tinta-terciaria': k.tintaTerciaria,
     '--t-borde': k.borde, '--t-acento': k.acento, '--t-acento-tinta': k.acentoTinta, '--t-acento-suave': k.acentoSuave,
     '--t-display': `${quote(k.displayFont)}, system-ui, sans-serif`, '--t-display-peso': String(k.displayPeso), '--t-display-tracking': k.displayTracking, '--t-display-transform': k.displayTransform,
@@ -117,7 +145,7 @@ export function applyPreview(base: Template, preview: PreviewPayload): Template 
   if ((preview.paleta?.acento && HEX.test(preview.paleta.acento)) || (preview.paleta?.fondo && HEX.test(preview.paleta.fondo))) Object.assign(tokens, accentTokens(tokens.acento, tokens.fondo))
   const fonts = [...base.fuentesGoogle]
   const display = preview.tipografia?.display
-  if (display) { tokens.displayFont = display; if (!fonts.includes(display)) fonts.push(display) }
+  if (display) { tokens.displayFont = display; if (base.codigo === 'S1') { tokens.cuerpoFont = display === 'DM Sans' ? 'Mulish' : display; tokens.monoFont = tokens.cuerpoFont } if (!fonts.includes(display)) fonts.push(display) }
   return { ...base, tokens, fuentesGoogle: fonts }
 }
 

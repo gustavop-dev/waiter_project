@@ -27,7 +27,7 @@ test('dashboard, orders, detail, add round and history follow the kit', async ({
   // Al detalle se entra por la flecha de "N ítems"; el pie de la tarjeta es para pedir otra ronda.
   await card.getByRole('button', { name: /ítems/ }).click()
   const detail = page.getByRole('dialog', { name: 'Detalle del pedido' })
-  await expect(detail.getByRole('region', { name: 'En progreso' })).toContainText('Hamburguesa Angus')
+  await expect(detail.getByRole('region', { name: 'Esperando cocina' })).toContainText('Hamburguesa Angus')
   await detail.getByRole('button', { name: 'Cerrar' }).click()
   await card.getByRole('link', { name: 'Nuevo pedido' }).click()
   await expect(page).toHaveURL(/\/pedidos\/\d+\/agregar$/)

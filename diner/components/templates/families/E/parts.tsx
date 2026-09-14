@@ -110,7 +110,7 @@ export function DemoBadge() {
 }
 
 // Barras del pedido en «Pagado»: recibido · en preparación · servido.
-const STEP_BARS: Record<OrderState, number> = { enviado: 1, en_cocina: 2, listo: 2, servido: 3, pagado: 3, fallido: 0 }
+const STEP_BARS: Record<OrderState, number> = { pendiente_pago: 0, enviado: 1, en_cocina: 2, listo: 2, servido: 3, pagado: 3, fallido: 0 }
 
 export interface PayStatesProps {
   state: PayState

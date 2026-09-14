@@ -29,6 +29,7 @@ def odoo():
     with patch('experience_app.services.orders.resolve', return_value=TABLE), patch('experience_app.services.orders.OdooClient'), \
             patch('experience_app.services.orders.pos.ensure_open_session', return_value=4), \
             patch('experience_app.services.orders.pos.create_order', return_value=SENT) as create, \
+            patch('experience_app.services.benefits.account_benefits', return_value={'tarjeta': 71}), \
             patch('experience_app.services.orders.pos.fire_course', return_value=21), patch('experience_app.services.orders.pos.set_table_call'):
         yield create
 

@@ -39,7 +39,7 @@ def api_client():
 @pytest.fixture
 def company_brand_stub():
     """Odoo responde la marca sin nada editado: la entrada no sale a la red por la marca y el registro manda."""
-    with patch('experience_app.services.brand.pos.read_company_brand', return_value=UNTOUCHED_COMPANY) as read:
+    with patch('experience_app.services.brand.pos.read_company_brand', return_value=UNTOUCHED_COMPANY) as read, patch('experience_app.services.banners.for_menu', return_value=None):
         yield read
 
 

@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState, type ReactNode } from 'react'
 
@@ -17,6 +18,7 @@ import { useCatalogStore } from '@/lib/stores/catalogStore'
 export function KitShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
+  const session = useAuthStore((s) => s.session)
   const endShift = useAuthStore((s) => s.endShift)
   const restaurant = useCatalogStore((s) => s.catalog?.company.name ?? '')
   const [settings, setSettings] = useState(false)
@@ -32,7 +34,8 @@ export function KitShell({ children }: { children: ReactNode }) {
   const { name: shownName, role } = useIdentity()
   return (
     <div className="h-screen flex flex-col bg-canvas text-ink">
-      <TopBar active={tabForPath(pathname)} role={role} userName={shownName} activeSubtab={adminSubtabForPath(pathname)} onOpenSettings={() => setSettings(true)} />
+      <TopBar active={tabForPath(pathname)} role={role} administrationOnly={!session} userName={shownName} activeSubtab={adminSubtabForPath(pathname)} onOpenSettings={() => setSettings(true)} />
+      {!session && role === 'admin' && <div className="px-5 py-2 border-b border-border flex items-center justify-between text-sm"><span>Administración · Caja cerrada</span><Link href="/caja" className="font-semibold text-primary">Abrir caja</Link></div>}
       <div className="flex-1 min-h-0 flex flex-col">{children}</div>
       <SettingsModal open={settings} onClose={() => setSettings(false)} user={{ name: shownName, role }} restaurant={restaurant}
         onLogout={async () => { await endShift(); router.replace('/login') }} />

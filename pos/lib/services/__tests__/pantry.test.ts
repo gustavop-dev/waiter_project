@@ -59,10 +59,10 @@ it('requests an ingredient and reads back the request list', async () => {
 
 // Falla si las unidades del kit que Odoo no trae (Manojo, Diente, Rebanada) se duplican al volver a entrar.
 it('creates only the kit units that Odoo is missing', async () => {
-  m.mockResolvedValueOnce([{ id: 15, name: 'g' }, { id: 16, name: 'kg' }, { id: 1, name: 'Units' }, { id: 31, name: 'Manojo' }, { id: 32, name: 'Diente' }])
+  m.mockResolvedValueOnce([{ id: 15, name: 'g' }, { id: 16, name: 'kg' }, { id: 19, name: 'L' }, { id: 20, name: 'ml' }, { id: 1, name: 'Units' }, { id: 31, name: 'Manojo' }, { id: 32, name: 'Diente' }])
     .mockResolvedValueOnce(33)
   const units = await ensureKitUnits()
   expect(m.mock.calls[1].slice(0, 3)).toEqual(['uom.uom', 'create', [{ name: 'Rebanada', relative_factor: 1 }]])
-  expect(units.map((u) => u.key)).toEqual(['bunch', 'clove', 'gram', 'kilogram', 'pieces', 'slice'])
+  expect(units.map((u) => u.key)).toEqual(['bunch', 'clove', 'gram', 'kilogram', 'liter', 'milliliter', 'pieces', 'slice'])
   expect(units.find((u) => u.key === 'slice')).toEqual({ key: 'slice', id: 33, uomName: 'Rebanada' })
 })

@@ -42,3 +42,9 @@ it('points discount is capped by the due amount', () => {
   expect(pointsToRedeem(50_000, { copPerPoint: 10 })).toBe(5_000)
   expect(pointsDiscount(100, { copPerPoint: 0 }, 1000)).toBe(0)
 })
+
+it('redeems whole points and never promises more than the server can reserve', () => {
+  expect(pointsDiscount(100.9, { copPerPoint: 10 }, 5000)).toBe(1000)
+  expect(pointsDiscount(200, { copPerPoint: 10 }, 1999)).toBe(1990)
+  expect(pointsDiscount(100, { copPerPoint: 0.25 }, 99)).toBe(25)
+})

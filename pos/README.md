@@ -77,3 +77,37 @@ el servidor. El comensal usa la app independiente `diner/`.
 
 El pago móvil de H es demo. El cobro real, incluidos pedidos del comensal con descuento,
 sigue en este POS. [Contexto y revisión de H](../docs/revisiones/2026-09-05-cierre-H-pr14.md).
+
+## Administración con caja cerrada
+
+Después de validar el PIN de administrador, la pantalla de caja permite **Entrar a administración sin abrir caja**.
+Se pueden gestionar mesas y pisos, inventario, catálogo, reservas, clientes, configuración y consultar históricos.
+La barra indica **Administración · Caja cerrada** y ofrece **Abrir caja** para empezar a operar.
+Pedidos nuevos y cocina requieren una sesión de caja; el acceso sin caja no se habilita para PIN de mesero o cajero.
+Los datos administrativos se leen directamente desde los modelos de Odoo, sin crear sesiones de caja.
+Los cambios del plano que Odoo restringe durante el servicio se realizan con caja cerrada.
+
+Validación: `e2e/admin-sin-caja.spec.ts` requiere una caja ya cerrada y comprueba edición de piso e inventario,
+persistencia al recargar y que no se haya abierto ninguna sesión.
+
+## Editor del restaurante y zonas
+
+Con caja cerrada: **Mesas → Ajustes → Editar piso actual** (o **Agregar piso**).
+El plano se edita en la misma pantalla. Se pueden mover, girar y redimensionar mesas, indicar capacidad,
+dibujar paredes y zonas con nombre/color y usar una imagen de referencia. La mesa seleccionada muestra
+sus propiedades en el panel izquierdo. Los cruces se marcan en rojo; Guardar requiere corregirlos.
+Cancelar descarta los cambios; también hay Deshacer, Rehacer, zoom, desplazamiento y Ver todo.
+
+Con caja abierta: **Mesas → Asignar meseros por zona**. Admite varios empleados por zona y se guarda
+solo para el turno actual. **Mis zonas** destaca sus mesas, y los avisos de cocina respetan la asignación.
+Detalles y validación en [la decisión del editor](../docs/decisiones/2026-09-08-editor-plano-y-zonas.md).
+
+
+### Ficha del menú Smart Menu
+
+En Catálogo → editar plato → Atributos se publican ingredientes, nutrición,
+adicionales y acompañamientos. Cada adicional usa un producto del catálogo con
+su precio y disponibilidad; no hay precios duplicados en el editor del menú.
+Los acompañamientos pueden seleccionarse manualmente (incluida una selección
+vacía) o dejar que el menú sugiera hasta tres productos disponibles.
+La identidad visual sigue en Configuración → Menú: colores, tipografía y logo.

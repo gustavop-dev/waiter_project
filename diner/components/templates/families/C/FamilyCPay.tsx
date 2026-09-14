@@ -15,7 +15,7 @@ import type { OrderState, PayMethod } from '@/lib/types'
 // genérico: formulario de tarjeta maquetado (el número nunca sale del componente), interruptor «Guardar», aviso de tokenización,
 // invitación al 5 % sin cuenta, insignia «Demo · sin cobro real», efectivo → el mesero cobra en la mesa, y los estados
 // authorizing / paid / declined en la piel de la familia (C1 y C4 en Bebas Neue, C2 y C5 en Ubuntu 700 por los tokens).
-const STEP_BARS: Record<OrderState, number> = { enviado: 1, en_cocina: 2, listo: 2, servido: 3, pagado: 3, fallido: 0 }
+const STEP_BARS: Record<OrderState, number> = { pendiente_pago: 0, enviado: 1, en_cocina: 2, listo: 2, servido: 3, pagado: 3, fallido: 0 }
 const formatCardNumber = (raw: string) => raw.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim()
 const formatExpiry = (raw: string) => { const d = raw.replace(/\D/g, '').slice(0, 4); return d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d }
 

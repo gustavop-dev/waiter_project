@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from 'react'
 
+import { effectiveRole } from '@/lib/domain/roles'
+import { zoneNoticeTargets } from '@/lib/services/floorPlan'
 import { play, setStation, type SoundId } from '@/lib/audio/sounds'
 import type { NotificationKind } from '@/lib/domain/notifications'
 import { getNotifyPrefs, type NotifyPrefs } from '@/lib/services/employees'
@@ -23,6 +25,7 @@ const SOUND_PREF: Record<NotificationKind, keyof NotifyPrefs> = { kitchen: 'kitc
 // suena y salta en pantalla según lo que el usuario tenga marcado en Ajustes › Notificaciones.
 // La primera carga no suena: son los avisos que ya estaban, no novedades.
 export function useNotificationAlerts() {
+  const employee = useAuthStore((s) => s.employee)
   const user = useAuthStore((s) => s.user)
   const items = useNotificationStore((s) => s.items)
   const refresh = useNotificationStore((s) => s.refresh)
@@ -57,10 +60,18 @@ export function useNotificationAlerts() {
     const fresh = items.filter((n) => !seen.current.has(n.id) && !n.read)
     items.forEach((n) => seen.current.add(n.id))
     if (fresh.length === 0) return
-    const p = prefs.current
-    // Un solo sonido por tanda, el del aviso más nuevo: dos platos a la vez no suenan dos veces.
-    const kind = fresh[0].kind
-    if (!p || p[SOUND_PREF[kind]]) play(SOUND[kind])
-    fresh.filter((n) => !p || p[POPUP[n.kind]]).slice(0, 3).forEach((n) => toast({ title: n.title, body: n.body }))
-  }, [items, user])
+    const announce = (notices: typeof fresh) => {
+      if (!notices.length) return
+      const p = prefs.current, kind = notices[0].kind
+      if (!p || p[SOUND_PREF[kind]]) play(SOUND[kind])
+      notices.filter((n) => !p || p[POPUP[n.kind]]).slice(0, 3).forEach((n) => toast({ title: n.title, body: n.body }))
+    }
+    const ids = fresh.filter(n => n.resModel === 'pos.order' && n.resId).map(n => n.resId!)
+    if (employee && effectiveRole(user.role, employee.role) === 'waiter' && ids.length) {
+      void zoneNoticeTargets(ids).then(targets => announce(fresh.filter(n => {
+        const assigned = n.resModel === 'pos.order' && n.resId ? targets[String(n.resId)] ?? [] : []
+        return !assigned.length || assigned.includes(employee.id)
+      }))).catch(() => announce(fresh))
+    } else announce(fresh)
+  }, [items, user, employee])
 }

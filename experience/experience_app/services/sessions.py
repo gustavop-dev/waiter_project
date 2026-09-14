@@ -23,10 +23,13 @@ def close_paid(session: TableSession) -> None:
 
 
 def _settled_in_odoo(session: TableSession, tenant: Tenant) -> bool:
-    order = session.orders.filter(state=Order.SENT).exclude(odoo_order_id=None).order_by('-created_at').first()
+    order = session.orders.filter(state__in=(Order.SENT, Order.CHECKOUT)).exclude(odoo_order_id=None).order_by('-created_at').first()
     if order is None:
         return False
     try:
+        if order.requires_payment:
+            status = pos.read_order_status(OdooClient(tenant.odoo), order.odoo_order_id)
+            return status.state in PAID_STATES and status.kitchen == 'served'
         return pos.read_order_state(OdooClient(tenant.odoo), order.odoo_order_id) in PAID_STATES
     except OdooError:
         return False  # sin Odoo no se cierra nada: la sesión sigue hasta poder verificar
@@ -132,7 +135,7 @@ def bill_summary(session: TableSession, diner: Diner, discount_percent: float = 
         per[str(line.diner_id)] = per.get(str(line.diner_id), Decimal(0)) + line.net_subtotal
     discount_view = discount.view(lines, diner, discount_percent)
     if include_open and discount_view['aplicable']:
-        projected = sum((line.subtotal for line in lines if line.diner_id == diner.id and line.status == CartLine.OPEN and not line.discount), Decimal(0)) * Decimal(str(discount_percent)) / 100
+        projected = sum((line.subtotal for line in lines if line.diner_id == diner.id and line.status == CartLine.OPEN and not line.discount), Decimal(0)) * Decimal(str(discount_view['porcentaje'])) / 100
         per[str(diner.id)] = per.get(str(diner.id), Decimal(0)) - projected.quantize(Decimal('0.01'))
     total = sum(per.values(), Decimal(0))
     diners = max(1, session.diners.count())

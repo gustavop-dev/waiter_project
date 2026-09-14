@@ -54,7 +54,7 @@ export default function CatalogoPage() {
     const id = await saveProduct(panel.kind === 'product' ? panel.id : null, input)
     await load()
     setPanel({ kind: 'product', id })
-    if (session) void reloadCatalog(session.id)
+    void reloadCatalog(session?.id ?? null)
   }
   return (
     <KitShell>
@@ -79,7 +79,7 @@ export default function CatalogoPage() {
       </div>
       {panel.kind === 'product' && (
         <ProductForm key={panel.id ?? 'new'} initial={editing ? { name: editing.name, price: editing.price, categoryIds: editing.categoryIds, taxIds: editing.taxIds, available: editing.available, storable: editing.storable, favorite: editing.favorite, description: editing.description, dinerAttributes: editing.dinerAttributes } : EMPTY}
-          hasImage={editing?.hasImage} templateId={editing?.id ?? null} isNew={panel.id === null} categories={categories} taxes={taxes} onSave={onSaveProduct} onClose={() => setPanel({ kind: 'none' })} />
+          extraProducts={products.filter(p=>p.available&&p.variantId&&p.id!==editing?.id).map(p=>({id:p.variantId!,name:p.name}))} hasImage={editing?.hasImage} templateId={editing?.id ?? null} isNew={panel.id === null} categories={categories} taxes={taxes} onSave={onSaveProduct} onClose={() => setPanel({ kind: 'none' })} />
       )}
       {panel.kind === 'categories' && <CategoryPanel categories={categories} productCount={(id) => products.filter((p) => p.categoryIds.includes(id)).length} onSave={async (id, c) => { await saveCategory(id, c); await load() }} onClose={() => setPanel({ kind: 'none' })} />}
     </KitShell>

@@ -47,7 +47,7 @@ export interface MenuSettingsContext { restaurante: string; sede: string; experi
 // Lo que devuelve 'set': la plantilla resuelta (código + tokens finales) tal como la verá el comensal.
 export interface ResolvedTemplate { codigo: string; nombre: string; familia: Family; tokens: TemplateTokens }
 
-export const DEFAULT_TEMPLATE = 'B1'
+export const DEFAULT_TEMPLATE = 'S1'
 const GATEWAY_PATH = '/waiter/admin/menu_settings'
 
 export function gateway(action: 'get'): Promise<MenuSettingsContext>

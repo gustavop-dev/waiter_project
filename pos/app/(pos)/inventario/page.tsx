@@ -9,7 +9,8 @@ import { Modal } from '@/components/kit/Modal'
 import { AddDishWizard } from '@/components/pantry/AddDishWizard'
 import { AddIngredientWizard } from '@/components/pantry/AddIngredientWizard'
 import { DishCard } from '@/components/pantry/DishCard'
-import { DishDetailModal } from '@/components/pantry/DishDetailModal'
+import { RecipeEditor } from '@/components/pantry/RecipeEditor'
+import { InventoryControl } from '@/components/pantry/InventoryControl'
 import { FilterPanel, type FilterSection } from '@/components/pantry/FilterPanel'
 import { IngredientRow } from '@/components/pantry/IngredientRow'
 import { PantryHeader } from '@/components/pantry/PantryHeader'
@@ -19,9 +20,10 @@ import { can } from '@/lib/domain/roles'
 import { useIdentity } from '@/lib/hooks/useIdentity'
 import {
   PANTRY_CATEGORIES, STOCK_LEVELS, dishAvailable, filterDishes, filterIngredients, groupCounts,
-  type Dish, type Ingredient, type LevelFilter, type PantryCategory, type RecipeLine,
+  type Dish, type Ingredient, type LevelFilter, type PantryCategory,
 } from '@/lib/domain/pantry'
-import { archiveIngredient, recipeLines, requestIngredient } from '@/lib/services/pantry'
+import { getRecipe } from '@/lib/services/restaurantInventory'
+import { archiveIngredient, requestIngredient } from '@/lib/services/pantry'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
 import { usePantryStore } from '@/lib/stores/pantryStore'
 import { toast } from '@/lib/stores/toastStore'
@@ -35,19 +37,17 @@ export default function InventarioPage() {
   const { role } = useIdentity()
   const canEditSetting = useCatalogStore((c) => c.catalog?.settings.waiterCanEditInventory ?? false)
   const mayEdit = can.editInventory(role, canEditSetting)
-  const [detail, setDetail] = useState<Dish | null>(null)
-  const [recipe, setRecipe] = useState<RecipeLine[]>([])
-  const [recipeLoading, setRecipeLoading] = useState(false)
+  const [detail, setDetail] = useState<{id:number;name:string} | null>(null)
+  const [control, setControl] = useState<Ingredient | null>(null)
   const [addDish, setAddDish] = useState(false)
   const [ingredientModal, setIngredientModal] = useState<IngredientModal>(null)
+  const refresh = s.refresh
   const load = s.load
   useEffect(() => { void load() }, [load])
 
-  // La receta se pide al abrir el detalle: `recipe_lines()` trae la cantidad por ración y el nivel de cada ingrediente.
-  const openDetail = useCallback(async (dish: Dish) => {
-    setDetail(dish); setRecipe([]); setRecipeLoading(true)
-    try { setRecipe(await recipeLines(dish.id)) } catch { setRecipe([]) } finally { setRecipeLoading(false) }
-  }, [])
+  const openDetail = useCallback(async (dish: Dish) => { setDetail(dish) }, [])
+  useEffect(()=>{const id=Number(new URLSearchParams(window.location.search).get('plato'));if(!id)return;let alive=true;getRecipe(id).then(d=>{if(alive){setDetail({id,name:d.name});window.history.replaceState(null,'','/inventario')}}).catch(e=>{if(alive)toast({title:e.message,tone:'danger'})});return()=>{alive=false}},[])
+  useEffect(()=>{const timer=setInterval(()=>{void refresh().catch(()=>{})},15000);return()=>clearInterval(timer)},[refresh])
 
   const posCategoryName = (ids: number[]) => s.posCategories.find((c) => c.id === ids[0])?.name ?? '—'
   const dishes = filterDishes(s.dishes, s.dishFilters)
@@ -117,7 +117,7 @@ export default function InventarioPage() {
         {s.tab === 'menu' && <FilterPanel sections={menuSections} onReset={s.resetFilters} />}
         {s.tab === 'ingredients' && <FilterPanel sections={ingredientSections} onReset={s.resetFilters} />}
         <section aria-label={listTitle} className="flex-1 min-w-0 min-h-0 bg-surface border border-border rounded-lg flex flex-col">
-          <header className="h-14 px-4 flex items-center border-b border-border shrink-0"><h2 className="text-[16px] font-semibold text-ink">{listTitle}</h2></header>
+          <header className="h-14 px-4 flex items-center border-b border-border shrink-0"><h2 className="text-[16px] font-semibold text-ink">{listTitle}</h2><button className="ml-auto text-sm text-primary" onClick={()=>void s.refresh().catch(e=>toast({title:String(e),tone:'danger'}))}>Actualizar</button></header>
           <div className="flex-1 min-h-0 overflow-auto flex flex-col">
             {s.error && <p role="alert" className="m-4 p-3 rounded-md bg-danger-soft text-danger-ink text-[14px]">{s.error}</p>}
             {s.tab === 'menu' && (dishes.length === 0 && !s.loading
@@ -125,12 +125,13 @@ export default function InventarioPage() {
               : <div className="p-2.5 grid grid-cols-3 gap-2.5 content-start">{dishes.map((d) => <DishCard key={d.id} dish={d} category={posCategoryName(d.categoryIds)} onOpen={() => void openDetail(d)} />)}</div>)}
             {s.tab === 'ingredients' && (ingredients.length === 0 && !s.loading
               ? <KitEmptyState icon="inventory" title={t('ingredients.empty')} body={t('ingredients.emptyBody')} />
-              : <ul className="p-2.5 flex flex-col gap-2">{ingredients.map((i) => <IngredientRow key={i.id} ingredient={i} onEdit={() => setIngredientModal({ kind: 'edit', ingredient: i })} onRequest={() => void request(i)} onDelete={() => setIngredientModal({ kind: 'delete', ingredient: i })} mayEdit={mayEdit} />)}</ul>)}
+              : <ul className="p-2.5 flex flex-col gap-2">{ingredients.map((i) => <IngredientRow key={i.id} ingredient={i} onEdit={() => setIngredientModal({ kind: 'edit', ingredient: i })} onRequest={() => void request(i)} onDelete={() => setIngredientModal({ kind: 'delete', ingredient: i })} mayEdit={mayEdit} onControl={()=>setControl(i)} />)}</ul>)}
             {s.tab === 'requests' && <RequestList requests={s.requests} query={s.requestQuery} />}
           </div>
         </section>
       </div>
-      <DishDetailModal dish={detail} category={detail ? posCategoryName(detail.categoryIds) : ''} lines={recipe} loading={recipeLoading} onClose={() => setDetail(null)} />
+      {detail&&<RecipeEditor key={detail.id} dish={detail} ingredients={s.ingredients} units={s.units} mayEdit={role==='admin'} onClose={()=>setDetail(null)} onSaved={s.refresh}/>}
+      {control&&<InventoryControl key={control.id} ingredient={control} mayEdit={role==='admin'} onClose={()=>setControl(null)} onSaved={s.refresh}/>}
       <AddDishWizard open={addDish} onClose={() => setAddDish(false)} categories={s.posCategories} ingredients={s.ingredients} units={s.units} onSaved={s.refresh} />
       {(ingredientModal?.kind === 'add' || ingredientModal?.kind === 'edit') && (
         <AddIngredientWizard open onClose={() => setIngredientModal(null)} initial={ingredientModal.kind === 'edit' ? ingredientModal.ingredient : null}

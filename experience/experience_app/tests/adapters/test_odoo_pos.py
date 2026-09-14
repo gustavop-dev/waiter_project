@@ -176,6 +176,25 @@ def test_parse_attributes_tolerates_anything_that_is_not_a_json_object():
     assert pos.parse_attributes(42) == {}
 
 
+# Falla si la tarjeta recibe minutos o precios anteriores inválidos (texto, negativos, decimales en minutos) o si el
+# precio anterior llega al comensal sin los impuestos que sí lleva el precio actual: el tachado compararía peras con manzanas.
+def test_prep_time_and_previous_price_are_sanitized_and_previous_price_carries_the_taxes():
+    assert pos.parse_attributes('{"tiempoPreparacion": 15, "precioAntes": 42000}') == {'tiempoPreparacion': 15, 'precioAntes': 42000}
+    assert pos.parse_attributes('{"tiempoPreparacion": "15", "precioAntes": "42000"}') == {}
+    assert pos.parse_attributes('{"tiempoPreparacion": 12.5, "precioAntes": -1}') == {}
+    assert pos.parse_attributes('{"tiempoPreparacion": 0, "precioAntes": 0}') == {}
+    taxes = FakeResponse([{'id': 55, 'amount': 19.0, 'amount_type': 'percent', 'price_include': False}])
+    raw = FakeResponse({
+        'product.product': [{'id': 3, 'product_tmpl_id': 21}],
+        'product.template': [{**TEMPLATE, 'id': 21, 'name': 'Angus', 'is_favorite': False, 'description_sale': False, 'image_128': False,
+                              'diner_attributes': '{"tiempoPreparacion": 15, "precioAntes": 42000}'}],
+        'pos.category': [], 'res.company': [],
+    })
+    catalog = pos.load_catalog(OdooClient(CREDS, FakeSession([AUTH, raw, taxes])), 4)
+    assert catalog.products[0].final_price == 43911.0
+    assert catalog.products[0].attributes == {'tiempoPreparacion': 15, 'precioAntes': 49980.0}
+
+
 # Falla si el porcentaje del POS no llega con la carta, si 0 (apagado) se confunde con "sin campo", o si un Odoo sin el addon rompe.
 def test_load_catalog_reads_the_signup_discount_and_the_attributes_from_load_data():
     with_config = FakeResponse({
@@ -199,3 +218,39 @@ def test_sync_payload_carries_the_line_discount():
     discounted = pos.OrderLine(uuid='l1', product_id=3, name='Angus', unit_price=36900, qty=2, note='', tax_ids=[5], discount=5.0)
     payload = pos.sync_payload(pos_session_id=4, table_id=None, order_uuid='u', guests=1, lines=[discounted, LINE], date_order='d')
     assert [line[2]['discount'] for line in payload['lines']] == [5.0, 0.0]
+
+
+def test_fired_course_waits_until_kitchen_actually_starts():
+    courses = FakeResponse([{'preparation_date': False, 'ready_date': False, 'served_date': False}])
+    assert pos.read_order_status(OdooClient(CREDS, FakeSession([AUTH, READ, courses])), 13).kitchen == 'received'
+    started = FakeResponse([{'preparation_date': '2026-09-12 10:00:00', 'ready_date': False, 'served_date': False}])
+    assert pos.read_order_status(OdooClient(CREDS, FakeSession([AUTH, READ, started])), 13).kitchen == 'cooking'
+
+
+# Falla si el peso de porción se pierde entre el catálogo del POS y el menú público.
+def test_optional_portion_weight_and_nutrition_are_validated():
+    assert pos.parse_attributes('{"nutricion":{"peso":180.5,"grasa":0,"calorias":250}}')['nutricion'] == {'peso': 180.5, 'grasa': 0, 'calorias': 250}
+    assert pos.parse_attributes('{"nutricion":{"peso":-1,"calorias":true,"grasa":"0"}}')['nutricion'] == {}
+    assert 'nutricion' not in pos.parse_attributes('{}')
+
+
+def test_self_service_payment_gate_is_present_in_the_initial_sync():
+    http = FakeSession([AUTH, FakeResponse({'pos.order': [{'id': 13}]}), FakeResponse(True), FakeResponse(True), READ])
+    pos.create_order(OdooClient(CREDS, http), pos_session_id=4, table_id=9, order_uuid='prepay-1', guests=1,
+                     lines=[LINE], date_order='2026-09-14 01:00:00', requires_payment=True)
+    assert params(http.calls[1])['args'][0][0]['waiter_requires_payment'] is True
+
+
+def test_combo_availability_uses_recipe_status_without_mutating_frozen_products():
+    import json
+    from copy import deepcopy
+    from unittest.mock import Mock
+    raw=deepcopy(LOAD_DATA.json()['result'])
+    for template in raw['product.template']: template['taxes_id']=[]
+    raw['product.template'][0]['diner_attributes']=json.dumps({'combo':[{'producto':7,'cantidad':2,'nombre':'Limonada'}]})
+    client=Mock()
+    client.call_kw.side_effect=[raw,{'3':False}]
+    catalog=pos.load_catalog(client,4)
+    assert catalog.products[0].sold_out is True
+    assert catalog.products[1].sold_out is False
+    client.call_kw.assert_called_with('product.template','waiter_combo_availability',[[21]])

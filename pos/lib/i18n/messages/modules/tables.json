@@ -33,7 +33,7 @@
     "done": "Pedido movido a la mesa {name}", "busy": "La mesa {name} ya tiene un pedido.", "failed": "No se pudo mover el pedido."
   },
   "floorToggle": { "needsClosedSession": "Hay una caja abierta", "needsClosedSessionBody": "Cierra el turno en Ventas antes de activar o desactivar «{name}».", "failed": "No se pudo cambiar el piso" },
-  "floorSettings": { "add": "Agregar piso", "edit": "Editar piso {name}", "active": "Piso {name} activo", "empty": "Aún no hay pisos." },
+  "floorSettings": { "editCurrent": "Editar piso actual", "add": "Agregar piso", "edit": "Editar piso {name}", "active": "Piso {name} activo", "empty": "Aún no hay pisos." },
   "wizard": {
     "addTitle": "Agregar plano", "editTitle": "Editar plano", "steps": { "info": "Información", "arrange": "Organizar plano", "success": "Mesas creadas" },
     "number": "Número de piso", "numberPlaceholder": "Escribe el número o el nombre del piso", "type": "Tipo de piso", "indoor": "Interior", "outdoor": "Exterior",

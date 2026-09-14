@@ -41,28 +41,30 @@ export interface Context { restaurante: { slug: string; nombre: string }; sede: 
 // Origen de la foto: 'ia' pide la nota «Imágenes de referencia» (límite legal); null = la plantilla no está marcada.
 export type PhotoOrigin = 'real' | 'ia' | 'placeholder'
 // Atributos opcionales por producto (contrato 2): una plantilla los pinta si existen y los omite si no; nunca los inventa.
-export interface DishAttributes { piezas?: number; picante?: 0 | 1 | 2 | 3; etiquetas?: string[]; alergenos?: string[]; abv?: number; ibu?: number; tamanos?: { nombre: string; precio: number }[]; soloHoy?: boolean }
-export interface Dish { id: number; nombre: string; precio: number; agotado: boolean; categorias: number[]; descripcion?: string; foto?: string | null; favorito?: boolean; fotoOrigen?: PhotoOrigin | null; atributos?: DishAttributes }
+export interface DishAttributes { combo?: {producto:number;cantidad:number;nombre:string}[]; extras?: number[]; acompanamientos?: number[]; ingredientes?: string[]; nutricion?: { calorias?: number; peso?: number; proteina?: number; grasa?: number; carbohidratos?: number; fibra?: number }; piezas?: number; picante?: 0 | 1 | 2 | 3; etiquetas?: string[]; alergenos?: string[]; abv?: number; ibu?: number; tamanos?: { nombre: string; precio: number }[]; soloHoy?: boolean; tiempoPreparacion?: number; precioAntes?: number }
+export interface Dish { valoracion?: {promedio:number;cantidad:number}; id: number; nombre: string; precio: number; agotado: boolean; categorias: number[]; descripcion?: string; foto?: string | null; favorito?: boolean; fotoOrigen?: PhotoOrigin | null; atributos?: DishAttributes }
 export interface Category { id: number; nombre: string; productos: Dish[] }
 // imagenesDeReferencia: algún plato con foto la tiene generada con IA. Opcional: una experience/ anterior no lo manda y la carta sigue igual, sin la nota.
 export interface Menu { restaurante: string; categorias: Category[]; imagenesDeReferencia?: boolean }
-export interface Entry { contexto: Context; carta: Menu }
+export interface MenuBanner {layout:'product'|'promotion'|'category'|'image'|'notice';title:string;subtitle:string;button:string;target:'product'|'category'|'none';targetId:number|null;image:string;theme:'violet'|'amber'|'dark';active:boolean}
+export interface Entry { banners?: MenuBanner[] | null; contexto: Context; carta: Menu }
 export interface Session { id: string; estado: string; mesa: number | null }
 export interface CartLine { id: number; comensal: string; mio: boolean; producto_id: number; nombre: string; precio: number; cantidad: number; nota: string; subtotal: number }
 // Descuento de primera compra (5 % por defecto): aplicable = la cuenta verificada aún no lo usó; aplicado = ya va en las líneas.
 export interface Discount {
+  codigo?: string; error?: string;
   registrado?: boolean; porcentaje: number; monto: number; aplicable: boolean; aplicado: boolean }
 export interface Cart { sesion: string; lineas: CartLine[]; total: number; mio: number; por_comensal: { comensal: string; total: number }[]; descuento?: Discount }
-export type OrderState = 'enviado' | 'en_cocina' | 'listo' | 'servido' | 'pagado' | 'fallido'
-export interface OrderStatus {
+export type OrderState = 'pendiente_pago' | 'enviado' | 'en_cocina' | 'listo' | 'servido' | 'pagado' | 'fallido'
+export interface OrderStatus { recompensas?: DinerRewards; lineas?: AccountOrderLine[];
   descuento?: Pick<Discount, 'porcentaje' | 'monto' | 'aplicado'>; id: string; sesion: string; estado: OrderState; total: number; impuestos: number; intentos: number; detalle?: string }
 export interface Bill { ok: boolean; total: number; mio: number; porComensal: { comensal: string; total: number }[]; partes: number; porParte: number; descuento?: Discount }
 
 // ---- Cuenta del comensal (maquetada con datos reales; contrato 3) ---------------------------------------------
-export interface Account { descuentoDisponible?: boolean; id: string; nombre: string; correo: string; celular?: string; verificada: boolean }
-export interface RegisterForm { nombre: string; correo: string; celular: string; aceptaDatos: boolean; novedades: boolean }
+export interface Account { alergenos?: string; tieneClave?: boolean; novedades?: boolean; descuentoDisponible?: boolean; id: string; nombre: string; correo: string; celular?: string; verificada: boolean }
+export interface RegisterForm { clave?: string; nombre: string; correo: string; celular: string; aceptaDatos: boolean; novedades: boolean }
 export interface AccountOrderLine { producto_id: number; nombre: string; cantidad: number; precio: number }
-export interface AccountOrder { id: string; fecha: string; local: string; mesa: number | null; items: number; total: number; estado: OrderState; descuento: number; lineas?: AccountOrderLine[] }
+export interface AccountOrder { restaurante?: string; sede?: string; id: string; fecha: string; local: string; mesa: number | null; items: number; total: number; estado: OrderState; descuento: number; lineas?: AccountOrderLine[] }
 export interface AccountSummary { cuenta: Account | null; pedidos: AccountOrder[] }
 
 // ---- Pago (maquetado detrás de un endpoint con la forma final; contrato 3) ------------------------------------
@@ -70,3 +72,6 @@ export type PayScope = 'all' | 'mine' | 'parts'
 export type PayMethod = 'tarjeta' | 'pse' | 'nequi' | 'efectivo'
 export type PayState = 'idle' | 'authorizing' | 'paid' | 'declined'
 export interface PayResult { estado: 'aprobado' | 'rechazado'; referencia: string; demo: boolean; metodo?: PayMethod; monto?: number }
+
+export interface DinerRewards {tarjeta:number|null;codigo:string;puntos:number;ganados:number;programa:string;valorPunto:number;minimoCanje:number}
+export interface VenueLocation {direccion:string;latitud:number|null;longitud:number|null}

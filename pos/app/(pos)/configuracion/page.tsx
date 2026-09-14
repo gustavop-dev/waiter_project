@@ -6,8 +6,11 @@ import { Suspense, useEffect, useState } from 'react'
 
 import { Icon, type KitIcon } from '@/components/kit/Icon'
 import { KitShell } from '@/components/kit/KitShell'
-import { BrandForm } from '@/components/settings/BrandForm'
 import { CompanyForm, DisplayForm, FloorsForm, PaymentMethodsList, TaxesList, UsersForm } from '@/components/settings/KitSettingsForms'
+import { KitchenPaymentPolicyForm } from '@/components/settings/KitchenPaymentPolicyForm'
+import { PaymentGatewayForm } from '@/components/settings/PaymentGatewayForm'
+import { BenefitsForm } from '@/components/settings/BenefitsForm'
+import { MenuBannersForm } from '@/components/settings/MenuBannersForm'
 import { MenuTemplateForm } from '@/components/settings/MenuTemplateForm'
 import { ThresholdsForm, WaiterPermissionsForm } from '@/components/settings/SettingsForms'
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -16,8 +19,8 @@ import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
 import { cn } from '@/lib/utils'
 
-const SECTIONS: [Section, KitIcon][] = [['restaurant', 'store'], ['brand', 'palette'], ['menuTemplate', 'layout'], ['floors', 'grid'], ['payments', 'card'], ['taxes', 'percentage'], ['users', 'users'], ['alerts', 'alert'], ['roi', 'chartLine'], ['display', 'tablet']]
-type Section = 'restaurant' | 'brand' | 'menuTemplate' | 'floors' | 'payments' | 'taxes' | 'users' | 'alerts' | 'roi' | 'display'
+const SECTIONS: [Section, KitIcon][] = [['restaurant', 'store'], ['menuTemplate', 'layout'], ['benefits', 'percentage'], ['floors', 'grid'], ['payments', 'card'], ['taxes', 'percentage'], ['users', 'users'], ['alerts', 'alert'], ['roi', 'chartLine'], ['display', 'tablet']]
+type Section = 'benefits' | 'restaurant' | 'brand' | 'menuTemplate' | 'floors' | 'payments' | 'taxes' | 'users' | 'alerts' | 'roi' | 'display'
 
 // Configuración con la estructura del modal "Setting" del kit (Account Setting / Profile.png): pestañas verticales con
 // icono a la izquierda y panel con cabecera a la derecha, para las diez secciones del restaurante.
@@ -37,7 +40,7 @@ function ConfiguracionInner() {
   const reloadUsers = () => listUsers().then(setUsers)
   useEffect(() => { void getCompany().then(setCompany); void reloadFloors(); void listPaymentMethods().then(setMethods); void listTaxes().then(setTaxes); void reloadUsers() }, [])
   if (!catalog) return null
-  const onSaveSettings = async (s: typeof catalog.settings) => { await saveSettings(s); if (session) await load(session.id) }
+  const onSaveSettings = async (s: typeof catalog.settings) => { await saveSettings(s); await load(session?.id ?? null) }
   return (
     <KitShell>
       <PageHeader icon="settings" title={t('title')} />
@@ -55,12 +58,12 @@ function ConfiguracionInner() {
             <header className="h-14 px-5 flex items-center border-b border-border shrink-0"><h2 className="text-[16px] font-semibold text-ink">{t(`sections.${section}`)}</h2></header>
             <div className="flex-1 min-h-0 overflow-y-auto p-5">
               {section === 'restaurant' && company && <CompanyForm key={company.id} initial={company} />}
-              {section === 'brand' && <BrandForm restaurantName={company?.name ?? ''} />}
-              {section === 'menuTemplate' && <MenuTemplateForm />}
+              {section === 'benefits' && <BenefitsForm configId={catalog.settings.configId} />}
+              {section === 'menuTemplate' && <><MenuTemplateForm /><MenuBannersForm configId={catalog.settings.configId}/></>}
               {section === 'floors' && <FloorsForm floors={floors} configId={catalog.settings.configId} onChanged={reloadFloors} />}
-              {section === 'payments' && <PaymentMethodsList methods={methods} />}
+              {section === 'payments' && <><PaymentMethodsList methods={methods} /><PaymentGatewayForm methods={methods} /></>}
               {section === 'taxes' && <TaxesList taxes={taxes} />}
-              {section === 'users' && <><WaiterPermissionsForm initial={catalog.settings} onSave={onSaveSettings} /><UsersForm users={users} onChanged={reloadUsers} /></>}
+              {section === 'users' && <><KitchenPaymentPolicyForm configId={catalog.settings.configId} /><WaiterPermissionsForm initial={catalog.settings} onSave={onSaveSettings} /><UsersForm users={users} onChanged={reloadUsers} /></>}
               {section === 'alerts' && <ThresholdsForm key="alerts" initial={catalog.settings} section="alerts" onSave={onSaveSettings} />}
               {section === 'roi' && <ThresholdsForm key="roi" initial={catalog.settings} section="roi" onSave={onSaveSettings} />}
               {section === 'display' && <DisplayForm />}

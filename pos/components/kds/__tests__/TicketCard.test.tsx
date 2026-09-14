@@ -6,7 +6,7 @@ import { messages } from '@/lib/i18n/messages'
 
 const wrap = (ui: React.ReactElement) => render(<NextIntlClientProvider locale="es" messages={messages}>{ui}</NextIntlClientProvider>)
 const NOW = Date.parse('2026-09-05T02:18:40Z')
-const ticket = { id: 5, orderId: 9, tableId: 3, tracking: '127', waiter: 'Sofía', note: '', firedAt: '2026-09-05 02:00:00', readyAt: null,
+const ticket = { id: 5, orderId: 9, tableId: 3, tracking: '127', waiter: 'Sofía', note: '', firedAt: '2026-09-05 02:00:00', preparationAt: '2026-09-05 02:01:00', readyAt: null,
   lines: [{ id: 1, name: 'Lomo a la parrilla', qty: 1, note: 'término medio', station: 'Parrilla', readyAt: null, servedAt: null }, { id: 2, name: 'Burrata italiana', qty: 2, note: '', station: 'Fríos', readyAt: null, servedAt: null }] }
 
 // Falla si la tarjeta no se lee a dos metros: cantidad, plato, nota, cronómetro y la etiqueta de demora.
@@ -38,4 +38,13 @@ it('marks one dish ready and shows the ones already on the pass', () => {
   expect(buttons).toHaveLength(1)
   fireEvent.click(buttons[0])
   expect(onReadyDish).toHaveBeenCalledWith(1)
+})
+
+it('requires preparation before marking received dishes ready', () => {
+  const onStart = jest.fn()
+  wrap(<TicketCard ticket={{ ...ticket, preparationAt: null }} tableNumber={7} now={NOW} onStart={onStart} onReady={jest.fn()} onReadyDish={jest.fn()} />)
+  expect(screen.getByText('Recibida')).toBeInTheDocument()
+  screen.getAllByRole('button', { name: 'Listo' }).forEach((b) => expect(b).toBeDisabled())
+  fireEvent.click(screen.getByRole('button', { name: 'Iniciar preparación' }))
+  expect(onStart).toHaveBeenCalledWith(5)
 })

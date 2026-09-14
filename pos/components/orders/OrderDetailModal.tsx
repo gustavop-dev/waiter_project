@@ -20,11 +20,11 @@ const GROUPS: { key: LineGroup; icon: KitIcon; cls: string }[] = [
 interface Props {
   order: KitOrder | null; status: KitStatus; percent: number; onClose: () => void
   imageOf: (productId: number) => string | null; onCancelWaiting: (lines: KitLine[]) => void
-  onServeReady?: (lines: KitLine[]) => void; busy?: boolean; mayCharge?: boolean
+  onSendPending?: () => void; onServeReady?: (lines: KitLine[]) => void; busy?: boolean; mayCharge?: boolean
 }
 
 // "Detail Order" del kit: cabecera del pedido, líneas agrupadas por estado de cocina y pie con total, "+ Nuevo pedido" e "Ir a pagar".
-export function OrderDetailModal({ order, status, percent, onClose, imageOf, onCancelWaiting, onServeReady, busy = false, mayCharge = true }: Props) {
+export function OrderDetailModal({ order, status, percent, onClose, imageOf, onCancelWaiting, onSendPending, onServeReady, busy = false, mayCharge = true }: Props) {
   const t = useTranslations('orders')
   if (!order) return null
   const groups = GROUPS.map((g) => ({ ...g, lines: order.lines.filter((l) => lineGroup(order, l) === g.key) })).filter((g) => g.lines.length > 0)
@@ -45,9 +45,18 @@ export function OrderDetailModal({ order, status, percent, onClose, imageOf, onC
       <div className="px-4 pt-3 pb-4 flex flex-col gap-3 border-b border-border">
         <OrderHeadline order={order} />
         <CustomerRow order={order} size="sm" />
+        {order.channel === 'whatsapp' && (
+          <div className="flex flex-wrap items-center gap-2 text-[13px] text-soft">
+            <span className="rounded-sm bg-success-soft px-2 py-1 text-success-ink">WhatsApp</span>
+            {order.phone && <span className="tabular">{order.phone}</span>}
+          </div>
+        )}
         <StatusBar order={order} status={status} percent={percent} />
       </div>
       <div className="p-4 flex flex-col gap-3">
+        {onSendPending && order.lines.some((l) => !l.courseId) && (
+          <button type="button" disabled={busy} onClick={onSendPending} className="h-11 rounded-md bg-primary text-primary-ink font-semibold">{t('detail.sendPending')}</button>
+        )}
         {groups.map((g) => (
           <section key={g.key} aria-label={t(`detail.groups.${g.key}`)} className="rounded-md border border-border overflow-hidden">
             <header className={cn('h-11 px-3 flex items-center justify-between', g.cls)}>

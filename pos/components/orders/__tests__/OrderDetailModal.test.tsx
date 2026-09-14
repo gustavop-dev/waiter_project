@@ -11,7 +11,7 @@ const line = (id: number, name: string, courseId: number | null, note = ''): Kit
 const order: KitOrder = {
   id: 7, number: 'DI007', type: 'dine_in', state: 'draft', tableId: 4, tableNumber: 3, customer: 'Eva', startedAt: '2026-09-06 20:00:00', total: 131733, tax: 21033,
   lines: [line(1, 'Hamburguesa Angus', 1), line(2, 'Papas Trufadas', null, 'sin sal'), line(3, 'Limonada de Coco', 2)],
-  courses: [{ id: 1, fired: true, readyAt: null, servedAt: null }, { id: 2, fired: true, readyAt: 'x', servedAt: 'x' }],
+  courses: [{ id: 1, fired: true, preparationAt: 'x', readyAt: null, servedAt: null }, { id: 2, fired: true, readyAt: 'x', servedAt: 'x' }],
 }
 const ui = (node: React.ReactNode) => render(<NextIntlClientProvider locale="es" messages={messages}>{node}</NextIntlClientProvider>)
 

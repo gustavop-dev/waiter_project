@@ -61,9 +61,9 @@ it('compiles every template utility to the css property the engine expects', asy
 })
 
 // Falla si el :root de globals.css (lo que se ve antes de que cargue el contexto) se separa de DEFAULT_TEMPLATE (lo que pone el motor).
-it('keeps the css defaults identical to the embedded B1 template', () => {
+it('keeps the css defaults identical to the embedded S1 template', () => {
   const root: Record<string, string> = {}
-  for (const m of CSS.matchAll(/(--t-[a-z-]+):\s*([^;]+);/g)) if (!root[m[1]]) root[m[1]] = m[2].trim()
+  for (const m of CSS.matchAll(/(--t-[a-z-]+|--sm-highlight-ink):\s*([^;]+);/g)) if (!root[m[1]]) root[m[1]] = m[2].trim()
   expect(root).toEqual(templateVars(DEFAULT_TEMPLATE))
 })
 

@@ -73,19 +73,44 @@ class TestKitchenLines(TransactionCase):
         course.action_kitchen_served()
         self.assertTrue(course.served_date and self.line_b.served_date)
 
-    def test_cancel_only_before_the_course_is_fired(self):
-        """Atrapa que se cancele un plato ya enviado a cocina."""
-        fired = self._fire(self.line_a)
-        waiting = self.env["restaurant.order.course"].create({"order_id": self.order.id, "index": 2, "fired": False, "line_ids": [(6, 0, [self.line_b.id, self.line_c.id])]})
+    def test_cancel_received_but_not_started(self):
+        course = self._fire(self.line_a | self.line_b)
+        self.Line.waiter_cancel_lines(self.line_a.ids)
+        self.assertFalse(self.line_a.exists())
+        course.action_kitchen_start()
+        first = course.preparation_date
+        course.action_kitchen_start()
+        self.assertEqual(course.preparation_date, first)
         with self.assertRaises(UserError):
-            self.Line.waiter_cancel_lines([self.line_a.id])
-        self.assertFalse(self.line_a.waiter_cancelled)
-        self.assertTrue(self.Line.waiter_cancel_lines([self.line_b.id]))
-        self.assertEqual((self.line_b.waiter_cancelled, bool(waiting.served_date)), (True, False))
-        self.Line.action_kitchen_line_ready([self.line_c.id])
-        self.Line.action_kitchen_line_served([self.line_c.id])
-        self.assertTrue(waiting.served_date, "una línea cancelada no bloquea el cierre del curso")
-        self.assertFalse(fired.served_date)
+            self.Line.waiter_cancel_lines(self.line_b.ids)
+        with self.assertRaises(UserError):
+            self.line_b.unlink()
+        with self.assertRaises(UserError):
+            self.line_b.write({"qty": 2})
+        self.assertTrue(self.line_b.exists())
+
+    def test_cancelling_all_lines_releases_the_order(self):
+        course = self._fire(self.order.lines)
+        self.Line.waiter_cancel_lines(self.order.lines.ids)
+        self.assertEqual(self.order.state, "cancel")
+        self.assertFalse(self.order.lines)
+        self.assertFalse(course.exists())
+        self.assertEqual(self.order.amount_total, 0)
+
+    def test_dispatch_retry_does_not_move_lines_to_another_course(self):
+        course = self._fire(self.line_a)
+        self.assertFalse(self.env["restaurant.order.course"].kitchen_fire(self.order.id, self.line_a.ids))
+        self.assertEqual(self.line_a.course_id, course)
+
+    def test_paid_takeaway_can_be_prepared_but_not_cancelled(self):
+        self.order.write({"state": "paid"})
+        course = self._fire(self.line_a)
+        course.action_kitchen_start()
+        course.action_kitchen_ready()
+        course.action_kitchen_served()
+        self.assertTrue(self.line_a.served_date)
+        with self.assertRaises(UserError):
+            self.Line.waiter_cancel_lines(self.line_a.ids)
 
     def test_new_fields_travel_in_load_data(self):
         self.assertTrue({"waiter_ready_date", "served_date", "waiter_cancelled"} <= set(self.Line._load_pos_data_fields(self.config)))

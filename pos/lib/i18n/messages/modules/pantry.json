@@ -115,6 +115,8 @@
     "clove": "Diente",
     "gram": "Gramo (g)",
     "kilogram": "Kilogramo (kg)",
+    "liter": "Litro (L)",
+    "milliliter": "Mililitro (ml)",
     "pieces": "Unidades",
     "slice": "Rebanada"
   },

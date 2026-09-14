@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
+import { administrationPath } from '@/lib/domain/navigation'
 import { Button } from '@/components/ui/Button'
 import { allowedPath, effectiveRole } from '@/lib/domain/roles'
 import { useAuthStore } from '@/lib/stores/authStore'
@@ -25,13 +26,13 @@ export default function PosLayout({ children }: { children: React.ReactNode }) {
     if (!user) { router.replace('/login'); return }
     // Con sesión de Odoo pero sin empleado activo (pos_hr): al "Inicio de empleado" a elegir cuenta y PIN.
     if (!employee) { router.replace('/login'); return }
-    if (!session) { router.replace('/caja'); return }
+    if (!session && (effectiveRole(user.role, employee.role) !== 'admin' || !administrationPath(pathname))) { router.replace('/caja'); return }
     // Rol: una pantalla que no le toca lo devuelve al salón, sin pantalla de error.
     if (!allowedPath(effectiveRole(user.role, employee.role), pathname)) { router.replace('/salon'); return }
-    void load(session.id)
+    void load(session?.id ?? null)
   }, [hydrated, user, employee, session, pathname, router, load])
 
-  if (!hydrated || !session || !user || !employee || !allowedPath(effectiveRole(user.role, employee.role), pathname)) return null
+  if (!hydrated || !user || !employee || (!session && (effectiveRole(user.role, employee.role) !== 'admin' || !administrationPath(pathname))) || !allowedPath(effectiveRole(user.role, employee.role), pathname)) return null
   // Sin catálogo no hay pantalla que pintar: se dice por qué en vez de dejar el POS en blanco.
   if (catalogStatus === 'error') {
     return (
@@ -40,7 +41,7 @@ export default function PosLayout({ children }: { children: React.ReactNode }) {
           <span className="text-[20px] font-semibold text-ink">No se pudo cargar la carta</span>
           <p className="text-[15px] text-soft">Odoo rechazó los datos de este terminal. Avisa a quien administra el punto de venta.</p>
           {catalogError && <p className="text-[13px] text-dim font-mono break-words">{catalogError}</p>}
-          <Button variant="primary" className="self-center mt-2" onClick={() => { if (session) void load(session.id) }}>Reintentar</Button>
+          <Button variant="primary" className="self-center mt-2" onClick={() => { void load(session?.id ?? null) }}>Reintentar</Button>
         </div>
       </main>
     )

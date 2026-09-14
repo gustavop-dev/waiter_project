@@ -90,7 +90,8 @@ export function AddIngredientWizard({ open, onClose, initial = null, units, supp
               {PANTRY_CATEGORIES.map((c) => <Chip key={c.key} label={`${categoryEmoji(c.key)} ${tc(c.key)}`} active={c.key === category} onClick={() => setCategory(c.key)} />)}
             </div>
           </div>
-          <label className="flex flex-col gap-2"><span className={LABEL}>{t('initialStock')}</span><input type="number" min={0} step="any" value={stock} onChange={(e) => setStock(e.target.value)} placeholder={t('initialStockPlaceholder')} className={`${INPUT} max-w-[390px]`} /></label>
+          <label className="flex flex-col gap-2"><span className={LABEL}>{initial?'Existencias actuales':t('initialStock')}</span><input disabled={Boolean(initial)} type="number" min={0} step="any" value={stock} onChange={(e) => setStock(e.target.value)} placeholder={t('initialStockPlaceholder')} className={`${INPUT} max-w-[390px]`} /></label>
+          {initial&&<p className="text-sm text-soft">Para registrar entradas, mermas o conteos, usa «Existencias y movimientos».</p>}
           <div className="flex flex-col gap-2" role="group" aria-label={t('unit')}>
             <span className={LABEL}>{t('unit')}</span>
             <div className="flex flex-wrap gap-4 [&>button]:min-w-[120px] [&>button]:justify-center">{units.map((u) => <Chip key={u.id} label={tu(u.key)} active={u.id === uomId} onClick={() => setUomId(u.id)} />)}</div>

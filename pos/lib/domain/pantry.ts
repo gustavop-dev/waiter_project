@@ -42,7 +42,7 @@ export const dishAvailable = (d: Pick<Dish, 'availableInPos' | 'hasRecipe' | 'se
 // Raciones del pie de la tarjeta: null en los platos sin receta, donde el kit no muestra número sino "Sin receta".
 export const dishServings = (d: Pick<Dish, 'hasRecipe' | 'servings'>): number | null => (d.hasRecipe ? d.servings : null)
 
-const qtyFormat = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 2 })
+const qtyFormat = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 4 })
 export const formatQty = (qty: number): string => qtyFormat.format(qty)
 // "Stock: 1,5 kg" del kit: cantidad en español y la unidad tal como la nombra Odoo, con su etiqueta del kit si la tiene.
 export const formatStock = (qty: number, uomName: string): string => `${formatQty(qty)} ${unitLabel(uomName)}`
@@ -50,7 +50,7 @@ export const formatStock = (qty: number, uomName: string): string => `${formatQt
 // Unidades del kit ("Unit Measurement") → nombre en uom.uom. Manojo, Diente y Rebanada no vienen con Odoo.
 export const KIT_UNITS = [
   { key: 'bunch', uom: 'Manojo' }, { key: 'clove', uom: 'Diente' }, { key: 'gram', uom: 'g' },
-  { key: 'kilogram', uom: 'kg' }, { key: 'pieces', uom: 'Units' }, { key: 'slice', uom: 'Rebanada' },
+  { key: 'kilogram', uom: 'kg' }, { key: 'liter', uom: 'L' }, { key: 'milliliter', uom: 'ml' }, { key: 'pieces', uom: 'Units' }, { key: 'slice', uom: 'Rebanada' },
 ] as const
 export type KitUnitKey = (typeof KIT_UNITS)[number]['key']
 export const kitUnitKey = (uomName: string): KitUnitKey | null => KIT_UNITS.find((u) => u.uom === uomName)?.key ?? null

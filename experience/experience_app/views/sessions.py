@@ -84,3 +84,29 @@ def request_bill(request, session_id):
     tenant = resolve(session.restaurant_slug, session.venue_slug, session.table_token)
     ok = sessions.table_call(tenant, session, 'bill') if request.method == 'POST' else False
     return Response({'ok': ok, **sessions.bill_summary(session, diner, discount.percent_for(tenant), include_open=request.method == 'GET')})
+
+
+@api_view(['POST'])
+def add_bundle(request, session_id):
+    from django.db import transaction
+    session = get_object_or_404(TableSession, id=session_id, state__in=TableSession.OPEN_STATES)
+    diner = diner_for(request, session)
+    data = request.data if isinstance(request.data, dict) else {}
+    items = data.get('lineas')
+    if not isinstance(items, list) or not 1 <= len(items) <= 20:
+        return Response({'detail': 'Elige entre 1 y 20 platos'}, status=400)
+    tenant = resolve(session.restaurant_slug, session.venue_slug, session.table_token)
+    validated = []
+    for item in items:
+        if not isinstance(item, dict) or type(item.get('producto_id')) is not int or type(item.get('cantidad')) is not int or not 1 <= item['cantidad'] <= 99 or not isinstance(item.get('nota', ''), str) or len(item.get('nota', '')) > 200:
+            return Response({'detail': 'Revisa los platos, cantidades y notas'}, status=400)
+        product = catalog.find_product(tenant, item['producto_id'])
+        if product.sold_out:
+            return Response({'detail': f'{product.name} está agotado'}, status=400)
+        validated.append((product, item['cantidad'], item.get('nota', '')))
+    with transaction.atomic():
+        # All validation precedes writes; a failed extra cannot leave a partial meal.
+        for product, qty, note in validated:
+            sessions.add_line(session, diner, product, qty, note)
+        result = cart_of(session, diner)
+    return Response(result, status=201)

@@ -3,7 +3,7 @@
 import { create } from 'zustand'
 
 import { DEFAULT_TEMPLATE, applyPreview, parsePreview, templateFromSpec } from '@/lib/domain/template'
-import { ApiError, addLine, callWaiter, confirmOrder, getAccount, getCart, getEntry, getOrder, getTemplates, logoutAccount, openSession, registerAccount, removeLine, quoteBill, requestBill, simulatePayment, updateLine, verifyAccount } from '@/lib/services/api'
+import { addBundle, getFavorites, setFavorite, ApiError, addLine, callWaiter, confirmOrder, getAccount, getCart, getEntry, getOrder, getTemplates, logoutAccount, openSession, registerAccount, removeLine, quoteBill, requestBill, simulatePayment, updateLine, verifyAccount } from '@/lib/services/api'
 import type { Account, AccountOrder, Bill, Cart, Entry, OrderStatus, PayMethod, PayScope, PayResult, PayState, RegisterForm, Session, Template } from '@/lib/types'
 
 interface Keys { rest: string; venue: string; token: string | null }
@@ -13,6 +13,10 @@ interface PendingAccount { id: string; form: RegisterForm }
 export const AUTHORIZING_MS = 1_200
 
 interface DinerState {
+  favorites: number[]
+  favoritesBusy: boolean
+  loadFavorites: () => Promise<void>
+  favorite: (productId: number) => Promise<boolean>
   keys: Keys | null
   entry: Entry | null
   session: Session | null
@@ -40,7 +44,8 @@ interface DinerState {
   add: (productId: number, qty: number, note: string) => Promise<void>
   setQty: (lineId: number, qty: number) => Promise<void>
   remove: (lineId: number) => Promise<void>
-  confirm: () => Promise<string | null>
+  addBundle: (lines: {producto_id:number;cantidad:number;nota:string}[]) => Promise<void>
+  confirm: (takeaway?: boolean, details?: {notas: string; alergenos: string}) => Promise<string | null>
   refreshOrder: (orderId: string) => Promise<void>
   call: () => Promise<boolean>
   askBill: () => Promise<Bill | null>
@@ -60,11 +65,13 @@ export const payableTotal = (s: Pick<DinerState, 'bill' | 'order' | 'cart'>) => 
 const resolveTemplate = (preview: Template | null, entry: Entry | null) => preview ?? entry?.contexto.plantilla ?? DEFAULT_TEMPLATE
 
 export const useDinerStore = create<DinerState>((set, get) => {
+  let opening: { key: string; promise: Promise<Session | null> } | null = null
   const run = async <T,>(fn: () => Promise<T>): Promise<T | null> => {
     set({ busy: true, error: null })
     try { return await fn() } catch (e) { set({ error: message(e) }); return null } finally { set({ busy: false }) }
   }
   return {
+    favorites: [], favoritesBusy: false,
     keys: null, entry: null, session: null, cart: null, order: null, bill: null, error: null, busy: false,
     template: DEFAULT_TEMPLATE, preview: null,
     account: null, accountOrders: [], pendingAccount: null,
@@ -74,7 +81,7 @@ export const useDinerStore = create<DinerState>((set, get) => {
       const same = get().keys && JSON.stringify(get().keys) === JSON.stringify(keys)
       // La vista previa (?vista_previa=) sobrevive a recargas de la entrada y a cambios de mesa; solo se descarta al cambiar de sede.
       const sameVenue = get().keys?.rest === keys.rest && get().keys?.venue === keys.venue
-      if (!same) set({ keys, entry: null, session: null, cart: null, order: null, bill: null, preview: sameVenue ? get().preview : null })
+      if (!same) set({ favorites: [], account: null, accountOrders: [], keys, entry: null, session: null, cart: null, order: null, bill: null, preview: sameVenue ? get().preview : null })
       await run(async () => { const entry = await getEntry(keys.rest, keys.venue, keys.token); set({ entry, template: resolveTemplate(get().preview, entry) }) })
     },
     // Vista previa sin guardar (la usa el POS por iframe): parte del catálogo del código pedido resuelto con la marca de la sede.
@@ -96,7 +103,17 @@ export const useDinerStore = create<DinerState>((set, get) => {
     ensureSession: async () => {
       const { session, keys } = get()
       if (session || !keys) return session
-      return run(async () => { const r = await openSession(keys.rest, keys.venue, keys.token); set({ session: r.sesion }); return r.sesion })
+      if (get().preview) return null
+      const key = JSON.stringify(keys)
+      if (opening?.key === key) return opening.promise
+      const promise = run(async () => {
+        const r = await openSession(keys.rest, keys.venue, keys.token)
+        if (JSON.stringify(get().keys) !== key) return null
+        set({ session: r.sesion })
+        return r.sesion
+      })
+      opening = { key, promise }
+      try { return await promise } finally { if (opening?.promise === promise) opening = null }
     },
     refreshBill: async () => {
       set({ bill: null })
@@ -109,28 +126,38 @@ export const useDinerStore = create<DinerState>((set, get) => {
       await run(async () => set({ cart: await getCart(session.id) }))
     },
     add: async (productId, qty, note) => {
+      if (get().preview) { set({ error: 'Estás viendo una vista previa. Abre el menú para realizar esta acción.' }); return  }
       const session = await get().ensureSession()
       if (!session) return
       await run(async () => set({ cart: await addLine(session.id, productId, qty, note) }))
     },
+    addBundle: async (lines) => {
+      if (get().preview) { set({error:'Estás viendo una vista previa. Abre el menú para realizar esta acción.'}); return }
+      const session = await get().ensureSession()
+      if (!session) return
+      await run(async () => set({cart: await addBundle(session.id,lines)}))
+    },
     setQty: async (lineId, qty) => {
+      if (get().preview) { set({ error: 'Estás viendo una vista previa. Abre el menú para realizar esta acción.' }); return  }
       const session = get().session
       if (!session) return
       await run(async () => set({ cart: await updateLine(session.id, lineId, { cantidad: qty }) }))
     },
     remove: async (lineId) => {
+      if (get().preview) { set({ error: 'Estás viendo una vista previa. Abre el menú para realizar esta acción.' }); return  }
       const session = get().session
       if (!session) return
       await run(async () => set({ cart: await removeLine(session.id, lineId) }))
     },
     // Idempotente en el servidor: tocar dos veces devuelve el mismo pedido. Si el restaurante no responde (experience
     // devuelve el pedido como fallido), el carrito sigue ahí.
-    confirm: async () => {
+    confirm: async (takeaway, details) => {
+      if (get().preview) { set({ error: 'Estás viendo una vista previa. Abre el menú para realizar esta acción.' }); return null }
       const { session, keys } = get()
       if (!session || !keys) return null
       return run(async () => {
         try {
-          const r = await confirmOrder(session.id)
+          const r = details ? await confirmOrder(session.id, takeaway, details) : takeaway === undefined ? await confirmOrder(session.id) : await confirmOrder(session.id, takeaway)
           const order = await getOrder(r.pedido)
           set({ order, bill: r.cuenta ?? null, cart: await getCart(session.id) })
           return r.pedido
@@ -146,26 +173,31 @@ export const useDinerStore = create<DinerState>((set, get) => {
     },
     refreshOrder: async (orderId) => { await run(async () => set({ order: await getOrder(orderId) })) },
     call: async () => {
+      if (get().preview) { set({ error: 'Estás viendo una vista previa. Abre el menú para realizar esta acción.' }); return false }
       const session = await get().ensureSession()
       if (!session) return false
       return (await run(() => callWaiter(session.id))) ?? false
     },
     askBill: async () => {
+      if (get().preview) { set({ error: 'Estás viendo una vista previa. Abre el menú para realizar esta acción.' }); return null }
       const session = await get().ensureSession()
       if (!session) return null
       return run(async () => { const bill = await requestBill(session.id); set({ bill }); return bill })
     },
     // Cuenta: dos campos, sin contraseña. El registro crea la cuenta pendiente; el código la verifica y la liga a la cookie.
     register: async (form) => {
-      return run(async () => { const r = await registerAccount(form); set({ pendingAccount: { id: r.id, form } }); return r.id })
+      if (get().preview) { set({ error: 'Estás viendo una vista previa. Abre el menú para realizar esta acción.' }); return null }
+      return run(async () => { const r = await registerAccount(form); set({ pendingAccount: { id: r.id, form: { ...form, clave: undefined } } }); return r.id })
     },
     resendCode: async () => {
+      if (get().preview) { set({ error: 'Estás viendo una vista previa. Abre el menú para realizar esta acción.' }); return false }
       const pending = get().pendingAccount
       if (!pending) return false
       const ok = await run(async () => { const r = await registerAccount(pending.form); set({ pendingAccount: { id: r.id, form: pending.form } }); return true })
       return ok ?? false
     },
     verify: async (code) => {
+      if (get().preview) { set({ error: 'Estás viendo una vista previa. Abre el menú para realizar esta acción.' }); return false }
       const pending = get().pendingAccount
       if (!pending) return false
       const ok = await run(async () => {
@@ -190,10 +222,31 @@ export const useDinerStore = create<DinerState>((set, get) => {
       })
     },
     logout: async () => {
-      await run(async () => { await logoutAccount(); set({ account: null, accountOrders: [], pendingAccount: null }) })
+      if (get().preview) { set({ error: 'Estás viendo una vista previa. Abre el menú para realizar esta acción.' }); return  }
+      await run(async () => { await logoutAccount(); set({ account: null, accountOrders: [], pendingAccount: null, favorites: [] }) })
+    },
+    loadFavorites: async () => {
+      const keys = get().keys
+      if (!keys || !get().account) { set({ favorites: [] }); return }
+      const accountId = get().account?.id
+      await run(async () => {
+        const favorites = await getFavorites(keys.rest, keys.venue)
+        if (get().keys === keys && get().account?.id === accountId) set({ favorites })
+      })
+    },
+    favorite: async (productId) => {
+      const { keys, account, favorites, favoritesBusy } = get()
+      if (!keys || !account || favoritesBusy) return false
+      set({ favoritesBusy: true })
+      try {
+        const result = await run(() => setFavorite(keys.rest, keys.venue, productId, !favorites.includes(productId)))
+        if (result && get().keys === keys && get().account?.id === account.id) set({ favorites: result })
+        return result !== null
+      } finally { set({ favoritesBusy: false }) }
     },
     // Pago maquetado: «Autorizando» al menos AUTHORIZING_MS, luego pagado o rechazado. Nunca sale el número de la tarjeta de aquí.
     simulatePay: async (metodo, reparto = 'all') => {
+      if (get().preview) { set({ error: 'Estás viendo una vista previa. Abre el menú para realizar esta acción.' }); return null }
       if (get().payState === 'authorizing') return null
       set({ payState: 'authorizing', payResult: null, error: null })
       try {

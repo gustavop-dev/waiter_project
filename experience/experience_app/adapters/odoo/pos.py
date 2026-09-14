@@ -6,7 +6,7 @@ load_data, precio y categorías en product.template), ya verificadas en pos/.
 import base64
 import json
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from experience_app.adapters.odoo.client import OdooClient
 
@@ -96,7 +96,9 @@ class OrderLine:
     qty: float
     note: str
     tax_ids: list[int]
-    discount: float = 0.0  # % sobre la línea (pos.order.line.discount): el descuento de primera compra del Plan H
+    discount: float = 0.0  # % sobre la línea, preservado entre reintentos.
+    loyalty_card_id: int | None = None
+    coupon_code: str = ''
 
 
 @dataclass(frozen=True)
@@ -159,8 +161,13 @@ def load_catalog(client: OdooClient, pos_session_id: int) -> Catalog:
                         favorite=bool(t.get('is_favorite')), has_image=bool(t.get('image_128')),
                         image_version=_version(t.get('write_date')), image_origin=t.get('image_origin') or '',
                         final_price=price_with_taxes(t['list_price'], [taxes[i] for i in t['taxes_id'] if i in taxes]),
-                        attributes=parse_attributes(t.get('diner_attributes')))
+                        attributes=_with_taxed_previous_price(parse_attributes(t.get('diner_attributes')),
+                                                              [taxes[i] for i in t['taxes_id'] if i in taxes]))
                 for pid, t in base.items()]
+    combos=[p.template_id for p in products if p.attributes.get('combo')]
+    if combos:
+        availability=client.call_kw('product.template','waiter_combo_availability',[combos])
+        products=[replace(p,sold_out=True) if p.attributes.get('combo') and not availability.get(str(p.id),False) else p for p in products]
     categories = [Category(c['id'], c['name'], c['sequence']) for c in raw['pos.category']]
     company = raw['res.company'][0]['name'] if raw.get('res.company') else ''
     return Catalog(company_name=company, products=products, categories=categories,
@@ -175,7 +182,34 @@ def parse_attributes(raw) -> dict:
         parsed = json.loads(raw)
     except ValueError:
         return {}
-    return parsed if isinstance(parsed, dict) else {}
+    if not isinstance(parsed, dict):
+        return {}
+    for key in ('extras', 'acompanamientos'):
+        if key in parsed:
+            parsed[key] = list(dict.fromkeys(v for v in parsed[key] if type(v) is int and v > 0))[:19] if isinstance(parsed[key], list) else []
+    if 'ingredientes' in parsed:
+        ingredients = parsed['ingredientes']
+        parsed['ingredientes'] = [v.strip()[:80] for v in ingredients if isinstance(v, str) and v.strip()][:32] if isinstance(ingredients, list) else []
+    if 'nutricion' in parsed:
+        nutrition = parsed['nutricion']
+        parsed['nutricion'] = {k: v for k, v in nutrition.items() if k in {'calorias', 'peso', 'proteina', 'grasa', 'carbohidratos', 'fibra'} and type(v) in (int, float) and 0 <= v <= 100000} if isinstance(nutrition, dict) else {}
+    # Tarjeta de la carta (estilo precio primero): minutos enteros de preparación y el precio anterior que se muestra
+    # tachado. Un valor que no sea un número positivo desaparece; nunca se inventa ni se redondea hacia algo distinto.
+    prep = parsed.pop('tiempoPreparacion', None)
+    if type(prep) is int and 0 < prep <= 600:
+        parsed['tiempoPreparacion'] = prep
+    previous = parsed.pop('precioAntes', None)
+    if type(previous) in (int, float) and previous > 0:
+        parsed['precioAntes'] = previous
+    return parsed
+
+
+def _with_taxed_previous_price(attributes: dict, taxes: list[dict]) -> dict:
+    """`precioAntes` se edita en el POS como precio de lista (igual que list_price); el comensal lo ve con los mismos
+    impuestos que el precio actual para que el tachado y el descuento comparen lo mismo."""
+    if 'precioAntes' in attributes:
+        attributes = {**attributes, 'precioAntes': price_with_taxes(attributes['precioAntes'], taxes)}
+    return attributes
 
 
 def signup_discount_percent(configs: list[dict]) -> float:
@@ -261,6 +295,7 @@ def sync_payload(*, pos_session_id: int, table_id: int | None, order_uuid: str, 
             'id': -1, 'uuid': line.uuid, 'product_id': line.product_id, 'qty': line.qty, 'price_unit': line.unit_price,
             'tax_ids': [[6, 0, line.tax_ids]], 'price_subtotal': 0, 'price_subtotal_incl': 0,
             'full_product_name': line.name, 'customer_note': line.note, 'discount': line.discount,
+            'waiter_loyalty_card_id': line.loyalty_card_id or False, 'waiter_coupon_code': line.coupon_code,
         }] for line in lines],
     }
     if table_id is not None:
@@ -269,9 +304,11 @@ def sync_payload(*, pos_session_id: int, table_id: int | None, order_uuid: str, 
 
 
 def create_order(client: OdooClient, *, pos_session_id: int, table_id: int | None, order_uuid: str, guests: int,
-                 lines: list[OrderLine], date_order: str) -> OdooOrder:
+                 lines: list[OrderLine], date_order: str, requires_payment: bool = False) -> OdooOrder:
     """Idempotente por uuid: Odoo actualiza el pedido existente en vez de duplicarlo (_get_open_order)."""
     payload = sync_payload(pos_session_id=pos_session_id, table_id=table_id, order_uuid=order_uuid, guests=guests, lines=lines, date_order=date_order)
+    if requires_payment:
+        payload['waiter_requires_payment'] = True
     result = client.call_kw('pos.order', 'sync_from_ui', [[payload]])
     order_id = result['pos.order'][0]['id']
     # Por la API cruda amount_total queda en 0: el recálculo en servidor es obligatorio (y es lo que hace que
@@ -284,7 +321,7 @@ def create_order(client: OdooClient, *, pos_session_id: int, table_id: int | Non
 
 def fire_course(client: OdooClient, order_id: int) -> int | None:
     """Envía a cocina lo que aún no tiene curso (addon projectapp_kitchen). None si no había nada nuevo."""
-    lines = client.call_kw('pos.order.line', 'search_read', [[['order_id', '=', order_id], ['course_id', '=', False]], ['id']])
+    lines = client.call_kw('pos.order.line', 'search_read', [[['order_id', '=', order_id], ['course_id', '=', False], ['is_reward_line', '=', False]], ['id']])
     if not lines:
         return None
     course_id = client.call_kw('restaurant.order.course', 'kitchen_fire', [order_id, [line['id'] for line in lines]])
@@ -299,11 +336,11 @@ def read_order_state(client: OdooClient, order_id: int) -> str:
 def read_order_status(client: OdooClient, order_id: int) -> OrderStatus:
     order = _read_order(client, order_id)
     courses = client.call_kw('restaurant.order.course', 'search_read',
-                             [[['order_id', '=', order_id], ['fired', '=', True]], ['ready_date', 'served_date']])
+                             [[['order_id', '=', order_id], ['fired', '=', True]], ['preparation_date', 'ready_date', 'served_date']])
     if not courses:
         kitchen = 'none'
     elif any(not c['ready_date'] for c in courses):
-        kitchen = 'cooking'
+        kitchen = 'cooking' if any(c.get('preparation_date') or c['ready_date'] for c in courses) else 'received'
     elif any(not c['served_date'] for c in courses):
         kitchen = 'ready'
     else:
@@ -325,3 +362,8 @@ def cash_payment_method_id(client: OdooClient) -> int:
 # Lo que el comensal pide llega al salón por Odoo (addon projectapp_ops): "ordering" | "assist" | "bill" | "none".
 def set_table_call(client: OdooClient, table_id: int, kind: str) -> None:
     client.call_kw('restaurant.table', 'set_waiter_call', [[table_id], kind])
+
+
+def read_order(client: OdooClient, order_id: int) -> OdooOrder:
+    """Authoritative total and remaining balance before creating a gateway payment."""
+    return _read_order(client, order_id)

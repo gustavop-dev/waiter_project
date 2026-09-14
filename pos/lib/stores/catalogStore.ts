@@ -9,7 +9,7 @@ interface CatalogState {
   catalog: Catalog | null
   status: 'idle' | 'loading' | 'ready' | 'error'
   error: string | null
-  load: (sessionId: number) => Promise<void>
+  load: (sessionId: number | null) => Promise<void>
 }
 
 export const useCatalogStore = create<CatalogState>((set) => ({

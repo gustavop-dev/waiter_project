@@ -98,6 +98,8 @@ export async function kitchenReady(page: Page, mesa: string) {
   const tickets = page.getByRole('article', { name: `Mesa ${mesa}` })
   await expect(tickets.first()).toBeVisible({ timeout: 30_000 })
   for (let left = await tickets.count(); left > 0; left -= 1) {
+    const start = tickets.first().getByRole('button', { name: 'Iniciar preparación' })
+    if (await start.count()) await start.click()
     await tickets.first().getByRole('button', { name: 'Listo todo' }).click()
     await expect(tickets).toHaveCount(left - 1)
   }

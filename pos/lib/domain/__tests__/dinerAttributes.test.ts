@@ -17,3 +17,22 @@ it('serializes only the filled keys and false when empty', () => {
     .toEqual({ picante: 3, alergenos: ['maní'], tamanos: [{ nombre: 'Doble', precio: 36900 }] })
   expect(textToList(' popular, , sin gluten ')).toEqual(['popular', 'sin gluten'])
 })
+
+it('preserves ingredients, nutritional zeroes and real extra product IDs', () => {
+  const input = {ingredientes:['Pan','Tomate'],nutricion:{calorias:250,peso:180.5,grasa:0},extras:[31,42]}
+  expect(parseDinerAttributes(serializeDinerAttributes(input))).toEqual(input)
+})
+
+it('preserves explicitly empty sides and validates product IDs for both selectors', () => {
+  expect(parseDinerAttributes(serializeDinerAttributes({acompanamientos:[]}))).toEqual({acompanamientos:[]})
+  expect(parseDinerAttributes('{"acompanamientos":[3,3,-1,0,"4"],"extras":[2,2,1.5]}')).toEqual({acompanamientos:[3],extras:[2]})
+})
+
+// Falla si la tarjeta de la carta recibe minutos con decimales, precios anteriores en cero o pierde estos dos datos al guardar.
+it('keeps whole preparation minutes and a positive previous price, and drops anything else', () => {
+  expect(parseDinerAttributes('{"tiempoPreparacion": 15, "precioAntes": 42000}')).toEqual({ tiempoPreparacion: 15, precioAntes: 42000 })
+  expect(parseDinerAttributes('{"tiempoPreparacion": 12.5, "precioAntes": 0}')).toEqual({})
+  expect(parseDinerAttributes('{"tiempoPreparacion": "15", "precioAntes": "42000"}')).toEqual({})
+  expect(serializeDinerAttributes({ tiempoPreparacion: 0, precioAntes: 0 })).toBe(false)
+  expect(JSON.parse(serializeDinerAttributes({ tiempoPreparacion: 20, precioAntes: 42000 }) as string)).toEqual({ tiempoPreparacion: 20, precioAntes: 42000 })
+})

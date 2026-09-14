@@ -1,0 +1,794 @@
+[
+  {
+    "screen": 1,
+    "visuallyReviewed": true,
+    "case": "welcome-splash",
+    "status": "parcial",
+    "observed": "Splash con dos platos recortados, anillos y marca Eat Easy.",
+    "difference": "Splash de la marca con platos del catálogo, órbitas y entrada a la introducción. La marca/fotos dependen del restaurante."
+  },
+  {
+    "screen": 2,
+    "visuallyReviewed": true,
+    "case": "welcome-1",
+    "status": "parcial",
+    "observed": "Onboarding 1: teléfono con reseñas, órbitas, progreso 1/4 y dos acciones.",
+    "difference": "Ilustración Phone 01 original, órbitas, paginación y navegación entre pasos; textos en español."
+  },
+  {
+    "screen": 3,
+    "visuallyReviewed": true,
+    "case": "welcome-2",
+    "status": "parcial",
+    "observed": "Onboarding 2: teléfono con controles y progreso 2/4.",
+    "difference": "Ilustración Phone 03 original, paginación y navegación; textos en español."
+  },
+  {
+    "screen": 4,
+    "visuallyReviewed": true,
+    "case": "welcome-3",
+    "status": "parcial",
+    "observed": "Onboarding 3: reloj de arena y progreso 3/4.",
+    "difference": "Reloj de arena original, progreso y navegación; textos en español."
+  },
+  {
+    "screen": 5,
+    "visuallyReviewed": true,
+    "case": "welcome-4",
+    "status": "parcial",
+    "observed": "Onboarding 4: teléfono, corazones, comida y progreso completo.",
+    "difference": "Teléfono/favoritos original, progreso y navegación; textos en español."
+  },
+  {
+    "screen": 6,
+    "visuallyReviewed": true,
+    "case": "welcome-5",
+    "status": "parcial",
+    "observed": "Inicio de autenticación con separador OR, Facebook, Google y continuar como invitado.",
+    "difference": "Entrada con correo, contraseña y acceso invitado. No se presentan botones de OAuth sin proveedor configurado."
+  },
+  {
+    "screen": 7,
+    "visuallyReviewed": true,
+    "case": "email-entry",
+    "status": "parcial",
+    "observed": "Paso independiente para introducir correo, título con sobre y Next inferior.",
+    "difference": "Paso independiente de correo que alimenta el registro; se preserva la mesa de origen."
+  },
+  {
+    "screen": 8,
+    "visuallyReviewed": true,
+    "case": "email-filled",
+    "status": "parcial",
+    "observed": "Mismo paso de correo enfocado con teclado iOS visible.",
+    "difference": "Campo de correo editable. El teclado lo aporta el dispositivo; no se dibuja dentro de la página."
+  },
+  {
+    "screen": 9,
+    "visuallyReviewed": true,
+    "case": "email-filled",
+    "status": "parcial",
+    "observed": "Correo completado con etiqueta interna y validación verde.",
+    "difference": "Correo rellenado y check de formato. El contrato no revela si una cuenta existe antes de autenticarla."
+  },
+  {
+    "screen": 10,
+    "visuallyReviewed": true,
+    "case": "signup",
+    "status": "parcial",
+    "observed": "Registro con título centrado, cuatro campos, contraseña y Next inferior.",
+    "difference": "Nombre, correo, celular y contraseña con etiquetas internas; consentimiento y aviso de registro demo adaptados."
+  },
+  {
+    "screen": 11,
+    "visuallyReviewed": true,
+    "case": "signup-invalid",
+    "status": "parcial",
+    "observed": "Registro: nombre validado, correo rojo y mensaje de formato inválido.",
+    "difference": "Borde rojo y validación nativa de formato; controles conservan valores al fallar."
+  },
+  {
+    "screen": 12,
+    "visuallyReviewed": true,
+    "case": "signup-filled",
+    "status": "parcial",
+    "observed": "Registro válido: checks verdes en tres campos y contraseña oculta.",
+    "difference": "Cuatro campos completados, checks de formato y contraseña oculta con botón de visibilidad."
+  },
+  {
+    "screen": 13,
+    "visuallyReviewed": true,
+    "case": "verification-channel",
+    "status": "parcial",
+    "observed": "Selector de canal OTP con tarjetas Via email y Via SMS.",
+    "difference": "Tarjetas de canal. Este entorno usa verificación demo; no se afirma haber enviado un SMS/correo."
+  },
+  {
+    "screen": 14,
+    "visuallyReviewed": true,
+    "case": "code",
+    "status": "parcial",
+    "observed": "Verificación vacía con cuatro casillas y enlace naranja para reenviar.",
+    "difference": "Seis casillas visuales con un input accesible para pegado/autocompletado; se conserva el contrato de seis dígitos."
+  },
+  {
+    "screen": 15,
+    "visuallyReviewed": true,
+    "case": "code-filled",
+    "status": "parcial",
+    "observed": "Verificación completada en cuatro casillas independientes.",
+    "difference": "Casillas completadas con borde de selección y validación del servidor; seis dígitos en vez de cuatro."
+  },
+  {
+    "screen": 16,
+    "visuallyReviewed": true,
+    "case": "signup-success",
+    "status": "parcial",
+    "observed": "Éxito del registro con estrellas 3D y órbitas.",
+    "difference": "Estrellas originales, órbitas, nombre del cliente y transición real al perfil."
+  },
+  {
+    "screen": 17,
+    "visuallyReviewed": true,
+    "case": "login",
+    "status": "parcial",
+    "observed": "Login de cuenta existente con contraseña y enlace para recuperarla.",
+    "difference": "Acceso real con correo/contraseña, visibilidad y recuperación; errores de credenciales no revelan cuentas."
+  },
+  {
+    "screen": 18,
+    "visuallyReviewed": true,
+    "case": "password-recover",
+    "status": "parcial",
+    "observed": "Recuperación: correo vacío, botón atrás y texto centrado.",
+    "difference": "Solicitud de enlace de recuperación; el envío requiere DINER_EMAIL_ENABLED y SMTP configurado."
+  },
+  {
+    "screen": 19,
+    "visuallyReviewed": true,
+    "case": "password-recover-filled",
+    "status": "parcial",
+    "observed": "Recuperación: correo validado con check verde y Next inferior.",
+    "difference": "Correo rellenado y validado. Un entorno sin SMTP no confirma un envío inexistente."
+  },
+  {
+    "screen": 20,
+    "visuallyReviewed": true,
+    "case": "password-reset",
+    "status": "parcial",
+    "observed": "Restablecimiento con nueva contraseña, confirmación y visibilidad de ambos campos.",
+    "difference": "Nueva contraseña y confirmación; token de un solo uso y caducidad de 20 minutos."
+  },
+  {
+    "screen": 21,
+    "visuallyReviewed": true,
+    "case": "password-success",
+    "status": "parcial",
+    "observed": "Éxito del restablecimiento con candado 3D y órbitas.",
+    "difference": "Candado 3D original y confirmación únicamente después de restablecer la contraseña."
+  },
+  {
+    "screen": 22,
+    "visuallyReviewed": true,
+    "case": "location-choose",
+    "status": "parcial",
+    "observed": "Selección de ubicación con tarjetas ilustradas de QR y ubicación manual.",
+    "difference": "Dos tarjetas para QR/entrada de código y selección del local actual."
+  },
+  {
+    "screen": 23,
+    "visuallyReviewed": true,
+    "case": "location-scan",
+    "status": "parcial",
+    "observed": "Lector QR con pestañas, encuadre amarillo y acción de escaneo.",
+    "difference": "Lector QR local por cámara/foto; funciona también en la red HTTP donde getUserMedia no está disponible."
+  },
+  {
+    "screen": 24,
+    "visuallyReviewed": true,
+    "case": "location-code",
+    "status": "parcial",
+    "observed": "Entrada manual del código QR, pestaña activa naranja.",
+    "difference": "Código o URL del QR validado contra el restaurante y sede; no se redirige a enlaces externos."
+  },
+  {
+    "screen": 25,
+    "visuallyReviewed": true,
+    "case": "location-share",
+    "status": "parcial",
+    "observed": "Solicitud de ubicación con pin 3D y alternativa de dirección manual.",
+    "difference": "Pin 3D original, solicitud real de geolocalización, alternativa manual, dirección del POS y distancia local. Textos en español; GPS requiere HTTPS."
+  },
+  {
+    "screen": 26,
+    "visuallyReviewed": true,
+    "case": "location-list",
+    "status": "parcial",
+    "observed": "Lista de restaurantes cercanos con dirección y radio seleccionado.",
+    "difference": "Lista del local actual con búsqueda. No se inventan otros restaurantes ni distancias GPS."
+  },
+  {
+    "screen": 27,
+    "visuallyReviewed": true,
+    "case": "location-empty",
+    "status": "parcial",
+    "observed": "Búsqueda de ubicación vacía con icono de filtros y CTA inferior.",
+    "difference": "Estado de búsqueda sin coincidencias del directorio actual."
+  },
+  {
+    "screen": 28,
+    "visuallyReviewed": true,
+    "case": "location-list",
+    "status": "parcial",
+    "observed": "Resultados de ubicación con cuatro tarjetas y selección única.",
+    "difference": "Resultado del local actual; alcance de una sede, sin datos ficticios de otras ubicaciones."
+  },
+  {
+    "screen": 29,
+    "visuallyReviewed": true,
+    "case": "home",
+    "status": "parcial",
+    "observed": "Portada con ubicación, hamburguesa y dos tarjetas de bombilla/libro.",
+    "difference": "Se usan las dos ilustraciones correctas. Cambian idioma, saltos de título, algunos espacios y colores de iconos."
+  },
+  {
+    "screen": 30,
+    "visuallyReviewed": true,
+    "case": "assistant",
+    "status": "parcial",
+    "observed": "Presentación del robot frontal, órbitas y acciones iniciar/ir al menú.",
+    "difference": "Implementado con navegación funcional, composición de Exporty y branding del restaurante. Textos en español y datos reales; no se certifica igualdad píxel a píxel."
+  },
+  {
+    "screen": 31,
+    "visuallyReviewed": true,
+    "case": "assistant-return",
+    "status": "parcial",
+    "observed": "Cliente recurrente: nueva recomendación o última recomendación con fecha.",
+    "difference": "Selección entre preferencias nuevas y última selección guardada."
+  },
+  {
+    "screen": 32,
+    "visuallyReviewed": true,
+    "case": "assistant-step-1",
+    "status": "parcial",
+    "observed": "Asistente 1: estado de ánimo con ocho chips ilustrados y progreso.",
+    "difference": "Implementado con navegación funcional, composición de Exporty y branding del restaurante. Textos en español y datos reales; no se certifica igualdad píxel a píxel."
+  },
+  {
+    "screen": 33,
+    "visuallyReviewed": true,
+    "case": "assistant-step-2",
+    "status": "parcial",
+    "observed": "Asistente 2: tipo de comida con siete chips y progreso.",
+    "difference": "Implementado con navegación funcional, composición de Exporty y branding del restaurante. Textos en español y datos reales; no se certifica igualdad píxel a píxel."
+  },
+  {
+    "screen": 34,
+    "visuallyReviewed": true,
+    "case": "assistant-step-3",
+    "status": "parcial",
+    "observed": "Asistente 3: bebida sin alcohol, alcohol o cafeína.",
+    "difference": "Implementado con navegación funcional, composición de Exporty y branding del restaurante. Textos en español y datos reales; no se certifica igualdad píxel a píxel."
+  },
+  {
+    "screen": 35,
+    "visuallyReviewed": true,
+    "case": "assistant-step-4",
+    "status": "parcial",
+    "observed": "Asistente 4: intensidad de bebida en escala 1–5.",
+    "difference": "Implementado con navegación funcional, composición de Exporty y branding del restaurante. Textos en español y datos reales; no se certifica igualdad píxel a píxel."
+  },
+  {
+    "screen": 36,
+    "visuallyReviewed": true,
+    "case": "assistant-step-5",
+    "status": "parcial",
+    "observed": "Asistente 5: orgánico, sin gluten, vegano, paleo u otro.",
+    "difference": "Implementado con navegación funcional, composición de Exporty y branding del restaurante. Textos en español y datos reales; no se certifica igualdad píxel a píxel."
+  },
+  {
+    "screen": 37,
+    "visuallyReviewed": true,
+    "case": "assistant-step-6",
+    "status": "parcial",
+    "observed": "Asistente 6: alergias/intolerancias, doce chips y selección múltiple.",
+    "difference": "Implementado con navegación funcional, composición de Exporty y branding del restaurante. Textos en español y datos reales; no se certifica igualdad píxel a píxel."
+  },
+  {
+    "screen": 38,
+    "visuallyReviewed": true,
+    "case": "assistant-step-7",
+    "status": "parcial",
+    "observed": "Asistente 7: apertura a vegetales/frutas exóticas y alimentos modificados.",
+    "difference": "Implementado con navegación funcional, composición de Exporty y branding del restaurante. Textos en español y datos reales; no se certifica igualdad píxel a píxel."
+  },
+  {
+    "screen": 39,
+    "visuallyReviewed": true,
+    "case": "assistant-step-8",
+    "status": "parcial",
+    "observed": "Asistente 8: preferencia de proteína y Show recommendations.",
+    "difference": "Implementado con navegación funcional, composición de Exporty y branding del restaurante. Textos en español y datos reales; no se certifica igualdad píxel a píxel."
+  },
+  {
+    "screen": 40,
+    "visuallyReviewed": true,
+    "case": "recommendations",
+    "status": "parcial",
+    "observed": "Recomendaciones en cartas apiladas, categorías Eat/Drink/Dessert y cambio de vista.",
+    "difference": "Recomendaciones del catálogo en tarjetas con fotografías y valoraciones agregadas reales cuando existen."
+  },
+  {
+    "screen": 41,
+    "visuallyReviewed": true,
+    "case": "recommendations-list",
+    "status": "parcial",
+    "observed": "Recomendaciones en filas con fotografía, rating, número de reseñas y precio.",
+    "difference": "Cambio a filas con foto, precio y acceso al detalle en panel."
+  },
+  {
+    "screen": 42,
+    "visuallyReviewed": true,
+    "case": "recommendation-detail",
+    "status": "parcial",
+    "observed": "Ficha de recomendación en hoja inferior con foto grande, nutrición y compra fija.",
+    "difference": "Hoja inferior real con foto centrada, órbitas, título/precio, nutrición e ingredientes configurados."
+  },
+  {
+    "screen": 43,
+    "visuallyReviewed": true,
+    "case": "recommendation-detail",
+    "status": "parcial",
+    "observed": "Variante de altura/posición de la hoja de detalle de recomendación.",
+    "difference": "Panel desplazable con compra fija, cierre y navegación por teclado; tamaño depende del viewport."
+  },
+  {
+    "screen": 44,
+    "visuallyReviewed": true,
+    "case": "dish-detailed",
+    "status": "parcial",
+    "observed": "Detalle largo con ingredientes, ocho extras, tres acompañamientos y nota.",
+    "difference": "Detalle completo: ingredientes ilustrados, casillas de adicionales, acompañamientos, notas y compra fija. Contenido y precios proceden del POS."
+  },
+  {
+    "screen": 45,
+    "visuallyReviewed": true,
+    "case": "dish-extras-selected",
+    "status": "parcial",
+    "observed": "Detalle largo con extras seleccionados y contadores por extra.",
+    "difference": "Selección y cantidades por adicional, acompañamientos y total calculado; envío en una operación atómica."
+  },
+  {
+    "screen": 46,
+    "visuallyReviewed": true,
+    "case": "menu",
+    "status": "parcial",
+    "observed": "Carta general: destacado con tarjetas laterales y carruseles por categoría.",
+    "difference": "Carruseles, destacados oscuros, fotos circulares, precio y valoraciones reales; contenido/textos del restaurante."
+  },
+  {
+    "screen": 47,
+    "visuallyReviewed": true,
+    "case": "category",
+    "status": "parcial",
+    "observed": "Categoría activa: conserva destacado y cambia los platos a filas horizontales.",
+    "difference": "Corregido de cuadrícula a lista y recuperado el destacado. No hay rating ni recuento de reseñas."
+  },
+  {
+    "screen": 48,
+    "visuallyReviewed": true,
+    "case": "search",
+    "status": "parcial",
+    "observed": "Búsqueda con resultados en filas y botón + junto a cada plato.",
+    "difference": "Resultados en filas con foto, valoración real cuando existe, precio y botón de añadir directamente al pedido."
+  },
+  {
+    "screen": 49,
+    "visuallyReviewed": true,
+    "case": "filters",
+    "status": "parcial",
+    "observed": "Filtros en hoja inferior: categorías, tipos de producto, rating y rango de precio.",
+    "difference": "Categorías, valoración mínima, precio mínimo/máximo y disponibilidad; sin valoraciones ficticias."
+  },
+  {
+    "screen": 50,
+    "visuallyReviewed": true,
+    "case": "assistant-reminder",
+    "status": "parcial",
+    "observed": "Recordatorio del asistente a los cinco minutos en hoja inferior con bombilla.",
+    "difference": "Recordatorio a los cinco minutos, una vez por visita, con ilustración original y acceso al asistente."
+  },
+  {
+    "screen": 51,
+    "visuallyReviewed": true,
+    "case": "dish-menu",
+    "status": "parcial",
+    "observed": "Ficha de plato con foto recortada lateral, nutrición, ingredientes y acompañamientos.",
+    "difference": "Ficha específica del menú: foto lateral, órbitas, descripción, calorías, peso de porción y nutrientes opcionales, ingredientes ilustrados y acompañamientos. La captura usa datos del kit; el restaurante publica solo los campos completados."
+  },
+  {
+    "screen": 52,
+    "visuallyReviewed": true,
+    "case": "menu-cart",
+    "status": "parcial",
+    "observed": "Carta con pedido existente: desaparece destacado y aparece barra Ver pedido.",
+    "difference": "El destacado permanece visible al tener carrito; la barra del pedido muestra unidades y total real."
+  },
+  {
+    "screen": 53,
+    "visuallyReviewed": true,
+    "case": "cart",
+    "status": "parcial",
+    "observed": "Pedido: tres filas compactas, contador vertical y envío fijo inferior.",
+    "difference": "Filas compactas con fotografía, cantidad vertical, notas, eliminación y envío fijo inferior."
+  },
+  {
+    "screen": 54,
+    "visuallyReviewed": true,
+    "case": "cart-swiped",
+    "status": "parcial",
+    "observed": "Pedido con una fila desplazada y papelera sobre fondo naranja.",
+    "difference": "Desplazamiento de una fila con acción de eliminar; conserva alternativa accesible por botón."
+  },
+  {
+    "screen": 55,
+    "visuallyReviewed": true,
+    "case": "cart-mode",
+    "status": "parcial",
+    "observed": "Antes de enviar: hoja para elegir para llevar o comer en restaurante.",
+    "difference": "Comer aquí/para llevar, comunicado a cocina para las líneas nuevas del comensal."
+  },
+  {
+    "screen": 56,
+    "visuallyReviewed": true,
+    "case": "preparing",
+    "status": "parcial",
+    "observed": "Preparación: titular de tiempo estimado, pulgar con reloj, órbitas y resumen plegado.",
+    "difference": "Tarjeta orbital e ilustración original implementadas; resumen desplegable con estado e importes reales. No se inventa un tiempo estimado de preparación."
+  },
+  {
+    "screen": 57,
+    "visuallyReviewed": true,
+    "case": "status-expanded",
+    "status": "parcial",
+    "observed": "Preparación con resumen expandido, fotos de líneas, impuestos y total.",
+    "difference": "Resumen expandible con las líneas reales, impuestos, total y fases de preparación."
+  },
+  {
+    "screen": 58,
+    "visuallyReviewed": true,
+    "case": "ready",
+    "status": "parcial",
+    "observed": "Casi listo: mano con dedos cercanos, órbitas y resumen plegado.",
+    "difference": "Tarjeta orbital e ilustración original implementadas; resumen desplegable con estado e importes reales. No se inventa un tiempo estimado de preparación."
+  },
+  {
+    "screen": 59,
+    "visuallyReviewed": true,
+    "case": "served",
+    "status": "parcial",
+    "observed": "Platos listos: mano de victoria, órbitas y botón Pay inferior.",
+    "difference": "Tarjeta orbital e ilustración original implementadas; resumen desplegable con estado e importes reales. No se inventa un tiempo estimado de preparación."
+  },
+  {
+    "screen": 60,
+    "visuallyReviewed": true,
+    "case": "checkout-empty",
+    "status": "parcial",
+    "observed": "Checkout sin tarjetas con billetera, invitación a añadir tarjeta, descuento y propina.",
+    "difference": "Checkout con billetera vacía, resumen y cupón. No se confunde con Mis tarjetas; el pago online sigue en modo prueba."
+  },
+  {
+    "screen": 61,
+    "visuallyReviewed": true,
+    "case": "checkout-add",
+    "status": "parcial",
+    "observed": "Formulario de tarjeta en hoja inferior: número, titular, vencimiento y CVV.",
+    "difference": "Alta de tarjeta de prueba desde el checkout; datos de prueba y aviso explícito de simulación."
+  },
+  {
+    "screen": 62,
+    "visuallyReviewed": true,
+    "case": "checkout-card",
+    "status": "parcial",
+    "observed": "Checkout con tarjeta bancaria única y desglose de descuento/propina.",
+    "difference": "Checkout con una tarjeta de prueba, resumen de importes, cupón y acción de pago simulado."
+  },
+  {
+    "screen": 63,
+    "visuallyReviewed": true,
+    "case": "checkout-multiple",
+    "status": "parcial",
+    "observed": "Checkout con carrusel de tres tarjetas e indicadores.",
+    "difference": "Checkout con tres tarjetas de prueba y selector. El número completo permanece oculto."
+  },
+  {
+    "screen": 64,
+    "visuallyReviewed": true,
+    "case": "checkout-coupon",
+    "status": "parcial",
+    "observed": "Checkout con cupón FOOD20 validado y descuento descontado del resumen.",
+    "difference": "Cupón validado por el POS, código y check verde, tarjeta, resumen y total con descuento. Colores de la marca y moneda del restaurante; tarjetas/pago online siguen explícitamente de prueba."
+  },
+  {
+    "screen": 65,
+    "visuallyReviewed": true,
+    "case": "payment-success",
+    "status": "parcial",
+    "observed": "Éxito del pago con billetera de monedas, Woohoo y Continue.",
+    "difference": "Billetera/monedas original y resultado explícito de simulación; no se presenta como cobro real."
+  },
+  {
+    "screen": 66,
+    "visuallyReviewed": true,
+    "case": "points-earned",
+    "status": "parcial",
+    "observed": "Éxito con hoja de puntos ganados, cerdito y acceso a recompensas.",
+    "difference": "Hoja inferior con cerdito original, puntos acreditados al cobrar en POS, enlace a saldo real y cierre para una futura visita. Textos en español y cifra real del pedido."
+  },
+  {
+    "screen": 67,
+    "visuallyReviewed": true,
+    "case": "feedback-invite",
+    "status": "parcial",
+    "observed": "Invitación modal a evaluar experiencia con estrellas 3D.",
+    "difference": "Invitación en modal centrado con estrellas originales, cierre y acceso a reseña de un pedido propio."
+  },
+  {
+    "screen": 68,
+    "visuallyReviewed": true,
+    "case": "feedback-1",
+    "status": "parcial",
+    "observed": "Evaluación 1/5 con emoji muy enfadado y control de escala.",
+    "difference": "Emoji original, escala única con control de estrella y números seleccionables; opinión persistida en el backend. Espaciado adaptado al navegador, textos en español."
+  },
+  {
+    "screen": 69,
+    "visuallyReviewed": true,
+    "case": "feedback-2",
+    "status": "parcial",
+    "observed": "Evaluación 2/5 con emoji triste y escala.",
+    "difference": "Emoji original, escala única con control de estrella y números seleccionables; opinión persistida en el backend. Espaciado adaptado al navegador, textos en español."
+  },
+  {
+    "screen": 70,
+    "visuallyReviewed": true,
+    "case": "feedback-3",
+    "status": "parcial",
+    "observed": "Evaluación 3/5 con emoji neutral y escala.",
+    "difference": "Emoji original, escala única con control de estrella y números seleccionables; opinión persistida en el backend. Espaciado adaptado al navegador, textos en español."
+  },
+  {
+    "screen": 71,
+    "visuallyReviewed": true,
+    "case": "feedback-4",
+    "status": "parcial",
+    "observed": "Evaluación 4/5 con emoji sonriente y escala.",
+    "difference": "Emoji original, escala única con control de estrella y números seleccionables; opinión persistida en el backend. Espaciado adaptado al navegador, textos en español."
+  },
+  {
+    "screen": 72,
+    "visuallyReviewed": true,
+    "case": "feedback-5",
+    "status": "parcial",
+    "observed": "Evaluación 5/5 con ojos de corazón y escala.",
+    "difference": "Emoji original, escala única con control de estrella y números seleccionables; opinión persistida en el backend. Espaciado adaptado al navegador, textos en español."
+  },
+  {
+    "screen": 73,
+    "visuallyReviewed": true,
+    "case": "feedback-comment",
+    "status": "parcial",
+    "observed": "Evaluación baja con emoji reducido, pregunta de mejora y textarea 0/250.",
+    "difference": "Emoji original de valoración baja, comentario opcional con contador integrado y conservación ante errores."
+  },
+  {
+    "screen": 74,
+    "visuallyReviewed": true,
+    "case": "feedback-dishes",
+    "status": "parcial",
+    "observed": "Evaluación de cada plato con foto recortada y cinco emojis seleccionables.",
+    "difference": "Tarjetas con foto recortada arriba a la izquierda, nombre lateral y cinco emojis originales; la selección se amplía y muestra su etiqueta. Volver a pulsar permite omitir ese plato."
+  },
+  {
+    "screen": 75,
+    "visuallyReviewed": true,
+    "case": "location-rescan",
+    "status": "parcial",
+    "observed": "Escaneo de QR al salir, ilustración de escáner y opciones ahora/después.",
+    "difference": "Ilustración original y acceso al lector QR local después de valorar la visita. No cierra una cuenta pendiente de pago."
+  },
+  {
+    "screen": 76,
+    "visuallyReviewed": true,
+    "case": "navigation",
+    "status": "parcial",
+    "observed": "Menú lateral con avatar, órbitas, selección naranja y vista anterior desplazada.",
+    "difference": "El panel existe, pero usa iniciales, overlay oscuro, enlaces diferentes y no desplaza la vista anterior."
+  },
+  {
+    "screen": 77,
+    "visuallyReviewed": true,
+    "case": "home-active",
+    "status": "parcial",
+    "observed": "Portada activa con tarjeta oscura, plato recortado y dos carruseles.",
+    "difference": "Tarjeta oscura con plato recortado, pedido activo y dos carruseles de categorías reales."
+  },
+  {
+    "screen": 78,
+    "visuallyReviewed": true,
+    "case": "history",
+    "status": "parcial",
+    "observed": "Historial con sede actual oscura y tarjetas de restaurantes con fecha/importe.",
+    "difference": "Se muestran pedidos del restaurante actual con líneas y acciones; no tarjetas de locales ni composición original."
+  },
+  {
+    "screen": 79,
+    "visuallyReviewed": true,
+    "case": "receipt",
+    "status": "parcial",
+    "observed": "Detalle histórico como recibo recortado, platos, impuestos y volver a pedir.",
+    "difference": "Recibo con borde de papel, foto de platos, cantidades e importes del historial real. No se inventan impuestos desglosados ni una factura fiscal."
+  },
+  {
+    "screen": 80,
+    "visuallyReviewed": true,
+    "case": "location-list",
+    "status": "parcial",
+    "observed": "Directorio con ubicación actual oscura y otras sedes/restaurantes.",
+    "difference": "Directorio del local actual, respetando el alcance de una sede."
+  },
+  {
+    "screen": 81,
+    "visuallyReviewed": true,
+    "case": "location-detail",
+    "status": "parcial",
+    "observed": "Detalle de local con foto, dirección, mapa, horarios y contacto.",
+    "difference": "Detalle con identidad del restaurante y acceso al menú/mesa; sin mapa, dirección u horarios inventados."
+  },
+  {
+    "screen": 82,
+    "visuallyReviewed": true,
+    "case": "rewards",
+    "status": "parcial",
+    "observed": "Recompensas: tarjeta oscura con medalla y opciones referidos, 2×1 y puntos.",
+    "difference": "Tarjeta oscura con medalla original y beneficio de primera compra configurado por el POS."
+  },
+  {
+    "screen": 83,
+    "visuallyReviewed": true,
+    "case": "reward-detail",
+    "status": "parcial",
+    "observed": "Canje de recompensa en hoja inferior con copa y copiar descuento.",
+    "difference": "Hoja con copa original y acceso al beneficio automático; no inventa códigos, referidos ni puntos."
+  },
+  {
+    "screen": 84,
+    "visuallyReviewed": true,
+    "case": "about",
+    "status": "parcial",
+    "observed": "Acerca de la aplicación con ilustración del onboarding y paginación.",
+    "difference": "Implementado con navegación funcional, composición de Exporty y branding del restaurante. Textos en español y datos reales; no se certifica igualdad píxel a píxel."
+  },
+  {
+    "screen": 85,
+    "visuallyReviewed": true,
+    "case": "help",
+    "status": "parcial",
+    "observed": "Ayuda: cinco categorías en tarjetas con flecha.",
+    "difference": "Implementado con navegación funcional, composición de Exporty y branding del restaurante. Textos en español y datos reales; no se certifica igualdad píxel a píxel."
+  },
+  {
+    "screen": 86,
+    "visuallyReviewed": true,
+    "case": "help-category",
+    "status": "parcial",
+    "observed": "Ayuda de cuenta y datos: lista de nueve preguntas con divisores.",
+    "difference": "Implementado con navegación funcional, composición de Exporty y branding del restaurante. Textos en español y datos reales; no se certifica igualdad píxel a píxel."
+  },
+  {
+    "screen": 87,
+    "visuallyReviewed": true,
+    "case": "help-article",
+    "status": "parcial",
+    "observed": "Artículo de ayuda en tarjeta y pregunta de utilidad Sí/No.",
+    "difference": "Implementado con navegación funcional, composición de Exporty y branding del restaurante. Textos en español y datos reales; no se certifica igualdad píxel a píxel."
+  },
+  {
+    "screen": 88,
+    "visuallyReviewed": true,
+    "case": "profile",
+    "status": "parcial",
+    "observed": "Perfil largo: avatar, General, Notificaciones y Ajustes con tarjetas y switches.",
+    "difference": "Perfil con órbitas, información, contraseña, tarjetas, preferencias, historial, favoritos y switch de novedades persistente."
+  },
+  {
+    "screen": 89,
+    "visuallyReviewed": true,
+    "case": "profile-edit",
+    "status": "parcial",
+    "observed": "Edición de nombre/correo/celular con Update changes inferior.",
+    "difference": "Formulario conectado: guarda nombre, celular y novedades; correo de identidad solo lectura mientras no exista servicio de nueva verificación."
+  },
+  {
+    "screen": 90,
+    "visuallyReviewed": true,
+    "case": "password-change",
+    "status": "parcial",
+    "observed": "Cambio de contraseña actual/nueva/confirmación con tres iconos de visibilidad.",
+    "difference": "Contraseña actual/nueva/confirmación, botones de visibilidad y guardado real con hash."
+  },
+  {
+    "screen": 91,
+    "visuallyReviewed": true,
+    "case": "wallet-empty",
+    "status": "parcial",
+    "observed": "Tarjetas vacías: billetera centrada y botón Add card inferior.",
+    "difference": "Billetera original y alta de tarjeta de prueba."
+  },
+  {
+    "screen": 92,
+    "visuallyReviewed": true,
+    "case": "wallet-add",
+    "status": "parcial",
+    "observed": "Selección de MasterCard/Visa en hoja inferior.",
+    "difference": "Selector Visa/Mastercard dentro de la hoja de alta; solo tarjetas de demostración."
+  },
+  {
+    "screen": 93,
+    "visuallyReviewed": true,
+    "case": "wallet-add",
+    "status": "parcial",
+    "observed": "Alta de tarjeta desde perfil en hoja inferior.",
+    "difference": "Formulario de prueba con validación; se conserva únicamente metadata no sensible."
+  },
+  {
+    "screen": 94,
+    "visuallyReviewed": true,
+    "case": "wallet-card",
+    "status": "parcial",
+    "observed": "Una tarjeta: gráfico oscuro, detalles, default y eliminar.",
+    "difference": "Tarjeta oscura, metadata, selección predeterminada y borrado local."
+  },
+  {
+    "screen": 95,
+    "visuallyReviewed": true,
+    "case": "wallet-multiple",
+    "status": "parcial",
+    "observed": "Varias tarjetas: carrusel 2/3, indicadores y ficha de tarjeta.",
+    "difference": "Carrusel con indicadores y selección de tarjeta de prueba."
+  },
+  {
+    "screen": 96,
+    "visuallyReviewed": true,
+    "case": "preferences-empty",
+    "status": "parcial",
+    "observed": "Preferencias vacías con robot lateral y Add new preference.",
+    "difference": "Robot lateral original, órbitas, estado sin preferencias y acceso al asistente."
+  },
+  {
+    "screen": 97,
+    "visuallyReviewed": true,
+    "case": "preferences-list",
+    "status": "parcial",
+    "observed": "Preferencias guardadas por restaurante y fecha.",
+    "difference": "Selección guardada por restaurante con fecha y acceso al detalle."
+  },
+  {
+    "screen": 98,
+    "visuallyReviewed": true,
+    "case": "preferences-configured",
+    "status": "parcial",
+    "observed": "Preferencias configuradas: grupos de chips seleccionados y Edit preferences.",
+    "difference": "Grupos completos de preferencias con chips seleccionados y acceso a edición."
+  },
+  {
+    "screen": 99,
+    "visuallyReviewed": true,
+    "case": null,
+    "status": "sin-equivalente",
+    "observed": "Idioma: lista con radios, English seleccionado y Confirm language.",
+    "difference": "No hay selector de idioma en Smart Menu; sus textos están en español."
+  }
+]

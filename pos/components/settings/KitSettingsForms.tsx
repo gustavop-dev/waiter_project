@@ -27,10 +27,10 @@ export function CompanyForm({ initial }: { initial: CompanyInfo }) {
   const t = useTranslations('pos.settings.restaurant')
   const [c, setC] = useState(initial)
   const [state, save] = useSaveState()
-  const field = (key: keyof CompanyInfo, label: string) => <TextInput key={key} label={label} value={String(c[key])} onChange={(e) => setC((v) => ({ ...v, [key]: e.target.value }))} />
+  const field = (key: keyof CompanyInfo, label: string) => <TextInput key={key} label={label} value={String(c[key] ?? '')} onChange={(e) => setC((v) => ({ ...v, [key]: e.target.value }))} />
   return (
     <div className="flex flex-col gap-4 max-w-3xl">
-      <div className="grid grid-cols-2 gap-4">{field('name', t('name'))}{field('vat', t('vat'))}{field('phone', t('phone'))}{field('email', t('email'))}{field('street', t('street'))}{field('city', t('city'))}</div>
+      <div className="grid grid-cols-2 gap-4">{field('name', t('name'))}{field('vat', t('vat'))}{field('phone', t('phone'))}{field('email', t('email'))}{field('street', t('street'))}{field('city', t('city'))}</div><p className="text-sm text-soft">La dirección aparece en el menú. Agrega las coordenadas del local para mostrar la distancia y cómo llegar.</p><div className="grid grid-cols-2 gap-4">{field('waiter_latitude', 'Latitud')}{field('waiter_longitude', 'Longitud')}</div>
       <SaveBar state={state} onSave={() => save(() => saveCompany(c))} disabled={!c.name.trim()} />
     </div>
   )

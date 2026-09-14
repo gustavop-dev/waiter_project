@@ -12,6 +12,8 @@ import { SummaryStep } from '@/components/orders/SummaryStep'
 import { TableStep } from '@/components/orders/TableStep'
 import { PaymentModal } from '@/components/payment/PaymentModal'
 import { cartTotals, displayReference, stepsFor, type OptionGroup } from '@/lib/domain/orderWizard'
+import { can, effectiveRole, type Role } from '@/lib/domain/roles'
+import { callKw } from '@/lib/services/odoo'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
 import { useOrderStore } from '@/lib/stores/orderStore'
@@ -62,7 +64,23 @@ export function OrderWizard({ presetTableId }: { presetTableId: number | null })
     const created = await w.createOrder(session.id, { babyChair: t('babyChairNote'), delivery: (address, phone) => t('deliveryNote', { address, phone }) })
     if (!created) return
     if (w.info.type === 'dineIn') {
-      await w.fireKitchen(created.id)
+      try {
+        const policy = await callKw<{ require_payment_roles: Role[] }>('pos.config', 'waiter_kitchen_policy', [[catalog!.settings.configId]])
+        const auth = useAuthStore.getState()
+        const role = effectiveRole(auth.user?.role, auth.employee?.role)
+        if (policy.require_payment_roles.includes(role)) {
+          if (!can.charge(role, catalog!.settings.waiterCanCharge)) {
+            useOrderWizardStore.setState({ error: 'Pedido guardado. Pide a caja que lo cobre para enviarlo a cocina.' })
+            return
+          }
+          setPaying(created.id)
+          return
+        }
+      } catch (e) {
+        useOrderWizardStore.setState({ error: e instanceof Error ? e.message : 'No se pudo comprobar el permiso de cocina.' })
+        return
+      }
+      if (!await w.fireKitchen(created.id)) return
       leave(created)
       return
     }
@@ -103,7 +121,7 @@ export function OrderWizard({ presetTableId }: { presetTableId: number | null })
 
       {paying !== null && (
         <PaymentModal orderId={paying} onClose={() => setPaying(null)}
-          onPaid={() => { const created = w.created; void w.fireKitchen(paying).then(() => leave(created)) }} />
+          onPaid={() => { const created = w.created; void w.fireKitchen(paying).then((sent) => { if (sent) leave(created) }) }} />
       )}
     </div>
   )

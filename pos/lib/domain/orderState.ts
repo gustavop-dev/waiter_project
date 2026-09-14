@@ -10,12 +10,13 @@ export type OrdersFilter = 'all' | KitStatus
 export type OrdersSort = 'latest' | 'oldest' | 'type'
 export type HistoryFilter = 'all' | OrderType
 
-export interface KitCourse { id: number; fired: boolean; readyAt: string | null; servedAt: string | null }
+export interface KitCourse { id: number; fired: boolean; preparationAt?: string | null; readyAt: string | null; servedAt: string | null }
 export interface KitLine {
   id: number; uuid: string; productId: number; name: string; qty: number; unitPrice: number; subtotal: number; total: number; note: string
   courseId: number | null; readyAt: string | null; servedAt: string | null
 }
 export interface KitOrder {
+  channel?: 'whatsapp' | null; phone?: string
   id: number; number: string; type: OrderType; state: 'draft' | 'paid' | 'done' | 'invoiced' | 'cancel'
   tableId: number | null; tableNumber: number | null; customer: string; startedAt: string; total: number; tax: number
   lines: KitLine[]; courses: KitCourse[]
@@ -48,7 +49,7 @@ export function customerName(floatingName: string | false | null, partner: [numb
 const courseOf = (order: KitOrder, line: KitLine) => order.courses.find((c) => c.id === line.courseId)
 
 // El viaje de un plato, tal como lo vive el mesero:
-//   waiting     — aún no ha salido a cocina (curso sin disparar)
+//   waiting     — pendiente de iniciar preparación, enviada o todavía sin enviar
 //   in_progress — cocina lo está haciendo
 //   ready       — cocina lo marcó listo: está en el pase, hay que ir por él
 //   served      — el mesero lo dejó en la mesa
@@ -58,7 +59,8 @@ export function lineGroup(order: KitOrder, line: KitLine): LineGroup {
   const course = courseOf(order, line)
   if (!course || !course.fired) return 'waiting'
   if (line.servedAt || course.servedAt) return 'served'
-  return line.readyAt || course.readyAt ? 'ready' : 'in_progress'
+  if (line.readyAt || course.readyAt) return 'ready'
+  return course.preparationAt ? 'in_progress' : 'waiting'
 }
 
 // % = líneas servidas / líneas enviadas a cocina. Sin nada enviado, 0.

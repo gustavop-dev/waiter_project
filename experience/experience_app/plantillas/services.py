@@ -36,6 +36,7 @@ from experience_app.utils.brand import FONTS, RADII, contrast, ink_for
 
 COLOR_RE = re.compile(r'^#[0-9A-Fa-f]{6}$')
 MIN_CONTRAST = 4.5
+MENU_FONTS = [*FONTS, 'Mulish', 'DM Sans', 'Nunito Sans', 'Lato']
 # Un radio de 100 px o más es una píldora (999 en los specs): no se escala con el redondeo de la marca.
 PILL_RADIUS = 100
 # Claves del spec que no salen en el catálogo público: son notas para quien implementa el layout, no datos del comensal.
@@ -56,7 +57,7 @@ def invalidate(restaurant: str, venue: str) -> None:
 
 # ---- catálogo -----------------------------------------------------------------------------------------------------
 def default_template() -> MenuTemplate | None:
-    return MenuTemplate.objects.filter(code=DEFAULT_CODE).first() or MenuTemplate.objects.order_by('sort', 'code').first()
+    return MenuTemplate.objects.filter(code=DEFAULT_CODE).first()
 
 
 def default_code() -> str:
@@ -77,8 +78,8 @@ def public_spec(template: MenuTemplate) -> dict:
 
 
 def catalog_view() -> dict:
-    templates = list(MenuTemplate.objects.order_by('sort', 'code'))
-    families = {**FAMILIES, **{t.family: t.spec.get('familiaNombre') for t in templates if t.spec.get('familiaNombre')}}
+    templates = list(MenuTemplate.objects.filter(code=DEFAULT_CODE))
+    families = {t.family: t.spec.get('familiaNombre', 'Smart Menu') for t in templates}
     return {'familias': families, 'plantillas': [public_spec(t) for t in templates]}
 
 
@@ -105,11 +106,11 @@ def final_tokens(spec: dict, brand_inputs: dict, palette: dict, typography: dict
     tokens = dict(spec['tokens'])
     customizable = spec.get('personalizable', {})
     color, font, radius = brand_inputs.get('color') or '', brand_inputs.get('fuente') or '', brand_inputs.get('radio')
-    if color and COLOR_RE.match(color):
+    if spec['codigo'] != 'S1' and color and COLOR_RE.match(color):
         tokens['acento'] = color.upper()
-    if font in FONTS:
+    if spec['codigo'] != 'S1' and font in FONTS:
         tokens['displayFont'] = font
-    if radius in RADII:
+    if radius in RADII and spec['codigo'] != 'S1':
         tokens.update(_scaled_radii(tokens, radius))
     for key in customizable.get('colores', []):
         value = palette.get(key)
@@ -121,6 +122,9 @@ def final_tokens(spec: dict, brand_inputs: dict, palette: dict, typography: dict
     if tokens['acento'] != spec['tokens']['acento'] or 'acento' in palette or 'fondo' in palette:
         tokens['acentoTinta'] = ink_for(tokens['acento'])
         tokens['acentoSuave'] = _mix_over(tokens['acento'], tokens.get('fondo', '#FFFFFF'))
+    if spec['codigo'] == 'S1' and display and display != spec['tokens']['displayFont']:
+        tokens['cuerpoFont'] = tokens['displayFont']
+        tokens['monoFont'] = tokens['displayFont']
     return tokens
 
 
@@ -158,7 +162,7 @@ def get_settings(restaurant: str, venue: str) -> VenueMenuSettings | None:
 
 def _spec_for(restaurant: str, venue: str) -> tuple[dict, dict, dict]:
     chosen = get_settings(restaurant, venue)
-    if chosen is not None:
+    if chosen is not None and chosen.template_id == DEFAULT_CODE:
         return chosen.template.spec, chosen.palette or {}, chosen.typography or {}
     template = default_template()
     return (template.spec if template else FALLBACK_SPEC), {}, {}
@@ -179,7 +183,7 @@ def resolve_template(tenant: Tenant) -> dict:
 def settings_view(restaurant: str, venue: str) -> dict:
     """Los ajustes crudos (lo que el POS edita), no la plantilla resuelta."""
     chosen = get_settings(restaurant, venue)
-    if chosen is None:
+    if chosen is None or chosen.template_id != DEFAULT_CODE:
         return {'plantilla': default_code(), 'paleta': {}, 'tipografia': {}, 'actualizado': None, 'porDefecto': True}
     return {'plantilla': chosen.template_id, 'paleta': chosen.palette, 'tipografia': chosen.typography,
             'actualizado': chosen.updated_at.isoformat(), 'porDefecto': False}
@@ -191,7 +195,7 @@ def validate(body: dict) -> tuple[MenuTemplate, dict, dict]:
         raise InvalidSettings('El cuerpo debe ser un objeto con plantilla, paleta y tipografia.')
     code = body.get('plantilla')
     template = MenuTemplate.objects.filter(code=code).first() if isinstance(code, str) else None
-    if template is None:
+    if template is None or code != DEFAULT_CODE:
         raise InvalidSettings(f'La plantilla {code!r} no está en el catálogo.')
     spec = template.spec
     customizable = spec.get('personalizable', {})
@@ -212,7 +216,7 @@ def validate(body: dict) -> tuple[MenuTemplate, dict, dict]:
     if display:
         if not customizable.get('tipografiaDisplay', True):
             raise InvalidSettings(f'La plantilla {template.code} no permite cambiar la tipografía de títulos.')
-        if display not in FONTS and display != spec['tokens'].get('displayFont'):
+        if display not in MENU_FONTS and display != spec['tokens'].get('displayFont'):
             raise InvalidSettings(f'La tipografía «{display}» no está en la lista: {", ".join(FONTS)} o la de la plantilla.')
         typography = {'display': display}
     else:
@@ -222,10 +226,12 @@ def validate(body: dict) -> tuple[MenuTemplate, dict, dict]:
     ratio = contrast(accent, ink_for(accent))
     if ratio < MIN_CONTRAST:
         raise InvalidSettings(f'El color de acción {accent} no contrasta lo suficiente con su texto ({ratio:.2f}:1; mínimo {MIN_CONTRAST}:1).')
-    if palette.keys() & {'tinta', 'fondo'}:
+    if palette.keys() & {'tinta', 'fondo', 'superficie'}:
         ratio = contrast(tokens['tinta'], tokens['fondo'])
         if ratio < MIN_CONTRAST:
             raise InvalidSettings(f'La tinta {tokens["tinta"]} no se lee sobre el fondo {tokens["fondo"]} ({ratio:.2f}:1; mínimo {MIN_CONTRAST}:1).')
+    if code == 'S1' and contrast(tokens['tinta'], tokens['superficie']) < MIN_CONTRAST:
+        raise InvalidSettings('El texto no contrasta con el color de las tarjetas.')
     return template, palette, typography
 
 
@@ -234,5 +240,6 @@ def save(restaurant: str, venue: str, body: dict) -> VenueMenuSettings:
     chosen, _ = VenueMenuSettings.objects.update_or_create(
         restaurant_slug=restaurant, venue_slug=venue,
         defaults={'template': template, 'palette': palette, 'typography': typography})
+    brand.invalidate(restaurant, venue)
     invalidate(restaurant, venue)
     return chosen

@@ -31,6 +31,7 @@ export async function ensureKitUnits(): Promise<KitUnit[]> {
   const units: KitUnit[] = []
   for (const unit of KIT_UNITS) {
     const found = rows.find((r) => r.name === unit.uom)
+    if (!found && ['liter','milliliter'].includes(unit.key)) throw new Error('Activa las unidades L y ml en Odoo para usar ingredientes líquidos.')
     const id = found ? found.id : await callKw<number>('uom.uom', 'create', [{ name: unit.uom, relative_factor: 1 }])
     units.push({ key: unit.key, id, uomName: unit.uom })
   }

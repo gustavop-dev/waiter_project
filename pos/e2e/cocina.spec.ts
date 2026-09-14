@@ -34,6 +34,9 @@ test('the kitchen sends out one dish at a time and the waiter can only take that
   await page.goto('/kds')
   const ticket = page.getByRole('article', { name: `Mesa ${mesa}` }).first()
   await expect(ticket).toContainText('2 platos')
+  await expect(ticket).toContainText('Recibida')
+  await ticket.getByRole('button', { name: 'Iniciar preparación' }).click()
+  await expect(ticket).toContainText('En preparación')
   await ticket.getByRole('button', { name: 'Listo', exact: true }).first().click()
 
   // El plato que salió se tacha en la comanda y aparece solo él en el pase; el otro sigue en el fuego.
@@ -55,4 +58,22 @@ test('the kitchen sends out one dish at a time and the waiter can only take that
   await kitchenReady(page, mesa)
   await deliverTable(page, mesa)
   await chargeTable(page, mesa)
+})
+
+// Una comanda recibida se puede retirar sin dejar la mesa ocupada ni un ticket huérfano.
+test('waiter cancels a received order before preparation and releases the table', async ({ page }) => {
+  test.setTimeout(120_000)
+  await loginAsAdmin(page)
+  const customer = `Cancelar cocina ${Date.now()}`
+  const mesa = await createOrder(page, { customer })
+  await page.goto('/kds')
+  const ticket = page.getByRole('article', { name: `Mesa ${mesa}` })
+  await expect(ticket).toContainText('Recibida')
+  await page.goto('/pedidos')
+  const card = page.getByRole('article').filter({ hasText: customer })
+  await card.getByRole('button', { name: /ítems/ }).click()
+  await page.getByRole('dialog', { name: 'Detalle del pedido' }).getByRole('button', { name: 'Cancelar', exact: true }).click()
+  await expect(card).toHaveCount(0)
+  await page.goto('/kds')
+  await expect(ticket).toHaveCount(0)
 })

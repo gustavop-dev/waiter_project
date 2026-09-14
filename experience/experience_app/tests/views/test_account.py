@@ -115,6 +115,7 @@ def test_history_lists_the_orders_of_every_session_the_account_took_part_in(api_
     with patch('experience_app.services.orders.resolve', return_value=TABLE), patch('experience_app.services.orders.OdooClient'), \
             patch('experience_app.services.orders.pos.ensure_open_session', return_value=4), \
             patch('experience_app.services.orders.pos.create_order', return_value=SENT), \
+            patch('experience_app.services.benefits.account_benefits', return_value={'tarjeta': 71}), \
             patch('experience_app.services.orders.pos.fire_course', return_value=21), patch('experience_app.services.orders.pos.set_table_call'):
         order_id = api_client.post(reverse('confirm', args=[sid]), format='json').json()['pedido']
     with patch('experience_app.services.account.OdooClient') as client:
@@ -122,7 +123,7 @@ def test_history_lists_the_orders_of_every_session_the_account_took_part_in(api_
         history = api_client.get(PROFILE).json()['pedidos']
     assert len(history) == 1
     entry = history[0]
-    assert (entry['id'], entry['total'], entry['mesa'], entry['estado'], entry['sede']) == (order_id, 83430.9, 8, 'enviado', 'poblado')
+    assert (entry['id'], entry['total'], entry['mesa'], entry['estado'], entry['sede']) == (order_id, 83430.9, 8, 'pendiente_pago', 'poblado')
     assert (entry['mio'], entry['descuento']) == (83430.9, 4391.1)  # 5 % sobre mis 87.822
     TableSession.objects.filter(id=sid).update(state=TableSession.PAID)
     assert api_client.get(PROFILE).json()['pedidos'][0]['estado'] == 'pagado'

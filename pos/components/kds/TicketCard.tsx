@@ -15,16 +15,17 @@ const EDGE: Record<TicketMood, string> = { late: 'border-danger', attention: 'bo
 const FILL = { ok: 'bg-success', warn: 'bg-progress', late: 'bg-danger' }
 const MARKS = [12, 18]
 
-interface TicketCardProps { ticket: KitchenTicket; tableNumber: number; now: number; onReady: (courseId: number) => void; onReadyDish: (lineId: number) => void }
+interface TicketCardProps { ticket: KitchenTicket; tableNumber: number; now: number; onStart?: (courseId: number) => void; onReady: (courseId: number) => void; onReadyDish: (lineId: number) => void }
 
 // Tarjeta de comanda con la estructura de la tarjeta de pedido del kit (Order / Ipad View.png):
 // cabecera "Pedido# / tipo", mesa como avatar, banda de estado con cronómetro, tabla Ítems / Cant. y botón al pie.
 // Cada plato tiene su "Listo" porque salen de uno en uno; el del pie saca la comanda entera de una vez.
-export function TicketCard({ ticket, tableNumber, now, onReady, onReadyDish }: TicketCardProps) {
+export function TicketCard({ ticket, tableNumber, now, onStart, onReady, onReadyDish }: TicketCardProps) {
   const t = useTranslations('kds')
   const seconds = elapsedSeconds(ticket.firedAt, now)
   const minutes = Math.floor(seconds / 60)
   const mood = ticketMood(ticket, now)
+  const started = Boolean(ticket.preparationAt || ticket.readyAt || ticket.lines.some((l) => l.readyAt))
   const cooking = ticket.lines.filter((l) => !l.readyAt)
   const dishes = cooking.reduce((acc, l) => acc + l.qty, 0)
   return (
@@ -40,7 +41,8 @@ export function TicketCard({ ticket, tableNumber, now, onReady, onReadyDish }: T
           <span className={cn('ml-auto font-mono tabular text-[30px] font-semibold leading-none', mood === 'late' && 'text-danger')}>{formatClock(seconds)}</span>
         </div>
         <div className="flex items-center justify-between gap-2">
-          <StatusPill tone={TONE[mood]} icon={mood === 'late' ? 'alarm' : 'clock'}>{t(`mood.${mood}`)}</StatusPill>
+          <StatusPill tone={TONE[mood]} icon={mood === 'late' ? 'alarm' : 'clock'}>{t(started ? 'preparing' : 'received')}</StatusPill>
+          {mood === 'late' && <span>{t('mood.late')}</span>}
           <span className="text-[14px] text-soft">{t('dishes', { n: dishes })}</span>
         </div>
         <div>
@@ -67,7 +69,7 @@ export function TicketCard({ ticket, tableNumber, now, onReady, onReadyDish }: T
                   {done ? (
                     <span className="w-[54px] inline-flex items-center justify-center gap-1 text-[13px] font-semibold text-success-ink"><Icon name="check" size={13} />{t('dishReady')}</span>
                   ) : (
-                    <button type="button" onClick={() => onReadyDish(l.id)}
+                    <button type="button" disabled={!started} onClick={() => onReadyDish(l.id)}
                       className="w-[54px] h-9 rounded-sm border border-border bg-surface text-[14px] font-semibold text-ink grid place-items-center">
                       {t('readyBtn')}
                     </button>
@@ -78,7 +80,7 @@ export function TicketCard({ ticket, tableNumber, now, onReady, onReadyDish }: T
           </ul>
         </div>
       </div>
-      <div className="px-4 pb-4 mt-auto"><Button variant="primary" className="w-full" onClick={() => onReady(ticket.id)}><Icon name="checks" size={18} />{t('readyAll')}</Button></div>
+      <div className="px-4 pb-4 mt-auto"><Button variant="primary" className="w-full" onClick={() => started ? onReady(ticket.id) : onStart?.(ticket.id)}><Icon name="checks" size={18} />{t(started ? 'readyAll' : 'startPreparation')}</Button></div>
     </article>
   )
 }

@@ -31,18 +31,34 @@ def _announce(env, records, event):
 class RestaurantOrderCourse(models.Model):
     _inherit = "restaurant.order.course"
 
+    preparation_date = fields.Datetime(string="Inicio de preparación")
     ready_date = fields.Datetime(string="Listo en cocina")
     served_date = fields.Datetime(string="Entregado en mesa")
 
     @api.model
     def _load_pos_data_fields(self, *args, **kwargs):
-        return super()._load_pos_data_fields(*args, **kwargs) + ["fired_date", "ready_date", "served_date"]
+        return super()._load_pos_data_fields(*args, **kwargs) + ["fired_date", "preparation_date", "ready_date", "served_date"]
 
     @api.model
     def kitchen_fire(self, order_id, line_ids):
         """Crea un curso disparado con las líneas dadas. Devuelve su id (o False si no hay líneas)."""
         if not line_ids:
             return False
+        order = self.env["pos.order"].browse(order_id).exists()
+        order.check_access("write")
+        self.env.cr.execute("SELECT id FROM pos_order WHERE id = %s FOR UPDATE", [order_id])
+        order.invalidate_recordset()
+        if not order or order.state == "cancel":
+            raise UserError(_("El pedido ya no está disponible."))
+        lines = self.env["pos.order.line"].browse(line_ids).exists()
+        lines.check_access("write")
+        lines.invalidate_recordset()
+        if any(line.order_id != order for line in lines):
+            raise UserError(_("Las líneas no pertenecen al pedido."))
+        lines = lines.filtered(lambda line: not line.course_id and not line.waiter_cancelled)
+        if not lines:
+            return False
+        line_ids = lines.ids
         index = self.search_count([("order_id", "=", order_id)]) + 1
         course = self.create({
             "order_id": order_id,
@@ -56,8 +72,24 @@ class RestaurantOrderCourse(models.Model):
         _announce(self.env, course, "kitchen")
         return course.id
 
+    def _lock_kitchen_orders(self):
+        orders = self.order_id.sorted("id")
+        if orders:
+            self.env.cr.execute("SELECT id FROM pos_order WHERE id IN %s ORDER BY id FOR UPDATE", [tuple(orders.ids)])
+            self.invalidate_recordset()
+            orders.invalidate_recordset()
+
+    def action_kitchen_start(self):
+        self._lock_kitchen_orders()
+        if any(not c.fired or c.order_id.state == "cancel" or not c.line_ids for c in self):
+            raise UserError(_("La comanda ya no está disponible para preparar."))
+        self.filtered(lambda c: not c.preparation_date).write({"preparation_date": fields.Datetime.now()})
+        _announce(self.env, self, "orders")
+        return True
+
     def action_kitchen_ready(self):
         """«Listo todo» de cocina: la comanda entera sale al pase, con cada una de sus líneas."""
+        self.action_kitchen_start()
         now = fields.Datetime.now()
         self.write({"ready_date": now})
         self.line_ids.filtered(lambda line: not line.waiter_ready_date and not line.waiter_cancelled).write({"waiter_ready_date": now})
@@ -96,7 +128,7 @@ class PosOrderLine(models.Model):
     waiter_ready_date = fields.Datetime(string="Lista en cocina", help="Cuándo salió al pase, para que el mesero la lleve.")
     served_date = fields.Datetime(string="Servida en mesa")
     waiter_cancelled = fields.Boolean(string="Cancelada por el mesero", default=False,
-                                      help="Línea retirada antes de ir a cocina (estado «Waiting to cooked» del kit).")
+                                      help="Marca histórica de líneas canceladas.")
 
     @api.model
     def _load_pos_data_fields(self, *args, **kwargs):
@@ -107,6 +139,7 @@ class PosOrderLine(models.Model):
         """Cocina marca platos listos, uno a uno. Cierra el curso cuando no le falta ninguno.
         Devuelve los ids de los cursos que quedaron listos."""
         lines = self.browse(line_ids).exists()
+        lines.course_id.action_kitchen_start()
         now = fields.Datetime.now()
         lines.filtered(lambda line: not line.waiter_ready_date).write({"waiter_ready_date": now})
         courses = lines.course_id
@@ -131,16 +164,44 @@ class PosOrderLine(models.Model):
         _announce(self.env, lines, "orders")
         return courses.filtered("served_date").ids
 
+    def _check_kitchen_editable(self):
+        orders = self.order_id.sorted("id")
+        if orders:
+            self.env.cr.execute("SELECT id FROM pos_order WHERE id IN %s ORDER BY id FOR UPDATE", [tuple(orders.ids)])
+        self.invalidate_recordset()
+        orders.invalidate_recordset()
+        self.course_id.invalidate_recordset()
+        if any(line.order_id.state != "draft" or line.order_id.payment_ids or
+               line.course_id.preparation_date or line.course_id.ready_date or line.course_id.served_date or
+               line.waiter_ready_date or line.served_date for line in self):
+            raise UserError(_("No se puede cambiar ni cancelar: cocina ya inició la preparación o el pedido tiene pagos."))
+
+    def write(self, vals):
+        if "course_id" in vals:
+            self.filtered("course_id")._check_kitchen_editable()
+        if {"qty", "product_id", "customer_note", "full_product_name", "order_id"} & vals.keys():
+            self._check_kitchen_editable()
+        return super().write(vals)
+
+    def unlink(self):
+        self._check_kitchen_editable()
+        return super().unlink()
+
     @api.model
     def waiter_cancel_lines(self, line_ids):
-        """Cancela líneas que todavía no fueron a cocina. Falla (UserError) si alguna está en un curso disparado."""
+        """Cancela y recalcula en una transacción, bloqueando el inicio simultáneo en cocina."""
         lines = self.browse(line_ids).exists()
-        fired = lines.filtered(lambda line: line.course_id.fired)
-        if fired:
-            names = ", ".join(line.full_product_name or line.product_id.display_name for line in fired)
-            raise UserError(_("No se puede cancelar: %s ya fue enviado a cocina.", names))
-        lines.write({"waiter_cancelled": True})
-        lines.course_id._kitchen_close_if_all_served(fields.Datetime.now())
+        orders, courses = lines.order_id, lines.course_id
+        lines.unlink()
+        for course in courses.exists():
+            if not course.line_ids:
+                course.unlink()
+        for order in orders:
+            order.recompute_prices()
+            if not order.lines:
+                order.write({"state": "cancel"})
+        self.env["waiter.bus"].waiter_send(orders.session_id.config_id.ids, "orders")
+        self.env["waiter.bus"].waiter_send(orders.session_id.config_id.ids, "kitchen")
         return True
 
 

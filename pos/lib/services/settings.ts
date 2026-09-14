@@ -2,23 +2,23 @@ import { callKw } from '@/lib/services/odoo'
 import type { Role } from '@/lib/domain/roles'
 import type { Settings } from '@/lib/types'
 
-export interface CompanyInfo { id: number; name: string; vat: string; phone: string; email: string; street: string; city: string }
+export interface CompanyInfo { id: number; name: string; vat: string; phone: string; email: string; street: string; city: string; waiter_latitude?: string; waiter_longitude?: string }
 export interface FloorInfo { id: number; name: string; tables: { id: number; number: number; seats: number; active: boolean }[] }
 export interface UserInfo { id: number; name: string; login: string; lastLogin: string | null; role: Role; activated: boolean }
 export interface PaymentMethodInfo { id: number; name: string; type: string }
 export interface TaxInfo { id: number; name: string; amount: number }
 
-interface RawCompany { id: number; name: string; vat: string | false; phone: string | false; email: string | false; street: string | false; city: string | false }
+interface RawCompany { id: number; name: string; vat: string | false; phone: string | false; email: string | false; street: string | false; city: string | false; waiter_latitude?: string | false; waiter_longitude?: string | false }
 interface RawFloor { id: number; name: string; table_ids: number[] }
 interface RawTable { id: number; table_number: number; seats: number; active: boolean; floor_id: [number, string] }
 
 export async function getCompany(): Promise<CompanyInfo> {
-  const [c] = await callKw<RawCompany[]>('res.company', 'search_read', [[], ['name', 'vat', 'phone', 'email', 'street', 'city']], { limit: 1 })
-  return { id: c.id, name: c.name, vat: c.vat || '', phone: c.phone || '', email: c.email || '', street: c.street || '', city: c.city || '' }
+  const [c] = await callKw<RawCompany[]>('res.company', 'search_read', [[], ['name', 'vat', 'phone', 'email', 'street', 'city', 'waiter_latitude', 'waiter_longitude']], { limit: 1 })
+  return { id: c.id, name: c.name, vat: c.vat || '', phone: c.phone || '', email: c.email || '', street: c.street || '', city: c.city || '', waiter_latitude: c.waiter_latitude || '', waiter_longitude: c.waiter_longitude || '' }
 }
 
 export async function saveCompany(c: CompanyInfo): Promise<void> {
-  await callKw('res.company', 'write', [[c.id], { name: c.name, vat: c.vat || false, phone: c.phone || false, email: c.email || false, street: c.street || false, city: c.city || false }])
+  await callKw('res.company', 'write', [[c.id], { name: c.name, vat: c.vat || false, phone: c.phone || false, email: c.email || false, street: c.street || false, city: c.city || false, waiter_latitude: c.waiter_latitude?.trim() || false, waiter_longitude: c.waiter_longitude?.trim() || false }])
 }
 
 // Marca del comensal (Configuración › Marca). Vacío en Odoo significa "usar lo del registro", así que los
@@ -51,6 +51,15 @@ export async function saveBrand(b: BrandInfo, logo?: LogoChange): Promise<void> 
   }
   if (logo) values.brand_logo = 'remove' in logo ? false : logo.base64
   await callKw('res.company', 'write', [[b.companyId], values])
+}
+
+// Saludo de la cabecera del menú (Configuración › Diseño del menú). Solo toca ese campo: colores, fuente y logo siguen intactos.
+export async function saveBrandGreeting(companyId: number, greeting: string): Promise<void> {
+  await callKw('res.company', 'write', [[companyId], { brand_greeting: greeting.trim() || false }])
+}
+
+export async function saveBrandLogo(companyId: number, logo: LogoChange): Promise<void> {
+  await callKw('res.company', 'write', [[companyId], { brand_logo: 'remove' in logo ? false : logo.base64 }])
 }
 
 export async function listFloors(): Promise<FloorInfo[]> {

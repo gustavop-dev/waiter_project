@@ -1,5 +1,7 @@
 'use client'
 
+import { fireUnsentLines } from '@/lib/services/kitchen'
+
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { useCallback, useMemo, useState } from 'react'
@@ -67,9 +69,16 @@ export default function PedidosPage() {
     finally { setBusy(false) }
   }
 
+  async function sendPending(order: KitOrder) {
+    setBusy(true)
+    try { await fireUnsentLines(order.id); await refresh() }
+    catch (e) { toast({ title: e instanceof Error ? e.message : 'No se pudo enviar', tone: 'danger' }) }
+    finally { setBusy(false) }
+  }
+
   async function cancelWaiting(order: KitOrder, lines: KitLine[]) {
     setBusy(true)
-    try { await cancelLines(order.id, lines.map((l) => l.id)); toast({ title: t('detail.cancelled'), body: t('detail.cancelledBody') }); await refresh() } finally { setBusy(false) }
+    try { await cancelLines(order.id, lines.map((l) => l.id)); toast({ title: t('detail.cancelled'), body: t('detail.cancelledBody') }); await refresh() } catch (e) { toast({ title: e instanceof Error ? e.message : 'No se pudo cancelar', tone: 'danger' }); await refresh() } finally { setBusy(false) }
   }
 
   return (
@@ -100,7 +109,7 @@ export default function PedidosPage() {
         </div>
       </div>
       <OrderDetailModal order={detail} status={detail ? statusOf(detail) : 'in_progress'} percent={detail ? percentOf(detail) : 0} onClose={() => setDetailId(null)} mayCharge={mayCharge}
-        imageOf={imageOf} busy={busy} onCancelWaiting={(lines) => { if (detail) void cancelWaiting(detail, lines) }}
+        imageOf={imageOf} busy={busy} onSendPending={() => { if (detail) void sendPending(detail) }} onCancelWaiting={(lines) => { if (detail) void cancelWaiting(detail, lines) }}
         onServeReady={(lines) => { if (!busy) void serveReady(lines) }} />
     </KitShell>
   )

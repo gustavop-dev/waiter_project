@@ -17,15 +17,16 @@ type Step = 'info' | 'image' | 'attributes'
 const STEPS: Step[] = ['info', 'image', 'attributes']
 const CONTROL = 'h-tap-min px-3.5 rounded-[10px] border border-border bg-surface text-base text-ink focus:outline-2 focus:outline-brand-500'
 
-interface ProductFormProps { initial: ProductInput; hasImage?: boolean; templateId?: number | null; isNew: boolean; categories: AdminCategory[]; taxes: Tax[]; onSave: (p: ProductInput) => Promise<void>; onClose: () => void }
+interface ProductFormProps { extraProducts?: {id:number;name:string}[]; initial: ProductInput; hasImage?: boolean; templateId?: number | null; isNew: boolean; categories: AdminCategory[]; taxes: Tax[]; onSave: (p: ProductInput) => Promise<void>; onClose: () => void }
 
 // Formulario de producto con la estructura del wizard "Add New Dish" del kit: pasos a la izquierda, panel con cabecera a la
 // derecha y el botón al pie. Los atributos del comensal (diner_attributes) se editan en el tercer paso.
-export function ProductForm({ initial, hasImage = false, templateId = null, isNew, categories, taxes, onSave, onClose }: ProductFormProps) {
+export function ProductForm({ extraProducts = [], initial, hasImage = false, templateId = null, isNew, categories, taxes, onSave, onClose }: ProductFormProps) {
   const t = useTranslations('admin.catalog.form')
   const ui = useTranslations('admin.common')
   const [step, setStep] = useState<Step>('info')
   const [p, setP] = useState<ProductInput>({ ...initial, dinerAttributes: initial.dinerAttributes ?? {} })
+  const [saveError,setSaveError] = useState('')
   const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const patch = (x: Partial<ProductInput>) => setP((c) => ({ ...c, ...x }))
   const attrs = p.dinerAttributes
@@ -33,8 +34,8 @@ export function ProductForm({ initial, hasImage = false, templateId = null, isNe
   const toggleCategory = (id: number) => patch({ categoryIds: p.categoryIds.includes(id) ? p.categoryIds.filter((c) => c !== id) : [...p.categoryIds, id] })
   const numOrUndefined = (v: string) => (v === '' ? undefined : Number(v))
   async function save() {
-    setState('saving')
-    try { await onSave(p); setState('saved') } catch { setState('error') }
+    setState('saving');setSaveError('')
+    try { await onSave(p); setState('saved') } catch(e) { setSaveError(e instanceof Error?e.message:'No se pudo guardar el producto.');setState('error') }
   }
   const toggleRow = (label: string, hint: string, checked: boolean, onChange: (v: boolean) => void) => (
     <div className="flex items-center justify-between gap-4 py-3 border-b border-border"><div><p className="text-[15px] font-medium text-ink">{label}</p><p className="text-[13px] text-soft">{hint}</p></div><Toggle checked={checked} onChange={onChange} label={label} /></div>
@@ -46,6 +47,7 @@ export function ProductForm({ initial, hasImage = false, templateId = null, isNe
     <Modal open onClose={onClose} title={isNew ? t('newTitle') : t('title')} size="full">
       <div className="h-full flex">
         <aside className="w-[220px] shrink-0 p-4 flex flex-col gap-1">
+          {templateId&&<a className="px-3 py-3 text-primary font-semibold text-sm" href={`/inventario?plato=${templateId}`}>Receta e inventario →</a>}
           {STEPS.map((s, i) => (
             <button key={s} type="button" role="tab" aria-selected={step === s} onClick={() => setStep(s)}
               className={cn('flex items-center gap-3 h-11 px-3 rounded-md text-[15px] font-semibold text-left', step === s ? 'bg-surface border border-border text-ink' : 'text-soft hover:bg-muted')}>
@@ -58,7 +60,7 @@ export function ProductForm({ initial, hasImage = false, templateId = null, isNe
             <h3 className="text-[16px] font-semibold text-ink">{t(step === 'info' ? 'infoTitle' : step === 'image' ? 'imageTitle' : 'attributesTitle')}</h3>
             {!isNew && <span className="text-[13px] text-soft truncate">{initial.name}</span>}
           </header>
-          <div className="flex-1 min-h-0 overflow-y-auto p-5 flex flex-col gap-4">
+          <div className="flex-1 min-h-0 overflow-y-auto p-5 flex flex-col gap-4">{saveError&&<p role="alert" className="text-danger">{saveError}</p>}
             {step === 'info' && (
               <>
                 <TextInput label={t('name')} placeholder={t('namePlaceholder')} value={p.name} onChange={(e) => patch({ name: e.target.value })} />
@@ -72,9 +74,11 @@ export function ProductForm({ initial, hasImage = false, templateId = null, isNe
                     <option value="">{t('noTax')}</option>{taxes.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
                   </Select>
                 </div>
+                {toggleRow('Es un combo', 'Producto con precio propio. Puedes ubicarlo en Combos o en cualquier categoría.', !!attrs.combo?.length, v=>patch({storable:v?false:p.storable,dinerAttributes:{...attrs,combo:v?[{producto:0,cantidad:1},{producto:0,cantidad:1}]:undefined}}))}
+                {!!attrs.combo?.length&&<fieldset className="border border-border rounded-lg p-4 flex flex-col gap-3"><legend>Productos incluidos</legend><p className="text-sm text-soft">El precio de arriba es el total del combo. Selecciona al menos dos platos; sus recetas se usan para descontar inventario.</p>{attrs.combo.map((item,index)=><div key={index} className="grid grid-cols-[1fr_100px_auto] gap-2 items-end"><Select label={`Producto ${index+1}`} value={item.producto||''} onChange={e=>patchAttr({combo:attrs.combo!.map((x,i)=>i===index?{...x,producto:Number(e.target.value)}:x)})}><option value="">Selecciona un plato</option>{extraProducts.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</Select><TextInput label="Cantidad" type="number" min={1} max={20} step={1} value={item.cantidad} onChange={e=>patchAttr({combo:attrs.combo!.map((x,i)=>i===index?{...x,cantidad:Number(e.target.value)}:x)})}/><Button variant="secondary" onClick={()=>patchAttr({combo:attrs.combo!.filter((_,i)=>i!==index)})}>Quitar</Button></div>)}<Button variant="secondary" disabled={attrs.combo.length>=12} onClick={()=>patchAttr({combo:[...attrs.combo!,{producto:0,cantidad:1}]})}>Añadir producto al combo</Button></fieldset>}
                 {toggleRow(t('available'), t('availableHint'), p.available, (v) => patch({ available: v }))}
                 {toggleRow(t('favorite'), t('favoriteHint'), p.favorite, (v) => patch({ favorite: v }))}
-                {toggleRow(t('storable'), t('storableHint'), p.storable, (v) => patch({ storable: v }))}
+                {!attrs.combo?.length&&toggleRow(t('storable'), t('storableHint'), p.storable, (v) => patch({ storable: v }))}
               </>
             )}
             {step === 'image' && (
@@ -96,6 +100,10 @@ export function ProductForm({ initial, hasImage = false, templateId = null, isNe
             )}
             {step === 'attributes' && (
               <>
+                <div className="grid grid-cols-2 gap-4">
+                  <TextInput label={t('prepTime')} hint={t('prepTimeHint')} type="number" inputMode="numeric" min={1} max={600} step={1} value={attrs.tiempoPreparacion ?? ''} onChange={(e) => patchAttr({ tiempoPreparacion: numOrUndefined(e.target.value) })} className="tabular" />
+                  <TextInput label={t('previousPrice')} hint={t('previousPriceHint')} type="number" inputMode="numeric" min={0} value={attrs.precioAntes ?? ''} onChange={(e) => patchAttr({ precioAntes: numOrUndefined(e.target.value) })} className="tabular" />
+                </div>
                 <div className="grid grid-cols-3 gap-4">
                   <TextInput label={t('pieces')} hint={t('piecesHint')} type="number" min={0} value={attrs.piezas ?? ''} onChange={(e) => patchAttr({ piezas: numOrUndefined(e.target.value) })} className="tabular" />
                   <TextInput label={t('abv')} type="number" min={0} step="0.1" value={attrs.abv ?? ''} onChange={(e) => patchAttr({ abv: numOrUndefined(e.target.value) })} className="tabular" />
@@ -108,6 +116,9 @@ export function ProductForm({ initial, hasImage = false, templateId = null, isNe
                   <TextInput label={t('tags')} hint={t('tagsHint')} defaultValue={listToText(attrs.etiquetas)} onBlur={(e) => patchAttr({ etiquetas: textToList(e.target.value) })} />
                   <TextInput label={t('allergens')} hint={t('allergensHint')} defaultValue={listToText(attrs.alergenos)} onBlur={(e) => patchAttr({ alergenos: textToList(e.target.value) })} />
                 </div>
+                <TextInput label="Ingredientes del plato (opcional)" hint="Separa los ingredientes con comas. Solo se muestra lo que registres." defaultValue={listToText(attrs.ingredientes)} onBlur={e=>patchAttr({ingredientes:textToList(e.target.value)})}/>
+                <fieldset className="grid grid-cols-2 gap-4"><legend className="text-[15px] font-medium mb-2">Información nutricional por porción (opcional)</legend><p className="col-span-2 text-sm text-soft">Completa solo los datos que conozcas. Los campos vacíos no aparecen en el menú; cero se muestra como un valor real.</p>{([['calorias','Calorías (kcal)'],['peso','Peso de la porción (g)'],['proteina','Proteína (g)'],['grasa','Grasa (g)'],['carbohidratos','Carbohidratos (g)'],['fibra','Fibra (g)']] as const).map(([key,label])=><TextInput key={key} label={label} type="number" min={0} max={100000} step="0.1" value={attrs.nutricion?.[key]??''} onChange={e=>patchAttr({nutricion:{...attrs.nutricion,[key]:numOrUndefined(e.target.value)}})}/>)}</fieldset>
+                {!!extraProducts.length&&(['extras','acompanamientos'] as const).map(kind=><fieldset key={kind} className="flex flex-col gap-2"><legend className="text-[15px] font-medium mb-2">{kind==='extras'?'Adicionales del plato':'Acompañamientos recomendados'}</legend><p className="text-sm text-soft">{kind==='extras'?'Opciones con casilla y cantidad: huevo extra, queso, salsas…':'Platos que se muestran debajo con su foto y cantidad.'} Usan el precio y disponibilidad del catálogo.</p>{kind==='acompanamientos'&&<label className="flex items-center gap-3 py-2"><input type="checkbox" checked={attrs.acompanamientos!==undefined} onChange={e=>patchAttr({acompanamientos:e.target.checked?[]:undefined})}/>Elegir acompañamientos manualmente</label>}{(kind==='extras'||attrs.acompanamientos!==undefined)&&<div className="max-h-48 overflow-auto space-y-2">{extraProducts.map(extra=><label key={extra.id} className="flex items-center gap-3 py-2"><input type="checkbox" checked={attrs[kind]?.includes(extra.id)||false} disabled={(!attrs[kind]?.includes(extra.id)&&(attrs[kind]?.length||0)>=19)||!!attrs[kind==='extras'?'acompanamientos':'extras']?.includes(extra.id)} onChange={e=>patchAttr({[kind]:e.target.checked?[...(attrs[kind]||[]),extra.id]:(attrs[kind]||[]).filter(id=>id!==extra.id)})}/>{extra.name}</label>)}</div>}{kind==='acompanamientos'&&attrs.acompanamientos===undefined&&<p className="text-sm text-soft">Se sugieren hasta tres productos disponibles del catálogo.</p>}</fieldset>)}
                 <fieldset className="flex flex-col gap-2"><legend className="text-[15px] font-medium mb-1.5">{t('sizes')}</legend>
                   {sizes.map((s, i) => (
                     <div key={i} className="grid grid-cols-[1fr_180px_auto] gap-3 items-end">

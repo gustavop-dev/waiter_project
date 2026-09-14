@@ -5,7 +5,7 @@ Corren con el runner de Odoo (`-u projectapp_pantry --test-enable --test-tags /p
 from odoo.exceptions import UserError
 from odoo.tests import TransactionCase, tagged
 
-from odoo.addons.projectapp_pantry.hooks import seed_demo
+from odoo.addons.projectapp_pantry.hooks import seed_demo, INGREDIENTS, RECIPES
 
 
 @tagged("post_install", "-at_install")
@@ -87,6 +87,10 @@ class TestPantry(TransactionCase):
 
     def test_demo_seed_is_idempotent_and_builds_the_recipes_of_the_demo_dishes(self):
         """Falla si la siembra crea duplicados al repetirse o si no engancha la receta a un plato demo existente."""
+        # Aísla la siembra de platos/ingredientes demo y pedidos que ya traiga la base de pruebas.
+        names = [row[0] for row in INGREDIENTS] + list(RECIPES)
+        for template in self.Template.search([('name', 'in', names)]):
+            template.name = template.name + ' (previo a prueba)'
         angus = self.Template.create({"name": "Hamburguesa Angus", "list_price": 38000, "available_in_pos": True})
         seed_demo(self.env)
         seed_demo(self.env)

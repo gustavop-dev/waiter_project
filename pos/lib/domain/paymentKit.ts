@@ -40,7 +40,7 @@ export function methodFor(kind: PayKind, methods: PaymentMethod[]): PaymentMetho
 export interface PointsRate { copPerPoint: number }
 export function pointsDiscount(points: number, rate: PointsRate, due: number): number {
   if (rate.copPerPoint <= 0 || points <= 0 || due <= 0) return 0
-  return Math.min(due, Math.floor(points * rate.copPerPoint))
+  return Math.round(Math.min(Math.floor(points), Math.floor(due / rate.copPerPoint)) * rate.copPerPoint * 100) / 100
 }
 export function pointsToRedeem(discount: number, rate: PointsRate): number {
   return rate.copPerPoint > 0 ? Math.ceil(discount / rate.copPerPoint) : 0

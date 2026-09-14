@@ -21,7 +21,7 @@ import type { OrderState, PayMethod } from '@/lib/types'
 //    onPay envía la opción de reparto; experience calcula el importe sobre el pedido confirmado.
 // Los métodos de Waiter (Tarjeta / PSE / Nequi / Efectivo) se ofrecen en las cuatro pieles; Efectivo manda al mesero. Los estados
 // «Autorizando», «Pagado» y «Rechazada» llevan la insignia «Demo · sin cobro real» y las tres salidas del flujo base.
-const STEP_BARS: Record<OrderState, number> = { enviado: 1, en_cocina: 2, listo: 2, servido: 3, pagado: 3, fallido: 0 }
+const STEP_BARS: Record<OrderState, number> = { pendiente_pago: 0, enviado: 1, en_cocina: 2, listo: 2, servido: 3, pagado: 3, fallido: 0 }
 const formatCardNumber = (raw: string) => raw.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim()
 const formatExpiry = (raw: string) => { const d = raw.replace(/\D/g, '').slice(0, 4); return d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d }
 type Split = 'mine' | 'split' | 'all'

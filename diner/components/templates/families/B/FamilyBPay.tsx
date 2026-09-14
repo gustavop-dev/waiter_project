@@ -10,7 +10,7 @@ import type { OrderState, PayMethod } from '@/lib/types'
 type Variant = 'B1' | 'B2' | 'B3' | 'B4' | 'B5'
 type Split = 'mine' | 'parts' | 'all'
 const variantOf = (code: string): Variant => (['B2', 'B3', 'B4', 'B5'].includes(code.toUpperCase()) ? (code.toUpperCase() as Variant) : 'B1')
-const STEP_BARS: Record<OrderState, number> = { enviado: 1, en_cocina: 2, listo: 2, servido: 3, pagado: 3, fallido: 0 }
+const STEP_BARS: Record<OrderState, number> = { pendiente_pago: 0, enviado: 1, en_cocina: 2, listo: 2, servido: 3, pagado: 3, fallido: 0 }
 // Maqueta de tarjeta: se formatea para verse real, pero el número nunca sale del componente (no hay pasarela todavía).
 const formatCardNumber = (raw: string) => raw.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim()
 const formatExpiry = (raw: string) => { const d = raw.replace(/\D/g, '').slice(0, 4); return d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d }
