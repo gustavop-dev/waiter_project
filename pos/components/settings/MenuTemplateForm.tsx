@@ -175,14 +175,14 @@ export function MenuTemplateForm() {
             <h3 className="mb-4 text-lg font-bold">Saludo del menú</h3>
             <TextInput
               label="Saludo"
-              hint="Arriba del menú, seguido del nombre del comensal cuando tiene cuenta y de la sede debajo. Vacío: «Hola»."
+              hint="Opcional. Vacío, el menú alterna frases cálidas según la hora («Buenas noches», «¿Qué se te antoja hoy?»…). Si escribes uno, se usa siempre, seguido del nombre del comensal cuando tiene cuenta."
               placeholder="Hola"
               maxLength={40}
               value={greeting}
               onChange={(e) => setGreeting(e.target.value)}
             />
             <p className="mt-3 text-sm text-soft">
-              Así se ve: <strong>{greeting.trim() || 'Hola'}, Camila</strong> · {ctx.sede}
+              Así se ve: <strong>{greeting.trim() || 'Buenas noches'}, Camila</strong> · {ctx.restaurante} · {ctx.sede}
             </p>
           </section>
           <section className="rounded-[20px] border border-border bg-surface p-5">

@@ -129,10 +129,12 @@ it('greets the diner with the admin greeting and the venue in a non-clickable he
   render(<SmartBrowse entry={branded}/>)
   const header = screen.getByRole('banner')
   expect(within(header).getByText('Buenas noches, Camila')).toBeInTheDocument()
-  expect(within(header).getByText('Salón · Mesa 8')).toBeInTheDocument()
+  expect(within(header).getByText('Demo · Salón · Mesa 8')).toBeInTheDocument()
   expect(within(header).queryByRole('link')).not.toBeInTheDocument()
   expect(screen.queryByRole('button', { name: 'Filtrar platos' })).not.toBeInTheDocument()
-  expect(greeting(entry, null)).toBe('Hola')
+  // Sin saludo del administrador, el repertorio según la hora; nunca un «Hola» pelado.
+  expect(greeting(entry, null, 21, 0)).toBe('Buenas noches')
+  expect(greeting(entry, 'Camila Rojas', 9, 0)).toBe('Buenos días, Camila')
 })
 
 // Falla si la tarjeta no pone el precio antes del nombre, inventa una rebaja cuando el precio anterior no es mayor, o

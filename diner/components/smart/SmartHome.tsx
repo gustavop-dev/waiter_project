@@ -5,14 +5,18 @@ import { useRef } from 'react'
 import type { Entry } from '@/lib/types'
 import { useDinerStore } from '@/lib/stores/dinerStore'
 import { initials } from '@/lib/domain/template'
+import { pickGreeting } from '@/lib/domain/greeting'
 import { FoodPhoto, Icon, money, useSmartRoute } from './SmartMenu'
 
-// Saludo de la cabecera: el texto lo fija el administrador (Diseño del menú → Saludo, campo `saludo` de la marca);
-// vacío es «Hola». Con cuenta se añade el primer nombre. No es un enlace: la navegación vive en el botón de la derecha.
-export function greeting(entry: Entry, accountName?: string | null) {
-  const base = entry.contexto.marca.saludo?.trim() || 'Hola'
-  const first = accountName?.trim().split(/\s+/)[0]
-  return first ? `${base}, ${first}` : base
+// Saludo de la cabecera: frase del repertorio según la hora (lib/domain/greeting) o el texto que fijó el administrador
+// en Diseño del menú → Saludo; con cuenta lleva el primer nombre. No es un enlace: la navegación vive en el botón.
+export function greeting(entry: Entry, accountName?: string | null, hour?: number, seed?: number) {
+  return pickGreeting({ admin: entry.contexto.marca.saludo, name: accountName, hour, seed })
+}
+export function venueLine(entry: Entry) {
+  const parts = [entry.contexto.marca.nombre || entry.carta.restaurante, entry.contexto.sede.nombre].filter(Boolean)
+  if (entry.contexto.mesa) parts.push(`Mesa ${entry.contexto.mesa.numero}`)
+  return parts.join(' · ')
 }
 
 export function SmartHeader({ entry, current='portada' }: { entry: Entry;current?:'portada'|'carta' }) {
@@ -25,7 +29,7 @@ export function SmartHeader({ entry, current='portada' }: { entry: Entry;current
         {entry.contexto.marca.logo && <img src={entry.contexto.marca.logo} alt="" />}
         <div>
           <strong>{greeting(entry, account?.nombre)}</strong>
-          <span>{entry.contexto.sede.nombre}{entry.contexto.mesa ? ` · Mesa ${entry.contexto.mesa.numero}` : ''}</span>
+          <span>{venueLine(entry)}</span>
         </div>
       </div>
       <button aria-label="Abrir navegación" onClick={() => dialog.current?.showModal()}><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden><path d="M3 6h18M3 12h13M3 18h18"/></svg></button>

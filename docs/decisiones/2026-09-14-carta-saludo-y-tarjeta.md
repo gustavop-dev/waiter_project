@@ -3,12 +3,15 @@
 ## Cabecera
 
 La cabecera de la carta y de la portada ya no enlaza al nombre del restaurante. Muestra un
-saludo y, debajo, la sede y la mesa cuando el QR la trae. El saludo lo fija el administrador
-en **Configuración → Diseño del menú → Saludo del menú** (campo `brand_greeting` de
-`res.company`, el mismo `saludo` de la marca del Plan G); vacío se muestra «Hola». Con
-cuenta se añade el primer nombre del comensal: «Buenas noches, Camila». El elemento no es
-clickeable; la navegación sigue en el botón de la derecha. El logo, si existe, acompaña al
-saludo como avatar redondo.
+saludo y, debajo, restaurante, sede y mesa cuando el QR la trae («Burger House · Poblado ·
+Mesa 8»). Sin texto del administrador, el saludo sale de un repertorio de frases cálidas
+según la hora (`diner/lib/domain/greeting.ts`: mañana hasta las 12, tarde hasta las 19,
+noche) más frases de cualquier momento; se fija una por visita y cambia entre visitas. Si el
+administrador escribe uno en **Configuración → Diseño del menú → Saludo del menú** (campo
+`brand_greeting` de `res.company`, el mismo `saludo` de la marca del Plan G), ese manda
+siempre. Con cuenta se añade el primer nombre del comensal: «Buenas noches, Camila». El
+elemento no es clickeable; la navegación sigue en el botón de la derecha. El logo, si existe,
+acompaña al saludo como avatar redondo.
 
 ## Tarjeta del plato
 
