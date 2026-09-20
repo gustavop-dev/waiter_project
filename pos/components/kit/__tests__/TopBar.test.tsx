@@ -22,5 +22,8 @@ it('shows the administration row with the subtabs of the role', () => {
   expect(screen.getByRole('link', { name: 'Configuración' })).toHaveAttribute('aria-current', 'page')
   wrap(<TopBar active="admin" role="cashier" userName="Luis" onOpenSettings={() => undefined} />)
   expect(screen.getAllByRole('link', { name: 'Facturación' })).toHaveLength(2)
-  expect(screen.getAllByRole('link', { name: 'Catálogo' })).toHaveLength(1)
+  // «Retorno» es solo del administrador: aparece una vez (la suya), no dos. El Catálogo dejó de ser una pestaña: la
+  // ficha comercial del plato se edita desde Inventario.
+  expect(screen.getAllByRole('link', { name: 'Retorno' })).toHaveLength(1)
+  expect(screen.queryByRole('link', { name: 'Catálogo' })).not.toBeInTheDocument()
 })
