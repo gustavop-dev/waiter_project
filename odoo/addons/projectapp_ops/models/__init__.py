@@ -13,3 +13,4 @@ from . import channel_orders
 from . import gateway_payments
 
 from . import menu_banners
+from . import insights

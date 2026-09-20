@@ -39,3 +39,7 @@ servicios ya implementados. El contrato ejecutado de H prevalece para sus flujos
 
 - [Pagos Wompi dentro del menú: configuración, pruebas y conciliación](planes/2026-09-14-wompi.md)
 - [Carta del comensal: saludo en la cabecera y tarjeta con el precio primero](decisiones/2026-09-14-carta-saludo-y-tarjeta.md)
+- [Sistema de diseño del POS: la vista /kit y cómo extenderlo](diseno/2026-09-19-sistema-de-diseno-pos.md)
+- [Reservas: el mismo plano, platos opcionales, costo y enlace de pago](decisiones/2026-09-19-reservas-mapa-anticipo-y-enlace-de-pago.md)
+- [Horario de reservas: semanal, con franjas y fechas especiales](decisiones/2026-09-20-horario-de-reservas.md)
+- [Inicio como tablero (atención, platos, predicción) y la caída de Administración](decisiones/2026-09-20-inicio-tablero.md)

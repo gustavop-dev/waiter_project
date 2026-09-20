@@ -10,13 +10,14 @@ export const TAB_ROUTES: Record<KitTab, string> = {
   inventory: '/inventario', kitchen: '/kds', admin: '/ventas',
 }
 
-// Segunda fila de Administración (chips "Tab Menu" del kit). Caja vive en Ventas hasta la oleada I.7.
-export const ADMIN_SUBTABS = [['sales', '/ventas'], ['catalog', '/catalogo'], ['customers', '/clientes'], ['billing', '/facturacion'], ['roi', '/automatizacion'], ['settings', '/configuracion']] as const
+// Segunda fila de Administración (chips "Tab Menu" del kit). Caja vive en Ventas hasta la oleada I.7. El Catálogo dejó de
+// ser una pestaña: repetía la lista de platos de Inventario, y la ficha comercial del plato ahora se edita allí.
+export const ADMIN_SUBTABS = [['sales', '/ventas'], ['customers', '/clientes'], ['billing', '/facturacion'], ['roi', '/automatizacion'], ['settings', '/configuracion']] as const
 export type AdminSubtab = (typeof ADMIN_SUBTABS)[number][0]
 
 const WAITER: KitTab[] = ['dashboard', 'orders', 'tables', 'reservations', 'history', 'inventory']
 const BY_ROLE: Record<Role, KitTab[]> = { waiter: WAITER, cashier: [...WAITER, 'kitchen', 'admin'], admin: [...WAITER, 'kitchen', 'admin'] }
-const SUBTABS_BY_ROLE: Record<Role, AdminSubtab[]> = { waiter: [], cashier: ['sales', 'customers', 'billing'], admin: ['sales', 'catalog', 'customers', 'billing', 'roi', 'settings'] }
+const SUBTABS_BY_ROLE: Record<Role, AdminSubtab[]> = { waiter: [], cashier: ['sales', 'customers', 'billing'], admin: ['sales', 'customers', 'billing', 'roi', 'settings'] }
 
 export const tabsFor = (role: Role): KitTab[] => BY_ROLE[role]
 export const adminSubtabsFor = (role: Role) => ADMIN_SUBTABS.filter(([key]) => SUBTABS_BY_ROLE[role].includes(key))

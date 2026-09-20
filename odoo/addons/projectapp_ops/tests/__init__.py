@@ -7,3 +7,4 @@ from . import test_channel_orders
 from . import test_gateway_payments
 
 from . import test_menu_banners
+from . import test_insights

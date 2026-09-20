@@ -16,15 +16,21 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { formatCop } from '@/lib/domain/money'
 import { can } from '@/lib/domain/roles'
 import { cashInOut, closeRegister, closingData, forceCloseRegister, type ClosingData } from '@/lib/services/cashRegister'
-import { listSales, listShifts, paymentsByMethod, salesByWaiter, topProducts, type MethodTotal, type ProductTotal, type SaleRow, type ShiftRow, type WaiterTotal } from '@/lib/services/sales'
+import { SALES_LIST_LIMIT, listSales, listShifts, paymentsByMethod, salesByWaiter, salesSummary, topProducts, type SalesSummary, type MethodTotal, type ProductTotal, type SaleRow, type ShiftRow, type WaiterTotal } from '@/lib/services/sales'
+import { SALES_PERIODS, rangeFor, validRange, type DayRange, type SalesPeriod, type SalesScope } from '@/lib/domain/salesPeriod'
 import { useAuthStore } from '@/lib/stores/authStore'
+import { cn } from '@/lib/utils'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
 
-interface Data { shiftId: number; sales: SaleRow[]; methods: MethodTotal[]; waiters: WaiterTotal[]; top: ProductTotal[] }
-const time = (at: string) => new Date(at.replace(' ', 'T') + 'Z').toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false })
-const day = (at: string) => new Date(at.replace(' ', 'T') + 'Z').toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })
+interface Data { key: string; summary: SalesSummary; sales: SaleRow[]; methods: MethodTotal[]; waiters: WaiterTotal[]; top: ProductTotal[] }
+const todayIso = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
+const dayLabel = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })
+const time = (at: string | null) => !at ? '—' : new Date(at.replace(' ', 'T') + 'Z').toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false })
+const day = (at: string | null) => !at ? null : new Date(at.replace(' ', 'T') + 'Z').toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })
 
-// Ventas del turno con la estructura del Dashboard del kit (KPIs con icono, tarjetas) y la caja arriba.
+// Ventas con la estructura del Dashboard del kit (KPIs con icono, tarjetas) y la caja arriba. Se filtra por periodo —hoy,
+// ayer, esta semana, este mes, el mes pasado o un rango— o por turno, que es el filtro para cuadrar la caja. El detalle
+// del día vive aquí; Inicio muestra la visión general.
 export default function VentasPage() {
   const t = useTranslations('cash.sales')
   const catalog = useCatalogStore((s) => s.catalog)
@@ -34,25 +40,40 @@ export default function VentasPage() {
   const [expectedCash, setExpectedCash] = useState<number | null>(null)
   const [shifts, setShifts] = useState<ShiftRow[]>([])
   const [shiftId, setShiftId] = useState<number | null>(null)
+  const [period, setPeriod] = useState<SalesPeriod>('today')
+  const [custom, setCustom] = useState<DayRange>(() => ({ from: todayIso(), to: todayIso() }))
   const [data, setData] = useState<Data | null>(null)
   const tableNumberOf = useMemo(() => (id: number) => catalog?.tables.find((tb) => tb.id === id)?.number ?? null, [catalog])
 
   useEffect(() => { void listShifts().then((rows) => { setShifts(rows); if (rows[0]) setShiftId((id) => id ?? rows[0].id) }) }, [])
   useEffect(() => { if (session) void closingData(session.id).then((d) => setExpectedCash(d.expectedCash)) }, [session])
+  // El alcance de la consulta; null mientras no se pueda consultar (rango a medio escribir, o «por turno» sin turnos).
+  const scope = useMemo<SalesScope | null>(() => {
+    if (period === 'shift') return shiftId === null ? null : { kind: 'shift', sessionId: shiftId }
+    const range = period === 'custom' ? custom : rangeFor(period, todayIso())
+    return validRange(range) ? { kind: 'range', ...range } : null
+  }, [period, shiftId, custom])
+  const scopeKey = scope ? JSON.stringify(scope) : ''
   useEffect(() => {
-    if (shiftId === null) return
-    void Promise.all([listSales(shiftId, tableNumberOf), paymentsByMethod(shiftId), salesByWaiter(shiftId), topProducts(shiftId)])
-      .then(([sales, methods, waiters, top]) => setData({ shiftId, sales, methods, waiters, top }))
-  }, [shiftId, tableNumberOf])
+    if (!scope) return
+    let alive = true
+    void Promise.all([salesSummary(scope), listSales(scope, tableNumberOf), paymentsByMethod(scope), salesByWaiter(scope), topProducts(scope)])
+      .then(([summary, sales, methods, waiters, top]) => { if (alive) setData({ key: scopeKey, summary, sales, methods, waiters, top }) })
+    return () => { alive = false }
+  }, [scopeKey, tableNumberOf]) // eslint-disable-line react-hooks/exhaustive-deps -- `scope` cambia de identidad en cada render; su contenido es `scopeKey`
 
-  const current = data?.shiftId === shiftId ? data : null
-  const total = current?.sales.reduce((a, s) => a + s.total, 0) ?? 0
-  const autonomous = current?.sales.filter((s) => s.origin !== 'waiter').length ?? 0
+  const current = scope && data?.key === scopeKey ? data : null
+  const total = current?.summary.total ?? 0
+  const orderCount = current?.summary.orders ?? 0
+  const autonomous = current?.summary.autonomous ?? 0
+  const rangeText = scope?.kind === 'range' ? (scope.from === scope.to ? dayLabel(scope.from) : `${dayLabel(scope.from)} – ${dayLabel(scope.to)}`) : ''
   const maxMethod = Math.max(...(current?.methods.map((m) => m.amount) ?? [1]), 1)
   const openShift = session ? shifts.find((s) => s.id === session.id) : undefined
+  const oneDay = scope?.kind === 'range' && scope.from === scope.to
   const columns: KitColumn<SaleRow>[] = [
     { key: 'ref', header: t('cols.order'), width: '110px', render: (s) => <span className="font-semibold">#{s.id}</span> },
-    { key: 'time', header: t('cols.time'), width: '90px', render: (s) => <span className="tabular">{time(s.paidAt)}</span> },
+    // En un solo día basta la hora; en un rango o un turno que cruza la medianoche hace falta también la fecha.
+    { key: 'time', header: t('cols.time'), width: oneDay ? '90px' : '150px', render: (s) => <span className="tabular">{oneDay ? time(s.paidAt) : `${day(s.paidAt)} · ${time(s.paidAt)}`}</span> },
     { key: 'table', header: t('cols.table'), width: '120px', render: (s) => (s.tableNumber !== null ? t('table', { n: s.tableNumber }) : t('delivery')) },
     { key: 'waiter', header: t('cols.waiter'), render: (s) => s.waiter },
     { key: 'origin', header: t('cols.origin'), width: '140px', render: (s) => <StatusPill tone={s.origin === 'waiter' ? 'neutral' : 'info'}>{s.origin === 'waiter' ? t('origin.waiter') : t('origin.auto')}</StatusPill> },
@@ -66,23 +87,39 @@ export default function VentasPage() {
   )
   return (
     <KitShell>
-      <PageHeader icon="sales" title={t('title')} actions={
-        <label className="h-12 px-4 rounded-md border border-border bg-surface flex items-center gap-2 text-[15px] font-semibold text-ink">
-          <span className="text-soft font-normal">{t('shift')}:</span>
-          <select aria-label={t('shift')} value={shiftId ?? ''} onChange={(e) => setShiftId(Number(e.target.value))} className="bg-transparent outline-none max-w-[320px]">
-            {shifts.map((s) => <option key={s.id} value={s.id}>{t('shiftLabel', { name: s.name, date: day(s.startAt) })} · {s.state === 'closed' ? t('shiftClosed') : t('shiftOpen')}</option>)}
-          </select>
-          <Icon name="chevronDown" size={18} className="text-soft" />
-        </label>
-      } />
+      <PageHeader icon="sales" title={t('title')} />
+      {/* Filtro de periodo: fichas para lo habitual, fechas para un rango y el turno para cuadrar la caja. */}
+      <div role="group" aria-label={t('period.label')} className="shrink-0 px-5 pb-4 flex flex-wrap items-center gap-2">
+        {SALES_PERIODS.map((p) => (
+          <button key={p} type="button" aria-pressed={period === p} onClick={() => setPeriod(p)}
+            className={cn('h-11 px-4 rounded-full border text-[15px] font-semibold', period === p ? 'bg-primary border-primary text-primary-ink' : 'bg-surface border-border text-soft hover:text-ink')}>{t(`period.${p}`)}</button>
+        ))}
+        {period === 'custom' && (
+          <span className="flex items-center gap-2 ml-2">
+            <input type="date" aria-label={t('period.from')} value={custom.from} max={custom.to || undefined} onChange={(e) => setCustom((c) => ({ ...c, from: e.target.value }))} className="h-11 rounded-md border border-border bg-surface px-3 text-[15px] text-ink" />
+            <span aria-hidden className="text-dim">–</span>
+            <input type="date" aria-label={t('period.to')} value={custom.to} min={custom.from || undefined} max={todayIso()} onChange={(e) => setCustom((c) => ({ ...c, to: e.target.value }))} className="h-11 rounded-md border border-border bg-surface px-3 text-[15px] text-ink" />
+          </span>
+        )}
+        {period === 'shift' && (
+          <label className="ml-2 h-11 px-4 rounded-md border border-border bg-surface flex items-center gap-2 text-[15px] font-semibold text-ink">
+            <span className="text-soft font-normal">{t('shift')}:</span>
+            <select aria-label={t('shift')} value={shiftId ?? ''} onChange={(e) => setShiftId(Number(e.target.value))} className="bg-transparent outline-none max-w-[320px]">
+              {shifts.map((s) => <option key={s.id} value={s.id}>{day(s.startAt) ? t('shiftLabel', { name: s.name, date: day(s.startAt) ?? '' }) : t('shiftNotStarted', { name: s.name })} · {s.state === 'closed' ? t('shiftClosed') : t('shiftOpen')}</option>)}
+            </select>
+            <Icon name="chevronDown" size={18} className="text-soft" />
+          </label>
+        )}
+        <span role="status" className="ml-auto text-[14px] text-soft">{!scope ? t('period.invalid') : rangeText}</span>
+      </div>
       <div className="flex-1 min-h-0 overflow-y-auto px-5 pb-5 flex flex-col gap-4">
-        {session && can.closeRegister(role) && <RegisterCard openSince={openShift ? time(openShift.startAt) : '—'} expectedCash={expectedCash}
+        {session && can.closeRegister(role) && <RegisterCard openSince={time(openShift?.startAt ?? null)} expectedCash={expectedCash}
           onClose={() => void closingData(session.id).then(setClosing)} onMove={async (type, amount, reason) => { await cashInOut(session.id, type, amount, reason); setExpectedCash((await closingData(session.id)).expectedCash) }} />}
         <div className="grid grid-cols-4 gap-4">
           <KpiTile label={t('kpi.sales')} icon="wallet" value={`$ ${formatCop(total)}`} />
-          <KpiTile label={t('kpi.orders')} icon="receipt" value={current?.sales.length ?? 0} />
-          <KpiTile label={t('kpi.avg')} icon="sales" value={`$ ${formatCop(current?.sales.length ? total / current.sales.length : 0)}`} />
-          <KpiTile label={t('kpi.autonomous')} icon="tablet" tone="primary" value={`${current?.sales.length ? Math.round((autonomous / current.sales.length) * 100) : 0}%`} />
+          <KpiTile label={t('kpi.orders')} icon="receipt" value={orderCount} />
+          <KpiTile label={t('kpi.avg')} icon="sales" value={`$ ${formatCop(orderCount ? total / orderCount : 0)}`} />
+          <KpiTile label={t('kpi.autonomous')} icon="tablet" tone="primary" value={`${orderCount ? Math.round((autonomous / orderCount) * 100) : 0}%`} />
         </div>
         <div className="grid grid-cols-3 gap-4">
           <Card title={t('byMethod')}>
@@ -99,7 +136,7 @@ export default function VentasPage() {
           <Card title={t('byWaiter')}>{list((current?.waiters ?? []).map((w) => ({ key: w.waiter, label: w.waiter, meta: `${w.orders} ${t('cols.orders')}`, amount: w.amount })))}</Card>
           <Card title={t('top')}>{list((current?.top ?? []).map((p) => ({ key: p.product, label: p.product, meta: `× ${p.qty}`, amount: p.amount })))}</Card>
         </div>
-        <Card title={t('orders')} className="shrink-0">
+        <Card title={orderCount > SALES_LIST_LIMIT ? t('ordersLimited', { shown: SALES_LIST_LIMIT, total: orderCount }) : t('orders')} className="shrink-0">
           <KitTable columns={columns} rows={current?.sales ?? []} rowKey={(s) => s.id} empty={<KitEmptyState icon="receipt" title={t('empty')} body={t('emptyBody')} />} />
         </Card>
       </div>

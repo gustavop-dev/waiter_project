@@ -9,12 +9,16 @@ import { imageUrl } from '@/lib/services/pantry'
 import { cn } from '@/lib/utils'
 
 // Tarjeta del "Menu List": foto con badge Disponible, nombre, categoría y pie "Se pueden servir: N" con el nivel.
-export function DishCard({ dish, category, onOpen }: { dish: Dish; category: string; onOpen: () => void }) {
+// `onEdit` (solo administradores) abre la ficha comercial: precio, foto, categoría, mostrarlo u ocultarlo.
+export function DishCard({ dish, category, onOpen, onEdit }: { dish: Dish; category: string; onOpen: () => void; onEdit?: () => void }) {
   const t = useTranslations('pantry')
   const available = dishAvailable(dish)
   const servings = dishServings(dish)
   return (
-    <button type="button" onClick={onOpen} aria-label={t('detail.open', { name: dish.name })} className="text-left bg-surface border border-border rounded-md p-1.5 flex flex-col hover:border-primary/40">
+    <div className="relative flex">
+    {onEdit && <button type="button" onClick={onEdit} aria-label={t('menuAdmin.edit', { name: dish.name })} title={t('menuAdmin.editShort')}
+      className="absolute top-3.5 right-3.5 z-10 w-10 h-10 rounded-full bg-surface text-ink shadow grid place-items-center hover:bg-muted"><Icon name="edit" size={18} /></button>}
+    <button type="button" onClick={onOpen} aria-label={t('detail.open', { name: dish.name })} className="flex-1 min-w-0 text-left bg-surface border border-border rounded-md p-1.5 flex flex-col hover:border-primary/40">
       <div className="relative aspect-[230/122] rounded-sm overflow-hidden bg-muted grid place-items-center text-dim">
         {dish.hasImage ? <img src={imageUrl(dish.id)} alt="" className="absolute inset-0 w-full h-full object-cover" /> : <Icon name="photo" size={28} />}
         <span className="absolute top-2 left-2 h-7 px-2.5 rounded-full bg-surface text-[13px] font-semibold text-ink flex items-center gap-1.5">
@@ -30,5 +34,6 @@ export function DishCard({ dish, category, onOpen }: { dish: Dish; category: str
         <LevelBadge level={dish.level} />
       </div>
     </button>
+    </div>
   )
 }

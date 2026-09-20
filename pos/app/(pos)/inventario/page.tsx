@@ -13,6 +13,7 @@ import { RecipeEditor } from '@/components/pantry/RecipeEditor'
 import { InventoryControl } from '@/components/pantry/InventoryControl'
 import { FilterPanel, type FilterSection } from '@/components/pantry/FilterPanel'
 import { IngredientRow } from '@/components/pantry/IngredientRow'
+import { MenuAdmin, type MenuAdminRequest } from '@/components/pantry/MenuAdmin'
 import { PantryHeader } from '@/components/pantry/PantryHeader'
 import { RequestList } from '@/components/pantry/RequestList'
 import { Button } from '@/components/ui/Button'
@@ -24,6 +25,7 @@ import {
 } from '@/lib/domain/pantry'
 import { getRecipe } from '@/lib/services/restaurantInventory'
 import { archiveIngredient, requestIngredient } from '@/lib/services/pantry'
+import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
 import { usePantryStore } from '@/lib/stores/pantryStore'
 import { toast } from '@/lib/stores/toastStore'
@@ -41,6 +43,9 @@ export default function InventarioPage() {
   const [control, setControl] = useState<Ingredient | null>(null)
   const [addDish, setAddDish] = useState(false)
   const [ingredientModal, setIngredientModal] = useState<IngredientModal>(null)
+  const [menuAdmin, setMenuAdmin] = useState<MenuAdminRequest | null>(null)
+  const session = useAuthStore((a) => a.session)
+  const reloadCatalog = useCatalogStore((c) => c.load) // la carta del POS (precios, agotados) se relee tras editar una ficha
   const refresh = s.refresh
   const load = s.load
   useEffect(() => { void load() }, [load])
@@ -117,12 +122,17 @@ export default function InventarioPage() {
         {s.tab === 'menu' && <FilterPanel sections={menuSections} onReset={s.resetFilters} />}
         {s.tab === 'ingredients' && <FilterPanel sections={ingredientSections} onReset={s.resetFilters} />}
         <section aria-label={listTitle} className="flex-1 min-w-0 min-h-0 bg-surface border border-border rounded-lg flex flex-col">
-          <header className="h-14 px-4 flex items-center border-b border-border shrink-0"><h2 className="text-[16px] font-semibold text-ink">{listTitle}</h2><button className="ml-auto text-sm text-primary" onClick={()=>void s.refresh().catch(e=>toast({title:String(e),tone:'danger'}))}>Actualizar</button></header>
+          <header className="h-14 px-4 flex items-center border-b border-border shrink-0"><h2 className="text-[16px] font-semibold text-ink">{listTitle}</h2>
+            {/* Lo que antes era Administración → Catálogo: categorías de la carta y platos ocultos o sin categoría. */}
+            {s.tab === 'menu' && role === 'admin' && <span className="ml-4 flex gap-2">
+              <Button size="compact" onClick={() => setMenuAdmin({ kind: 'categories' })}>{t('menuAdmin.categories')}</Button>
+              <Button size="compact" onClick={() => setMenuAdmin({ kind: 'offMenu' })}>{t('menuAdmin.offMenu')}</Button>
+            </span>}<button className="ml-auto text-sm text-primary" onClick={()=>void s.refresh().catch(e=>toast({title:String(e),tone:'danger'}))}>Actualizar</button></header>
           <div className="flex-1 min-h-0 overflow-auto flex flex-col">
             {s.error && <p role="alert" className="m-4 p-3 rounded-md bg-danger-soft text-danger-ink text-[14px]">{s.error}</p>}
             {s.tab === 'menu' && (dishes.length === 0 && !s.loading
               ? <KitEmptyState icon="inventory" title={t('menu.empty')} body={t('menu.emptyBody')} />
-              : <div className="p-2.5 grid grid-cols-3 gap-2.5 content-start">{dishes.map((d) => <DishCard key={d.id} dish={d} category={posCategoryName(d.categoryIds)} onOpen={() => void openDetail(d)} />)}</div>)}
+              : <div className="p-2.5 grid grid-cols-3 gap-2.5 content-start">{dishes.map((d) => <DishCard key={d.id} dish={d} category={posCategoryName(d.categoryIds)} onOpen={() => void openDetail(d)} onEdit={role === 'admin' ? () => setMenuAdmin({ kind: 'product', id: d.id }) : undefined} />)}</div>)}
             {s.tab === 'ingredients' && (ingredients.length === 0 && !s.loading
               ? <KitEmptyState icon="inventory" title={t('ingredients.empty')} body={t('ingredients.emptyBody')} />
               : <ul className="p-2.5 flex flex-col gap-2">{ingredients.map((i) => <IngredientRow key={i.id} ingredient={i} onEdit={() => setIngredientModal({ kind: 'edit', ingredient: i })} onRequest={() => void request(i)} onDelete={() => setIngredientModal({ kind: 'delete', ingredient: i })} mayEdit={mayEdit} onControl={()=>setControl(i)} />)}</ul>)}
@@ -130,6 +140,7 @@ export default function InventarioPage() {
           </div>
         </section>
       </div>
+      {menuAdmin && <MenuAdmin key={JSON.stringify(menuAdmin)} request={menuAdmin} onClose={() => setMenuAdmin(null)} onChanged={() => { void s.refresh(); void reloadCatalog(session?.id ?? null) }} />}
       {detail&&<RecipeEditor key={detail.id} dish={detail} ingredients={s.ingredients} units={s.units} mayEdit={role==='admin'} onClose={()=>setDetail(null)} onSaved={s.refresh}/>}
       {control&&<InventoryControl key={control.id} ingredient={control} mayEdit={role==='admin'} onClose={()=>setControl(null)} onSaved={s.refresh}/>}
       <AddDishWizard open={addDish} onClose={() => setAddDish(false)} categories={s.posCategories} ingredients={s.ingredients} units={s.units} onSaved={s.refresh} />
