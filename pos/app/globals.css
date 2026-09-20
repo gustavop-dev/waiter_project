@@ -70,9 +70,35 @@ body { background: var(--color-canvas); color: var(--color-ink); font-family: va
   -webkit-font-smoothing: antialiased; }
 .tabular { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
 
+/* Acceso: panel azul noche con manchas de color a la deriva (components/account/LoginFrame.tsx). El difuminado va una
+   sola vez sobre el campo y cada mancha solo anima transform, para que una tablet modesta lo mueva sin tirones. */
+.login-aurora { background: linear-gradient(150deg, #152A78 0%, #0D1840 55%, #0B1430 100%); isolation: isolate; }
+.login-aurora-field { position: absolute; inset: -14%; filter: blur(44px) saturate(1.2); }
+.login-aurora::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgb(11 20 48 / 0) 45%, rgb(11 20 48 / 0.42) 100%); }
+.login-blob { position: absolute; border-radius: 50%; mix-blend-mode: screen; will-change: transform; }
+.login-blob-blue   { width: 78%; aspect-ratio: 1; left: -16%; top: -14%;   background: radial-gradient(circle, #447DFC 0%, #447DFC 22%, rgb(68 125 252 / 0) 70%);  animation: login-drift-a 26s ease-in-out infinite alternate; }
+.login-blob-indigo { width: 70%; aspect-ratio: 1; right: -18%; top: 4%;    background: radial-gradient(circle, #7C6CF6 0%, #6172F3 24%, rgb(97 114 243 / 0) 70%);  animation: login-drift-b 32s ease-in-out infinite alternate; }
+.login-blob-amber  { width: 58%; aspect-ratio: 1; left: 2%;   bottom: -16%; background: radial-gradient(circle, #FBBF24 0%, #F59E0B 22%, rgb(245 158 11 / 0) 68%);  animation: login-drift-c 22s ease-in-out infinite alternate; }
+.login-blob-mint   { width: 56%; aspect-ratio: 1; right: -8%; bottom: -6%; background: radial-gradient(circle, #34E0B4 0%, #2DD4A7 20%, rgb(45 212 167 / 0) 68%);  animation: login-drift-d 36s ease-in-out infinite alternate; }
+.login-blob-rose   { width: 50%; aspect-ratio: 1; left: 22%;  top: 26%;    background: radial-gradient(circle, #FF7AA2 0%, #F4628C 20%, rgb(244 98 140 / 0) 66%);  animation: login-drift-e 29s ease-in-out infinite alternate; }
+@keyframes login-drift-a { from { transform: translate3d(0, 0, 0) scale(1); }      to { transform: translate3d(22%, 18%, 0) scale(1.18); } }
+@keyframes login-drift-b { from { transform: translate3d(0, 0, 0) scale(1.1); }    to { transform: translate3d(-26%, 24%, 0) scale(0.9); } }
+@keyframes login-drift-c { from { transform: translate3d(0, 0, 0) scale(0.95); }   to { transform: translate3d(30%, -28%, 0) scale(1.2); } }
+@keyframes login-drift-d { from { transform: translate3d(0, 0, 0) scale(1); }      to { transform: translate3d(-32%, -22%, 0) scale(1.25); } }
+@keyframes login-drift-e { from { transform: translate3d(0, 0, 0) scale(1.05); }   to { transform: translate3d(-18%, 26%, 0) scale(0.85); } }
+@media (prefers-reduced-motion: reduce) { .login-blob { animation: none; } }
+
 /* Recibo: al imprimir solo se ve .receipt (impresión desde el navegador; térmica llega después). */
 @media print {
   body * { visibility: hidden; }
   .receipt, .receipt * { visibility: visible; }
   .receipt { position: fixed; inset: 0; width: 80mm; padding: 6mm; background: #fff; color: #000; overflow: visible; }
 }
+
+/* Globitos de la línea de tiempo de reservas: la flecha se mece hacia el lado donde hay reservas fuera de la vista. */
+@keyframes offscreen-nudge-left { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-4px); } }
+@keyframes offscreen-nudge-right { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(4px); } }
+.offscreen-nudge-left { animation: offscreen-nudge-left 1.2s ease-in-out infinite; }
+.offscreen-nudge-right { animation: offscreen-nudge-right 1.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .offscreen-nudge-left, .offscreen-nudge-right { animation: none; } }

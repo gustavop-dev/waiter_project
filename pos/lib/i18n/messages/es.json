@@ -38,6 +38,8 @@
       "newTable": "Nueva mesa"
     },
     "login": {
+      "panelTitle": "Opera más mesas con menos carga.",
+      "panelText": "Salón, cocina y caja en un mismo lugar, para que el equipo se dedique a servir.",
       "eyebrow": "{date}",
       "greeting": {
         "morning": "Buenos días",

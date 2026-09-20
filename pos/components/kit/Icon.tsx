@@ -1,14 +1,14 @@
-import { IconAddressBook, IconAdjustments, IconAlarm, IconAlertTriangle, IconArmchair, IconArrowDown, IconArrowLeft,
+import { IconAddressBook, IconAdjustments, IconAlarm, IconAlertTriangle, IconArmchair, IconArrowBackUp, IconArrowDown, IconArrowForwardUp, IconArrowLeft,
   IconArrowRight, IconArrowUp, IconArrowsExchange2, IconArrowsMaximize, IconArrowsMove, IconBabyCarriage, IconBackspace,
   IconBell, IconBox, IconBuildingStore, IconCalendarEvent, IconCash, IconCashBanknote, IconCashRegister, IconChartBar,
   IconChartLine, IconCheck, IconChecks, IconChefHat, IconChevronDown, IconChevronLeft, IconChevronRight, IconCircleCheck,
-  IconCircleCheckFilled, IconClock, IconCreditCard, IconDeviceDesktop, IconDeviceMobile, IconDeviceTablet, IconDots,
+  IconCircleCheckFilled, IconClock, IconCopy, IconCreditCard, IconDeviceDesktop, IconDeviceMobile, IconDeviceTablet, IconDots,
   IconDotsVertical, IconFileCheck, IconFileInvoice, IconFileText, IconFileTypePdf, IconFilter, IconFingerprint, IconFlame,
-  IconGift, IconHash, IconHistory, IconInfoCircle, IconLanguage, IconLayout2, IconLayoutDashboard, IconLayoutGrid, IconLoader2,
-  IconLock, IconLogout, IconMail, IconMapPin, IconMinus, IconPackage, IconPalette, IconPencil, IconPercentage, IconPhone,
-  IconPhoto, IconPhotoPlus, IconPlus, IconPrinter, IconProgress, IconQrcode, IconReceipt, IconRefresh, IconRotate, IconSearch,
-  IconSettings, IconSettingsCog, IconShoppingBag, IconShoppingCart, IconStar, IconStarFilled, IconTag, IconToolsKitchen2,
-  IconTrash, IconTruckDelivery, IconUpload, IconUser, IconUsers, IconVolume, IconVolumeOff, IconWallet, IconX, type IconProps,
+  IconGift, IconHandStop, IconHash, IconHistory, IconInfoCircle, IconKeyboard, IconLanguage, IconLayout2, IconLayoutColumns, IconLayoutDashboard, IconLayoutGrid, IconLoader2,
+  IconLock, IconLogout, IconMail, IconMapPin, IconMarquee2, IconMinus, IconPackage, IconPalette, IconPencil, IconPercentage, IconPhone,
+  IconPhoto, IconPhotoPlus, IconPlus, IconPointer, IconPrinter, IconProgress, IconQrcode, IconReceipt, IconRefresh, IconRotate, IconSearch,
+  IconSettings, IconSettingsCog, IconShoppingBag, IconShoppingCart, IconStack2, IconStairs, IconStar, IconStarFilled, IconTag, IconToolsKitchen2,
+  IconTrash, IconTruckDelivery, IconUpload, IconUser, IconUsers, IconVolume, IconVolumeOff, IconWall, IconWallet, IconX, type IconProps,
 } from '@tabler/icons-react'
 import type { ComponentType } from 'react'
 
@@ -33,6 +33,11 @@ const ICONS = {
   alert: IconAlertTriangle, filter: IconFilter, arrowUp: IconArrowUp, arrowDown: IconArrowDown, gift: IconGift,
   pdf: IconFileTypePdf, palette: IconPalette, layout: IconLayout2, grid: IconLayoutGrid, percentage: IconPercentage,
   chartLine: IconChartLine, tablet: IconDeviceTablet,
+  // Editor del plano: herramientas, historial y capas.
+  pointer: IconPointer, hand: IconHandStop, wall: IconWall, zone: IconMarquee2, undo: IconArrowBackUp, redo: IconArrowForwardUp,
+  copy: IconCopy, layers: IconStack2, keyboard: IconKeyboard,
+  // Salón: pisos del local y pantalla partida.
+  floors: IconStairs, split: IconLayoutColumns,
 } satisfies Record<string, ComponentType<IconProps>>
 
 export type KitIcon = keyof typeof ICONS
