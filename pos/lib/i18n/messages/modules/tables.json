@@ -5,6 +5,23 @@
   "pickTable": { "title": "¿De qué mesa es el pedido?", "body": "Toca la mesa en el plano: abajo aparece su barra con «Crear pedido». Así el pedido nace con su mesa y no con la última que se tocó.", "choose": "Elegir en el plano", "noTable": "Es para llevar o a domicilio" },
   "settings": "Ajustes de mesas",
   "floors": "Pisos",
+  "floorLabel": "Piso",
+  "split": {"on": "Dividir la pantalla", "off": "Volver a una sola vista", "close": "Cerrar este panel", "hint": "Dos pisos a la vez", "paneLabel": "Panel {n}: {floor}"},
+  "zoneStaff": {
+    "bar": "Zonas del restaurante", "filter": "Ver zona", "all": "Todas las zonas", "mine": "Mis zonas", "calls": "{count, plural, =0 {Sin avisos en esta vista} one {# mesa con aviso en esta vista} other {# mesas con avisos en esta vista}}",
+    "open": "Meseros por zona", "missing": "{count, plural, one {# zona sin mesero} other {# zonas sin mesero}}",
+    "noZones": "Este piso no tiene zonas. Dibújalas en el editor del plano (engranaje → Editar piso actual → herramienta Zona) y podrás repartir a los meseros.",
+    "title": "Meseros por zona · {floor}",
+    "introClosed": "Este es el reparto habitual del piso. Déjalo listo ahora: cada turno empieza con él al abrir la caja.",
+    "introPlan": "El turno está usando el reparto habitual del piso. Lo que cambies aquí vale solo para este turno.",
+    "introShift": "Este turno tiene un reparto propio, distinto del habitual.",
+    "reset": "Volver al reparto habitual", "resetDone": "El turno volvió al reparto habitual.",
+    "tables": "{count, plural, =0 {Sin mesas} one {# mesa} other {# mesas}}", "nobody": "Sin mesero: los avisos de esta zona llegan a todos.",
+    "toggle": "{name} en {zone}", "free": "Sin zona fija", "freeHint": "Pueden apoyar en cualquier zona.", "everyoneBusy": "Todos tienen zona.",
+    "noEmployees": "No hay empleados en este terminal. Créalos en Configuración → Empleados.",
+    "alsoUsual": "Guardar también como reparto habitual", "cancel": "Cancelar", "save": "Guardar reparto", "saved": "Reparto guardado.",
+    "loadFailed": "No se pudo cargar el reparto de meseros.", "employeesFailed": "No se pudo cargar la lista de empleados."
+  },
   "floorPicker": "Piso #{number}",
   "floorInfo": { "label": "Info del piso:", "type": "Tipo", "indoor": "Interior", "outdoor": "Exterior", "toggle": "Ver detalle del piso", "remainingLarge": "Mesas grandes libres", "remainingSmall": "Mesas pequeñas libres" },
   "emptyFloor": { "title": "Este piso no tiene mesas", "body": "Usa el engranaje para organizar el plano." },
@@ -33,7 +50,7 @@
     "done": "Pedido movido a la mesa {name}", "busy": "La mesa {name} ya tiene un pedido.", "failed": "No se pudo mover el pedido."
   },
   "floorToggle": { "needsClosedSession": "Hay una caja abierta", "needsClosedSessionBody": "Cierra el turno en Ventas antes de activar o desactivar «{name}».", "failed": "No se pudo cambiar el piso" },
-  "floorSettings": { "editCurrent": "Editar piso actual", "add": "Agregar piso", "edit": "Editar piso {name}", "active": "Piso {name} activo", "empty": "Aún no hay pisos." },
+  "floorSettings": {"title": "Pisos del restaurante", "editCurrent": "Editar piso actual", "add": "Agregar piso", "edit": "Editar piso {name}", "active": "Piso {name} activo", "empty": "Aún no hay pisos.", "delete": "Eliminar piso {name}", "activeGroup": "Activos", "inactiveGroup": "Inactivos", "inactiveHint": "No aparecen en el salón. Actívalos o elimínalos.", "tables": "{count, plural, =0 {Sin mesas} one {# mesa} other {# mesas}}", "deleteTitle": "¿Eliminar {name}?", "deleteBody": "Se eliminan el piso y sus {count, plural, =0 {mesas} one {# mesa} other {# mesas}}. Si tuvo ventas, el historial se conserva. No se puede deshacer.", "deleteConfirm": "Eliminar piso", "deleteCancel": "Conservar", "deleted": "Piso eliminado", "deletedArchived": "Piso eliminado. Sus ventas siguen en el historial.", "deleteFailed": "No se pudo eliminar el piso", "deleteNeedsClosedSession": "Cierra la caja para eliminar un piso."},
   "wizard": {
     "addTitle": "Agregar plano", "editTitle": "Editar plano", "steps": { "info": "Información", "arrange": "Organizar plano", "success": "Mesas creadas" },
     "number": "Número de piso", "numberPlaceholder": "Escribe el número o el nombre del piso", "type": "Tipo de piso", "indoor": "Interior", "outdoor": "Exterior",

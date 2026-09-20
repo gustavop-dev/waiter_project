@@ -23,8 +23,10 @@ export function TableLegend() {
   )
 }
 
-// Hasta tres pisos: pestañas en píldora gris (Home.png). Con cuatro o más: desplegable "Piso #N" (If Floor 4+.png).
-export function FloorSwitcher({ floors, activeId, onChange }: { floors: Floor[]; activeId: number | null; onChange: (id: number) => void }) {
+// Selector de piso. Lleva icono de escaleras y la palabra «Piso» por delante: sin eso las pestañas se confundían con la
+// leyenda de colores que tienen al lado. Hasta tres pisos son pestañas (Home.png); con cuatro o más, un desplegable
+// (If Floor 4+.png). El piso activo va en azul, no solo en blanco, para que se lea como «estás aquí».
+export function FloorSwitcher({ floors, activeId, onChange, compact = false }: { floors: Floor[]; activeId: number | null; onChange: (id: number) => void; compact?: boolean }) {
   const t = useTranslations('tables')
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -35,30 +37,35 @@ export function FloorSwitcher({ floors, activeId, onChange }: { floors: Floor[];
     return () => window.removeEventListener('pointerdown', close)
   }, [open])
   const label = (f: Floor) => parseFloorName(f.name).label
-  if (floors.length <= TABS_MAX) {
+  const caption = <span className="flex items-center gap-1.5 pl-2 pr-1 text-[13px] font-semibold text-soft whitespace-nowrap"><Icon name="floors" size={18} />{t('floorLabel')}</span>
+  if (floors.length <= (compact ? 2 : TABS_MAX)) {
     return (
-      <div role="tablist" aria-label={t('floors')} className="inline-flex items-center gap-0.5 p-1 rounded-md bg-muted">
-        {floors.map((f) => (
-          <button key={f.id} type="button" role="tab" aria-selected={f.id === activeId} onClick={() => onChange(f.id)}
-            className={cn('h-10 px-3.5 rounded-sm text-[15px] font-semibold whitespace-nowrap', f.id === activeId ? 'bg-surface border border-border text-ink' : 'text-dim')}>{label(f)}</button>
-        ))}
+      <div className="inline-flex items-center gap-1 p-1 rounded-md bg-muted min-w-0">
+        {caption}
+        <div role="tablist" aria-label={t('floors')} className="inline-flex items-center gap-0.5 min-w-0">
+          {floors.map((f) => (
+            <button key={f.id} type="button" role="tab" aria-selected={f.id === activeId} onClick={() => onChange(f.id)} title={label(f)}
+              className={cn('h-10 px-3.5 rounded-sm text-[15px] font-semibold whitespace-nowrap max-w-[220px] truncate', f.id === activeId ? 'bg-surface border border-primary/40 text-primary shadow-sm' : 'text-soft hover:bg-surface/60 hover:text-ink')}>{label(f)}</button>
+          ))}
+        </div>
       </div>
     )
   }
   const active = floors.find((f) => f.id === activeId)
   const index = active ? floors.indexOf(active) + 1 : 1
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative min-w-0">
       <button type="button" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((v) => !v)}
-        className="h-12 px-4 rounded-md border border-border bg-surface flex items-center gap-2 text-[15px] font-semibold text-ink">
-        {active ? label(active) : t('floorPicker', { number: index })}<Icon name="chevronDown" size={18} />
+        className="h-12 max-w-full pl-3 pr-3 rounded-md border border-border bg-surface flex items-center gap-2 text-[15px] font-semibold text-ink">
+        <Icon name="floors" size={18} className="shrink-0 text-soft" /><span className="text-soft font-medium">{t('floorLabel')}</span>
+        <span className="truncate text-primary">{active ? label(active) : t('floorPicker', { number: index })}</span><Icon name="chevronDown" size={18} className="shrink-0" />
       </button>
       {open && (
-        <ul role="listbox" aria-label={t('floors')} className="absolute right-0 top-14 z-30 min-w-[220px] p-2 rounded-md bg-surface border border-border shadow-xl flex flex-col gap-0.5">
+        <ul role="listbox" aria-label={t('floors')} className="absolute right-0 top-14 z-30 min-w-[220px] max-h-[60vh] overflow-auto p-2 rounded-md bg-surface border border-border shadow-xl flex flex-col gap-0.5">
           {floors.map((f, i) => (
             <li key={f.id} role="option" aria-selected={f.id === activeId} onClick={() => { onChange(f.id); setOpen(false) }}
               className={cn('h-11 px-3 rounded-sm flex items-center justify-between gap-3 text-[15px] cursor-pointer', f.id === activeId ? 'bg-primary-soft text-primary font-semibold' : 'text-ink hover:bg-muted')}>
-              <span>{label(f)}</span><span className="text-[13px] text-dim">#{i + 1}</span>
+              <span className="truncate">{label(f)}</span><span className="text-[13px] text-dim">#{i + 1}</span>
             </li>
           ))}
         </ul>

@@ -89,6 +89,137 @@ class TestFloorPlan(TransactionCase):
         with self.assertRaises(UserError):
             self.save()
 
+    PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aNCsAAAAASUVORK5CYII='
+
+    def test_extra_images_are_attachments_kept_moved_dropped_and_owned(self):
+        first = self.save({**self.plan, 'images': [{'id': 'a', 'x': 0, 'y': 700, 'width': 400, 'height': 300, 'data': self.PNG},
+                                                   {'id': 'b', 'x': 500, 'y': 700, 'width': 200, 'height': 200, 'data': self.PNG}]})
+        a, b = first['images']
+        attachments = self.env['ir.attachment'].browse([a['attachmentId'], b['attachmentId']])
+        self.assertEqual(set(attachments.mapped('res_model')), {'restaurant.floor'})
+        self.assertEqual(set(attachments.mapped('res_id')), {first['id']})
+        self.assertNotIn('data', a)
+        legacy = self.Floor.browse(first['id']).waiter_read_plan()
+        legacy.pop('images')
+        self.assertEqual(len(self.save(legacy)['images']), 2, 'un cliente anterior no debe borrar las imágenes')
+        moved = self.Floor.browse(first['id']).waiter_read_plan()
+        moved['images'] = [{**moved['images'][0], 'x': 40}]
+        kept = self.save(moved)['images']
+        self.assertEqual([(i['id'], i['x'], i['attachmentId']) for i in kept], [('a', 40, a['attachmentId'])])
+        self.assertFalse(self.env['ir.attachment'].browse(b['attachmentId']).exists())
+        other = self.save({**self.plan, 'name': 'Otro piso', 'tables': [{**self.plan['tables'][0], 'number': 7}]})
+        stolen = self.Floor.browse(other['id']).waiter_read_plan()
+        stolen['images'] = [{'id': 'x', 'x': 0, 'y': 0, 'width': 100, 'height': 100, 'attachmentId': a['attachmentId']}]
+        with self.assertRaises(UserError):
+            self.save(stolen)
+        bad = self.Floor.browse(first['id']).waiter_read_plan()
+        bad['images'] = bad['images'] + [{'id': 'z', 'x': 0, 'y': 0, 'width': 100, 'height': 100, 'data': 'bm8gZXMgaW1hZ2Vu'}]
+        with self.assertRaises(UserError):
+            self.save(bad)
+        self.assertEqual(len(self.Floor.browse(first['id']).waiter_read_plan()['images']), 1)
+
+    def test_wall_color_is_optional_persisted_and_validated(self):
+        saved = self.save()
+        self.assertNotIn('color', saved['walls'][0])
+        painted = deepcopy(saved)
+        painted['walls'][0]['color'] = '#9a3412'
+        self.assertEqual(self.save(painted)['walls'][0]['color'], '#9a3412')
+        broken = self.Floor.browse(saved['id']).waiter_read_plan()
+        broken['walls'][0]['color'] = 'rojo'
+        with self.assertRaises(UserError):
+            self.save(broken)
+        self.assertEqual(self.Floor.browse(saved['id']).waiter_read_plan()['walls'][0]['color'], '#9a3412')
+
+    def delete(self, floor_id, token=None):
+        return self.Floor.waiter_delete_floor(self.config.id, floor_id, self.employee.id, token or self.token)
+
+    def test_delete_removes_a_floor_without_history_and_keeps_one_active(self):
+        first, second = self.save()['id'], self.save({**self.plan, 'name': 'Segundo piso'})['id']
+        tables = self.env['restaurant.table'].search([('floor_id', '=', second)])
+        self.assertEqual(self.delete(second), {'id': second, 'result': 'removed'})
+        self.assertFalse(self.Floor.with_context(active_test=False).browse(second).exists())
+        self.assertFalse(tables.exists())
+        others = self.Floor.search([('pos_config_ids', 'in', [self.config.id]), ('id', '!=', first)])
+        for floor in others:
+            self.delete(floor.id)
+        with self.assertRaises(UserError):
+            self.delete(first)
+        self.assertTrue(self.Floor.browse(first).exists())
+
+    def test_delete_archives_and_detaches_a_floor_with_paid_history(self):
+        keep, floor_id = self.save()['id'], self.save({**self.plan, 'name': 'Con historial'})['id']
+        floor = self.Floor.browse(floor_id)
+        table = floor.table_ids[0]
+        session = self.env['pos.session'].create({'config_id': self.config.id, 'user_id': self.env.uid})
+        order = self.env['pos.order'].create({'session_id': session.id, 'table_id': table.id, 'amount_tax': 0, 'amount_total': 0, 'amount_paid': 0, 'amount_return': 0, 'state': 'draft'})
+        with self.assertRaises(UserError):
+            self.delete(floor_id)
+        order.write({'state': 'paid'})
+        session.write({'state': 'closed'})
+        self.assertEqual(self.delete(floor_id), {'id': floor_id, 'result': 'archived'})
+        self.assertFalse(floor.active)
+        self.assertNotIn(self.config, floor.pos_config_ids)
+        self.assertFalse(table.active)
+        self.assertEqual(order.table_id, table)
+        self.assertTrue(self.Floor.browse(keep).active)
+
+    def test_delete_enforces_pin_closed_cash_and_terminal_ownership(self):
+        self.save()
+        floor_id = self.save({**self.plan, 'name': 'Por borrar'})['id']
+        with self.assertRaises(AccessError):
+            self.delete(floor_id, token='otro')
+        foreign = self.Floor.create({'name': 'De otro terminal'})
+        with self.assertRaises(UserError):
+            self.delete(foreign.id)
+        session = self.env['pos.session'].create({'config_id': self.config.id, 'user_id': self.env.uid})
+        with self.assertRaises(UserError):
+            self.delete(floor_id)
+        session.write({'state': 'closed'})
+        self.assertEqual(self.delete(floor_id)['result'], 'removed')
+
+    # Falla si el reparto de meseros vuelve a exigir caja abierta, si un turno nuevo no lo hereda, si ajustar un turno
+    # cambia el reparto habitual, o si los avisos de cocina dejan de seguir al reparto que de verdad está vigente.
+    def test_the_usual_staff_is_prepared_with_cash_closed_and_each_shift_inherits_or_overrides_it(self):
+        saved = self.save()
+        floor = self.Floor.browse(saved['id'])
+        ana, beto = (self.env['hr.employee'].create({'name': n, 'company_id': self.env.company.id}) for n in ('Ana', 'Beto'))
+        self.assertFalse(self.env['pos.session'].search_count([('config_id', '=', self.config.id), ('state', '!=', 'closed')]))
+        self.Floor.waiter_assign_zone_staff(self.config.id, floor.id, {'zone': [ana.id]}, self.employee.id, self.token)
+        self.assertEqual(floor.waiter_zone_staff_for(), {'assignments': {'zone': [ana.id]}, 'source': 'plan', 'plan': {'zone': [ana.id]}})
+        with self.assertRaises(AccessError):
+            self.Floor.waiter_assign_zone_staff(self.config.id, floor.id, {'zone': [beto.id]}, self.employee.id, 'otro')
+        with self.assertRaises(UserError):
+            self.Floor.waiter_assign_zone_staff(self.config.id, floor.id, {'no-existe': [ana.id]}, self.employee.id, self.token)
+        session = self.env['pos.session'].create({'config_id': self.config.id})
+        # El POS ya trata como abierta una caja en `opening_control`: el reparto del turno no puede rechazarla.
+        self.assertEqual(session.state, 'opening_control')
+        session.waiter_assign_zones(floor.id, {'zone': [beto.id]}, self.employee.id, self.token)
+        self.assertEqual(floor.waiter_zone_staff_for(session.id)['source'], 'shift')
+        session.waiter_assign_zones(floor.id, None, self.employee.id, self.token)
+        session.set_opening_control(0, '')
+        self.assertEqual(floor.waiter_zone_staff_for(session.id)['source'], 'plan')
+        order = self.env['pos.order'].create({'session_id': session.id, 'table_id': saved['tables'][0]['id'], 'date_order': fields.Datetime.now(),
+                                             'amount_tax': 0, 'amount_total': 0, 'amount_paid': 0, 'amount_return': 0})
+        self.assertEqual(self.env['pos.order'].waiter_zone_targets(order.ids)[str(order.id)], [ana.id])
+        session.waiter_assign_zones(floor.id, {'zone': [beto.id]}, self.employee.id, self.token)
+        self.assertEqual(floor.waiter_zone_staff_for(session.id), {'assignments': {'zone': [beto.id]}, 'source': 'shift', 'plan': {'zone': [ana.id]}})
+        self.assertEqual(self.env['pos.order'].waiter_zone_targets(order.ids)[str(order.id)], [beto.id])
+        self.assertEqual(floor.waiter_zone_staff, {'zone': [ana.id]})
+        session.waiter_assign_zones(floor.id, None, self.employee.id, self.token)
+        self.assertEqual(floor.waiter_zone_staff_for(session.id)['source'], 'plan')
+        order.unlink()
+
+    # Falla si borrar una zona del plano deja su reparto colgando: el siguiente guardado lo rechazaría como «zona inexistente».
+    def test_deleting_a_zone_forgets_who_was_assigned_to_it(self):
+        saved = self.save()
+        floor = self.Floor.browse(saved['id'])
+        self.Floor.waiter_assign_zone_staff(self.config.id, floor.id, {'zone': [self.employee.id]}, self.employee.id, self.token)
+        without = floor.waiter_read_plan()
+        without['zones'] = []
+        without['tables'][0]['zone'] = ''
+        self.save(without)
+        self.assertFalse(floor.waiter_zone_staff)  # Odoo guarda el Json vacío como False
+
     def test_assignments_are_per_session_and_allow_shared_zones(self):
         saved = self.save()
         waiter = self.env['hr.employee'].create({'name':'Mesero plano','company_id':self.env.company.id})

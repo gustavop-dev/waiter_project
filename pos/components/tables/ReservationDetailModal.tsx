@@ -38,7 +38,9 @@ export function ReservationDetailModal({ open, onClose, reservationId, load = ge
             <span>{formatReservationDate(detail.date)} / {detail.timeLabel}</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="w-10 h-10 shrink-0 rounded-sm bg-primary text-primary-ink grid place-items-center text-[15px] font-semibold">{detail.tableNumber}</span>
+            <span className="shrink-0 flex gap-1">
+              {detail.tableNumbers.map((n) => <span key={n} className="min-w-10 h-10 px-2 rounded-sm bg-primary text-primary-ink grid place-items-center text-[15px] font-semibold">{n}</span>)}
+            </span>
             {([[t('customer'), detail.customerName], [t('people'), String(detail.people)], [t('babyChair'), t(detail.babyChair ? 'yes' : 'no')]] as const).map(([label, value]) => (
               <div key={label} className="min-w-0 flex flex-col"><span className="text-[13px] text-dim">{label}</span><span className="text-[15px] font-semibold text-ink truncate">{value}</span></div>
             ))}

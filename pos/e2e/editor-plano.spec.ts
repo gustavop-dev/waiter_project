@@ -18,7 +18,9 @@ test('inline editor moves at the pointer, rotates, resizes and persists walls, z
   await page.getByLabel('Tamaño de la imagen',{exact:true}).fill('150')
   await expect(page.locator('svg image')).toHaveAttribute('width','1800')
   const canvas=page.getByLabel('Cuadrícula del restaurante');const box=(await canvas.boundingBox())!
-  const point=(x:number,y:number)=>({x:box.x+50+x*0.8,y:box.y+50+y*0.8})
+  // El editor encuadra el plano al abrir: la cámara se lee del lienzo en vez de suponer un origen y un zoom fijos.
+  const cam=await canvas.evaluate((el:Element)=>{const d=(el as SVGElement).dataset;return{x:Number(d.cameraX),y:Number(d.cameraY),zoom:Number(d.cameraZoom)}})
+  const point=(x:number,y:number)=>({x:box.x+cam.x+x*cam.zoom,y:box.y+cam.y+y*cam.zoom})
   async function draw(tool:string,x:number,y:number,w:number,h:number){await page.getByRole('button',{name:tool,exact:true}).click();const a=point(x,y),b=point(x+w,y+h);await page.mouse.move(a.x,a.y);await page.mouse.down();await page.mouse.move(b.x,b.y,{steps:8});await page.mouse.up()}
   await draw('Dibujar zona',0,0,800,600);await page.getByLabel('Nombre de zona').fill('Terraza nueva')
   await draw('Dibujar pared',0,650,800,20)
@@ -39,7 +41,7 @@ test('inline editor moves at the pointer, rotates, resizes and persists walls, z
   await page.mouse.move(position.x+30,position.y+30);await page.mouse.down();await page.mouse.move(position.x+110,position.y+30,{steps:6})
   const moved=(await first.boundingBox())!;expect(Math.abs(moved.x-position.x-80)).toBeLessThanOrEqual(12);await page.mouse.up()
   await page.getByRole('button',{name:'Desplazar plano'}).click()
-  const beforePan=(await first.boundingBox())!;await page.mouse.move(box.x+70,box.y+70);await page.mouse.down();await page.mouse.move(box.x+110,box.y+100,{steps:5});await page.mouse.up()
+  const beforePan=(await first.boundingBox())!;await page.mouse.move(box.x+70,box.y+140);await page.mouse.down();await page.mouse.move(box.x+110,box.y+170,{steps:5});await page.mouse.up() // por debajo de la barra flotante
   expect(Math.abs((await first.boundingBox())!.x-beforePan.x-40)).toBeLessThanOrEqual(2)
   if(testInfo.project.name==='Tablet'){
    const cdp=await page.context().newCDPSession(page),x=box.x+box.width/2,y=box.y+box.height/2

@@ -1,47 +1,108 @@
 'use client'
-import { useEffect, useState } from 'react'
+
+import { useTranslations } from 'next-intl'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+
+import { Icon } from '@/components/kit/Icon'
+import { ZoneStaffModal, type StaffSave } from '@/components/tables/ZoneStaffModal'
 import type { FloorDocument } from '@/lib/domain/floorPlan'
-import { assignZones, readAssignments, type Assignments } from '@/lib/services/floorPlan'
-import { listPosEmployees, type PosEmployee } from '@/lib/services/employees'
-import { useAuthStore } from '@/lib/stores/authStore'
+import { EMPTY_STAFF, staffNames, zonesWithoutStaff, type ZoneStaff } from '@/lib/domain/zoneStaff'
 import { useIdentity } from '@/lib/hooks/useIdentity'
+import { listPosEmployees, type PosEmployee } from '@/lib/services/employees'
+import { assignZoneStaff, assignZones, readZoneStaff } from '@/lib/services/floorPlan'
+import { useAuthStore } from '@/lib/stores/authStore'
+import { toast } from '@/lib/stores/toastStore'
 import { useOrderStore } from '@/lib/stores/orderStore'
 
-export function FloorZones({plan,onFilter}: {plan:FloorDocument;onFilter:(ids:number[]|null)=>void}) {
- const session=useAuthStore(s=>s.session), employee=useAuthStore(s=>s.employee)
- const {role}=useIdentity()
- const calls=useOrderStore(s=>s.calls)
- const [assignments,setAssignments]=useState<Assignments>({}),[draft,setDraft]=useState<Assignments>({})
- const [employees,setEmployees]=useState<PosEmployee[]>([]),[editing,setEditing]=useState(false),[filter,setFilter]=useState('all'),[error,setError]=useState(''),[busy,setBusy]=useState(false)
- useEffect(()=>{
-  if(!session||!plan.id)return
-  let alive=true
-  const load=()=>readAssignments(session.id,plan.id!).then(a=>{if(alive)setAssignments(a)}).catch(()=>{if(alive)setError('No se pudieron cargar las asignaciones del turno.')})
-  void load();const timer=setInterval(()=>void load(),10000)
-  return()=>{alive=false;clearInterval(timer)}
- },[session,plan.id])
- useEffect(()=>{
-  if(filter==='all'){onFilter(null);return}
-  const zones=filter==='mine'?plan.zones.filter(z=>(assignments[z.id]??[]).includes(employee?.id??0)).map(z=>z.id):[filter]
-  onFilter(plan.tables.filter(t=>zones.includes(t.zone)).flatMap(t=>t.id===null?[]:[t.id]))
- },[filter,assignments,employee?.id,plan,onFilter])
- if(!plan.zones.length)return null
- async function openAssignments(){
-  if(!session)return
-  try{setEmployees(await listPosEmployees(session.configId));setDraft(assignments);setEditing(true);setError('')}catch{setError('No se pudo cargar la lista de meseros.')}
- }
- async function save(){
-  if(!session||!plan.id)return
-  setBusy(true)
-  try{await assignZones(session.id,plan.id,draft);setAssignments(draft);setEditing(false);setError('')}catch(e){setError(e instanceof Error?e.message:String(e))}finally{setBusy(false)}
- }
- const zoneCalls=plan.tables.filter(t=>calls.some(c=>c.tableId===t.id)&&(filter==='all'||(filter==='mine'?(assignments[t.zone]??[]).includes(employee?.id??0):t.zone===filter))).length
- return <section className="shrink-0 border-b border-border bg-surface px-4 py-2 text-sm" aria-label="Zonas del restaurante">
-  <div className="flex items-center gap-3"><label>Ver zona <select className="ml-2 border border-border rounded p-2 bg-surface" value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">Todas las zonas</option>{session&&<option value="mine">Mis zonas</option>}{plan.zones.map(z=><option key={z.id} value={z.id}>{z.name}</option>)}</select></label>
-   <span className="text-dim">{zoneCalls} mesas con avisos en esta vista</span>
-   {role==='admin'&&session&&<button className="ml-auto border border-border p-2 rounded" onClick={()=>void openAssignments()}>Asignar meseros por zona</button>}
-  </div>
-  {error&&<p role="alert" className="text-danger-ink py-2">{error}</p>}
-  {editing&&<div className="py-3"><p className="text-dim mb-2">Asignación de este turno. Una zona puede tener varios meseros; todos pueden ayudar en otras zonas.</p><div className="flex gap-3 overflow-auto max-h-52">{plan.zones.map(z=><fieldset key={z.id} className="min-w-48 border border-border rounded p-2"><legend style={{color:z.color}}>{z.name}</legend>{employees.map(e=><label key={e.id} className="flex items-center gap-2 py-1"><input type="checkbox" checked={(draft[z.id]??[]).includes(e.id)} onChange={ev=>setDraft(a=>({...a,[z.id]:ev.target.checked?[...(a[z.id]??[]),e.id]:(a[z.id]??[]).filter(id=>id!==e.id)}))}/>{e.name}</label>)}</fieldset>)}</div><div className="flex gap-2 mt-3"><button onClick={()=>setEditing(false)} disabled={busy} className="border border-border p-2 rounded">Cancelar asignación</button><button onClick={()=>void save()} disabled={busy} className="bg-primary text-primary-ink p-2 rounded">Guardar asignación</button></div></div>}
- </section>
+// Barra de zonas de un piso: filtra el plano por zona y abre el reparto de meseros. El reparto habitual vive en el
+// piso y se prepara con la caja cerrada; el turno abierto lo hereda y puede ajustarlo solo para sí. `onStaff` entrega
+// los nombres por zona para rotular el plano. Un piso sin zonas le explica al administrador cómo crearlas en vez de
+// esconder la opción sin decir por qué.
+export function FloorZones({ plan, floorName, configId, onFilter, onStaff }: {
+  plan: FloorDocument; floorName: string; configId: number; onFilter: (ids: number[] | null) => void; onStaff?: (names: Record<string, string[]>) => void
+}) {
+  const t = useTranslations('tables.zoneStaff')
+  const session = useAuthStore((s) => s.session), employee = useAuthStore((s) => s.employee)
+  const { role } = useIdentity()
+  const calls = useOrderStore((s) => s.calls)
+  const [staff, setStaff] = useState<ZoneStaff>(EMPTY_STAFF)
+  const [employees, setEmployees] = useState<PosEmployee[]>([])
+  const [editing, setEditing] = useState(false), [filter, setFilter] = useState('all'), [error, setError] = useState(''), [busy, setBusy] = useState(false)
+  const sessionId = session?.id ?? null, floorId = plan.id, hasZones = plan.zones.length > 0
+
+  const load = useCallback(async () => { if (floorId) setStaff(await readZoneStaff(floorId, sessionId)) }, [floorId, sessionId])
+  useEffect(() => {
+    if (!floorId || !hasZones) return
+    let alive = true
+    const tick = () => readZoneStaff(floorId, sessionId).then((s) => { if (alive) setStaff(s) }).catch(() => { if (alive) setError(t('loadFailed')) })
+    void tick()
+    void listPosEmployees(configId).then((e) => { if (alive) setEmployees(e) }).catch(() => undefined)
+    // Con el turno abierto otro administrador puede cambiar el reparto desde otro terminal.
+    const timer = sessionId ? setInterval(() => void tick(), 10000) : null
+    return () => { alive = false; if (timer) clearInterval(timer) }
+  }, [floorId, sessionId, configId, hasZones, t])
+
+  const mine = employee?.id ?? 0
+  useEffect(() => {
+    if (filter === 'all') { onFilter(null); return }
+    const zones = filter === 'mine' ? plan.zones.filter((z) => (staff.assignments[z.id] ?? []).includes(mine)).map((z) => z.id) : [filter]
+    onFilter(plan.tables.filter((tb) => zones.includes(tb.zone)).flatMap((tb) => (tb.id === null ? [] : [tb.id])))
+  }, [filter, staff.assignments, mine, plan, onFilter])
+
+  const names = useMemo(() => staffNames(plan.zones, staff.assignments, employees), [plan.zones, staff.assignments, employees])
+  useEffect(() => { onStaff?.(names) }, [names, onStaff])
+
+  if (!hasZones) {
+    if (role !== 'admin') return null
+    return (
+      <p className="shrink-0 border-b border-border bg-surface px-4 py-2 text-sm text-soft flex items-center gap-2">
+        <Icon name="zone" size={18} className="shrink-0" />{t('noZones')}
+      </p>
+    )
+  }
+
+  async function open() {
+    setError('')
+    try { setEmployees(await listPosEmployees(configId)); await load(); setEditing(true) } catch { setError(t('employeesFailed')) }
+  }
+  async function run(work: () => Promise<unknown>, done: string) {
+    setBusy(true)
+    try { await work(); await load(); setEditing(false); setError(''); toast({ title: done, tone: 'success' }) }
+    catch (e) { setError(e instanceof Error ? e.message : String(e)) } finally { setBusy(false) }
+  }
+  const save = ({ assignments, alsoUsual }: StaffSave) => run(async () => {
+    if (!floorId) return
+    // «También como habitual»: se guarda en el piso y el turno vuelve a heredarlo (null), en vez de quedarse con una
+    // copia propia que dejaría de seguir los cambios futuros del reparto habitual.
+    if (!sessionId || alsoUsual) await assignZoneStaff(configId, floorId, assignments)
+    if (sessionId) await assignZones(sessionId, floorId, alsoUsual ? null : assignments)
+  }, t('saved'))
+  const reset = () => run(async () => { if (sessionId && floorId) await assignZones(sessionId, floorId, null) }, t('resetDone'))
+
+  const inView = (zone: string) => filter === 'all' || (filter === 'mine' ? (staff.assignments[zone] ?? []).includes(mine) : zone === filter)
+  const zoneCalls = plan.tables.filter((tb) => calls.some((c) => c.tableId === tb.id) && inView(tb.zone)).length
+  const missing = zonesWithoutStaff(plan.zones, staff.assignments).length
+  return (
+    <section className="shrink-0 border-b border-border bg-surface px-4 py-2 text-sm" aria-label={t('bar')}>
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="flex items-center gap-2 text-soft">{t('filter')}
+          <select className="h-10 border border-border rounded-md px-2 bg-surface text-ink" value={filter} onChange={(e) => setFilter(e.target.value)}>
+            <option value="all">{t('all')}</option>
+            {employee && <option value="mine">{t('mine')}</option>}
+            {plan.zones.map((z) => <option key={z.id} value={z.id}>{z.name}</option>)}
+          </select>
+        </label>
+        <span className="text-soft">{t('calls', { count: zoneCalls })}</span>
+        {role === 'admin' && (
+          <button type="button" onClick={() => void open()} className="ml-auto h-10 px-3 rounded-md border border-border text-ink font-medium flex items-center gap-2 hover:bg-muted">
+            <Icon name="users" size={18} />{t('open')}
+            {missing > 0 && <span className="px-2 py-0.5 rounded-full bg-progress-soft text-progress-ink text-xs font-semibold">{t('missing', { count: missing })}</span>}
+          </button>
+        )}
+      </div>
+      {error && !editing && <p role="alert" className="text-danger-ink py-2">{error}</p>}
+      {editing && <ZoneStaffModal plan={plan} floorName={floorName} staff={staff} employees={employees} shiftOpen={sessionId !== null} busy={busy} error={error}
+        onClose={() => { setEditing(false); setError('') }} onSave={(s) => void save(s)} onReset={() => void reset()} />}
+    </section>
+  )
 }

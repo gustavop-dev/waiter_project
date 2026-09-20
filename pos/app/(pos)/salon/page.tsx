@@ -6,14 +6,14 @@ import { useTranslations } from 'next-intl'
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Icon } from '@/components/kit/Icon'
+import { cn } from '@/lib/utils'
 import { KitShell } from '@/components/kit/KitShell'
 import { ChangeTableModal } from '@/components/tables/ChangeTableModal'
 import { FloorEditor } from '@/components/tables/FloorEditor'
-import { FloorZones } from '@/components/tables/FloorZones'
 import type { FloorDocument } from '@/lib/domain/floorPlan'
-import { readPlan } from '@/lib/services/floorPlan'
-import { FloorInfoChip, FloorSwitcher, SelectedTableBar, TableLegend } from '@/components/tables/FloorHeader'
-import { FloorPlan } from '@/components/tables/FloorPlan'
+import { deleteFloor, readPlan } from '@/lib/services/floorPlan'
+import { FloorSwitcher, SelectedTableBar, TableLegend } from '@/components/tables/FloorHeader'
+import { FloorPane } from '@/components/tables/FloorPane'
 import { FloorSettingsPopover } from '@/components/tables/FloorSettingsPopover'
 
 import { PayModal } from '@/components/tables/PayModal'
@@ -23,7 +23,7 @@ import { ReservationListModal } from '@/components/tables/ReservationListModal'
 import { TableDetailModal } from '@/components/tables/TableDetailModal'
 import { can } from '@/lib/domain/roles'
 import { deriveTableViews } from '@/lib/domain/tableState'
-import { orderCode, orderPrefix, parseFloorName, remainingByTemplate } from '@/lib/domain/tablesKit'
+import { orderCode, orderPrefix } from '@/lib/domain/tablesKit'
 import { useIdentity } from '@/lib/hooks/useIdentity'
 import { getOrderLines, type OrderLineView } from '@/lib/services/orders'
 import { serveLines } from '@/lib/services/ordersKit'
@@ -60,14 +60,12 @@ export default function SalonPage() {
   const mayManageFloors = can.manageFloors(role)
   const session = useAuthStore((s) => s.session)
   const { catalog, load } = useCatalogStore()
-  const { activeFloorId, selectedTableId, setFloor, selectTable } = useFloorStore()
+  const { activeFloorId, secondFloorId, split, selectedTableId, setFloor, setSecondFloor, setSplit, selectTable } = useFloorStore()
   const { openOrders, calls, flags, refreshOpenOrders, refreshShift, settle, receipt, closeReceipt, busy } = useOrderStore()
   const [sheet, setSheet] = useState<Sheet>(null)
   const [settings, setSettings] = useState(false)
   const [allFloors, setAllFloors] = useState<FloorSetting[]>([])
   const [editing, setEditing] = useState<FloorDocument | null>(null)
-  const [plan, setPlan] = useState<FloorDocument | null>(null)
-  const [visibleIds, setVisibleIds] = useState<number[] | null>(null)
   const [moving, setMoving] = useState<{ detail: OrderDetail; fromTableId: number } | null>(null)
   const [target, setTarget] = useState<number | null>(null)
   const [payLines, setPayLines] = useState<OrderLineView[]>([])
@@ -99,15 +97,14 @@ export default function SalonPage() {
 
   // Piso mostrado: el elegido si sigue existiendo, si no el primero del catálogo (sin escribir en el store).
   const floorId = catalog && activeFloorId !== null && catalog.floors.some((f) => f.id === activeFloorId) ? activeFloorId : catalog?.floors[0]?.id ?? null
-  useEffect(() => {
-    if (floorId === null) return
-    let alive = true
-    void readPlan(floorId).then(p => { if (alive) { setPlan(p); setVisibleIds(null) } }).catch(() => { if (alive) setPlan(null) })
-    return () => { alive = false }
-  }, [floorId, catalog])
-  const views = useMemo(() => (catalog ? deriveTableViews(catalog.tables.filter((x) => x.floorId === floorId), session ? openOrders : [], session ? flags : {}, session ? calls : []) : []), [catalog, floorId, openOrders, flags, calls, session])
+  // Pantalla partida: solo con dos pisos o más. El segundo panel muestra otro piso distinto del primero.
+  const canSplit = (catalog?.floors.length ?? 0) > 1
+  const splitOn = split && canSplit
+  const secondId = !splitOn || !catalog ? null : catalog.floors.some((f) => f.id === secondFloorId && f.id !== floorId) ? secondFloorId : catalog.floors.find((f) => f.id !== floorId)?.id ?? null
+  // Vistas de todas las mesas: la elegida puede estar en cualquiera de los dos paneles.
+  const views = useMemo(() => (catalog ? deriveTableViews(catalog.tables, session ? openOrders : [], session ? flags : {}, session ? calls : []) : []), [catalog, openOrders, flags, calls, session])
   // Reservas del día por mesa: pintan la mesa en tinta con su hora, como en el kit.
-  const tableIds = useMemo(() => views.map((v) => v.table.id).join(','), [views])
+  const tableIds = useMemo(() => views.filter((v) => v.table.floorId === floorId || v.table.floorId === secondId).map((v) => v.table.id).join(','), [views, floorId, secondId])
   useEffect(() => {
     if (tableIds === '') return
     let alive = true
@@ -119,6 +116,7 @@ export default function SalonPage() {
   const reserved = loadedReserved?.key === tableIds ? loadedReserved.map : EMPTY_RESERVED
   const selected = views.find((v) => v.table.id === selectedTableId) ?? null
   const floor = catalog?.floors.find((f) => f.id === floorId) ?? null
+  const secondFloor = catalog?.floors.find((f) => f.id === secondId) ?? null
   const imageFor = useCallback((productId: number) => { const p = catalog?.products.find((x) => x.id === productId); return p?.hasImage ? `/odoo/web/image/product.template/${p.templateId}/image_512` : null }, [catalog])
   const codeFor = useCallback((v: (typeof views)[number]) => { const o = openOrders.find((x) => x.id === v.orderId); return o ? orderCode('DI', o.tracking, o.id) : null }, [openOrders])
 
@@ -151,7 +149,7 @@ export default function SalonPage() {
   }
   function onCloseReceipt() { closeReceipt(); setSheet(null); selectTable(null) }
   async function openEdit(f: FloorSetting) {
-    if (session) { toast({ title: 'Cierra la caja para editar el plano. Las asignaciones de zonas se cambian durante el turno.', tone: 'danger' }); return }
+    if (session) { toast({ title: 'Cierra la caja para editar el plano. El reparto de meseros sí se puede cambiar ahora, desde «Meseros por zona».', tone: 'danger' }); return }
     try { const document = await readPlan(f.id); setSettings(false); setEditing(document) }
     catch { toast({ title: 'No se pudo abrir el editor del piso. Intenta de nuevo.', tone: 'danger' }) }
   }
@@ -172,6 +170,20 @@ export default function SalonPage() {
     }
   }
 
+  // Eliminar un piso: el servidor exige PIN de administrador y caja cerrada, y decide si borra o archiva (historial).
+  async function removeFloor(f: FloorSetting) {
+    if (session) { toast({ title: t('floorSettings.deleteNeedsClosedSession'), tone: 'danger' }); return }
+    try {
+      const { result } = await deleteFloor(catalog!.settings.configId, f.id)
+      if (activeFloorId === f.id) setFloor(catalog!.floors.find((x) => x.id !== f.id)?.id ?? f.id)
+      await refreshFloors()
+      await reload()
+      toast({ title: t(result === 'archived' ? 'floorSettings.deletedArchived' : 'floorSettings.deleted') })
+    } catch (e) {
+      toast({ title: t('floorSettings.deleteFailed'), body: e instanceof Error ? e.message : '', tone: 'danger' })
+    }
+  }
+
   // Entregar desde la mesa: lo mismo que marcarlo en Pedidos, guardado en Odoo. Uno o todos los que
   // cocina ya sacó al pase.
   async function serveLine(lines: OrderDetailLine[]) {
@@ -182,7 +194,7 @@ export default function SalonPage() {
   if (!catalog) return null
   if (editing) return <FloorEditor initial={editing} configId={catalog.settings.configId}
     background={editing.id && catalog.floors.find(f => f.id === editing.id)?.hasBackground ? `/odoo/web/image/restaurant.floor/${editing.id}/floor_background_image?unique=${editing.revision}` : null}
-    onCancel={() => setEditing(null)} onSaved={async (saved) => { await reload(); setPlan(saved); setFloor(saved.id!); setEditing(null); toast({ title: 'Plano guardado' }) }} />
+    onCancel={() => setEditing(null)} onSaved={async (saved) => { await reload(); setFloor(saved.id!); setEditing(null); toast({ title: 'Plano guardado' }) }} />
   // Cobrar puede ser solo de caja: lo decide el restaurante en Configuración.
   const mayCharge = can.charge(role, catalog.settings.waiterCanCharge)
   // Un pedido en mesa nace de una mesa elegida a propósito: sin selección se pide antes de abrir el asistente.
@@ -193,7 +205,13 @@ export default function SalonPage() {
         <h1 className="h-12 px-4 rounded-md bg-surface border border-border flex items-center gap-2 text-[18px] font-semibold text-ink"><Icon name="tables" size={22} />{t('title')}</h1>
         <div className="ml-auto flex items-center gap-4">
           <TableLegend />
-          <FloorSwitcher floors={catalog.floors} activeId={floorId} onChange={setFloor} />
+          <span aria-hidden className="w-px h-8 bg-border" />
+          {/* En pantalla partida cada panel trae su propio selector de piso, como las pestañas de cada editor en VS Code. */}
+          {!splitOn && <FloorSwitcher floors={catalog.floors} activeId={floorId} onChange={setFloor} />}
+          {canSplit && (
+            <button type="button" aria-label={splitOn ? t('split.off') : t('split.on')} title={splitOn ? t('split.off') : `${t('split.on')} · ${t('split.hint')}`} aria-pressed={splitOn} onClick={() => setSplit(!splitOn)}
+              className={cn('hidden md:grid w-12 h-12 rounded-md border place-items-center', splitOn ? 'border-primary bg-primary-soft text-primary' : 'border-border bg-surface text-ink hover:bg-muted')}><Icon name="split" size={22} /></button>
+          )}
           <span aria-hidden className="w-px h-8 bg-border" />
           {/* Crear pedido vive en la barra de la mesa seleccionada: aquí arriba pedía la mesa que allí ya está elegida. */}
           {mayManageFloors && (
@@ -201,11 +219,19 @@ export default function SalonPage() {
           )}
         </div>
       </header>
-      {plan?.id === floorId && <FloorZones key={floorId} plan={plan} onFilter={setVisibleIds} />}
-      <div className="relative flex-1 min-h-0 flex flex-col">
-        {floor && <FloorInfoChip type={parseFloorName(floor.name).type} remaining={remainingByTemplate(views.filter((v) => !reserved[v.table.id]))} />}
-        <FloorPlan plan={plan?.id === floorId ? plan : null} visibleIds={visibleIds} views={views} selectedId={moving ? moving.fromTableId : selectedTableId} onSelect={onSelect} pickFree={moving !== null} codeFor={codeFor} reserved={reserved}
-          background={floor?.hasBackground ? `/odoo/web/image/restaurant.floor/${floor.id}/floor_background_image?unique=${plan?.id === floor.id ? plan.revision : 0}` : null} />
+      <div className="relative flex-1 min-h-0 flex">
+        {([floor, secondFloor] as const).map((f, i) => f && (
+          <FloorPane key={`${i}:${f.id}`} floor={f} configId={catalog.settings.configId} views={views.filter((v) => v.table.floorId === f.id)} reserved={reserved} refreshKey={catalog}
+            selectedId={moving ? moving.fromTableId : selectedTableId} onSelect={onSelect} pickFree={moving !== null} codeFor={codeFor}
+            header={splitOn ? (
+              <div className={cn('shrink-0 h-14 px-3 flex items-center gap-2 border-b border-border bg-surface', i === 1 && 'border-l')}>
+                <FloorSwitcher compact floors={catalog.floors.filter((x) => x.id !== (i === 0 ? secondId : floorId))} activeId={f.id} onChange={i === 0 ? setFloor : setSecondFloor} />
+                <button type="button" aria-label={t('split.close')} title={t('split.close')} onClick={() => { if (i === 0 && secondFloor) setFloor(secondFloor.id); setSplit(false) }}
+                  className="ml-auto w-10 h-10 grid place-items-center rounded-md text-soft hover:bg-muted hover:text-ink"><Icon name="close" size={18} /></button>
+              </div>
+            ) : undefined} />
+        ))}
+        {splitOn && secondFloor && <span aria-hidden className="pointer-events-none absolute inset-y-0 left-1/2 w-px bg-border" />}
         {moving ? (
           <div role="toolbar" aria-label={t('change.title')} className="absolute left-1/2 -translate-x-1/2 bottom-8 z-20 h-14 pl-4 pr-1.5 rounded-md bg-overlay text-[#F7F7F7] shadow-xl flex items-center gap-3 whitespace-nowrap text-[15px] font-semibold">
             <span>{t('selected.moving', { code: orderCode(orderPrefix(moving.detail.serviceAt), moving.detail.tracking, moving.detail.id) })}</span>
@@ -216,7 +242,7 @@ export default function SalonPage() {
             onClear={() => selectTable(null)} onReservations={() => setSheet('reservations')} onDetail={() => setSheet('detail')}
             onNewOrder={() => newOrderHref && router.push(newOrderHref)} />
         )}
-        <FloorSettingsPopover open={settings && mayManageFloors} onClose={() => setSettings(false)} floors={allFloors} currentFloor={floor ? { id: floor.id, name: floor.name, active: true, tableCount: floor.tableIds.length } : null} onAdd={addFloor} onEdit={openEdit} onToggle={toggleFloor} />
+        <FloorSettingsPopover open={settings && mayManageFloors} onClose={() => setSettings(false)} floors={allFloors} currentFloor={floor ? { id: floor.id, name: floor.name, active: true, tableCount: floor.tableIds.length } : null} onAdd={addFloor} onEdit={openEdit} onToggle={toggleFloor} onDelete={(f) => void removeFloor(f)} />
       </div>
       {selected && (
         <ReservationListModal open={sheet === 'reservations' && booking === null} onClose={() => setSheet(null)} tableId={selected.table.id}

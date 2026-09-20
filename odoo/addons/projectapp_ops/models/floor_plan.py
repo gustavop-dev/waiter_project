@@ -24,6 +24,44 @@ def rectangle(item):
         raise UserError(_('Los elementos deben medir al menos una celda.'))
 
 
+def image_bytes(image):
+    """Valida una imagen en base64: PNG o JPG de hasta 10 MB. Devuelve el mismo base64 si es válida."""
+    try:
+        if not isinstance(image, str) or len(image) > 14 * 1024 * 1024:
+            raise ValueError()
+        decoded = base64.b64decode(image, validate=True)
+        if len(decoded) > 10 * 1024 * 1024 or not (decoded.startswith(b'\x89PNG\r\n\x1a\n') or decoded.startswith(b'\xff\xd8\xff')):
+            raise ValueError()
+    except (ValueError, binascii.Error):
+        raise UserError(_('Usa una imagen PNG o JPG de hasta 10 MB.'))
+    return image
+
+
+MAX_EXTRA_IMAGES = 8
+# Lo que el POS llama «caja abierta» (pos/lib/services/session.ts, OPEN_STATES): recién creada o ya con efectivo inicial.
+OPEN_STATES = ('opened', 'opening_control')
+
+
+def reservation_tables_field(Reservation):
+    """Una reserva puede apartar varias mesas (`table_ids`); las versiones anteriores del addon solo tenían `table_id`.
+    Retirar una mesa secundaria de un grupo es tan grave como retirar la principal."""
+    return 'table_ids' if 'table_ids' in Reservation._fields else 'table_id'
+
+
+def checked_staff(env, floor, assignments, company):
+    """Valida {zona: [empleados]} contra las zonas del plano y los empleados activos del restaurante."""
+    zone_ids = {z['id'] for z in (floor.waiter_plan or {}).get('zones', [])}
+    if not isinstance(assignments, dict) or not set(assignments) <= zone_ids:
+        raise UserError(_('La zona ya no existe.'))
+    for ids in assignments.values():
+        if not isinstance(ids, list) or any(type(i) is not int for i in ids):
+            raise UserError(_('La asignación de empleados no es válida.'))
+        employees = env['hr.employee'].sudo().browse(ids).exists()
+        if len(employees) != len(set(ids)) or any(not e.active or e.company_id != company for e in employees):
+            raise UserError(_('Selecciona empleados activos de este restaurante.'))
+    return {zone: ids for zone, ids in assignments.items() if ids}
+
+
 def overlap(a, b, gap=0):
     return (a['x'] < b['x'] + b['width'] + gap and a['x'] + a['width'] + gap > b['x'] and
             a['y'] < b['y'] + b['height'] + gap and a['y'] + a['height'] + gap > b['y'])
@@ -33,12 +71,16 @@ class Floor(models.Model):
     _inherit = 'restaurant.floor'
     waiter_plan = fields.Json(default=lambda self: {'walls': [], 'zones': []})
     waiter_plan_revision = fields.Integer(default=0)
+    # Reparto habitual de meseros por zona: {zona: [empleados]}. Se prepara con la caja cerrada y cada turno lo hereda;
+    # un turno puede ajustarlo solo para sí (pos.session.waiter_zone_assignments) sin tocar este.
+    waiter_zone_staff = fields.Json(default=dict)
 
     def waiter_read_plan(self):
         self.ensure_one()
         self.check_access('read')
         return {'id': self.id, 'name': self.name, 'revision': self.waiter_plan_revision,
                 'backgroundSize': (self.waiter_plan or {}).get('backgroundSize'),
+                'images': (self.waiter_plan or {}).get('images', []),
                 'walls': (self.waiter_plan or {}).get('walls', []), 'zones': (self.waiter_plan or {}).get('zones', []),
                 'tables': [{'id': t.id, 'key': str(t.id), 'number': t.table_number, 'seats': t.seats,
                             'x': t.position_h, 'y': t.position_v, 'width': t.width, 'height': t.height,
@@ -79,6 +121,9 @@ class Floor(models.Model):
             zone_ids.add(z['id'])
         for wall in walls:
             rectangle(wall)
+            # El color es opcional (los planos anteriores no lo traen); si viene, debe ser un hexadecimal de seis cifras.
+            if wall.get('color') is not None and not re.fullmatch(r'#[0-9a-fA-F]{6}', str(wall['color'])):
+                raise UserError(_('El color de una pared no es válido.'))
         ids, numbers = set(), set()
         for i, table in enumerate(tables):
             rectangle(table)
@@ -100,7 +145,7 @@ class Floor(models.Model):
         if removed and 'waiter.reservation' in self.env:
             # Una reserva futura debe reasignarse antes de retirar su mesa.
             R = self.env['waiter.reservation']
-            if 'table_id' in R._fields and R.search_count([('table_id', 'in', removed.ids), ('state', '=', 'confirmed'), ('date', '>=', fields.Date.context_today(self))]):
+            if R.search_count([(reservation_tables_field(R), 'in', removed.ids), ('state', '=', 'confirmed'), ('date', '>=', fields.Date.context_today(self))]):
                 raise UserError(_('Reasigna las reservas de estas mesas antes de retirarlas.'))
         background_size = plan.get('backgroundSize', (floor.waiter_plan or {}).get('backgroundSize') if floor else None)
         if background_size is not None:
@@ -112,19 +157,44 @@ class Floor(models.Model):
         if 'background' in plan:
             image = plan['background']
             if image is not None:
-                try:
-                    if not isinstance(image, str) or len(image) > 14 * 1024 * 1024:
-                        raise ValueError()
-                    decoded = base64.b64decode(image, validate=True)
-                    if len(decoded) > 10 * 1024 * 1024 or not (decoded.startswith(b'\x89PNG\r\n\x1a\n') or decoded.startswith(b'\xff\xd8\xff')):
-                        raise ValueError()
-                except (ValueError, binascii.Error):
-                    raise UserError(_('Usa una imagen PNG o JPG de hasta 10 MB.'))
+                image_bytes(image)
             image_values['floor_background_image'] = image or False
+        # Imágenes adicionales: adjuntos del piso con su rectángulo en el plano. Sin la clave `images` (clientes anteriores)
+        # se conservan las que hubiera. Una existente se reconoce por su adjunto, que debe ser de este piso.
+        previous = (floor.waiter_plan or {}).get('images', []) if floor else []
+        owned = {i['attachmentId'] for i in previous}
+        images, fresh = previous, []
+        if 'images' in plan:
+            incoming = plan['images']
+            if not isinstance(incoming, list) or len(incoming) > MAX_EXTRA_IMAGES:
+                raise UserError(_('Puedes tener hasta %s imágenes adicionales por piso.', MAX_EXTRA_IMAGES))
+            images, seen = [], set()
+            for item in incoming:
+                if not isinstance(item, dict) or not isinstance(item.get('id'), str) or not item['id'] or len(item['id']) > 80 or item['id'] in seen:
+                    raise UserError(_('Cada imagen necesita un identificador único.'))
+                seen.add(item['id'])
+                rectangle(item)
+                entry = {k: item[k] for k in ('id', 'x', 'y', 'width', 'height')}
+                if item.get('data') is not None:
+                    fresh.append((entry, image_bytes(item['data'])))
+                elif type(item.get('attachmentId')) is int and item['attachmentId'] in owned:
+                    entry['attachmentId'] = item['attachmentId']
+                else:
+                    raise UserError(_('Una imagen del plano no pertenece a este piso.'))
+                images.append(entry)
         if not floor:
             floor = self.create({'name': name, 'pos_config_ids': [(4, config.id)]})
-        floor.write({**image_values, 'name': name, 'waiter_plan': {'walls': walls, 'zones': zones, 'backgroundSize': background_size}, 'waiter_plan_revision': floor.waiter_plan_revision + 1})
+        for entry, data in fresh:
+            entry['attachmentId'] = self.env['ir.attachment'].create({
+                'name': 'plano-%s' % entry['id'], 'type': 'binary', 'datas': data, 'res_model': 'restaurant.floor', 'res_id': floor.id}).id
+        dropped = owned - {i['attachmentId'] for i in images}
+        if dropped:
+            self.env['ir.attachment'].browse(list(dropped)).exists().unlink()
+        floor.write({**image_values, 'name': name, 'waiter_plan': {'walls': walls, 'zones': zones, 'backgroundSize': background_size, 'images': images}, 'waiter_plan_revision': floor.waiter_plan_revision + 1})
         removed.write({'active': False})
+        staff = floor.waiter_zone_staff or {}
+        if set(staff) - zone_ids:
+            floor.waiter_zone_staff = {zone: ids for zone, ids in staff.items() if zone in zone_ids}
         for table in tables:
             values = {'table_number': table['number'], 'seats': table['seats'], 'position_h': table['x'], 'position_v': table['y'],
                       'width': table['width'], 'height': table['height'], 'waiter_zone': table.get('zone', ''), 'shape': 'square'}
@@ -133,6 +203,64 @@ class Floor(models.Model):
             else:
                 self.env['restaurant.table'].create(dict(values, floor_id=floor.id))
         return floor.waiter_read_plan()
+
+    def waiter_zone_staff_for(self, session_id=None):
+        """Quién atiende cada zona ahora. `source` dice de dónde sale: 'shift' si el turno abierto tiene su propio reparto
+        para este piso, 'plan' si usa el habitual. Lo lee cualquier empleado del POS; solo un administrador lo cambia."""
+        self.ensure_one()
+        self.check_access('read')
+        session = self.env['pos.session'].browse(session_id).exists() if session_id else self.env['pos.session']
+        own = (session.waiter_zone_assignments or {}) if session and session.state in OPEN_STATES else {}
+        key = str(self.id)
+        return {'assignments': own[key] if key in own else (self.waiter_zone_staff or {}),
+                'source': 'shift' if key in own else 'plan', 'plan': self.waiter_zone_staff or {}}
+
+    @api.model
+    def waiter_assign_zone_staff(self, config_id, floor_id, assignments, employee_id, token):
+        """Guarda el reparto habitual del piso. No necesita caja abierta: es preparación, como dibujar el plano."""
+        authorize(self.env, employee_id, token)
+        config = self.env['pos.config'].browse(config_id).exists()
+        floor = self.browse(floor_id).exists()
+        if not config or not floor or config not in floor.pos_config_ids:
+            raise UserError(_('El piso no pertenece a este terminal.'))
+        floor.check_access('write')
+        floor.write({'waiter_zone_staff': checked_staff(self.env, floor, assignments, config.company_id)})
+        return floor.waiter_zone_staff
+
+    @api.model
+    def waiter_delete_floor(self, config_id, floor_id, employee_id, token):
+        """Quita un piso del terminal. Sin historial se borra de verdad, con sus mesas. Con pedidos ya cobrados en sus
+        mesas no se puede borrar sin dejar el historial huérfano: se archiva y se desvincula del terminal, así que para el
+        restaurante desaparece igual. Mismas llaves que guardar el plano: PIN de administrador y caja cerrada."""
+        authorize(self.env, employee_id, token)
+        config = self.env['pos.config'].browse(config_id).exists()
+        if not config:
+            raise UserError(_('No existe el terminal.'))
+        config.check_access('write')
+        self.env.cr.execute('SELECT id FROM pos_config WHERE id = %s FOR UPDATE', [config.id])
+        if self.env['pos.session'].search_count([('config_id', '=', config.id), ('state', '!=', 'closed')]):
+            raise UserError(_('Cierra la caja antes de eliminar un piso.'))
+        floor = self.with_context(active_test=False).browse(floor_id).exists()
+        if not floor or config not in floor.pos_config_ids:
+            raise UserError(_('El piso no pertenece a este terminal.'))
+        floor.check_access('unlink')
+        self.env.cr.execute('SELECT id FROM restaurant_floor WHERE id = %s FOR UPDATE', [floor.id])
+        if floor.active and not self.search_count([('pos_config_ids', 'in', [config.id]), ('id', '!=', floor.id)]):
+            raise UserError(_('Deja al menos un piso activo: activa o crea otro antes de eliminar este.'))
+        tables = self.env['restaurant.table'].with_context(active_test=False).search([('floor_id', '=', floor.id)])
+        if tables and self.env['pos.order'].search_count([('table_id', 'in', tables.ids), ('state', '=', 'draft')]):
+            raise UserError(_('Este piso tiene mesas con pedidos pendientes. Ciérralos antes de eliminarlo.'))
+        if tables and 'waiter.reservation' in self.env:
+            R = self.env['waiter.reservation']
+            if R.search_count([(reservation_tables_field(R), 'in', tables.ids), ('state', '=', 'confirmed'), ('date', '>=', fields.Date.context_today(self))]):
+                raise UserError(_('Reasigna las reservas de las mesas de este piso antes de eliminarlo.'))
+        if tables and self.env['pos.order'].search_count([('table_id', 'in', tables.ids)]):
+            tables.write({'active': False})
+            floor.write({'active': False, 'pos_config_ids': [(3, config.id)]})
+            return {'id': floor_id, 'result': 'archived'}
+        tables.unlink()
+        floor.unlink()
+        return {'id': floor_id, 'result': 'removed'}
 
 
 class Table(models.Model):
@@ -158,19 +286,15 @@ class Session(models.Model):
         self.env.cr.execute('SELECT id FROM pos_session WHERE id = %s FOR UPDATE', [self.id])
         self.invalidate_recordset()
         floor = self.env['restaurant.floor'].browse(floor_id).exists()
-        if self.state != 'opened' or not floor or self.config_id not in floor.pos_config_ids:
+        if self.state not in OPEN_STATES or not floor or self.config_id not in floor.pos_config_ids:
             raise UserError(_('La asignación necesita una caja abierta y un piso de este terminal.'))
-        zone_ids = {z['id'] for z in (floor.waiter_plan or {}).get('zones', [])}
-        if not isinstance(assignments, dict) or not set(assignments) <= zone_ids:
-            raise UserError(_('La zona ya no existe.'))
-        for ids in assignments.values():
-            if not isinstance(ids, list) or any(type(i) is not int for i in ids):
-                raise UserError(_('La asignación de empleados no es válida.'))
-            employees = self.env['hr.employee'].sudo().browse(ids).exists()
-            if len(employees) != len(set(ids)) or any(not e.active or e.company_id != self.company_id for e in employees):
-                raise UserError(_('Selecciona empleados activos de este restaurante.'))
+        # `None` borra el ajuste de este turno y vuelve al reparto habitual del piso.
+        clean = None if assignments is None else checked_staff(self.env, floor, assignments, self.company_id)
         data = dict(self.waiter_zone_assignments or {})
-        data[str(floor_id)] = assignments
+        if clean is None:
+            data.pop(str(floor_id), None)
+        else:
+            data[str(floor_id)] = clean
         self.write({'waiter_zone_assignments': data})
         return data
 
@@ -182,4 +306,9 @@ class Order(models.Model):
     def waiter_zone_targets(self, order_ids):
         orders = self.browse(order_ids).exists()
         orders.check_access('read')
-        return {str(o.id): ((o.session_id.waiter_zone_assignments or {}).get(str(o.table_id.floor_id.id), {}).get(o.table_id.waiter_zone, [])) for o in orders}
+        result = {}
+        for order in orders:
+            floor = order.table_id.floor_id
+            staff = floor.waiter_zone_staff_for(order.session_id.id)['assignments'] if floor else {}
+            result[str(order.id)] = staff.get(order.table_id.waiter_zone, [])
+        return result

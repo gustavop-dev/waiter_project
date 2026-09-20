@@ -102,3 +102,37 @@ it('drags past the old origin and saves the whole layout with relative positions
  expect(result.tables[0]).toMatchObject({x:0,y:0})
  expect(result.tables[1]).toMatchObject({x:260,y:100})
 })
+
+// Falla si una mesa en rojo deja de decir por qué, o si el aviso de la cabecera deja de llevar hasta ella.
+it('explains why a table is invalid and jumps to it from the header',()=>{
+ render(<FloorEditor initial={initial} configId={1} onCancel={jest.fn()} onSaved={jest.fn()}/> )
+ fireEvent.click(screen.getByRole('button',{name:'Seleccionar capa: Mesa 1'}))
+ fireEvent.click(screen.getByText('Rotar'))
+ expect(screen.getByRole('alert')).toHaveTextContent('Está encima o demasiado cerca de otra mesa.')
+ fireEvent.keyDown(window,{key:'Escape'})
+ expect(screen.queryByRole('region',{name:'Elemento seleccionado'})).not.toBeInTheDocument()
+ fireEvent.click(screen.getByRole('button',{name:/2 mesas por corregir/}))
+ expect(screen.getByRole('region',{name:'Elemento seleccionado'})).toBeInTheDocument()
+})
+
+// Falla si los atajos dejan de funcionar, si duplicar repite el número de mesa, o si una tecla pulsada mientras se
+// escribe el nombre del piso borra o mueve lo seleccionado.
+it('duplicates, nudges, deletes and switches tools from the keyboard, but never while typing',()=>{
+ render(<FloorEditor initial={initial} configId={1} onCancel={jest.fn()} onSaved={jest.fn()}/> )
+ fireEvent.click(screen.getByRole('button',{name:'Seleccionar capa: Mesa 2'}))
+ fireEvent.keyDown(window,{key:'d',ctrlKey:true})
+ expect(screen.getByRole('button',{name:'Seleccionar capa: Mesa 3'})).toHaveAttribute('aria-pressed','true')
+ expect(screen.getByRole('button',{name:'Mesa 3, 4 personas'})).toBeInTheDocument()
+ fireEvent.keyDown(window,{key:'ArrowDown'})
+ expect(screen.getByRole('button',{name:'Mover elemento seleccionado'})).toHaveAttribute('y','60')
+ fireEvent.keyDown(screen.getByLabelText('Nombre del piso'),{key:'Delete'})
+ expect(screen.getByRole('button',{name:'Seleccionar capa: Mesa 3'})).toBeInTheDocument()
+ fireEvent.keyDown(window,{key:'Delete'})
+ expect(screen.queryByRole('button',{name:'Seleccionar capa: Mesa 3'})).not.toBeInTheDocument()
+ fireEvent.keyDown(window,{key:'z',ctrlKey:true})
+ expect(screen.getByRole('button',{name:'Seleccionar capa: Mesa 3'})).toBeInTheDocument()
+ fireEvent.keyDown(window,{key:'p'})
+ expect(screen.getByRole('button',{name:'Dibujar pared'})).toHaveAttribute('aria-pressed','true')
+ fireEvent.keyDown(window,{key:'Escape'})
+ expect(screen.getByRole('button',{name:'Seleccionar elementos'})).toHaveAttribute('aria-pressed','true')
+})
