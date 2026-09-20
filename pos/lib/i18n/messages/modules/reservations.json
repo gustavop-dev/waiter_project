@@ -4,6 +4,11 @@
   "day": "Día",
   "add": "Nueva reserva",
   "tableColumn": "Mesa",
+  "offscreen": {
+    "count": "{count, plural, one {# reserva} other {# reservas}}", "earlier": "antes · {time}", "later": "después · {time}",
+    "earlierLabel": "{count, plural, one {Hay # reserva más temprano, fuera de la vista} other {Hay # reservas más temprano, fuera de la vista}}; la más cercana es a las {time}. Ir a ella.",
+    "laterLabel": "{count, plural, one {Hay # reserva más tarde, fuera de la vista} other {Hay # reservas más tarde, fuera de la vista}}; la más cercana es a las {time}. Ir a ella."
+  },
   "table": {
     "legend": {
       "available": "Disponible",
@@ -12,9 +17,16 @@
     },
     "seats": "{count} personas",
     "selected": "Mesa seleccionada:",
+    "selectedMany": "Mesas seleccionadas:",
     "tableName": "Mesa {number}",
     "clear": "Quitar la mesa elegida",
-    "continue": "Continuar"
+    "remove": "Quitar la mesa {number}",
+    "pickHint": "Toca una mesa libre. Si el grupo de {people} no cabe en una, toca varias y se juntan.",
+    "missing": "{count, plural, one {Falta # puesto} other {Faltan # puestos}}: van {seats} de {people}. Suma otra mesa.",
+    "fits": "{seats} puestos para {people}",
+    "continue": "Continuar",
+    "freeHere": "{count, plural, =0 {Ninguna mesa libre en este piso} one {# mesa libre en este piso} other {# mesas libres en este piso}}",
+    "tooSmall": "no alcanza para {people} personas"
   },
   "loading": "Cargando las reservas del día…",
   "created": "¡Reserva confirmada! {name}",
@@ -31,7 +43,16 @@
     "prevMonth": "Mes anterior",
     "nextMonth": "Mes siguiente",
     "cancel": "Cancelar",
-    "apply": "Aplicar"
+    "apply": "Aplicar",
+    "closedDay": "{day}, cerrado: no se reciben reservas",
+    "closedHint": "Los días tachados no reciben reservas. El horario se cambia en Configuración → Horario de reservas.",
+    "pickDayFirst": "Elige primero el día: cada día tiene su horario.",
+    "loadingSlots": "Cargando las horas de ese día…",
+    "slotsFailed": "No se pudieron cargar las horas de ese día. Toca el día otra vez.",
+    "closedNoSlots": "Ese día no se reciben reservas.",
+    "allPast": "Ya no quedan horas para reservar ese día. Elige otro.",
+    "tooSoon": "Muy pronto: no cumple la antelación mínima de reservas.",
+    "windowHint": "Se reserva hasta {days} días hacia adelante."
   },
   "info": {
     "title": "Datos de la reserva",
@@ -72,7 +93,9 @@
       "table": "Mesa",
       "dishes": "Platos",
       "summary": "Resumen"
-    }
+    },
+    "continueWithoutDishes": "Continuar sin platos",
+    "dishesOptional": "Los platos son opcionales: puedes reservar solo la mesa."
   },
   "summary": {
     "dishes": "Platos pre-pedidos",
@@ -89,13 +112,21 @@
     "date": "Fecha",
     "time": "Hora",
     "table": "Mesa",
+    "tables": "Mesas",
     "people": "Personas",
     "babyChair": "Silla de bebé",
     "email": "Correo",
     "phone": "Teléfono",
     "yes": "Sí",
     "no": "No",
-    "create": "Crear reserva"
+    "create": "Crear reserva",
+    "deposit": "Costo de la reserva",
+    "depositHint": "El anticipo que paga el cliente para confirmar. Al crearla te damos el enlace de pago para compartir.",
+    "depositAmount": "Valor del anticipo (COP)",
+    "depositRemove": "Quitar el costo",
+    "depositRestore": "Cobrar un anticipo",
+    "depositNone": "Esta reserva no tiene costo.",
+    "depositMissing": "Escribe el valor del anticipo o quita el costo."
   },
   "list": {
     "title": "Reservas de la mesa",
@@ -109,6 +140,11 @@
   },
   "detail": {
     "title": "Detalle de la reserva",
+    "tableLabel": "Mesa {list}",
+    "tablesLabel": "Mesas {list}",
+    "changeTables": "Cambiar mesas",
+    "editTables": { "title": "Cambiar mesas · reserva {name}", "save": "Guardar mesas", "saving": "Guardando…", "close": "Cerrar sin cambiar", "saved": "Mesas de la reserva actualizadas.",
+      "loading": "Buscando las mesas libres a esa hora…", "loadFailed": "No se pudieron cargar las mesas libres. Cierra e inténtalo de nuevo." },
     "loading": "Cargando…",
     "id": "Reserva #{name}",
     "customer": "Cliente",
@@ -128,6 +164,52 @@
       "seated": "Sentada",
       "no_show": "No llegó",
       "cancelled": "Cancelada"
-    }
+    },
+    "deposit": "Anticipo",
+    "depositState": {
+      "none": "Sin costo",
+      "pending": "Pendiente de pago",
+      "paid": "Pagado"
+    },
+    "depositPaidAt": "Pagado el {date}",
+    "depositReference": "Referencia: {reference}",
+    "shareTitle": "Compartir el enlace de pago",
+    "shareHint": "El cliente abre el enlace, ve su reserva y paga con Bancolombia, Nequi, QR o tarjeta.",
+    "copy": "Copiar enlace",
+    "copied": "Enlace copiado",
+    "whatsapp": "Enviar por WhatsApp",
+    "email": "Correo",
+    "open": "Abrir",
+    "noPhone": "Sin celular válido: copia el enlace.",
+    "markPaid": "Registrar pago por fuera",
+    "markPaidConfirm": "¿El cliente ya pagó el anticipo por otro medio? Esto lo marca como pagado.",
+    "removeDeposit": "Quitar el costo",
+    "linkUnavailable": "No se pudo armar el enlace: revisa la dirección del menú en Configuración.",
+    "emailSubject": "Tu reserva en {restaurant}"
+  },
+  "hours": {
+    "intro": "Define cuándo se pueden tomar reservas. Un día puede tener varias franjas, por ejemplo almuerzo y cena. La última reserva empieza media hora antes del cierre de cada franja.",
+    "weekly": "Horario de cada semana",
+    "days": { "0": "Lunes", "1": "Martes", "2": "Miércoles", "3": "Jueves", "4": "Viernes", "5": "Sábado", "6": "Domingo" },
+    "daysShort": { "0": "Lun", "1": "Mar", "2": "Mié", "3": "Jue", "4": "Vie", "5": "Sáb", "6": "Dom" },
+    "open": "Recibir reservas el {day}", "closed": "Cerrado",
+    "from": "Desde, franja {n} del {day}", "to": "Hasta, franja {n} del {day}",
+    "addRange": "Agregar franja", "addRangeTo": "Agregar franja al {day}", "removeRange": "Quitar la franja {n} del {day}",
+    "copy": "Copiar a otros días", "copyFrom": "Copiar el horario del {day} a otros días", "copyTitle": "Copiar el horario del {day} a:", "copyAll": "Todos", "copyApply": "Copiar", "copyCancel": "Cancelar",
+    "copied": "Horario copiado. Falta guardar.",
+    "errors": { "order": "Una franja termina antes de empezar.", "overlap": "Las franjas se pisan: cada una debe empezar cuando la anterior ya terminó.", "tooMany": "Un día admite hasta cuatro franjas." },
+    "preview": "Así queda la semana", "previewHours": "{hours} h",
+    "rules": "Antelación", "rulesIntro": "Con cuánto tiempo se toma una reserva. Aplica a todas, también a las que crea el personal.",
+    "minNotice": "Antelación mínima", "minNoticeNone": "Sin mínimo: se puede reservar para ya", "minNoticeValue": "Al menos {time} antes",
+    "minNoticeHint": "Da margen para preparar la mesa y a la cocina si hay platos pre-pedidos.",
+    "maxDays": "Hasta cuándo se reserva", "maxDaysNone": "Sin límite", "maxDaysValue": "Hasta {days} días hacia adelante",
+    "maxDaysHint": "Evita reservas tan lejanas que luego nadie recuerda.",
+    "special": "Fechas especiales", "specialIntro": "Un festivo, un evento o un cierre puntual. Ese día manda esta fecha y no su día de la semana.",
+    "specialEmpty": "No hay fechas especiales.", "specialAdd": "Agregar fecha especial", "specialDate": "Fecha", "specialNote": "Motivo (opcional)", "specialNotePlaceholder": "Festivo, evento privado…",
+    "specialOpen": "Ese día sí se reciben reservas", "specialThatDay": "ese día", "specialSave": "Agregar fecha", "specialUpdate": "Actualizar fecha", "specialCancel": "Cancelar",
+    "specialEdit": "Editar la fecha {date}", "specialRemove": "Quitar la fecha {date}", "specialReplaces": "Ya hay una fecha especial ese día: se reemplazará.",
+    "save": "Guardar horario", "saving": "Guardando…", "saved": "Horario de reservas guardado.", "discard": "Descartar cambios", "unsaved": "Hay cambios sin guardar.",
+    "loadFailed": "No se pudo cargar el horario de reservas.", "retry": "Reintentar",
+    "fixFirst": "Corrige las franjas marcadas para poder guardar."
   }
 }

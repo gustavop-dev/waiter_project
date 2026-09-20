@@ -8,6 +8,8 @@ urlpatterns = [
     path('internal/v1/<slug:restaurant>/<slug:venue>/pasarelas/', payment_gateways.configuration),
     path('api/v1/sesiones/<uuid:session_id>/pagos/', payment_gateways.payments),
     path('api/v1/sesiones/<uuid:session_id>/pagos/<uuid:payment_id>/', payment_gateways.detail),
+    path('api/v1/<slug:restaurant>/<slug:venue>/reservas/<str:token>/pagos/', payment_gateways.reservation_payments_view),
+    path('api/v1/<slug:restaurant>/<slug:venue>/reservas/<str:token>/pagos/<uuid:payment_id>/', payment_gateways.reservation_payment_detail),
     path('api/v1/pagos/webhooks/wompi/<slug:restaurant>/<slug:venue>/<str:environment>/', payment_gateways.webhook),
     path('api/v1/sesiones/<uuid:session_id>/asistente/agregar/', agent_chat.add_to_cart, name='agent-chat-add'),
     path('api/v1/sesiones/<uuid:session_id>/asistente/', agent_chat.messages, name='agent-chat'),

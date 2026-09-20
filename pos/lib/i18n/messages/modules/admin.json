@@ -177,7 +177,8 @@
       "alerts": "Umbrales de alerta",
       "roi": "Supuestos del ROI",
       "display": "Pantalla y sonido",
-      "benefits": "Cupones y puntos"
+      "benefits": "Cupones y puntos",
+      "reservationHours": "Horario de reservas"
     },
     "floors": { "tables": "{n, plural, one {# mesa} other {# mesas}}", "number": "Número", "seats": "Puestos", "active": "Activa", "newTable": "Agregar mesa", "newFloor": "Nuevo piso", "floorName": "Nombre del piso", "table": "Mesa {n}" },
     "payments": { "hint": "Los métodos se crean en Odoo por el aprovisionamiento; aquí se ven los del canal.", "type": {"cash": "Efectivo", "bank": "Datáfono / banco", "pay_later": "Cuenta de cliente"} },

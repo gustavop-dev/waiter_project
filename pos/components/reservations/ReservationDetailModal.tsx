@@ -6,17 +6,21 @@ import { useEffect, useState } from 'react'
 import { Icon } from '@/components/kit/Icon'
 import { Modal } from '@/components/kit/Modal'
 import { StatusPill, type PillTone } from '@/components/kit/StatusPill'
+import { DepositPanel } from '@/components/reservations/DepositPanel'
+import { ReservationTablesEditor } from '@/components/reservations/ReservationTablesEditor'
 import { Button } from '@/components/ui/Button'
 import { formatCop } from '@/lib/domain/money'
-import type { ReservationState } from '@/lib/domain/reservations'
+import { tablesLabel, type ReservationState } from '@/lib/domain/reservations'
 import { getReservation, type ReservationDetail } from '@/lib/services/reservations'
 
 const TONE: Record<ReservationState, PillTone> = { confirmed: 'info', seated: 'success', no_show: 'danger', cancelled: 'neutral' }
 
 // Modal "Reservation Detail" del kit (6 – Table / Reservation Details.png): cabecera con ID y franja,
 // datos del cliente y los platos pre-pedidos con su total. Las acciones son nuestras, el kit no las dibuja.
-export function ReservationDetailModal({ reservationId, open, onClose, onAction }: {
+export function ReservationDetailModal({ reservationId, open, onClose, onAction, configId, onChanged }: {
   reservationId: number | null; open: boolean; onClose: () => void
+  // Con `configId` el detalle deja cambiar las mesas de una reserva confirmada; `onChanged` avisa para recargar la grilla.
+  configId?: number | null; onChanged?: () => void
   onAction?: (id: number, state: 'seated' | 'no_show' | 'cancelled') => void
 }) {
   const t = useTranslations('reservations.detail')
@@ -30,6 +34,11 @@ export function ReservationDetailModal({ reservationId, open, onClose, onAction 
     return () => { alive = false }
   }, [open, reservationId])
   const data = loaded.id === reservationId ? loaded.data : null
+  const [editingTables, setEditingTables] = useState(false)
+  if (open && data && editingTables && configId) {
+    return <ReservationTablesEditor reservation={data} configId={configId} onClose={() => setEditingTables(false)}
+      onSaved={(updated) => { setLoaded({ id: updated.id, data: updated }); setEditingTables(false); onChanged?.() }} />
+  }
 
   return (
     <Modal open={open} onClose={onClose} title={t('title')} size="center">
@@ -41,12 +50,21 @@ export function ReservationDetailModal({ reservationId, open, onClose, onAction 
           </header>
 
           <div className="px-6 py-4 flex flex-wrap items-center gap-x-6 gap-y-3 border-b border-border">
-            <span className="h-9 px-3 rounded-md bg-primary text-primary-ink text-[15px] font-semibold grid place-items-center">{data.tableNumber}</span>
+            <span aria-label={t(data.tableNumbers.length > 1 ? 'tablesLabel' : 'tableLabel', { list: tablesLabel(data.tableNumbers) })} className="flex gap-1">
+              {data.tableNumbers.map((n) => <span key={n} className="h-9 min-w-9 px-3 rounded-md bg-primary text-primary-ink text-[15px] font-semibold grid place-items-center">{n}</span>)}
+            </span>
+            {configId && data.state === 'confirmed' && (
+              <button type="button" onClick={() => setEditingTables(true)} className="h-9 px-3 rounded-md border border-border text-[14px] font-medium text-ink flex items-center gap-2 hover:bg-muted">
+                <Icon name="edit" size={16} />{t('changeTables')}
+              </button>
+            )}
             <span className="flex flex-col"><span className="text-[13px] text-dim">{t('customer')}</span><span className="text-[15px] font-semibold text-ink">{data.customerName}</span></span>
             <span className="flex flex-col"><span className="text-[13px] text-dim">{t('people')}</span><span className="text-[15px] font-semibold text-ink">{data.people}</span></span>
             <span className="flex flex-col"><span className="text-[13px] text-dim">{t('babyChair')}</span><span className="text-[15px] font-semibold text-ink">{data.babyChair ? t('yes') : t('no')}</span></span>
             <StatusPill tone={TONE[data.state]}>{t(`state.${data.state}`)}</StatusPill>
           </div>
+
+          <DepositPanel reservation={data} onChanged={(next) => setLoaded({ id: next.id, data: next })} />
 
           <div className="max-h-[300px] overflow-auto px-6 py-4 flex flex-col gap-3">
             <span className="text-[15px] font-semibold text-ink">{t('dishes')}</span>

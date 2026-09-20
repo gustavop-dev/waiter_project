@@ -61,9 +61,13 @@ export default function ReservasPage() {
         ? <p className="p-8 text-dim">{t('loading')}</p>
         : <ReservationTimeline slots={r.timeline?.slots ?? []} tables={r.timeline?.tables ?? []} onOpen={(card) => setDetail(card.id)} />}
 
-      <ReservationDetailModal reservationId={detail} open={detail !== null} onClose={() => setDetail(null)}
+      <ReservationDetailModal reservationId={detail} open={detail !== null} onClose={() => setDetail(null)} configId={configId} onChanged={() => { if (configId) void r.load(configId) }}
         onAction={(id, state) => { if (configId) { void r.changeState(id, state, configId); setDetail(null) } }} />
-      {configId && <ReservationWizard configId={configId} onCreated={(created) => toast({ title: t('created', { name: created.name }), body: created.customerEmail ? t('createdMail') : t('createdBody') })} />}
+      {configId && <ReservationWizard configId={configId} onCreated={(created) => {
+        toast({ title: t('created', { name: created.name }), body: created.customerEmail ? t('createdMail') : t('createdBody') })
+        // Con anticipo pendiente, el siguiente paso es cobrarlo: se abre el detalle con el enlace de pago listo para compartir.
+        if (created.depositState === 'pending') setDetail(created.id)
+      }} />}
     </KitShell>
   )
 }

@@ -12,10 +12,12 @@ import { additionNames, lineSubtotal, type CartLine, type CartTotals } from '@/l
 interface Props {
   lines: CartLine[]; totals: CartTotals; busy?: boolean
   onReset: () => void; onQty: (uuid: string, qty: number) => void; onEdit: (uuid: string) => void; onRemove: (uuid: string) => void; onContinue: () => void
+  // Reservas: los platos son opcionales. Con `emptyLabel` el botón deja continuar sin ninguno y lo dice.
+  emptyLabel?: string
 }
 
 // Panel derecho de "Select Menu" (Menu Filled.png): Reiniciar, líneas con nota/adición, editar, stepper, borrar y totales reales.
-export function OrderDetailsPanel({ lines, totals, busy = false, onReset, onQty, onEdit, onRemove, onContinue }: Props) {
+export function OrderDetailsPanel({ lines, totals, busy = false, onReset, onQty, onEdit, onRemove, onContinue, emptyLabel }: Props) {
   const t = useTranslations('orders.create')
   return (
     <section aria-label={t('orderDetails')} className="w-[400px] shrink-0 bg-surface border border-border rounded-lg flex flex-col overflow-hidden">
@@ -64,7 +66,7 @@ export function OrderDetailsPanel({ lines, totals, busy = false, onReset, onQty,
           <div className="pt-2 border-t border-dashed border-border flex justify-between"><dt className="font-semibold text-ink">{t('totalPayment')}</dt><dd className="text-[18px] font-bold text-ink tabular-nums">$ {formatCop(totals.total)}</dd></div>
         </dl>
         <div className="px-4 pb-4">
-          <Button variant="primary" className="w-full rounded-md" disabled={lines.length === 0 || busy} onClick={onContinue}>{t('continue')}</Button>
+          <Button variant="primary" className="w-full rounded-md" disabled={(lines.length === 0 && !emptyLabel) || busy} onClick={onContinue}>{lines.length === 0 && emptyLabel ? emptyLabel : t('continue')}</Button>
         </div>
       </footer>
     </section>

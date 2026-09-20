@@ -125,7 +125,7 @@ export interface TableReservation {
   date: string; timeStart: number; timeEnd: number; label: string; timeLabel: string; tableId: number
 }
 export interface ReservationLine { id: number; productTemplateId: number; name: string; qty: number; unitPrice: number; total: number; note: string }
-export interface ReservationDetail extends TableReservation { email: string; phone: string; notes: string; tableNumber: number; amountTotal: number; lines: ReservationLine[] }
+export interface ReservationDetail extends TableReservation { email: string; phone: string; notes: string; tableNumber: number; tableNumbers: number[]; amountTotal: number; lines: ReservationLine[] }
 
 interface RawCard { id: number; name: string; customer_name: string; people: number; baby_chair: boolean; state: string; date: string; time_start: number; time_end: number }
 const card = (r: RawCard, tableId: number): TableReservation => ({
@@ -144,14 +144,15 @@ export async function reservedAtByTable(tableIds: number[], date: string): Promi
 // Reservas vivas de una mesa, de la más próxima a la más lejana ("Lista de reservas" del kit).
 export async function listTableReservations(tableId: number): Promise<TableReservation[]> {
   const rows = await callKw<(RawCard & { table_id: [number, string] })[]>('waiter.reservation', 'search_read',
-    [[['table_id', '=', tableId], ['state', 'in', ['confirmed', 'seated']]], ['name', 'customer_name', 'people', 'baby_chair', 'state', 'date', 'time_start', 'time_end', 'table_id']],
+    [[['table_ids', 'in', [tableId]], ['state', 'in', ['confirmed', 'seated']]], ['name', 'customer_name', 'people', 'baby_chair', 'state', 'date', 'time_start', 'time_end', 'table_id']],
     { order: 'date asc, time_start asc, id asc' })
-  return rows.map((r) => card(r, r.table_id[0]))
+  return rows.map((r) => card(r, tableId)) // la mesa consultada, que en un grupo puede no ser la principal
 }
 
 interface RawDetail extends RawCard {
   customer_email: string; customer_phone: string; notes: string; amount_total: number
   table: { id: number; table_number: number }
+  tables?: { id: number; table_number: number }[]
   lines: { id: number; product_tmpl_id: number; name: string; qty: number; price_unit: number; price_subtotal_incl: number; note: string }[]
 }
 // Detalle con el pre-pedido ("Detalle de reserva" del kit): lo arma el addon en waiter_detail().
@@ -159,7 +160,7 @@ export async function getReservationDetail(id: number): Promise<ReservationDetai
   const [raw] = await callKw<RawDetail[]>('waiter.reservation', 'waiter_detail', [[id]])
   return {
     ...card(raw, raw.table.id), email: raw.customer_email || '', phone: raw.customer_phone || '', notes: raw.notes || '',
-    tableNumber: raw.table.table_number, amountTotal: raw.amount_total || 0,
+    tableNumber: raw.table.table_number, tableNumbers: raw.tables?.length ? raw.tables.map((t) => t.table_number) : [raw.table.table_number], amountTotal: raw.amount_total || 0,
     lines: (raw.lines ?? []).map((l) => ({ id: l.id, productTemplateId: l.product_tmpl_id, name: l.name, qty: l.qty, unitPrice: l.price_unit, total: l.price_subtotal_incl, note: l.note || '' })),
   }
 }

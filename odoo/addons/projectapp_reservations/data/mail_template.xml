@@ -17,7 +17,7 @@
         <tr><td style="padding: 4px 12px 4px 0; color: #475569;">Reserva</td><td style="padding: 4px 0;"><strong t-out="object.name"/></td></tr>
         <tr><td style="padding: 4px 12px 4px 0; color: #475569;">Fecha</td><td style="padding: 4px 0;" t-out="format_date(object.date)"/></tr>
         <tr><td style="padding: 4px 12px 4px 0; color: #475569;">Hora</td><td style="padding: 4px 0;" t-out="object.waiter_time_label()"/></tr>
-        <tr><td style="padding: 4px 12px 4px 0; color: #475569;">Mesa</td><td style="padding: 4px 0;" t-out="object.table_id.display_name"/></tr>
+        <tr><td style="padding: 4px 12px 4px 0; color: #475569;">Mesa</td><td style="padding: 4px 0;" t-out="', '.join(object.table_ids.mapped('display_name')) or object.table_id.display_name"/></tr>
         <tr><td style="padding: 4px 12px 4px 0; color: #475569;">Personas</td><td style="padding: 4px 0;" t-out="object.people"/></tr>
         <tr><td style="padding: 4px 12px 4px 0; color: #475569;">Silla de bebé</td><td style="padding: 4px 0;" t-out="'Sí' if object.baby_chair else 'No'"/></tr>
     </table>

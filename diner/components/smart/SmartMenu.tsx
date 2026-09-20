@@ -25,6 +25,7 @@ import { SmartPassword, SmartPasswordReset, SmartEmailEntry, SmartVerificationCh
 import {SmartWallet} from './SmartWallet'
 import { MenuBanners } from './MenuBanners'
 import { SmartChat } from './SmartChat'
+import { SmartReservationPay } from './SmartReservationPay'
 import { IngredientIllustration } from './SmartIngredients'
 import './smart-menu.css'
 import './smart-dish.css'
@@ -633,6 +634,7 @@ export function SmartExperience({
         {screen === 'plato' && <SmartDish key={props.id} {...props} />}
         {screen === 'pedido' && <SmartCart actionTarget={cartActionTarget} />}
         {screen === 'pago' && <SmartPay />}
+        {screen === 'reserva' && <SmartReservationPay entry={props.entry} rest={props.rest} venue={props.venue} token={props.id} />}
         {screen === 'estado' && <SmartStatus id={props.id} />}
         {screen === 'la-cuenta' && <SmartBill />}
         {screen === 'cuenta' && <SmartAccount />}
@@ -653,14 +655,14 @@ export function SmartExperience({
         {screen === 'cuenta/registro' && <SmartSignup />}
         {screen === 'cuenta/codigo' && <SmartCode />}
       </div>
-      <div className={`sm-action-dock${showCart || showConfirm ? ' sm-action-dock-pair' : ''}`}>
+      {screen !== 'reserva' && <div className={`sm-action-dock${showCart || showConfirm ? ' sm-action-dock-pair' : ''}`}>
         <SmartChat key={`${props.rest}/${props.venue}/${props.token}`} entry={props.entry} rest={props.rest} venue={props.venue} token={props.token}/>
         {showConfirm && <div className="sm-confirm-slot" ref={setCartActionTarget}/>}
         {showCart && <Link href={href('pedido')} className="sm-cart-float">
           <span className="sm-count">{count}</span>
           <span>Mi pedido<small>{money(cart?.mio ?? 0)}</small></span>
         </Link>}
-      </div>
+      </div>}
 
     </div>
   )

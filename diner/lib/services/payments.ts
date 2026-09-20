@@ -25,3 +25,13 @@ export async function tokenizeCard(environment:'test'|'prod',publicKey:string,ca
 }
 
 export const finishPaymentTest=async(session:string,id:string)=>{await http.delete(`${path(session)}${id}/`)}
+
+// ---- Anticipo de una reserva: el token del enlace es la llave; no hay sesión ni cookie de comensal.
+export interface PublicReservation { code:string; customer:string; date:string; time_label:string; people:number; table_number:number; table_numbers?:number[]
+  state:'confirmed'|'seated'|'no_show'|'cancelled'; deposit_state:'none'|'pending'|'paid'; amount_in_cents:number }
+export interface ReservationPayContext extends PaymentContext { reservation:PublicReservation }
+const reservationPath=(rest:string,venue:string,token:string)=>`/api/v1/${rest}/${venue}/reservas/${encodeURIComponent(token)}/pagos/`
+export const reservationPayContext=async(rest:string,venue:string,token:string)=>(await http.get<ReservationPayContext>(reservationPath(rest,venue,token),{timeout:25000})).data
+export const createReservationPayment=async(rest:string,venue:string,token:string,data:Record<string,unknown>)=>(await http.post<OnlinePayment>(reservationPath(rest,venue,token),data,{timeout:45000})).data
+export const readReservationPayment=async(rest:string,venue:string,token:string,id:string)=>(await http.get<OnlinePayment>(`${reservationPath(rest,venue,token)}${id}/`,{timeout:25000})).data
+export const finishReservationPaymentTest=async(rest:string,venue:string,token:string,id:string)=>{await http.delete(`${reservationPath(rest,venue,token)}${id}/`)}

@@ -31,17 +31,32 @@ def cents(value):
     return int((Decimal(str(value)) * 100).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
 
 
-def gateway(session):
-    config = PaymentGateway.objects.filter(restaurant_slug=session.restaurant_slug, venue_slug=session.venue_slug, enabled=True).first()
+def gateway_for(restaurant, venue):
+    config = PaymentGateway.objects.filter(restaurant_slug=restaurant, venue_slug=venue, enabled=True).first()
     if config and config.environment == 'prod' and not settings.PAYMENTS_LIVE_ENABLED:
         return None
     return config
 
 
+def gateway(session):
+    return gateway_for(session.restaurant_slug, session.venue_slug)
+
+
+def checkout_context(config):
+    """Lo que el navegador necesita para pagar: medios del comercio y los dos contratos de Wompi. Nunca secretos."""
+    merchant = PROVIDERS[config.provider].merchant(config.environment, config.public_key)
+    consent = merchant.get('presigned_acceptance', {})
+    personal = merchant.get('presigned_personal_data_auth', {})
+    return {'available': True, 'provider': config.provider, 'environment': config.environment, 'public_key': config.public_key,
+        'methods': [m for m in PROVIDERS[config.provider].METHODS if m in merchant.get('accepted_payment_methods', [])],
+        'acceptance': {'token': consent.get('acceptance_token'), 'url': consent.get('permalink')},
+        'personal_data': {'token': personal.get('acceptance_token'), 'url': personal.get('permalink')}}
+
+
 def serialize(attempt):
     return {'id': str(attempt.id), 'reference': attempt.reference, 'status': attempt.status, 'method': attempt.method,
         'amount_in_cents': attempt.amount_in_cents, 'environment': attempt.gateway.environment,
-        'order_id': str(attempt.order_id),
+        'order_id': str(attempt.order_id) if attempt.order_id else None,
         'reconciled': attempt.reconciled, 'needs_review': attempt.needs_review,
         'challenge_html': attempt.challenge_html or None, 'card_brand': attempt.card_brand,
         'qr_image': attempt.qr_image or None, 'redirect_url': attempt.redirect_url or None}
@@ -54,9 +69,6 @@ def context(session, diner):
     config = gateway(session)
     if not config:
         return result
-    merchant = PROVIDERS[config.provider].merchant(config.environment, config.public_key)
-    consent = merchant.get('presigned_acceptance', {})
-    personal = merchant.get('presigned_personal_data_auth', {})
     # Only expose contracts/tokens, never all merchant data or private credentials.
     amount = None
     order = session.orders.filter(state__in=(Order.SENT, Order.CHECKOUT)).exclude(odoo_order_id=None).first()
@@ -64,10 +76,7 @@ def context(session, diner):
         tenant = resolve(session.restaurant_slug, session.venue_slug, session.table_token)
         payable = pos.read_order(OdooClient(tenant.odoo), order.odoo_order_id)
         amount = max(0, cents(Decimal(str(payable.total)) - Decimal(str(payable.paid))))
-    result.update(amount_in_cents=amount, available=True, provider=config.provider, environment=config.environment, public_key=config.public_key,
-        methods=[m for m in PROVIDERS[config.provider].METHODS if m in merchant.get('accepted_payment_methods', [])],
-        acceptance={'token': consent.get('acceptance_token'), 'url': consent.get('permalink')},
-        personal_data={'token': personal.get('acceptance_token'), 'url': personal.get('permalink')})
+    result.update(checkout_context(config), amount_in_cents=amount)
     return result
 
 
@@ -118,6 +127,11 @@ def create(session, diner, data):
     if session.table_token:
         return_url += f'/t/{session.table_token}'
     return_url += '/pago/'
+    return submit(provider, config, credentials, attempt, data, return_url)
+
+
+def submit(provider, config, credentials, attempt, data, return_url):
+    """Envía al proveedor un intento ya reservado en la base. Lo comparten la cuenta de una visita y el anticipo de una reserva."""
     try:
         remote = provider.create(config.environment, credentials, attempt, data, return_url)
     except PaymentUnavailable:
@@ -136,9 +150,24 @@ def create(session, diner, data):
     return refresh(attempt, force=True)
 
 
+def reconcile_reservation(attempt):
+    """Anticipo aprobado en producción: se marca pagado en la reserva de Odoo. Idempotente por referencia."""
+    try:
+        tenant = resolve(attempt.gateway.restaurant_slug, attempt.gateway.venue_slug)
+        result = OdooClient(tenant.odoo).call_kw('waiter.reservation', 'waiter_deposit_paid',
+            [attempt.reservation_token, attempt.amount_in_cents, attempt.reference])
+        PaymentAttempt.objects.filter(id=attempt.id).update(reconciled=bool(result.get('paid')), needs_review=not result.get('paid'))
+    except OdooError:
+        PaymentAttempt.objects.filter(id=attempt.id).update(needs_review=True)
+    attempt.refresh_from_db()
+    return attempt
+
+
 def reconcile(attempt):
     if attempt.status != 'APPROVED' or attempt.reconciled or attempt.gateway.environment == 'test':
         return attempt
+    if attempt.reservation_token:
+        return reconcile_reservation(attempt)
     try:
         tenant = resolve(attempt.session.restaurant_slug, attempt.session.venue_slug, attempt.session.table_token)
         result = OdooClient(tenant.odoo).call_kw('pos.order', 'waiter_gateway_paid', [[attempt.order.odoo_order_id],

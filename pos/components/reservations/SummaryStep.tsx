@@ -6,12 +6,13 @@ import { Icon } from '@/components/kit/Icon'
 import { Button } from '@/components/ui/Button'
 import { formatCop } from '@/lib/domain/money'
 import { additionNames, lineSubtotal, type CartLine, type CartTotals } from '@/lib/domain/orderWizard'
-import { hourLabel, type ReservationDraft } from '@/lib/domain/reservations'
+import { depositReady, hourLabel, MAX_DEPOSIT, tablesLabel, type ReservationDraft } from '@/lib/domain/reservations'
 
 // Paso 4 del kit (Reservation Summary.png): los platos pre-pedidos a la izquierda y la ficha de la reserva
 // a la derecha. El ID lo asigna el servidor al crearla.
-export function SummaryStep({ draft, tableNumber, lines, totals, busy, onCreate }: {
-  draft: ReservationDraft; tableNumber: number | null; lines: CartLine[]; totals: CartTotals; busy: boolean; onCreate: () => void
+export function SummaryStep({ draft, tableNumbers, lines, totals, busy, onCreate, onChange }: {
+  draft: ReservationDraft; tableNumbers: (number | string)[]; lines: CartLine[]; totals: CartTotals; busy: boolean; onCreate: () => void
+  onChange: (patch: Partial<ReservationDraft>) => void
 }) {
   const t = useTranslations('reservations.summary')
   const rows: [string, string, 'hash' | 'user' | 'reservations' | 'clock' | 'tables' | 'babyChair' | 'mail' | 'phone'][] = [
@@ -19,7 +20,7 @@ export function SummaryStep({ draft, tableNumber, lines, totals, busy, onCreate 
     [t('customer'), draft.customerName, 'user'],
     [t('date'), draft.date ? new Date(`${draft.date}T00:00:00`).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' }) : '—', 'reservations'],
     [t('time'), draft.timeStart !== null ? hourLabel(draft.timeStart) : '—', 'clock'],
-    [t('table'), tableNumber !== null ? String(tableNumber) : '—', 'tables'],
+    [t(tableNumbers.length > 1 ? 'tables' : 'table'), tablesLabel(tableNumbers), 'tables'],
     [t('people'), String(draft.people), 'user'],
     [t('babyChair'), draft.babyChair ? t('yes') : t('no'), 'babyChair'],
     ...(draft.customerEmail ? ([[t('email'), draft.customerEmail, 'mail']] as typeof rows) : []),
@@ -71,8 +72,28 @@ export function SummaryStep({ draft, tableNumber, lines, totals, busy, onCreate 
             </div>
           ))}
         </dl>
+        {/* Costo de la reserva: viene activo. Quitarlo es una decisión explícita, no un campo que se olvida en blanco. */}
+        <div className="px-5 py-4 border-t border-border flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="flex items-center gap-2 text-[15px] font-semibold text-ink"><Icon name="banknote" size={18} />{t('deposit')}</h3>
+            <button type="button" onClick={() => onChange({ depositEnabled: !draft.depositEnabled })} className="text-[14px] font-semibold text-primary">{draft.depositEnabled ? t('depositRemove') : t('depositRestore')}</button>
+          </div>
+          {draft.depositEnabled ? (
+            <>
+              <div className="flex flex-col gap-1.5 text-[13px] font-medium text-soft"><label htmlFor="deposit-amount">{t('depositAmount')}</label>
+                <span className="flex items-center h-12 rounded-md border border-border bg-surface focus-within:border-primary">
+                  <span className="pl-4 pr-1 text-[17px] font-semibold text-soft">$</span>
+                  <input id="deposit-amount" type="number" inputMode="numeric" min={1} max={MAX_DEPOSIT} step={1000} placeholder="50000" value={draft.depositAmount ?? ''}
+                    onChange={(e) => onChange({ depositAmount: e.target.value === '' ? null : Number(e.target.value) })}
+                    className="flex-1 min-w-0 h-full bg-transparent pr-4 text-[17px] font-semibold text-ink tabular focus:outline-none" />
+                </span>
+              </div>
+              <p className="text-[13px] leading-relaxed text-dim">{depositReady(draft) ? t('depositHint') : t('depositMissing')}</p>
+            </>
+          ) : <p className="text-[14px] text-soft">{t('depositNone')}</p>}
+        </div>
         <div className="p-5 border-t border-border">
-          <Button variant="primary" size="money" className="w-full" disabled={busy} onClick={onCreate}>{t('create')}</Button>
+          <Button variant="primary" size="money" className="w-full" disabled={busy || !depositReady(draft)} onClick={onCreate}>{t('create')}</Button>
         </div>
       </section>
     </div>

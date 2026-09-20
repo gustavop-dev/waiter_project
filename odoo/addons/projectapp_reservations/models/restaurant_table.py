@@ -16,12 +16,13 @@ class RestaurantTable(models.Model):
         date = fields.Date.to_date(date) if date else fields.Date.context_today(self)
         now_hour = Reservation._waiter_now_hour() if date == fields.Date.context_today(self) else 0.0
         result = {table.id: False for table in self}
-        domain = [("table_id", "in", self.ids), ("date", "=", date), ("state", "=", "confirmed"), ("time_end", ">", now_hour)]
+        domain = [("table_ids", "in", self.ids), ("date", "=", date), ("state", "=", "confirmed"), ("time_end", ">", now_hour)]
         if now_hour:
             # Hoy: solo la que ya empezó a apartarse. Las de más tarde no ocupan la mesa todavía.
             domain.append(("hold_start", "<=", now_hour))
         reservations = Reservation.search(domain, order="time_start, id")
         for reservation in reservations:
-            if not result[reservation.table_id.id]:
-                result[reservation.table_id.id] = reservation._waiter_card_vals()
+            for table in reservation.table_ids & self:
+                if not result[table.id]:
+                    result[table.id] = reservation._waiter_card_vals()
         return result

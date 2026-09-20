@@ -81,9 +81,11 @@ it('reads the next reservation of each table for the plan', async () => {
 })
 
 // Falla si la lista de reservas de una mesa trae las canceladas o las de otras mesas, o si pierde la hora del kit.
-it('lists the active reservations of one table', async () => {
-  m.mockImplementation(async () => [{ id: 5, name: 'Rv001', customer_name: 'Eva', date: '2026-09-07', time_start: 10, time_end: 11, people: 2, baby_chair: true, state: 'confirmed', table_id: [2, 'Mesa 1'] }])
+// Falla si la lista de una mesa deja de incluir las reservas de grupo en las que esa mesa es secundaria (la principal
+// es otra): se busca por `table_ids` y la tarjeta se cuelga de la mesa consultada.
+it('lists the active reservations of one table, also when it is a secondary table of a group', async () => {
+  m.mockImplementation(async () => [{ id: 5, name: 'Rv001', customer_name: 'Eva', date: '2026-09-07', time_start: 10, time_end: 11, people: 2, baby_chair: true, state: 'confirmed', table_id: [9, 'Mesa 7'] }])
   const rows = await listTableReservations(2)
-  expect(m.mock.calls[0][2][0]).toEqual([['table_id', '=', 2], ['state', 'in', ['confirmed', 'seated']]])
-  expect(rows[0]).toMatchObject({ name: 'Rv001', customerName: 'Eva', timeLabel: '10:00 – 11:00', people: 2, babyChair: true })
+  expect(m.mock.calls[0][2][0]).toEqual([['table_ids', 'in', [2]], ['state', 'in', ['confirmed', 'seated']]])
+  expect(rows[0]).toMatchObject({ name: 'Rv001', customerName: 'Eva', timeLabel: '10:00 – 11:00', people: 2, babyChair: true, tableId: 2 })
 })

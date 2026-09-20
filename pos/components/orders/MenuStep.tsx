@@ -22,10 +22,11 @@ interface Props {
   onQty: (uuid: string, qty: number) => void
   onReset: () => void
   onContinue: () => void
+  emptyLabel?: string
 }
 
 // Paso 3 del kit (Menu Empty / Menu Filled.png): lista con buscador y chips a la izquierda, detalle del pedido a la derecha.
-export function MenuStep({ products, categories, taxes, optionsOf, descriptionOf, lines, onAdd, onUpdate, onQty, onReset, onContinue }: Props) {
+export function MenuStep({ products, categories, taxes, optionsOf, descriptionOf, lines, onAdd, onUpdate, onQty, onReset, onContinue, emptyLabel }: Props) {
   const t = useTranslations('orders.create')
   const [query, setQuery] = useState('')
   const [categoryId, setCategoryId] = useState<number | null>(null)
@@ -94,7 +95,7 @@ export function MenuStep({ products, categories, taxes, optionsOf, descriptionOf
       </section>
 
       <OrderDetailsPanel lines={lines} totals={totals} onReset={onReset} onQty={onQty} onEdit={setEditing}
-        onRemove={(uuid) => onQty(uuid, 0)} onContinue={onContinue} />
+        onRemove={(uuid) => onQty(uuid, 0)} onContinue={onContinue} emptyLabel={emptyLabel} />
 
       {adding && (
         <AddDishModal product={adding} description={descriptionOf(adding.templateId)} groups={optionsOf(adding.templateId)}

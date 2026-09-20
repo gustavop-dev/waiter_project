@@ -23,9 +23,13 @@ class PaymentGateway(models.Model):
 class PaymentAttempt(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     gateway = models.ForeignKey(PaymentGateway, on_delete=models.PROTECT)
-    session = models.ForeignKey('TableSession', on_delete=models.PROTECT, related_name='payments')
-    diner = models.ForeignKey('Diner', on_delete=models.PROTECT)
-    order = models.ForeignKey('Order', on_delete=models.PROTECT)
+    # Un intento paga una de dos cosas: la cuenta de una visita (session + diner + order) o el anticipo de una reserva
+    # (reservation_token, el secreto del enlace público; la reserva vive en Odoo). Nunca las dos ni ninguna.
+    session = models.ForeignKey('TableSession', on_delete=models.PROTECT, related_name='payments', null=True, blank=True)
+    diner = models.ForeignKey('Diner', on_delete=models.PROTECT, null=True, blank=True)
+    order = models.ForeignKey('Order', on_delete=models.PROTECT, null=True, blank=True)
+    reservation_token = models.CharField(max_length=64, blank=True, default='', db_index=True)
+    reservation_code = models.CharField(max_length=40, blank=True, default='')
     amount_in_cents = models.PositiveBigIntegerField()
     method = models.CharField(max_length=40)
     status = models.CharField(max_length=20, default='CREATING')
@@ -44,7 +48,11 @@ class PaymentAttempt(models.Model):
     checked_at = models.DateTimeField(null=True)
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=['session'], condition=models.Q(status__in=['CREATING', 'UNKNOWN', 'PENDING', 'APPROVED']), name='one_unresolved_payment_per_visit')]
+        constraints = [models.UniqueConstraint(fields=['session'], condition=models.Q(status__in=['CREATING', 'UNKNOWN', 'PENDING', 'APPROVED']), name='one_unresolved_payment_per_visit'),
+                       models.UniqueConstraint(fields=['reservation_token'], condition=models.Q(status__in=['CREATING', 'UNKNOWN', 'PENDING', 'APPROVED']) & ~models.Q(reservation_token=''), name='one_unresolved_payment_per_reservation'),
+                       models.CheckConstraint(condition=(models.Q(session__isnull=False, diner__isnull=False, order__isnull=False, reservation_token='')
+                                                         | (models.Q(session__isnull=True, diner__isnull=True, order__isnull=True) & ~models.Q(reservation_token=''))),
+                                              name='payment_is_for_a_visit_or_a_reservation')]
 
     @property
     def reference(self):

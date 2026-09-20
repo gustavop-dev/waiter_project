@@ -1,8 +1,9 @@
 // /[rest]/[sede]/(t/<token>/)?(pantalla)?(/id)? — una sola página despacha; domicilio y mesa comparten todo.
 // 'la-cuenta' es pedir la cuenta al salón (Plan F); 'cuenta' es Mi cuenta del comensal (Plan H) con 'registro' y 'codigo' debajo.
-export type Screen = 'cuenta/correo' | 'cuenta/canal' | 'cuenta/lista' | 'cuenta/tarjetas' | 'cuenta/recuperar' | 'cuenta/restablecer' | 'cuenta/entrar' | 'cuenta/clave' | 'opinion' | 'bienvenida' | 'ubicacion' | 'recompensas' | 'recibo' | 'cuenta/informacion' | 'asistente' | 'preferencias' | 'acerca' | 'ayuda' | 'favoritos' | 'historial' | 'portada' | 'carta' | 'plato' | 'pedido' | 'estado' | 'la-cuenta' | 'pago' | 'cuenta' | 'cuenta/registro' | 'cuenta/codigo'
+// 'reserva' es el enlace de pago del anticipo: /<rest>/<sede>/reserva/<token>. No pertenece a una mesa ni a una visita.
+export type Screen = 'reserva' | 'cuenta/correo' | 'cuenta/canal' | 'cuenta/lista' | 'cuenta/tarjetas' | 'cuenta/recuperar' | 'cuenta/restablecer' | 'cuenta/entrar' | 'cuenta/clave' | 'opinion' | 'bienvenida' | 'ubicacion' | 'recompensas' | 'recibo' | 'cuenta/informacion' | 'asistente' | 'preferencias' | 'acerca' | 'ayuda' | 'favoritos' | 'historial' | 'portada' | 'carta' | 'plato' | 'pedido' | 'estado' | 'la-cuenta' | 'pago' | 'cuenta' | 'cuenta/registro' | 'cuenta/codigo'
 export interface Route { token: string | null; screen: Screen; id: string | null }
-const SCREENS: Screen[] = ['opinion', 'ubicacion', 'recompensas', 'recibo', 'favoritos', 'historial', 'carta', 'plato', 'pedido', 'estado', 'la-cuenta', 'pago', 'cuenta']
+const SCREENS: Screen[] = ['reserva', 'opinion', 'ubicacion', 'recompensas', 'recibo', 'favoritos', 'historial', 'carta', 'plato', 'pedido', 'estado', 'la-cuenta', 'pago', 'cuenta']
 const ACCOUNT_SUBSCREENS = ['registro', 'codigo', 'informacion', 'entrar', 'clave', 'recuperar', 'restablecer', 'tarjetas', 'correo', 'canal', 'lista'] as const
 
 export function parseRoute(segments: string[] = []): Route {

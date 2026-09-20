@@ -113,3 +113,41 @@ def webhook(request, restaurant, venue, environment):
     if environment not in ('test', 'prod') or not isinstance(request.data, dict):
         return Response(status=400)
     return online_payments.webhook(request.data, restaurant, venue, environment)
+
+
+# ---- Anticipo de una reserva: quien tiene el enlace tiene el token; no hay cookie de comensal.
+def _origin_ok(request):
+    origin = request.headers.get('Origin')
+    if origin and origin.rstrip('/') != settings.DINER_PUBLIC_URL:
+        raise PermissionDenied('Origen no permitido.')
+
+
+@api_view(['GET', 'POST'])
+def reservation_payments_view(request, restaurant, venue, token):
+    from experience_app.services import reservation_payments
+    _origin_ok(request)
+    if request.method == 'GET':
+        result = reservation_payments.context(restaurant, venue, token)
+    else:
+        body = CreatePayment(data=request.data)
+        body.is_valid(raise_exception=True)
+        result = online_payments.serialize(reservation_payments.create(restaurant, venue, token, body.validated_data))
+    response = Response(result)
+    response['Cache-Control'] = 'no-store'
+    return response
+
+
+@api_view(['GET', 'DELETE'])
+def reservation_payment_detail(request, restaurant, venue, token, payment_id):
+    from experience_app.services import reservation_payments
+    _origin_ok(request)
+    attempt = get_object_or_404(reservation_payments.attempts(restaurant, venue, token), id=payment_id)
+    if request.method == 'DELETE':
+        if attempt.gateway.environment != 'test' or attempt.status != 'APPROVED':
+            raise ValidationError({'detail': 'Solo se puede finalizar una prueba sandbox aprobada.'})
+        PaymentAttempt.objects.filter(id=attempt.id, status='APPROVED').update(status='TEST_COMPLETED')
+        return Response({'ok': True})
+    response = Response(online_payments.serialize(online_payments.refresh(attempt)))
+    response['Cache-Control'] = 'no-store'
+    return response
+

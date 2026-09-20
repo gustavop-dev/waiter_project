@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Suspense, useEffect, useState } from 'react'
@@ -8,6 +9,7 @@ import { Icon, type KitIcon } from '@/components/kit/Icon'
 import { KitShell } from '@/components/kit/KitShell'
 import { CompanyForm, DisplayForm, FloorsForm, PaymentMethodsList, TaxesList, UsersForm } from '@/components/settings/KitSettingsForms'
 import { KitchenPaymentPolicyForm } from '@/components/settings/KitchenPaymentPolicyForm'
+import { ReservationHoursForm } from '@/components/settings/ReservationHoursForm'
 import { PaymentGatewayForm } from '@/components/settings/PaymentGatewayForm'
 import { BenefitsForm } from '@/components/settings/BenefitsForm'
 import { MenuBannersForm } from '@/components/settings/MenuBannersForm'
@@ -19,11 +21,11 @@ import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
 import { cn } from '@/lib/utils'
 
-const SECTIONS: [Section, KitIcon][] = [['restaurant', 'store'], ['menuTemplate', 'layout'], ['benefits', 'percentage'], ['floors', 'grid'], ['payments', 'card'], ['taxes', 'percentage'], ['users', 'users'], ['alerts', 'alert'], ['roi', 'chartLine'], ['display', 'tablet']]
-type Section = 'benefits' | 'restaurant' | 'brand' | 'menuTemplate' | 'floors' | 'payments' | 'taxes' | 'users' | 'alerts' | 'roi' | 'display'
+const SECTIONS: [Section, KitIcon][] = [['restaurant', 'store'], ['menuTemplate', 'layout'], ['benefits', 'percentage'], ['floors', 'grid'], ['reservationHours', 'reservations'], ['payments', 'card'], ['taxes', 'percentage'], ['users', 'users'], ['alerts', 'alert'], ['roi', 'chartLine'], ['display', 'tablet']]
+type Section = 'benefits' | 'reservationHours' | 'restaurant' | 'brand' | 'menuTemplate' | 'floors' | 'payments' | 'taxes' | 'users' | 'alerts' | 'roi' | 'display'
 
 // Configuración con la estructura del modal "Setting" del kit (Account Setting / Profile.png): pestañas verticales con
-// icono a la izquierda y panel con cabecera a la derecha, para las diez secciones del restaurante.
+// icono a la izquierda y panel con cabecera a la derecha, para las secciones del restaurante.
 function ConfiguracionInner() {
   const t = useTranslations('admin.settings')
   const params = useSearchParams()
@@ -53,6 +55,7 @@ function ConfiguracionInner() {
                 <Icon name={icon} size={20} /><span>{t(`sections.${s}`)}</span>
               </button>
             ))}
+            <Link href="/kit" className="mt-auto flex items-center gap-3 h-12 px-3 rounded-md text-[15px] font-semibold text-soft hover:bg-muted"><Icon name="layout" size={20} /><span>Sistema de diseño</span></Link>
           </nav>
           <section aria-label={t(`sections.${section}`)} className="flex-1 min-w-0 m-4 rounded-lg border border-border flex flex-col overflow-hidden">
             <header className="h-14 px-5 flex items-center border-b border-border shrink-0"><h2 className="text-[16px] font-semibold text-ink">{t(`sections.${section}`)}</h2></header>
@@ -61,6 +64,7 @@ function ConfiguracionInner() {
               {section === 'benefits' && <BenefitsForm configId={catalog.settings.configId} />}
               {section === 'menuTemplate' && <><MenuTemplateForm /><MenuBannersForm configId={catalog.settings.configId}/></>}
               {section === 'floors' && <FloorsForm floors={floors} configId={catalog.settings.configId} onChanged={reloadFloors} />}
+              {section === 'reservationHours' && <ReservationHoursForm configId={catalog.settings.configId} />}
               {section === 'payments' && <><PaymentMethodsList methods={methods} /><PaymentGatewayForm methods={methods} /></>}
               {section === 'taxes' && <TaxesList taxes={taxes} />}
               {section === 'users' && <><KitchenPaymentPolicyForm configId={catalog.settings.configId} /><WaiterPermissionsForm initial={catalog.settings} onSave={onSaveSettings} /><UsersForm users={users} onChanged={reloadUsers} /></>}

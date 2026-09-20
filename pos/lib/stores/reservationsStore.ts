@@ -3,7 +3,7 @@
 import { create } from 'zustand'
 
 import { addLine, replaceLine, setLineQty, type CartLine, type OptionGroup, type TaxRate } from '@/lib/domain/orderWizard'
-import { emptyDraft, type ReservationDraft, type Slot } from '@/lib/domain/reservations'
+import { depositOf, emptyDraft, type ReservationDraft, type Slot } from '@/lib/domain/reservations'
 import { play } from '@/lib/audio/sounds'
 import { loadMenuExtras, loadTaxes, type MenuExtras } from '@/lib/services/productOptions'
 import {
@@ -94,13 +94,13 @@ export const useReservationsStore = create<ReservationsState>((set, get) => ({
 
   create: async (configId) => {
     const { draft, lines } = get()
-    if (!draft.date || draft.timeStart === null || draft.tableId === null) return null
+    if (!draft.date || draft.timeStart === null || draft.tableIds.length === 0) return null
     set({ busy: true, error: null })
     try {
       const created = await createReservation({
         customerName: draft.customerName.trim(), customerEmail: draft.customerEmail.trim(), customerPhone: draft.customerPhone.trim(),
         people: draft.people, babyChair: draft.babyChair, notes: draft.notes.trim(),
-        date: draft.date, timeStart: draft.timeStart, tableId: draft.tableId, configId, prepMinutes: draft.prepMinutes,
+        date: draft.date, timeStart: draft.timeStart, tableIds: draft.tableIds, configId, prepMinutes: draft.prepMinutes, depositAmount: depositOf(draft),
       }, lines.map((l) => ({ productId: l.productId, qty: l.qty, note: l.note })))
       set({ busy: false, open: false, date: draft.date })
       await get().load(configId)
