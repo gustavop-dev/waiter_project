@@ -1,4 +1,4 @@
-import { administrationPath, ADMIN_SUBTABS, TAB_ROUTES, adminSubtabsFor, tabForPath, tabsFor } from '@/lib/domain/navigation'
+import { administrationPath, ADMIN_SUBTABS, TAB_ROUTES, adminSubtabsFor, tabForPath, tabsFor, homePath } from '@/lib/domain/navigation'
 import { allowedPath } from '@/lib/domain/roles'
 
 // Falla si el mesero ve pestañas de cocina o administración, o si el cajero y el admin las pierden.
@@ -35,6 +35,23 @@ it('allowedPath follows the tabs and the admin row', () => {
 })
 
 it('keeps restaurant management available without cash while blocking order operations', () => {
-  for (const path of ['/salon', '/inventario', '/reservas', '/catalogo', '/configuracion', '/ventas', '/historial']) expect(administrationPath(path)).toBe(true)
-  for (const path of ['/pedidos', '/pedidos/nuevo', '/mesas/4', '/kds', '/dashboard']) expect(administrationPath(path)).toBe(false)
+  // Inicio pasó a este grupo: es visión general (semanas, meses), no operación del turno.
+  for (const path of ['/dashboard', '/salon', '/inventario', '/reservas', '/catalogo', '/configuracion', '/ventas', '/historial']) expect(administrationPath(path)).toBe(true)
+  for (const path of ['/pedidos', '/pedidos/nuevo', '/mesas/4', '/kds']) expect(administrationPath(path)).toBe(false)
+})
+
+// Falla si el administrador vuelve a caer en Mesas al entrar (lo pidió el dueño: su pantalla es Inicio, con la visión
+// general), o si meseros y cajeros dejan de ir a Mesas con la caja abierta y a abrir caja con ella cerrada.
+it('sends each role to its own home screen', () => {
+  expect(homePath('admin', true)).toBe('/dashboard')
+  expect(homePath('admin', false)).toBe('/dashboard')
+  expect(homePath('waiter', true)).toBe('/salon')
+  expect(homePath('cashier', true)).toBe('/salon')
+  expect(homePath('waiter', false)).toBe('/caja')
+})
+
+// Falla si Inicio vuelve a exigir caja abierta al administrador: el guardia de rutas lo mandaba a «Abrir caja» y la
+// visión general de semanas y meses no necesita un turno.
+it('lets an admin open Inicio with the register closed', () => {
+  expect(administrationPath('/dashboard')).toBe(true)
 })

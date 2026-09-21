@@ -41,6 +41,14 @@ export function pathAllowed(role: Role, pathname: string): boolean {
 }
 
 // Las operaciones de pedidos y cocina requieren caja; la configuración del restaurante no.
+// Pantalla de inicio de cada rol, al marcar el PIN y al abrir la app. El administrador va a Inicio: su trabajo es la
+// visión general, no las mesas, y la ve con la caja abierta o cerrada. Meseros y cajeros van a Mesas si hay caja abierta
+// y, si no, a abrirla.
+export function homePath(role: Role, hasOpenSession: boolean): string {
+  if (role === 'admin') return '/dashboard'
+  return hasOpenSession ? '/salon' : '/caja'
+}
+
 export function administrationPath(pathname: string): boolean {
-  return /^\/(salon|inventario|reservas|historial|ventas|catalogo|clientes|facturacion|automatizacion|configuracion|kit)(\/|$)/.test(pathname)
+  return /^\/(dashboard|salon|inventario|reservas|historial|ventas|catalogo|clientes|facturacion|automatizacion|configuracion|kit)(\/|$)/.test(pathname)
 }

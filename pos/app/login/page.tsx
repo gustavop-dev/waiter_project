@@ -11,6 +11,8 @@ import { Icon } from '@/components/kit/Icon'
 import { Toggle } from '@/components/kit/Toggle'
 import { Button } from '@/components/ui/Button'
 import { lockMinutesLeft } from '@/lib/domain/employees'
+import { homePath } from '@/lib/domain/navigation'
+import { effectiveRole } from '@/lib/domain/roles'
 import { activate, requestCode } from '@/lib/services/activation'
 import { checkPin, forgotPin, listPosEmployees, type PosEmployee } from '@/lib/services/employees'
 import { useAuthStore } from '@/lib/stores/authStore'
@@ -77,7 +79,7 @@ export default function LoginPage() {
       return result.attemptsLeft > 0 ? t('employee.wrongPinLeft', { left: result.attemptsLeft }) : t('employee.wrongPin')
     }
     await startShift(result.employee, result.attendanceId, result.token)
-    router.push(session ? '/salon' : '/caja')
+    router.push(homePath(effectiveRole(user?.role, result.employee.role), session !== null))
     return null
   }
 

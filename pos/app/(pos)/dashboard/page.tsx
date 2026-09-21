@@ -11,7 +11,6 @@ import { KpiTile } from '@/components/dashboard/KpiTile'
 import { LiveClock } from '@/components/dashboard/LiveClock'
 import { PatternCard } from '@/components/dashboard/PatternCard'
 import { TablesAvailable } from '@/components/dashboard/TablesAvailable'
-import { Icon } from '@/components/kit/Icon'
 import { KitShell } from '@/components/kit/KitShell'
 import { attentionItems, dishStats, forecastNextMonth, generalKpis, peakHours, weekdayAverages, type PeriodKpi, type SalesHistory } from '@/lib/domain/insights'
 import { formatCop } from '@/lib/domain/money'
@@ -101,10 +100,7 @@ export default function DashboardPage() {
             <h1 className="text-[22px] font-semibold text-ink">{t(`greeting.${greetingFor(new Date().getHours())}`, { name: firstName })}</h1>
             <p className="text-[15px] text-soft">{t('motto')}</p>
           </div>
-          <div className="flex items-center gap-3">
-            <LiveClock label={t('clock')} />
-            <Link href="/salon?elegir=mesa" className="h-12 px-5 shrink-0 rounded-md bg-primary text-primary-ink text-[16px] font-bold inline-flex items-center justify-center gap-2"><Icon name="plus" size={20} />{t('createOrder')}</Link>
-          </div>
+          <LiveClock label={t('clock')} />
         </div>
 
         {seesSales ? (
