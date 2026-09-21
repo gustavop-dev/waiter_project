@@ -25,6 +25,9 @@ export default function ReservasPage() {
   const [detail, setDetail] = useState<number | null>(null)
 
   useEffect(() => { if (configId) void r.load(configId) }, [configId, r.date, r.floorId]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Cada visita trae la grilla fresca: al salir se olvida lo cargado (lo que se evita es repetir la misma petición
+  // dentro de una visita, no volver a pedirla en la siguiente).
+  useEffect(() => () => r.forget(), []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const floors = r.timeline?.floors ?? []
   return (
@@ -61,7 +64,7 @@ export default function ReservasPage() {
         ? <p className="p-8 text-dim">{t('loading')}</p>
         : <ReservationTimeline slots={r.timeline?.slots ?? []} tables={r.timeline?.tables ?? []} onOpen={(card) => setDetail(card.id)} />}
 
-      <ReservationDetailModal reservationId={detail} open={detail !== null} onClose={() => setDetail(null)} configId={configId} onChanged={() => { if (configId) void r.load(configId) }}
+      <ReservationDetailModal reservationId={detail} open={detail !== null} onClose={() => setDetail(null)} configId={configId} onChanged={() => { if (configId) void r.load(configId, true) }}
         onAction={(id, state) => { if (configId) { void r.changeState(id, state, configId); setDetail(null) } }} />
       {configId && <ReservationWizard configId={configId} onCreated={(created) => {
         toast({ title: t('created', { name: created.name }), body: created.customerEmail ? t('createdMail') : t('createdBody') })

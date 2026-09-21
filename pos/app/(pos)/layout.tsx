@@ -29,8 +29,15 @@ export default function PosLayout({ children }: { children: React.ReactNode }) {
     if (!session && (effectiveRole(user.role, employee.role) !== 'admin' || !administrationPath(pathname))) { router.replace('/caja'); return }
     // Rol: una pantalla que no le toca lo devuelve al salón, sin pantalla de error.
     if (!allowedPath(effectiveRole(user.role, employee.role), pathname)) { router.replace('/salon'); return }
-    void load(session?.id ?? null)
-  }, [hydrated, user, employee, session, pathname, router, load])
+  }, [hydrated, user, employee, session, pathname, router])
+
+  // La carta se carga una vez por turno, no en cada cambio de pantalla. Antes vivía en el efecto del guardia, que
+  // depende de la ruta: cada navegación volvía a pedir `pos.session.load_data` (la llamada más pesada de Odoo) y el
+  // catálogo nuevo hacía que todo lo que depende de él pidiera sus datos otra vez. Las recargas a propósito (tras
+  // guardar la configuración o una ficha de plato) siguen llamando a `load` directamente.
+  const ready = hydrated && !!user && !!employee
+  const sessionId = session?.id ?? null
+  useEffect(() => { if (ready) void load(sessionId) }, [ready, sessionId, load])
 
   if (!hydrated || !user || !employee || (!session && (effectiveRole(user.role, employee.role) !== 'admin' || !administrationPath(pathname))) || !allowedPath(effectiveRole(user.role, employee.role), pathname)) return null
   // Sin catálogo no hay pantalla que pintar: se dice por qué en vez de dejar el POS en blanco.

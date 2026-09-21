@@ -44,7 +44,9 @@ export function ReservationWizard({ configId, onCreated }: { configId: number; o
     void getSchedule(configId).then((sch) => { if (alive) setSchedule(sch) }).catch(() => undefined)
     return () => { alive = false }
   }, [r.open, configId])
-  useEffect(() => { if (catalog) void r.loadExtras(catalog) }, [catalog]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Los extras de la carta (opciones e impuestos) solo los usa el paso de platos: se piden al abrir el asistente. Antes
+  // se pedían al montar la página de Reservas, con el asistente cerrado: 8 llamadas en cada visita.
+  useEffect(() => { if (catalog && r.open) void r.loadExtras(catalog) }, [catalog, r.open]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (r.stepIndex === 1) void r.loadTables(configId) }, [r.stepIndex]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!r.open || !catalog) return null

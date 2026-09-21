@@ -21,13 +21,18 @@ export const todayIso = (): string => {
 interface ReservationsState {
   date: string; floorId: number | null
   timeline: Timeline | null; loading: boolean; error: string | null
+  // Qué grilla se pidió o se tiene («config|fecha|piso»): evita pedir dos veces la misma.
+  loadingKey: string | null; loadedKey: string | null
   // Wizard
   open: boolean; stepIndex: number; draft: ReservationDraft
   slots: Slot[]; tables: AvailableTable[]; lines: CartLine[]
   extras: MenuExtras | null; taxes: TaxRate[]; busy: boolean
   setDate: (date: string) => void
   setFloor: (id: number | null) => void
-  load: (configId: number) => Promise<void>
+  // `force`: recargar aunque ya esté (tras crear una reserva o cambiar su estado).
+  load: (configId: number, force?: boolean) => Promise<void>
+  // Al salir de Reservas: la próxima visita vuelve a pedir la grilla (otro terminal pudo crear o cambiar reservas).
+  forget: () => void
   loadExtras: (catalog: Catalog) => Promise<void>
   openWizard: () => void
   closeWizard: () => void
@@ -47,18 +52,27 @@ interface ReservationsState {
 // Reservas del kit (7 – Reservation): la grilla del día y el asistente de cuatro pasos. El servidor
 // (`projectapp_reservations`) decide franjas, mesas libres y solapes; aquí solo se orquesta la pantalla.
 export const useReservationsStore = create<ReservationsState>((set, get) => ({
-  date: todayIso(), floorId: null, timeline: null, loading: false, error: null,
+  date: todayIso(), floorId: null, timeline: null, loading: false, error: null, loadingKey: null, loadedKey: null,
   open: false, stepIndex: 0, draft: emptyDraft(), slots: [], tables: [], lines: [], extras: null, taxes: [], busy: false,
 
   setDate: (date) => set({ date }),
   setFloor: (floorId) => set({ floorId }),
-  load: async (configId) => {
-    set({ loading: true, error: null })
+  forget: () => set({ loadedKey: null }),
+  load: async (configId, force = false) => {
+    const { date, floorId } = get()
+    const key = `${configId}|${date}|${floorId ?? ''}`
+    // La misma grilla ya pedida o ya cargada no se vuelve a pedir: el efecto de la página se dispara también cuando
+    // `load` fija el piso por defecto, y el modo desarrollo de React ejecuta cada efecto dos veces.
+    if (!force && (get().loadingKey === key || get().loadedKey === key)) return
+    set({ loading: true, error: null, loadingKey: key })
     try {
-      const timeline = await getTimeline(configId, get().date, get().floorId)
-      // Sin piso elegido, la grilla muestra el primero: el kit siempre tiene uno activo.
-      set({ timeline, loading: false, floorId: get().floorId ?? timeline.floors[0]?.id ?? null })
-    } catch (e) { set({ loading: false, error: message(e) }) }
+      const timeline = await getTimeline(configId, date, floorId)
+      // Sin piso elegido se pidieron todos: se muestra el primero filtrando aquí, sin volver a pedirlo. Antes se
+      // fijaba el piso y ese cambio disparaba una segunda petición, en serie: Reservas tardaba el doble en pintar.
+      const floor = floorId ?? timeline.floors[0]?.id ?? null
+      const shown = floorId === null ? { ...timeline, tables: timeline.tables.filter((t) => t.floorId === floor) } : timeline
+      set({ timeline: shown, loading: false, floorId: floor, loadingKey: null, loadedKey: `${configId}|${date}|${floor ?? ''}` })
+    } catch (e) { set({ loading: false, error: message(e), loadingKey: null }) }
   },
   loadExtras: async (catalog) => {
     try {
@@ -103,7 +117,7 @@ export const useReservationsStore = create<ReservationsState>((set, get) => ({
         date: draft.date, timeStart: draft.timeStart, tableIds: draft.tableIds, configId, prepMinutes: draft.prepMinutes, depositAmount: depositOf(draft),
       }, lines.map((l) => ({ productId: l.productId, qty: l.qty, note: l.note })))
       set({ busy: false, open: false, date: draft.date })
-      await get().load(configId)
+      await get().load(configId, true)
       return created
     } catch (e) {
       play('error')
@@ -112,7 +126,7 @@ export const useReservationsStore = create<ReservationsState>((set, get) => ({
     }
   },
   changeState: async (id, state, configId) => {
-    try { await setReservationState(id, state); await get().load(configId) }
+    try { await setReservationState(id, state); await get().load(configId, true) }
     catch (e) { set({ error: message(e) }) }
   },
 }))
