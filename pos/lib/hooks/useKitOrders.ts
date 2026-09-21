@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { orderStatus, progressPercent, type KitOrder, type KitStatus } from '@/lib/domain/orderState'
+import { openOrderFromKit, type OpenOrder } from '@/lib/services/orders'
 import { listKitOrders } from '@/lib/services/ordersKit'
+import { listTableCalls, type TableCall } from '@/lib/services/tables'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
 import { useBusStore } from '@/lib/stores/busStore'
@@ -15,6 +17,11 @@ import { useOrderStore } from '@/lib/stores/orderStore'
 const POLL_MS = 10_000
 const POLL_WITH_BUS_MS = 60_000
 
+// Lo último que se leyó, por turno. Vive fuera del componente para que cambiar de pantalla no lo pierda: al volver, la
+// vista se pinta al instante con esto y se refresca detrás (antes arrancaba vacía y esperaba a Odoo).
+// Va ligado al turno: un turno nuevo (otra sesión) nunca ve los pedidos del anterior.
+let last: { sessionId: number; orders: KitOrder[] } | null = null
+
 // Pedidos abiertos del turno en el lenguaje del kit, sondeados cada 10 s. "Esperando pago" sale de la bandera local
 // `billing` del orderStore o de que el comensal pidiera la cuenta desde su móvil (llamada de mesa en Odoo).
 export function useKitOrders() {
@@ -22,9 +29,10 @@ export function useKitOrders() {
   const catalog = useCatalogStore((s) => s.catalog)
   const flags = useOrderStore((s) => s.flags)
   const calls = useOrderStore((s) => s.calls)
-  const refreshOpenOrders = useOrderStore((s) => s.refreshOpenOrders)
-  const [orders, setOrders] = useState<KitOrder[]>([])
-  const [loaded, setLoaded] = useState(false)
+  const adoptOpenOrders = useOrderStore((s) => s.adoptOpenOrders)
+  const cached = session && last?.sessionId === session.id ? last.orders : null
+  const [orders, setOrders] = useState<KitOrder[]>(cached ?? [])
+  const [loaded, setLoaded] = useState(cached !== null)
   const tableNumberOf = useCallback((id: number) => catalog?.tables.find((t) => t.id === id)?.number ?? null, [catalog])
 
   // Sin la carta cargada no se sabe el número de las mesas: pedir ahora dejaría las tarjetas sin su chip azul
@@ -32,14 +40,18 @@ export function useKitOrders() {
   const refresh = useCallback(async () => {
     if (!session || !catalog) return
     try {
-      const [list] = await Promise.all([listKitOrders(session.id, tableNumberOf), refreshOpenOrders(session.id)])
+      // Una sola lectura de los pedidos abiertos: la lista del salón se deriva de aquí. Antes se leían dos veces por
+      // caminos distintos (listKitOrders y refreshOpenOrders): pedidos y cursos repetidos en cada sondeo.
+      const [list, calls] = await Promise.all([listKitOrders(session.id, tableNumberOf), listTableCalls().catch(() => [] as TableCall[])])
+      last = { sessionId: session.id, orders: list }
       setOrders(list)
+      adoptOpenOrders(list.map(openOrderFromKit).filter((o): o is OpenOrder => o !== null), calls)
     } catch (e) {
       console.warn('No se pudieron refrescar los pedidos; se muestra lo último conocido.', e)
     } finally {
       setLoaded(true)
     }
-  }, [session, catalog, tableNumberOf, refreshOpenOrders])
+  }, [session, catalog, tableNumberOf, adoptOpenOrders])
 
   const busUp = useBusStore((s) => s.up)
   useEffect(() => {

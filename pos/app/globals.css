@@ -102,3 +102,25 @@ body { background: var(--color-canvas); color: var(--color-ink); font-family: va
 .offscreen-nudge-left { animation: offscreen-nudge-left 1.2s ease-in-out infinite; }
 .offscreen-nudge-right { animation: offscreen-nudge-right 1.2s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .offscreen-nudge-left, .offscreen-nudge-right { animation: none; } }
+
+/* Esqueletos de carga (components/kit/Skeleton.tsx): bloques con la forma de lo que va a llegar y un brillo que los
+   recorre. El brillo es blanco suave en claro y casi imperceptible en oscuro, para no competir con el contenido.
+   Con «reducir movimiento» quedan quietos. */
+/* La base en claro es el gris del borde: el de las superficies (muted) casi no se distingue del lienzo. En oscuro,
+   el borde sería demasiado claro y se usa muted. */
+:root { --skeleton-base: var(--kit-border); --skeleton-glow: rgb(255 255 255 / 0.7); }
+[data-theme=dark] { --skeleton-base: var(--kit-muted); --skeleton-glow: rgb(255 255 255 / 0.06); }
+/* En la capa de componentes: las utilidades de Tailwind (`absolute`, medidas) mandan sobre `position: relative`, que
+   solo está para contener el brillo. Sin capa, esta regla le ganaba a `absolute` y los bloques posicionados (las
+   tarjetas de la grilla de reservas, las mesas del plano) colapsaban a cero y no se veían. */
+@keyframes skeleton-shimmer { 100% { transform: translateX(100%); } }
+@layer components {
+.skeleton { position: relative; overflow: hidden; background: var(--skeleton-base); }
+.skeleton::after {
+  content: ''; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, var(--skeleton-glow), transparent);
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) { .skeleton::after { animation: none; display: none; } }
+}
+

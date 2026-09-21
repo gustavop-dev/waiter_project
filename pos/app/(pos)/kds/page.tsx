@@ -8,6 +8,7 @@ import { KdsHeader } from '@/components/kds/KdsHeader'
 import { ReadyList } from '@/components/kds/ReadyList'
 import { TicketCard } from '@/components/kds/TicketCard'
 import { KitEmptyState } from '@/components/kit/KitEmptyState'
+import { CardGridSkeleton } from '@/components/kit/Skeleton'
 import { ALL, LATE, averagePrepSeconds, countTickets, filterTickets, stations } from '@/lib/domain/kitchen'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
@@ -24,7 +25,7 @@ export default function KdsPage() {
   const t = useTranslations('kds')
   const session = useAuthStore((s) => s.session)
   const catalog = useCatalogStore((s) => s.catalog)
-  const { tickets, done, tab, muted, error, refresh, start, ready, readyDish, setTab, toggleMute, tick } = useKitchenStore()
+  const { tickets, done, tab, muted, error, primed, refresh, start, ready, readyDish, setTab, toggleMute, tick } = useKitchenStore()
   const [actionError, setActionError] = useState<string | null>(null)
   const act = (job: Promise<void>) => { setActionError(null); void job.catch((e: unknown) => setActionError(e instanceof Error ? e.message : String(e))) }
   const [now, setNow] = useState(() => Date.now())
@@ -69,7 +70,9 @@ export default function KdsPage() {
       <KdsHeader tabs={[ALL, ...stations(cooking), LATE]} counts={countTickets(cooking, now)} active={tab} onTab={setTab} avgSeconds={averagePrepSeconds(done)} now={now} />
       <div className="flex flex-1 min-h-0 gap-5 p-5">
         <section aria-label={t('grid')} className="flex-1 min-w-0 overflow-y-auto grid grid-cols-3 auto-rows-min content-start gap-5">
-          {visible.length === 0 && <div className="col-span-3 flex"><KitEmptyState icon="chef" title={t('empty')} body={t('emptyBody')} /></div>}
+          {/* Antes decía «sin comandas» mientras aún cargaba: la cocina podía creer que no había nada. */}
+          {!primed && !error ? <CardGridSkeleton count={6} className="col-span-3" />
+            : visible.length === 0 && <div className="col-span-3 flex"><KitEmptyState icon="chef" title={t('empty')} body={t('emptyBody')} /></div>}
           {visible.map((tk) => <TicketCard key={tk.id} ticket={tk} tableNumber={tableNumberOf(tk.tableId)} now={now}
             onStart={(id) => act(start(id, session.id, stationOf))} onReady={(id) => act(ready(id, session.id, stationOf))} onReadyDish={(id) => act(readyDish(id, session.id, stationOf))} />)}
         </section>

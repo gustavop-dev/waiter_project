@@ -1,4 +1,4 @@
-import { administrationPath, ADMIN_SUBTABS, TAB_ROUTES, adminSubtabsFor, tabForPath, tabsFor, homePath } from '@/lib/domain/navigation'
+import { administrationPath, ADMIN_SUBTABS, TAB_ROUTES, adminSubtabsFor, tabForPath, tabsFor, homePath, withShell } from '@/lib/domain/navigation'
 import { allowedPath } from '@/lib/domain/roles'
 
 // Falla si el mesero ve pestañas de cocina o administración, o si el cajero y el admin las pierden.
@@ -54,4 +54,11 @@ it('sends each role to its own home screen', () => {
 // visión general de semanas y meses no necesita un turno.
 it('lets an admin open Inicio with the register closed', () => {
   expect(administrationPath('/dashboard')).toBe(true)
+})
+
+// Falla si la barra de navegación aparece en las pantallas a pantalla completa (cocina, operación en vivo, mesero IA)
+// o desaparece de las demás, ahora que la pinta el layout y no cada página.
+it('knows which screens carry the navigation bar', () => {
+  for (const path of ['/dashboard', '/pedidos', '/salon', '/reservas', '/automatizacion', '/ventas']) expect(withShell(path)).toBe(true)
+  for (const path of ['/kds', '/operacion', '/automatizacion/ia', '/automatizacion/ia/configurar']) expect(withShell(path)).toBe(false)
 })

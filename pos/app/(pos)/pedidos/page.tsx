@@ -9,7 +9,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { Chip } from '@/components/kit/Chip'
 import { Icon } from '@/components/kit/Icon'
 import { KitEmptyState } from '@/components/kit/KitEmptyState'
-import { KitShell } from '@/components/kit/KitShell'
+import { CardGridSkeleton } from '@/components/kit/Skeleton'
 import { templateImage } from '@/components/orders/format'
 import { OrderCard } from '@/components/orders/OrderCard'
 import { OrderDetailModal } from '@/components/orders/OrderDetailModal'
@@ -82,7 +82,7 @@ export default function PedidosPage() {
   }
 
   return (
-    <KitShell>
+    <>
       <div className="flex-1 min-h-0 flex flex-col px-4 pt-4 gap-4">
         <div className="flex items-center gap-4">
           <span className="h-12 px-4 rounded-md bg-muted inline-flex items-center gap-2 text-[18px] font-semibold text-ink"><Icon name="orders" size={20} />{t('title')}</span>
@@ -98,7 +98,9 @@ export default function PedidosPage() {
           <span className="ml-auto"><SortMenu value={sort} onChange={setSort} /></span>
         </div>
         <div className="flex-1 min-h-0 overflow-y-auto pb-4">
-          {loaded && visible.length === 0
+          {/* Mientras llegan los pedidos, su esqueleto; «no hay pedidos» solo cuando de verdad no hay. */}
+          {!loaded ? <CardGridSkeleton count={6} />
+            : visible.length === 0
             ? <KitEmptyState icon="orders" title={t('empty.title')} body={t('empty.body')} />
             : <div className="grid grid-cols-3 gap-4">
               {visible.map((o) => (
@@ -111,6 +113,6 @@ export default function PedidosPage() {
       <OrderDetailModal order={detail} status={detail ? statusOf(detail) : 'in_progress'} percent={detail ? percentOf(detail) : 0} onClose={() => setDetailId(null)} mayCharge={mayCharge}
         imageOf={imageOf} busy={busy} onSendPending={() => { if (detail) void sendPending(detail) }} onCancelWaiting={(lines) => { if (detail) void cancelWaiting(detail, lines) }}
         onServeReady={(lines) => { if (!busy) void serveReady(lines) }} />
-    </KitShell>
+    </>
   )
 }

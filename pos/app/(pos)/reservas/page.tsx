@@ -4,9 +4,8 @@ import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
 
 import { Icon } from '@/components/kit/Icon'
-import { KitShell } from '@/components/kit/KitShell'
 import { ReservationDetailModal } from '@/components/reservations/ReservationDetailModal'
-import { ReservationTimeline } from '@/components/reservations/ReservationTimeline'
+import { ReservationTimeline, TimelineSkeleton } from '@/components/reservations/ReservationTimeline'
 import { ReservationWizard } from '@/components/reservations/ReservationWizard'
 import { Button } from '@/components/ui/Button'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
@@ -31,7 +30,7 @@ export default function ReservasPage() {
 
   const floors = r.timeline?.floors ?? []
   return (
-    <KitShell>
+    <>
       <header className="shrink-0 px-6 py-4 flex items-center gap-4 bg-surface border-b border-border">
         <span className="flex items-center gap-2 h-11 px-4 rounded-md border border-border text-[17px] font-semibold text-ink">
           <Icon name="reservations" size={20} />{t('title')}
@@ -61,7 +60,7 @@ export default function ReservasPage() {
 
       {r.error && <p role="alert" className="mx-6 mt-3 px-4 py-3 rounded-md bg-danger-soft text-danger-ink text-[15px]">{r.error}</p>}
       {r.loading && !r.timeline
-        ? <p className="p-8 text-dim">{t('loading')}</p>
+        ? <TimelineSkeleton />
         : <ReservationTimeline slots={r.timeline?.slots ?? []} tables={r.timeline?.tables ?? []} onOpen={(card) => setDetail(card.id)} />}
 
       <ReservationDetailModal reservationId={detail} open={detail !== null} onClose={() => setDetail(null)} configId={configId} onChanged={() => { if (configId) void r.load(configId, true) }}
@@ -71,6 +70,6 @@ export default function ReservasPage() {
         // Con anticipo pendiente, el siguiente paso es cobrarlo: se abre el detalle con el enlace de pago listo para compartir.
         if (created.depositState === 'pending') setDetail(created.id)
       }} />}
-    </KitShell>
+    </>
   )
 }

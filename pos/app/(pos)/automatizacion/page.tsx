@@ -5,7 +5,6 @@ import { useTranslations } from 'next-intl'
 import { useEffect, useMemo, useState } from 'react'
 
 import { Chip } from '@/components/kit/Chip'
-import { KitShell } from '@/components/kit/KitShell'
 import { useAutomationSubnav } from '@/components/layout/useAutomationSubnav'
 import { RoiBento } from '@/components/roi/RoiBento'
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -40,7 +39,7 @@ export default function AutomatizacionPage() {
   const previous = perRange[HISTORY - 2]
   const history = ranges.map((r, i) => ({ label: r.label.replace(/ \d{4}$/, ''), hoursPer100: perRange[i].hoursPer100 }))
   return (
-    <KitShell>
+    <>
       <PageHeader icon="chartLine" title={t('title')} actions={
         <div role="tablist" aria-label={t('title')} className="flex items-center gap-2">
           {PERIODS.map((p) => <Chip key={p} label={t(`periods.${p}`)} active={period === p} onClick={() => setPeriod(p)} />)}
@@ -56,6 +55,6 @@ export default function AutomatizacionPage() {
       </PageHeader>
       {orders === null ? <p className="px-5 text-soft" role="status">…</p>
         : <RoiBento current={current} history={history} months={monthsOfUse(s.roiStartDate, now)} periodLabel={ranges[HISTORY - 1].label} laborChange={pctChange(current.laborSaving, previous.laborSaving)} />}
-    </KitShell>
+    </>
   )
 }

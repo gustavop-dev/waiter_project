@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 
 import { Icon, type KitIcon } from '@/components/kit/Icon'
+import { ListSkeleton } from '@/components/kit/Skeleton'
 import type { AttentionItem, AttentionKind } from '@/lib/domain/insights'
 import { cn } from '@/lib/utils'
 
@@ -17,9 +18,9 @@ export function AttentionFeed({ items, loaded }: { items: AttentionItem[]; loade
   return (
     <section aria-label={t('title')} className="bg-surface border border-border rounded-lg flex flex-col min-h-0 min-w-0">
       <h2 className="px-4 h-16 shrink-0 flex items-center gap-3 text-[17px] font-semibold text-ink border-b border-border">
-        {t('title')}{items.length > 0 && <span className="px-2 py-0.5 rounded-full bg-danger-soft text-danger-ink text-[13px] font-semibold tabular">{items.length}</span>}
+        {t('title')}{/* El contador solo cuando la lista está completa: a medio cargar contaría de menos. */}{loaded && items.length > 0 && <span className="px-2 py-0.5 rounded-full bg-danger-soft text-danger-ink text-[13px] font-semibold tabular">{items.length}</span>}
       </h2>
-      {!loaded ? <p className="p-4 text-[15px] text-dim">{t('loading')}</p>
+      {!loaded ? <ListSkeleton rows={4} label={t('loading')} className="divide-y divide-border" />
         : items.length === 0 ? (
           <div className="flex-1 grid place-items-center p-6 text-center">
             <div className="flex flex-col items-center gap-2">

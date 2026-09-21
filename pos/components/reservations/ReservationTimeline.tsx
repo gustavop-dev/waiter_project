@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { Icon } from '@/components/kit/Icon'
 import { KitEmptyState } from '@/components/kit/KitEmptyState'
+import { LoadingRegion, Skeleton } from '@/components/kit/Skeleton'
 import { cardPlacement, offscreenReservations, type OffscreenSide, type ReservationCard, type Slot, type TimelineTable } from '@/lib/domain/reservations'
 import { cn } from '@/lib/utils'
 
@@ -108,3 +109,28 @@ function OffscreenBubble({ side, info, rows, onClick }: { side: 'left' | 'right'
     </button>
   )
 }
+
+// Esqueleto de la grilla con las mismas medidas que la real (filas de ROW_HEIGHT, columnas de SLOT_WIDTH, la columna de
+// mesas fija): al llegar los datos no salta nada de sitio. Algunas tarjetas sueltas dicen «aquí van las reservas».
+const SKELETON_CARDS: [number, number, number][] = [[0, 2, 3], [1, 5, 2], [3, 1, 3], [4, 6, 2]] // [fila, columna, franjas]
+export function TimelineSkeleton({ rows = 6, columns = 10 }: { rows?: number; columns?: number }) {
+  return (
+    <LoadingRegion className="flex-1 min-h-0 overflow-hidden">
+      <div className="flex border-b border-border bg-canvas">
+        <span className="w-[120px] shrink-0 px-4 py-3 border-r border-border"><Skeleton className="h-3.5 w-12" /></span>
+        {Array.from({ length: columns }, (_, i) => <span key={i} className="shrink-0 px-3 py-3 border-r border-border" style={{ width: SLOT_WIDTH }}><Skeleton className="h-3.5 w-12" /></span>)}
+      </div>
+      {Array.from({ length: rows }, (_, row) => (
+        <div key={row} className="flex border-b border-border" style={{ height: ROW_HEIGHT }}>
+          <span className="w-[120px] shrink-0 px-4 border-r border-border flex items-center gap-2 bg-surface"><Skeleton className="h-4 w-8" /><Skeleton className="h-3.5 w-6" /></span>
+          <div className="relative flex-1">
+            {SKELETON_CARDS.filter(([r]) => r === row).map(([, col, span]) => (
+              <Skeleton key={col} className="absolute top-2 bottom-2 rounded-md" style={{ left: col * SLOT_WIDTH + 6, width: span * SLOT_WIDTH - 12 }} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </LoadingRegion>
+  )
+}
+

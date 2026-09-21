@@ -8,7 +8,7 @@ import { HistoryRow } from '@/components/history/HistoryRow'
 import { Chip } from '@/components/kit/Chip'
 import { Icon } from '@/components/kit/Icon'
 import { KitEmptyState } from '@/components/kit/KitEmptyState'
-import { KitShell } from '@/components/kit/KitShell'
+import { ListSkeleton } from '@/components/kit/Skeleton'
 import { filterHistory, matchesOrderSearch, type HistoryFilter, type KitLine, type KitOrder } from '@/lib/domain/orderState'
 import { getKitOrderLines, listHistoryOrders } from '@/lib/services/ordersKit'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
@@ -40,7 +40,7 @@ export default function HistorialPage() {
   const selected = orders.find((o) => o.id === selectedId) ?? null
 
   return (
-    <KitShell>
+    <>
       <div className="flex-1 min-h-0 grid grid-cols-[1fr_400px] gap-4 p-4">
         <div className="min-h-0 flex flex-col gap-4">
           <div className="flex items-center gap-4">
@@ -55,7 +55,8 @@ export default function HistorialPage() {
               {FILTERS.map((f) => <Chip key={f} label={t(`filters.${f}`)} active={f === filter} onClick={() => setFilter(f)} />)}
             </div>
             <div className="flex-1 min-h-0 overflow-y-auto p-2 flex flex-col gap-2">
-              {loaded && visible.length === 0
+              {!loaded ? <ListSkeleton rows={7} />
+                : visible.length === 0
                 ? <KitEmptyState icon="history" title={t('noOrders')} />
                 : visible.map((o) => <HistoryRow key={o.id} order={o} selected={o.id === selectedId} onSelect={() => setSelectedId(o.id)} />)}
             </div>
@@ -63,6 +64,6 @@ export default function HistorialPage() {
         </div>
         <BillInfo order={selected} lines={lines?.orderId === selectedId ? lines.lines : []} company={catalog?.company.name ?? ''} />
       </div>
-    </KitShell>
+    </>
   )
 }

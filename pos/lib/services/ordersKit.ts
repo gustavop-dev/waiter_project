@@ -8,7 +8,7 @@ import { callKw } from '@/lib/services/odoo'
 
 interface RawOrder {
   waiter_channel?: 'whatsapp' | false; delivery_phone?: string | false
-  id: number; tracking_number: string | false; preset_id: [number, string] | false; floating_order_name: string | false; partner_id: [number, string] | false
+  id: number; tracking_number: string | false; user_id?: [number, string] | false; preset_id: [number, string] | false; floating_order_name: string | false; partner_id: [number, string] | false
   table_id: [number, string] | false; date_order: string; amount_total: number; amount_tax: number; state: KitOrder['state']
 }
 interface RawLine { id: number; uuid: string; order_id: [number, string]; product_id: [number, string]; full_product_name: string; qty: number; price_unit: number; price_subtotal: number; price_subtotal_incl: number; customer_note: string | false; course_id: [number, string] | false; waiter_ready_date: string | false; served_date: string | false }
@@ -16,7 +16,7 @@ interface RawCourse { id: number; order_id: [number, string]; fired: boolean; pr
 interface RawPreset { id: number; service_at: ServiceAt }
 interface RawTax { id: number; amount: number; price_include: boolean }
 
-const ORDER_FIELDS = ['tracking_number', 'preset_id', 'floating_order_name', 'partner_id', 'table_id', 'date_order', 'amount_total', 'amount_tax', 'state', 'waiter_channel', 'delivery_phone']
+const ORDER_FIELDS = ['tracking_number', 'user_id', 'preset_id', 'floating_order_name', 'partner_id', 'table_id', 'date_order', 'amount_total', 'amount_tax', 'state', 'waiter_channel', 'delivery_phone']
 const LINE_FIELDS = ['uuid', 'order_id', 'product_id', 'full_product_name', 'qty', 'price_unit', 'price_subtotal', 'price_subtotal_incl', 'customer_note', 'course_id', 'waiter_ready_date', 'served_date']
 const PAID = ['paid', 'done', 'invoiced']
 
@@ -45,6 +45,7 @@ function toOrder(r: RawOrder, serviceAt: Map<number, ServiceAt>, tableNumberOf: 
     channel: r.waiter_channel || null, phone: r.delivery_phone || '',
     tableId: r.table_id ? r.table_id[0] : null, tableNumber: r.table_id ? tableNumberOf(r.table_id[0]) : null,
     customer: customerName(r.floating_order_name, r.partner_id), startedAt: r.date_order, total: r.amount_total, tax: r.amount_tax, lines, courses,
+    waiter: r.user_id ? r.user_id[1] : '', tracking: r.tracking_number || null,
   }
 }
 

@@ -4,7 +4,6 @@ import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useState } from 'react'
 
 import { KitEmptyState } from '@/components/kit/KitEmptyState'
-import { KitShell } from '@/components/kit/KitShell'
 import { Modal } from '@/components/kit/Modal'
 import { AddDishWizard } from '@/components/pantry/AddDishWizard'
 import { AddIngredientWizard } from '@/components/pantry/AddIngredientWizard'
@@ -116,7 +115,7 @@ export default function InventarioPage() {
   const listTitle = t(s.tab === 'menu' ? 'menu.listTitle' : s.tab === 'ingredients' ? 'ingredients.listTitle' : 'requests.listTitle')
 
   return (
-    <KitShell>
+    <>
       <PantryHeader tab={s.tab} onTab={s.setTab} query={header.query} onQuery={header.onQuery} searchPlaceholder={header.placeholder} action={header.action} onAction={header.onAction} />
       <div className="flex-1 min-h-0 px-4 pb-4 flex gap-4">
         {s.tab === 'menu' && <FilterPanel sections={menuSections} onReset={s.resetFilters} />}
@@ -158,6 +157,6 @@ export default function InventarioPage() {
           <p className="text-soft">{ingredientModal?.kind === 'delete' ? t('request.deleteBody', { name: ingredientModal.ingredient.name }) : ''}</p>
         </div>
       </Modal>
-    </KitShell>
+    </>
   )
 }

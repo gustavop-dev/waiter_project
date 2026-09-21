@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react'
 
+import { KpiTile as DashboardKpiTile } from '@/components/dashboard/KpiTile'
 import { DocSection, Example, Swatch } from '@/components/design/parts'
 import { Aurora } from '@/components/kit/Aurora'
 import { BrandMark } from '@/components/kit/BrandMark'
@@ -9,7 +10,7 @@ import { Card } from '@/components/kit/Card'
 import { Chip } from '@/components/kit/Chip'
 import { Icon, KIT_ICON_NAMES } from '@/components/kit/Icon'
 import { KitEmptyState } from '@/components/kit/KitEmptyState'
-import { KitShell } from '@/components/kit/KitShell'
+import { CardGridSkeleton, ListSkeleton, Skeleton, SkeletonText } from '@/components/kit/Skeleton'
 import { Modal } from '@/components/kit/Modal'
 import { NumericKeypad } from '@/components/kit/NumericKeypad'
 import { PinInput } from '@/components/kit/PinInput'
@@ -28,7 +29,7 @@ import { toast } from '@/lib/stores/toastStore'
 
 const SECTIONS = [
   ['principios', 'Principios'], ['color', 'Color'], ['tipografia', 'Tipografía'], ['forma', 'Forma y tamaño'],
-  ['acciones', 'Acciones'], ['formularios', 'Formularios'], ['estados', 'Estados'], ['contenedores', 'Contenedores'],
+  ['acciones', 'Acciones'], ['formularios', 'Formularios'], ['estados', 'Estados'], ['contenedores', 'Contenedores'], ['esqueletos', 'Esqueletos de carga'],
   ['iconos', 'Iconos'], ['aurora', 'Patrón Aurora'], ['movimiento', 'Movimiento'],
 ] as const
 
@@ -64,7 +65,7 @@ export default function DesignSystemPage() {
     target.querySelector('h2')?.focus({ preventScroll: true })
   }
   return (
-    <KitShell>
+    <>
       <div className="flex-1 min-h-0 flex">
         <nav aria-label="Secciones del sistema de diseño" className="hidden lg:flex w-[232px] shrink-0 flex-col gap-1 border-r border-border bg-surface p-4 overflow-y-auto">
           <p className="px-3 pb-2 text-[13px] text-soft">Sistema de diseño</p>
@@ -175,6 +176,16 @@ export default function DesignSystemPage() {
               <Example name="Modales" code={'<Modal open title="Detalle" size="wide" onClose={…}>'}><Button onClick={() => setModal('center')}>Centrado</Button><Button onClick={() => setModal('wide')}>Ancho</Button><Button onClick={() => setModal('full')}>Completo</Button></Example>
             </DocSection>
 
+            <DocSection id="esqueletos" title="Esqueletos de carga" intro="Mientras llegan los datos, la vista muestra la forma de lo que va a llegar. Nunca una pantalla en blanco, ni un «Cargando…» suelto, ni un «no hay nada» que todavía no es verdad: el vacío se muestra solo cuando la carga terminó y de verdad no hay nada."
+              extend={<>los bloques están en <code className="font-mono">components/kit/Skeleton.tsx</code>. Para una vista nueva, compón su esqueleto con <code className="font-mono">Skeleton</code> dentro de un <code className="font-mono">LoadingRegion</code> (que lo anuncia una sola vez a los lectores de pantalla), con las mismas medidas que el contenido real para que nada salte al llegar. El brillo sale de <code className="font-mono">--skeleton-glow</code> y se detiene con «reducir movimiento».</>}>
+              <div className="grid gap-6 md:grid-cols-2">
+                <Example name="Bloque y texto" code={'<Skeleton className="h-4 w-32" />  ·  <SkeletonText lines={3} />'}><div className="w-full flex flex-col gap-4"><Skeleton className="h-10 w-10 rounded-md" /><SkeletonText lines={3} /></div></Example>
+                <Example name="Indicador" code={'<KpiTile loading label="Ventas del mes" … />'}><div className="w-full"><DashboardKpiTile loading label="Ventas del mes" value="" icon="wallet" /></div></Example>
+              </div>
+              <Example name="Lista" code={'<ListSkeleton rows={3} />'}><div className="w-full"><ListSkeleton rows={3} /></div></Example>
+              <Example name="Tarjetas" code={'<CardGridSkeleton count={3} />'}><div className="w-full"><CardGridSkeleton count={3} /></div></Example>
+            </DocSection>
+
             <DocSection id="iconos" title="Iconos" intro={`${KIT_ICON_NAMES.length} iconos de trazo, todos del mismo juego. Se piden por nombre y heredan el color del texto.`}
               extend={<>añade el trazo al mapa <code className="font-mono">ICONS</code> de <code className="font-mono">components/kit/Icon.tsx</code>: el nombre queda tipado y aparece en esta cuadrícula.</>}>
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 xl:grid-cols-8 gap-2">
@@ -208,6 +219,6 @@ export default function DesignSystemPage() {
         </div>
       </div>
       <Modal open={modal !== null} onClose={() => setModal(null)} title="Detalle" size={modal ?? 'center'}><div className="p-6">Contenido del modal {modal}</div></Modal>
-    </KitShell>
+    </>
   )
 }

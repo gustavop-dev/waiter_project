@@ -2,6 +2,7 @@ import { toSyncPayload } from '@/lib/domain/order'
 import { kitchenPhase, type KitchenPhase } from '@/lib/domain/kitchen'
 import { uuid } from '@/lib/domain/uuid'
 import type { DraftOrder } from '@/lib/domain/order'
+import type { KitOrder } from '@/lib/domain/orderState'
 import { listCourseSummaries } from '@/lib/services/kitchen'
 import { callKw } from '@/lib/services/odoo'
 import { activeEmployeeId } from '@/lib/stores/authStore'
@@ -66,6 +67,16 @@ export async function listOpenOrders(sessionId: number): Promise<OpenOrder[]> {
     .filter((r) => r.table_id !== false)
     .map((r) => ({ id: r.id, tableId: (r.table_id as [number, string])[0], total: r.amount_total, tax: r.amount_tax, state: r.state, lineCount: r.lines.length,
       startedAt: r.date_order, waiter: r.user_id ? r.user_id[1] : '', kitchen: kitchenPhase(courses.filter((c) => c.orderId === r.id)), tracking: r.tracking_number || null }))
+}
+
+// La fila del salón a partir del pedido completo del kit, para no pedir los mismos pedidos dos veces. Equivale a
+// `listOpenOrders`: solo pedidos en mesa, y la fase de cocina sale de los cursos ya enviados (los que no se han
+// disparado no cuentan, como en `listCourseSummaries`).
+export function openOrderFromKit(o: KitOrder): OpenOrder | null {
+  if (o.tableId === null || o.state !== 'draft') return null
+  const fired = o.courses.filter((c) => c.fired).map((c) => ({ orderId: o.id, firedAt: '', readyAt: c.readyAt, servedAt: c.servedAt }))
+  return { id: o.id, tableId: o.tableId, total: o.total, tax: o.tax, state: 'draft', lineCount: o.lines.length, startedAt: o.startedAt,
+    waiter: o.waiter ?? '', kitchen: kitchenPhase(fired), tracking: o.tracking ?? null }
 }
 
 // Líneas de un pedido que vive en Odoo pero no se compuso en este dispositivo (otra tablet, el comensal).

@@ -4,7 +4,6 @@ import { useParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useEffect, useMemo, useState } from 'react'
 
-import { KitShell } from '@/components/kit/KitShell'
 import { Topbar } from '@/components/layout/Topbar'
 import { CategoryChips } from '@/components/order/CategoryChips'
 import { OrderPanel } from '@/components/order/OrderPanel'
@@ -51,7 +50,7 @@ export default function OrderPage() {
 
   if (!catalog || !table || !order.draft) return null
   return (
-    <KitShell>
+    <>
       <div className="flex-1 min-h-0 flex flex-col">
         <Topbar
           left={<><Button size="compact" onClick={() => router.push('/salon')}>← {t('back')}</Button><span className="text-[22px] font-bold">{t('header', { number: table.number })}</span><span className="text-[15px] text-soft">{t('meta', { pax: table.seats, ref: order.saved?.reference ?? '—' })}</span></>}
@@ -70,6 +69,6 @@ export default function OrderPage() {
         </div>
       </div>
       {noteFor && <NoteDialog title={'order' in noteFor ? t('kitchenNoteTitle') : t('notePrompt')} initial={noteInitial} onSave={saveNote} onCancel={() => setNoteFor(null)} />}
-    </KitShell>
+    </>
   )
 }

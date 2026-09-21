@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl'
 
 import { Icon } from '@/components/kit/Icon'
+import { LoadingRegion, Skeleton } from '@/components/kit/Skeleton'
 import type { DishRank, DishStats } from '@/lib/domain/insights'
 import { cn } from '@/lib/utils'
 
@@ -16,7 +17,16 @@ export function DishStatsCard({ stats, windowDays, loaded }: { stats: DishStats 
       <h2 className="px-4 h-16 shrink-0 flex items-center justify-between gap-3 border-b border-border">
         <span className="text-[17px] font-semibold text-ink">{t('title')}</span><span className="text-[14px] text-soft">{t('window', { days: windowDays })}</span>
       </h2>
-      {!loaded ? <p className="p-4 text-[15px] text-dim">{t('loading')}</p>
+      {!loaded ? (
+        <LoadingRegion label={t('loading')} className="grid sm:grid-cols-2 gap-6 p-4">
+          {[0, 1].map((col) => (
+            <div key={col} className="flex flex-col gap-4">
+              <Skeleton className="h-4 w-32" />
+              {[0, 1, 2, 3].map((i) => <div key={i} className="flex flex-col gap-1.5"><div className="flex justify-between"><Skeleton className="h-3.5 w-2/5" /><Skeleton className="h-3.5 w-12" /></div><Skeleton className="h-2 rounded-full" /></div>)}
+            </div>
+          ))}
+        </LoadingRegion>
+      )
         : !stats ? <p role="alert" className="p-4 text-[15px] text-soft">{t('failed')}</p>
         : stats.totalQty === 0 ? <p className="p-4 text-[15px] text-soft">{t('empty')}</p> : (
           <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-border">

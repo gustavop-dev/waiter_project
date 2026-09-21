@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl'
 
 import { Icon } from '@/components/kit/Icon'
+import { LoadingRegion, Skeleton } from '@/components/kit/Skeleton'
 import { formatCop } from '@/lib/domain/money'
 import { MIN_SALES_DAYS, type Forecast } from '@/lib/domain/insights'
 import { cn } from '@/lib/utils'
@@ -22,7 +23,13 @@ export function ForecastCard({ forecast, loaded }: { forecast: Forecast | null; 
   return (
     <section aria-label={t('title', { month })} className="bg-surface border border-border rounded-lg flex flex-col min-w-0">
       <h2 className="px-4 h-16 shrink-0 flex items-center text-[17px] font-semibold text-ink border-b border-border first-letter:uppercase">{loaded && forecast ? t('title', { month }) : t('titlePlain')}</h2>
-      {!loaded ? <p className="p-4 text-[15px] text-dim">{t('loading')}</p>
+      {!loaded ? (
+        <LoadingRegion label={t('loading')} className="p-4 flex flex-col gap-4">
+          <Skeleton className="h-8 w-48" />
+          <div className="flex flex-col gap-2"><Skeleton className="h-3.5 w-56" /><Skeleton className="h-3.5 w-36" /></div>
+          <div className="flex items-end gap-1.5 h-24">{[70, 80, 75, 85, 90, 88, 95, 100, 92].map((h, i) => <Skeleton key={i} className="flex-1 rounded-sm" style={{ height: `${h}%` }} />)}</div>
+        </LoadingRegion>
+      )
         : !forecast ? <p role="alert" className="p-4 text-[15px] text-soft">{t('failed')}</p>
         : !forecast.ready ? (
           <div className="p-4 flex flex-col gap-2">

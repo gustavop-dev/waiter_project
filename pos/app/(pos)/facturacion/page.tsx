@@ -7,7 +7,6 @@ import { InvoicePanel, type Selection } from '@/components/billing/InvoicePanel'
 import { Card } from '@/components/kit/Card'
 import { Chip } from '@/components/kit/Chip'
 import { KitEmptyState } from '@/components/kit/KitEmptyState'
-import { KitShell } from '@/components/kit/KitShell'
 import { StatusPill } from '@/components/kit/StatusPill'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SearchInput } from '@/components/ui/SearchInput'
@@ -45,7 +44,7 @@ export default function FacturacionPage() {
   const field = (label: string, value: React.ReactNode, first = false) => <div className={cn(!first && 'pl-4')}><p className="text-[13px] text-soft">{label}</p><div className="font-semibold text-ink">{value}</div></div>
 
   return (
-    <KitShell>
+    <>
       <PageHeader icon="billing" title={t('title')} actions={<SearchInput value={query} onChange={setQuery} placeholder={t('search')} className="w-[360px]" />}>
         <Chip label={t('tabs.pending')} count={orders.filter((o) => o.invoiceId === null).length} active={tab === 'pending'} onClick={() => setTab('pending')} />
         <Chip label={t('tabs.invoices')} count={invoices.length} active={tab === 'invoices'} onClick={() => setTab('invoices')} />
@@ -82,6 +81,6 @@ export default function FacturacionPage() {
         <InvoicePanel selection={selection} tableNumber={selection?.kind === 'order' ? tableNumberOf(selection.order.tableId) : null}
           onIssue={async (orderId, partnerId) => { const id = await invoiceOrder(orderId, partnerId); await reload(); const inv = (await listInvoices(5)).find((i) => i.id === id); return { id, name: inv?.name ?? String(id) } }} />
       </div>
-    </KitShell>
+    </>
   )
 }

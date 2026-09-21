@@ -26,7 +26,7 @@ it('lists every section in the index and tells how to extend each one', () => {
   wrap()
   const index = screen.getByRole('navigation', { name: 'Secciones del sistema de diseño' })
   const sections = screen.getAllByRole('region')
-  expect(sections).toHaveLength(11)
+  expect(sections).toHaveLength(12)
   for (const section of sections) {
     expect(within(section).getByText('Para extender:')).toBeInTheDocument()
     expect(within(index).getByRole('button', { name: document.getElementById(section.getAttribute('aria-labelledby')!)!.textContent! })).toBeInTheDocument()

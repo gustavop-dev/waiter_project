@@ -7,13 +7,13 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Icon } from '@/components/kit/Icon'
 import { cn } from '@/lib/utils'
-import { KitShell } from '@/components/kit/KitShell'
 import { ChangeTableModal } from '@/components/tables/ChangeTableModal'
 import { FloorEditor } from '@/components/tables/FloorEditor'
 import type { FloorDocument } from '@/lib/domain/floorPlan'
 import { deleteFloor, readPlan } from '@/lib/services/floorPlan'
 import { FloorSwitcher, SelectedTableBar, TableLegend } from '@/components/tables/FloorHeader'
 import { FloorPane } from '@/components/tables/FloorPane'
+import { FloorSkeleton } from '@/components/tables/FloorSkeleton'
 import { FloorSettingsPopover } from '@/components/tables/FloorSettingsPopover'
 
 import { PayModal } from '@/components/tables/PayModal'
@@ -191,7 +191,7 @@ export default function SalonPage() {
     catch { toast({ title: t('detail.deliverFailed'), tone: 'danger' }) }
   }
 
-  if (!catalog) return null
+  if (!catalog) return <FloorSkeleton />
   if (editing) return <FloorEditor initial={editing} configId={catalog.settings.configId}
     background={editing.id && catalog.floors.find(f => f.id === editing.id)?.hasBackground ? `/odoo/web/image/restaurant.floor/${editing.id}/floor_background_image?unique=${editing.revision}` : null}
     onCancel={() => setEditing(null)} onSaved={async (saved) => { await reload(); setFloor(saved.id!); setEditing(null); toast({ title: 'Plano guardado' }) }} />
@@ -200,7 +200,7 @@ export default function SalonPage() {
   // Un pedido en mesa nace de una mesa elegida a propósito: sin selección se pide antes de abrir el asistente.
   const newOrderHref = selected ? `/pedidos/nuevo?mesa=${selected.table.id}` : null
   return (
-    <KitShell>
+    <>
       <header className="shrink-0 h-[72px] px-4 flex items-center gap-4 border-b border-border">
         <h1 className="h-12 px-4 rounded-md bg-surface border border-border flex items-center gap-2 text-[18px] font-semibold text-ink"><Icon name="tables" size={22} />{t('title')}</h1>
         <div className="ml-auto flex items-center gap-4">
@@ -264,6 +264,6 @@ export default function SalonPage() {
       )}
       <Suspense><AskedForTable onAsk={askForTable} /></Suspense>
       <PickTablePrompt open={pickTable} onClose={() => setPickTable(false)} />
-    </KitShell>
+    </>
   )
 }

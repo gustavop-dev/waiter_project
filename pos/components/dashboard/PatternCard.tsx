@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 
+import { LoadingRegion, Skeleton } from '@/components/kit/Skeleton'
 import { formatCop } from '@/lib/domain/money'
 import type { WeekdayAverage } from '@/lib/domain/insights'
 import { cn } from '@/lib/utils'
@@ -18,7 +19,13 @@ export function PatternCard({ weekdays, hours, loaded }: { weekdays: WeekdayAver
   return (
     <section aria-label={t('title')} className="bg-surface border border-border rounded-lg flex flex-col min-h-0 min-w-0">
       <h2 className="px-4 h-16 shrink-0 flex items-center text-[17px] font-semibold text-ink border-b border-border">{t('title')}</h2>
-      {!loaded ? <p className="p-4 text-[15px] text-dim">{t('loading')}</p> : !hasSales ? <p className="p-4 text-[15px] text-soft">{t('empty')}</p> : (
+      {!loaded ? (
+        <LoadingRegion label={t('loading')} className="p-4 flex flex-col gap-5">
+          {/* Barras de alturas variadas: la forma de un gráfico, no una caja genérica. */}
+          <div className="flex flex-col gap-3"><Skeleton className="h-3.5 w-40" /><div className="flex items-end gap-1.5 h-24">{[45, 60, 55, 70, 90, 100, 30].map((h, i) => <Skeleton key={i} className="flex-1 rounded-sm" style={{ height: `${h}%` }} />)}</div></div>
+          <div className="flex flex-col gap-3"><Skeleton className="h-3.5 w-28" /><div className="flex items-end gap-1 h-20">{[20, 35, 60, 40, 30, 55, 85, 100, 70, 45].map((h, i) => <Skeleton key={i} className="flex-1 rounded-sm" style={{ height: `${h}%` }} />)}</div></div>
+        </LoadingRegion>
+      ) : !hasSales ? <p className="p-4 text-[15px] text-soft">{t('empty')}</p> : (
         <div className="flex-1 min-h-0 overflow-y-auto p-4 flex flex-col gap-5">
           <div>
             <h3 className="text-[14px] font-semibold text-ink">{t('weekdays')}</h3>

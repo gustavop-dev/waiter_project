@@ -7,7 +7,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Chip } from '@/components/kit/Chip'
 import { Icon } from '@/components/kit/Icon'
 import { KitEmptyState } from '@/components/kit/KitEmptyState'
-import { KitShell } from '@/components/kit/KitShell'
 import { formatOrderDate } from '@/components/orders/format'
 import { MenuProductCard } from '@/components/orders/MenuProductCard'
 import { RoundCart } from '@/components/orders/RoundCart'
@@ -73,7 +72,7 @@ export default function AgregarRondaPage() {
   }
 
   return (
-    <KitShell>
+    <>
       <div className="fixed inset-0 z-40 grid place-items-center bg-overlay/60">
         <div role="dialog" aria-modal="true" aria-label={t('addRound.title')} className="w-[1174px] h-[754px] max-w-[98vw] max-h-[96vh] bg-surface rounded-xl shadow-xl flex flex-col overflow-hidden">
           <header className="h-[72px] px-4 flex items-center gap-3 border-b border-border shrink-0">
@@ -115,6 +114,6 @@ export default function AgregarRondaPage() {
             </div>}
         </div>
       </div>
-    </KitShell>
+    </>
   )
 }

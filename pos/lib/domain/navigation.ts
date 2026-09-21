@@ -49,6 +49,11 @@ export function homePath(role: Role, hasOpenSession: boolean): string {
   return hasOpenSession ? '/salon' : '/caja'
 }
 
+// Pantallas a pantalla completa, sin la barra de navegación: la cocina, la operación en vivo y el mesero IA.
+export function withShell(pathname: string): boolean {
+  return !/^\/(kds|operacion|automatizacion\/ia)(\/|$)/.test(pathname)
+}
+
 export function administrationPath(pathname: string): boolean {
   return /^\/(dashboard|salon|inventario|reservas|historial|ventas|catalogo|clientes|facturacion|automatizacion|configuracion|kit)(\/|$)/.test(pathname)
 }

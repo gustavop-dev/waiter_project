@@ -3,8 +3,10 @@
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
-import { administrationPath } from '@/lib/domain/navigation'
+import { administrationPath, withShell } from '@/lib/domain/navigation'
 import { Button } from '@/components/ui/Button'
+import { KitShell } from '@/components/kit/KitShell'
+import { PageSkeleton, Skeleton } from '@/components/kit/Skeleton'
 import { allowedPath, effectiveRole } from '@/lib/domain/roles'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
@@ -39,6 +41,8 @@ export default function PosLayout({ children }: { children: React.ReactNode }) {
   const sessionId = session?.id ?? null
   useEffect(() => { if (ready) void load(sessionId) }, [ready, sessionId, load])
 
+  // Al abrir o recargar la app, hasta saber quién es se veía todo en blanco. Ahora, el armazón con su esqueleto.
+  if (!hydrated) return <BootSkeleton />
   if (!hydrated || !user || !employee || (!session && (effectiveRole(user.role, employee.role) !== 'admin' || !administrationPath(pathname))) || !allowedPath(effectiveRole(user.role, employee.role), pathname)) return null
   // Sin catálogo no hay pantalla que pintar: se dice por qué en vez de dejar el POS en blanco.
   if (catalogStatus === 'error') {
@@ -53,5 +57,22 @@ export default function PosLayout({ children }: { children: React.ReactNode }) {
       </main>
     )
   }
-  return <>{children}</>
+  // La barra vive aquí y no en cada página: así persiste al cambiar de pantalla. Antes cada página montaba la suya, y
+  // cada navegación la desmontaba y volvía a pedir los avisos (dos llamadas a Odoo por cambio de pantalla).
+  return withShell(pathname) ? <KitShell>{children}</KitShell> : <>{children}</>
 }
+
+// El armazón de la app (barra y contenido) en esqueleto, mientras se recupera la sesión.
+function BootSkeleton() {
+  return (
+    <div className="h-screen flex flex-col bg-canvas">
+      <div className="h-[92px] shrink-0 px-5 flex items-center gap-4 border-b border-border bg-surface">
+        <Skeleton className="h-9 w-24" />
+        <Skeleton className="h-12 flex-1 max-w-[860px] rounded-lg" />
+        <Skeleton className="h-12 w-12 rounded-md ml-auto" /><Skeleton className="h-12 w-60 rounded-md" />
+      </div>
+      <PageSkeleton />
+    </div>
+  )
+}
+

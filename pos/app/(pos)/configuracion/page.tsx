@@ -6,7 +6,6 @@ import { useTranslations } from 'next-intl'
 import { Suspense, useEffect, useState } from 'react'
 
 import { Icon, type KitIcon } from '@/components/kit/Icon'
-import { KitShell } from '@/components/kit/KitShell'
 import { CompanyForm, DisplayForm, FloorsForm, PaymentMethodsList, TaxesList, UsersForm } from '@/components/settings/KitSettingsForms'
 import { KitchenPaymentPolicyForm } from '@/components/settings/KitchenPaymentPolicyForm'
 import { ReservationHoursForm } from '@/components/settings/ReservationHoursForm'
@@ -44,7 +43,7 @@ function ConfiguracionInner() {
   if (!catalog) return null
   const onSaveSettings = async (s: typeof catalog.settings) => { await saveSettings(s); await load(session?.id ?? null) }
   return (
-    <KitShell>
+    <>
       <PageHeader icon="settings" title={t('title')} />
       <div className="flex-1 min-h-0 px-5 pb-5">
         <div className="h-full bg-surface border border-border rounded-lg flex overflow-hidden">
@@ -75,7 +74,7 @@ function ConfiguracionInner() {
           </section>
         </div>
       </div>
-    </KitShell>
+    </>
   )
 }
 

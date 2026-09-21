@@ -39,6 +39,8 @@ interface OrderState {
   closeReceipt: () => void
   discard: () => void
   refreshOpenOrders: (sessionId: number) => Promise<void>
+  // La lista del salón ya derivada de los pedidos del kit (useKitOrders), con las llamadas de mesa, sin volver a pedirla.
+  adoptOpenOrders: (openOrders: OpenOrder[], calls: TableCall[]) => void
   attendCall: (tableId: number) => Promise<void>
   refreshShift: (sessionId: number) => Promise<void>
 }
@@ -168,6 +170,7 @@ export const useOrderStore = create<OrderState>((set, get) => {
         console.warn('No se pudo refrescar el salón; se muestra lo último conocido.', e)
       }
     },
+    adoptOpenOrders: (openOrders, calls) => set({ openOrders, calls }),
     attendCall: async (tableId) => { await clearTableCall(tableId); set((s) => ({ calls: s.calls.filter((c) => c.tableId !== tableId) })) },
     refreshShift: async (sessionId) => {
       try { set({ shift: await getShiftSummary(sessionId) }) } catch (e) { console.warn('No se pudo refrescar el turno.', e) }

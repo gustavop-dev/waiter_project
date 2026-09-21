@@ -11,7 +11,6 @@ import { KpiTile } from '@/components/dashboard/KpiTile'
 import { LiveClock } from '@/components/dashboard/LiveClock'
 import { PatternCard } from '@/components/dashboard/PatternCard'
 import { TablesAvailable } from '@/components/dashboard/TablesAvailable'
-import { KitShell } from '@/components/kit/KitShell'
 import { attentionItems, dishStats, forecastNextMonth, generalKpis, peakHours, weekdayAverages, type PeriodKpi, type SalesHistory } from '@/lib/domain/insights'
 import { formatCop } from '@/lib/domain/money'
 import { greetingFor, readyToServe } from '@/lib/domain/orderState'
@@ -88,12 +87,12 @@ export default function DashboardPage() {
   const kpis = useMemo(() => (history ? generalKpis(history) : null), [history])
   const weekdays = useMemo(() => (history ? weekdayAverages(history) : []), [history])
   const hours = useMemo(() => (history ? peakHours(history) : []), [history])
-  const money = (k: PeriodKpi | undefined) => (k ? `$ ${formatCop(Math.round(k.value))}` : '…')
+  const money = (k: PeriodKpi | undefined) => (k ? `$ ${formatCop(Math.round(k.value))}` : '')
   const hintOf = (k: PeriodKpi | undefined, text: string) => (k && k.change === null ? t('general.noCompare') : text)
   const freeTables = (catalog?.tables ?? []).filter((tb) => !busyTables.has(tb.id)).length
 
   return (
-    <KitShell>
+    <>
       <div className="flex-1 min-h-0 overflow-y-auto p-4 flex flex-col gap-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex flex-col gap-1">
@@ -105,15 +104,15 @@ export default function DashboardPage() {
 
         {seesSales ? (
           <Link href="/ventas" aria-label={t('seeSales')} className="grid grid-cols-2 lg:grid-cols-4 gap-4 rounded-lg focus-visible:outline-2 focus-visible:outline-primary">
-            <KpiTile label={t('general.week')} value={money(kpis?.week)} icon="wallet" change={kpis?.week.change} hint={hintOf(kpis?.week, t('general.weekHint'))} />
-            <KpiTile label={t('general.month')} value={money(kpis?.month)} icon="chartLine" change={kpis?.month.change} hint={hintOf(kpis?.month, t('general.monthHint'))} />
-            <KpiTile label={t('general.monthOrders')} value={kpis ? String(kpis.monthOrders.value) : '…'} icon="fileCheck" change={kpis?.monthOrders.change} hint={hintOf(kpis?.monthOrders, t('general.monthHint'))} />
-            <KpiTile label={t('general.ticket')} value={money(kpis?.ticket)} icon="sales" change={kpis?.ticket.change} hint={t('general.ticketHint')} />
+            <KpiTile loading={!kpis} label={t('general.week')} value={money(kpis?.week)} icon="wallet" change={kpis?.week.change} hint={hintOf(kpis?.week, t('general.weekHint'))} />
+            <KpiTile loading={!kpis} label={t('general.month')} value={money(kpis?.month)} icon="chartLine" change={kpis?.month.change} hint={hintOf(kpis?.month, t('general.monthHint'))} />
+            <KpiTile loading={!kpis} label={t('general.monthOrders')} value={kpis ? String(kpis.monthOrders.value) : ''} icon="fileCheck" change={kpis?.monthOrders.change} hint={hintOf(kpis?.monthOrders, t('general.monthHint'))} />
+            <KpiTile loading={!kpis} label={t('general.ticket')} value={money(kpis?.ticket)} icon="sales" change={kpis?.ticket.change} hint={t('general.ticketHint')} />
           </Link>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <Link href="/pedidos" aria-label={t('seeOrders')} className="rounded-lg focus-visible:outline-2 focus-visible:outline-primary"><KpiTile label={t('kpi.open')} value={String(orders.length)} icon="alarm" /></Link>
-            <Link href="/reservas" className="rounded-lg focus-visible:outline-2 focus-visible:outline-primary"><KpiTile label={t('kpi.reservationsToday')} value={reservations === null ? '…' : String(confirmed.length)} icon="reservations" /></Link>
+            <Link href="/reservas" className="rounded-lg focus-visible:outline-2 focus-visible:outline-primary"><KpiTile label={t('kpi.reservationsToday')} loading={reservations === null} value={reservations === null ? '' : String(confirmed.length)} icon="reservations" /></Link>
             <KpiTile label={t('general.freeTables')} value={String(freeTables)} icon="tables" />
             <KpiTile label={t('general.soldOut')} value={String((catalog?.products ?? []).filter((p) => p.soldOut).length)} icon="alert" />
           </div>
@@ -132,6 +131,6 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
-    </KitShell>
+    </>
   )
 }

@@ -8,7 +8,7 @@ import { RegisterCard } from '@/components/cash/RegisterCard'
 import { Card } from '@/components/kit/Card'
 import { Icon } from '@/components/kit/Icon'
 import { KitEmptyState } from '@/components/kit/KitEmptyState'
-import { KitShell } from '@/components/kit/KitShell'
+import { KpiValueSkeleton, ListSkeleton } from '@/components/kit/Skeleton'
 import { StatusPill } from '@/components/kit/StatusPill'
 import { KitTable, type KitColumn } from '@/components/ui/KitTable'
 import { KpiTile } from '@/components/ui/KpiTile'
@@ -66,6 +66,8 @@ export default function VentasPage() {
   const total = current?.summary.total ?? 0
   const orderCount = current?.summary.orders ?? 0
   const autonomous = current?.summary.autonomous ?? 0
+  // Mientras llega el periodo pedido: esqueletos, no «$ 0» ni «sin datos», que parecerían ciertos.
+  const pending = scope !== null && current === null
   const rangeText = scope?.kind === 'range' ? (scope.from === scope.to ? dayLabel(scope.from) : `${dayLabel(scope.from)} – ${dayLabel(scope.to)}`) : ''
   const maxMethod = Math.max(...(current?.methods.map((m) => m.amount) ?? [1]), 1)
   const openShift = session ? shifts.find((s) => s.id === session.id) : undefined
@@ -79,14 +81,14 @@ export default function VentasPage() {
     { key: 'origin', header: t('cols.origin'), width: '140px', render: (s) => <StatusPill tone={s.origin === 'waiter' ? 'neutral' : 'info'}>{s.origin === 'waiter' ? t('origin.waiter') : t('origin.auto')}</StatusPill> },
     { key: 'total', header: t('cols.total'), width: '140px', align: 'right', render: (s) => <span className="font-semibold tabular">$ {formatCop(s.total)}</span> },
   ]
-  const list = (rows: { key: string; label: string; meta?: string; amount: number }[]) => (
+  const list = (rows: { key: string; label: string; meta?: string; amount: number }[]) => pending ? <ListSkeleton rows={4} /> : (
     <div className="p-5 flex flex-col gap-3">
       {rows.length === 0 && <p className="text-[14px] text-soft">{t('none')}</p>}
       {rows.map((r) => <div key={r.key} className="flex items-center justify-between gap-3 text-[15px]"><span className="min-w-0 truncate">{r.label}{r.meta && <span className="text-soft"> · {r.meta}</span>}</span><span className="font-semibold tabular shrink-0">{formatCop(r.amount)}</span></div>)}
     </div>
   )
   return (
-    <KitShell>
+    <>
       <PageHeader icon="sales" title={t('title')} />
       {/* Filtro de periodo: fichas para lo habitual, fechas para un rango y el turno para cuadrar la caja. */}
       <div role="group" aria-label={t('period.label')} className="shrink-0 px-5 pb-4 flex flex-wrap items-center gap-2">
@@ -116,14 +118,14 @@ export default function VentasPage() {
         {session && can.closeRegister(role) && <RegisterCard openSince={time(openShift?.startAt ?? null)} expectedCash={expectedCash}
           onClose={() => void closingData(session.id).then(setClosing)} onMove={async (type, amount, reason) => { await cashInOut(session.id, type, amount, reason); setExpectedCash((await closingData(session.id)).expectedCash) }} />}
         <div className="grid grid-cols-4 gap-4">
-          <KpiTile label={t('kpi.sales')} icon="wallet" value={`$ ${formatCop(total)}`} />
-          <KpiTile label={t('kpi.orders')} icon="receipt" value={orderCount} />
-          <KpiTile label={t('kpi.avg')} icon="sales" value={`$ ${formatCop(orderCount ? total / orderCount : 0)}`} />
-          <KpiTile label={t('kpi.autonomous')} icon="tablet" tone="primary" value={`${orderCount ? Math.round((autonomous / orderCount) * 100) : 0}%`} />
+          <KpiTile label={t('kpi.sales')} icon="wallet" value={pending ? <KpiValueSkeleton /> : `$ ${formatCop(total)}`} />
+          <KpiTile label={t('kpi.orders')} icon="receipt" value={pending ? <KpiValueSkeleton /> : orderCount} />
+          <KpiTile label={t('kpi.avg')} icon="sales" value={pending ? <KpiValueSkeleton /> : `$ ${formatCop(orderCount ? total / orderCount : 0)}`} />
+          <KpiTile label={t('kpi.autonomous')} icon="tablet" tone="primary" value={pending ? <KpiValueSkeleton /> : `${orderCount ? Math.round((autonomous / orderCount) * 100) : 0}%`} />
         </div>
         <div className="grid grid-cols-3 gap-4">
           <Card title={t('byMethod')}>
-            <div className="p-5 flex flex-col gap-3">
+            {pending ? <ListSkeleton rows={3} /> : <div className="p-5 flex flex-col gap-3">
               {(current?.methods ?? []).length === 0 && <p className="text-[14px] text-soft">{t('none')}</p>}
               {(current?.methods ?? []).map((m) => (
                 <div key={m.method} className="flex flex-col gap-1.5 text-[15px]">
@@ -131,18 +133,18 @@ export default function VentasPage() {
                   <div className="h-2 rounded-full bg-muted"><span className="block h-2 rounded-full bg-primary" style={{ width: `${Math.max(3, (m.amount / maxMethod) * 100)}%` }} aria-hidden /></div>
                 </div>
               ))}
-            </div>
+            </div>}
           </Card>
           <Card title={t('byWaiter')}>{list((current?.waiters ?? []).map((w) => ({ key: w.waiter, label: w.waiter, meta: `${w.orders} ${t('cols.orders')}`, amount: w.amount })))}</Card>
           <Card title={t('top')}>{list((current?.top ?? []).map((p) => ({ key: p.product, label: p.product, meta: `× ${p.qty}`, amount: p.amount })))}</Card>
         </div>
         <Card title={orderCount > SALES_LIST_LIMIT ? t('ordersLimited', { shown: SALES_LIST_LIMIT, total: orderCount }) : t('orders')} className="shrink-0">
-          <KitTable columns={columns} rows={current?.sales ?? []} rowKey={(s) => s.id} empty={<KitEmptyState icon="receipt" title={t('empty')} body={t('emptyBody')} />} />
+          {pending ? <ListSkeleton rows={6} /> : <KitTable columns={columns} rows={current?.sales ?? []} rowKey={(s) => s.id} empty={<KitEmptyState icon="receipt" title={t('empty')} body={t('emptyBody')} />} />}
         </Card>
       </div>
       {closing && session && <CloseRegisterModal data={closing} onClose={() => setClosing(null)}
         onConfirm={async (counted, notes) => { const r = await closeRegister(session.id, counted, notes); if (r.successful) setTimeout(() => void refreshSession(), 1500); return r }}
         canForce={can.forceCloseRegister(role)} onForce={async () => { const r = await forceCloseRegister(session.id); if (r.successful) setTimeout(() => void refreshSession(), 1500); return r }} />}
-    </KitShell>
+    </>
   )
 }

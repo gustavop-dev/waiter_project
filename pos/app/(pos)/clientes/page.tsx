@@ -9,7 +9,6 @@ import { Card } from '@/components/kit/Card'
 import { Chip } from '@/components/kit/Chip'
 import { Icon } from '@/components/kit/Icon'
 import { KitEmptyState } from '@/components/kit/KitEmptyState'
-import { KitShell } from '@/components/kit/KitShell'
 import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { SearchInput } from '@/components/ui/SearchInput'
@@ -50,7 +49,7 @@ export default function ClientesPage() {
     setForm({ id })
   }
   return (
-    <KitShell>
+    <>
       <PageHeader icon="customers" title={t('title')} actions={<>
         <SearchInput value={query} onChange={setQuery} placeholder={t('search')} className="w-[360px]" />
         <Button variant="primary" onClick={() => setForm({ id: null })}><Icon name="plus" size={18} />{t('new')}</Button>
@@ -80,6 +79,6 @@ export default function ClientesPage() {
         <CustomerForm key={form.id ?? 'new'} initial={editing ? { name: editing.name, phone: editing.phone, email: editing.email, vat: editing.vat, idTypeId: editing.idTypeId, street: editing.street, city: editing.city } : EMPTY}
           isNew={form.id === null} idTypes={idTypes} onSave={onSave} onClose={() => setForm(null)} />
       )}
-    </KitShell>
+    </>
   )
 }
