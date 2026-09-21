@@ -16,20 +16,26 @@ import type { Floor } from '@/lib/types'
 // El salón monta uno (vista normal) o dos lado a lado (pantalla partida); cada panel es independiente salvo la mesa
 // seleccionada, que es una sola en toda la pantalla. `refreshKey` cambia cuando el catálogo se recarga (p. ej. tras
 // guardar el plano) y obliga a releerlo. `header` es la franja propia del panel en pantalla partida.
+// Último plano leído de cada piso. Vive fuera del componente: al volver a Mesas (o cambiar de piso) el plano completo
+// —paredes, zonas, imágenes— se pinta al instante y se relee detrás. Antes solo las mesas salían enseguida y el resto
+// «saltaba» un momento después. El plano casi no cambia: al guardarlo en el editor, la carta se recarga (`refreshKey`)
+// y se relee.
+const planCache = new Map<number, FloorDocument>()
+
 export function FloorPane({ floor, configId, views, reserved, selectedId, onSelect, pickFree, codeFor, refreshKey, header, children }: {
   floor: Floor; configId: number; views: TableView[]; reserved: Record<number, TableReservation | null>; selectedId: number | null
   onSelect: (id: number) => void; pickFree: boolean; codeFor: (view: TableView) => string | null; refreshKey: unknown
   header?: ReactNode; children?: ReactNode
 }) {
-  const [plan, setPlan] = useState<FloorDocument | null>(null)
+  const [plan, setPlan] = useState<FloorDocument | null>(() => planCache.get(floor.id) ?? null)
   const [visibleIds, setVisibleIds] = useState<number[] | null>(null)
   const [zoneStaff, setZoneStaff] = useState<Record<string, string[]>>({})
   useEffect(() => {
     let alive = true
-    void readPlan(floor.id).then((p) => { if (alive) { setPlan(p); setVisibleIds(null) } }).catch(() => { if (alive) setPlan(null) })
+    void readPlan(floor.id).then((p) => { planCache.set(floor.id, p); if (alive) { setPlan(p); setVisibleIds(null) } }).catch(() => { if (alive) setPlan(null) })
     return () => { alive = false }
   }, [floor.id, refreshKey])
-  const current = plan?.id === floor.id ? plan : null
+  const current = plan?.id === floor.id ? plan : planCache.get(floor.id) ?? null
   return (
     <section aria-label={parseFloorName(floor.name).label} className="relative flex-1 min-w-0 min-h-0 flex flex-col">
       {header}
