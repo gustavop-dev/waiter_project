@@ -96,6 +96,11 @@ aislamiento más estricto, o trabajar sin conexión.
      comensal con ese usuario y, en el mismo cambio, restringir `waiter_deposit_paid` a ese grupo (hallazgo nº 1 de la
      revisión con Codex). Conviene revisar antes si las escrituras en productos y compañía deben pasar por
      `experience` o ir del POS a Odoo directamente.
+   - **Decisión del dueño (2026-09-21): no se hace por ahora.** Su razón: `experience` es nuestro Django y ahí manejamos
+     la autenticación. Matiz que queda anotado para retomarlo antes de producción: esa autenticación protege de los
+     comensales, pero el riesgo del usuario `admin` aparece solo si se compromete el propio `experience` (una
+     dependencia vulnerable, un secreto filtrado); en ese caso tendría acceso de administrador a todos los restaurantes.
+     El rastro de auditoría acota el daño a saber qué contraseñas rotar.
    - **Descartado — límite de peticiones en `resolve`:** con cientos de inquilinos, un límite que frene un recorrido
      también frenaría el tráfico legítimo; el rastro da la detección sin ese riesgo.
 

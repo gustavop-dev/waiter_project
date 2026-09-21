@@ -28,7 +28,7 @@ Consecuencia práctica: al darle un diff recortado, Codex no ve lo que quedó fu
 | 13 | Tendencia neutra (1) aunque las últimas 4 semanas no vendieran nada | **Real.** Ahora cae a su tope de −30 %. |
 | 14 | Una semana entera sin ventas no contaba como semana en cero | **Real.** Toda semana completa desde la primera venta cuenta; el rango refleja esa variación. |
 | 1 | `waiter_deposit_paid` es un RPC público que marca pagado con `sudo()` sin saber quién llama | **Real, latente.** Hoy el POS y el backend del comensal entran a Odoo como `admin`, que ya puede escribir ese campo; no escala privilegios. Será un agujero cuando los terminales usen un usuario con menos permisos (lo correcto en producción). **Pendiente:** decidir un secreto compartido entre servicios. |
-| 2 | Cobro doble: pago en línea pendiente + el cajero registra efectivo + la pasarela aprueba | **Real.** El sistema lo marca `needs_review` pero no lo evita. **Pendiente:** decisión de diseño entre servicios (Odoo no sabe hoy que hay un intento en línea abierto). |
+| 2 | Cobro doble: pago en línea pendiente + el cajero registra efectivo + la pasarela aprueba | **Real.** El sistema lo marca `needs_review` pero no lo evita. **Decisión del dueño (2026-09-21):** se resuelve al integrar la pasarela de pagos. |
 | 8 | La línea de tiempo pinta como abiertos días fuera de la ventana de reservas | Real, cosmético: la línea de tiempo no reserva. Baja prioridad. |
 | 9, 10 | Aritmética de fechas al cruzar un cambio de horario (DST) | Real en teoría; Colombia (`America/Bogota`) no tiene horario de verano. Baja prioridad hasta operar en un país con DST. |
 | 11 | `validRange` acepta `2026-02-30` | Real, pero el rango sale de `<input type="date">`, que nunca produce esa fecha. Baja prioridad. |
