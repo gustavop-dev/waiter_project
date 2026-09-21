@@ -178,7 +178,7 @@ export default function SalonPage() {
       if (activeFloorId === f.id) setFloor(catalog!.floors.find((x) => x.id !== f.id)?.id ?? f.id)
       await refreshFloors()
       await reload()
-      toast({ title: t(result === 'archived' ? 'floorSettings.deletedArchived' : 'floorSettings.deleted') })
+      toast({ title: t(result === 'archived' ? 'floorSettings.deletedArchived' : result === 'detached' ? 'floorSettings.deletedDetached' : 'floorSettings.deleted') })
     } catch (e) {
       toast({ title: t('floorSettings.deleteFailed'), body: e instanceof Error ? e.message : '', tone: 'danger' })
     }

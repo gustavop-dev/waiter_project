@@ -11,7 +11,7 @@ export function savePlan(configId: number, plan: FloorDocument) {
 // mesas. `archived`: tenía ventas en el historial, así que se archivó y se desvinculó; para el restaurante desaparece igual.
 export function deleteFloor(configId: number, floorId: number) {
  const e = useAuthStore.getState().employee
- return callKw<{id:number;result:'removed'|'archived'}>('restaurant.floor', 'waiter_delete_floor', [configId, floorId, e?.id, e?.token])
+ return callKw<{id:number;result:'removed'|'archived'|'detached'}>('restaurant.floor', 'waiter_delete_floor', [configId, floorId, e?.id, e?.token])
 }
 export type { Assignments } from '@/lib/domain/zoneStaff'
 // Quién atiende cada zona ahora: el ajuste del turno si lo hay, o el reparto habitual del piso (`source` lo dice).

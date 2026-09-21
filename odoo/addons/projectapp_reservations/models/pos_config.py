@@ -97,9 +97,12 @@ class PosConfig(models.Model):
     def waiter_reservation_schedule(self):
         """Horario completo para el editor. Sin horario configurado devuelve el anterior repetido los siete días."""
         self.ensure_one()
+        # Se normaliza al leer: un write directo puede guardar un horario válido pero incompleto (sin «overrides» o sin
+        # «rules»), y quien lo lea después necesita la forma completa.
         if self.reservation_schedule:
-            return dict(self.reservation_schedule, rules=dict(NO_RULES, **(self.reservation_schedule.get("rules") or {})))
-        legacy = [[self.reservation_open or 10.0, self.reservation_close or 22.0]]
+            return clean_schedule(self.reservation_schedule)
+        # Sin «or 10.0»: abrir a medianoche (0.0) es válido; los campos ya traen 10 y 22 por defecto.
+        legacy = [[self.reservation_open, self.reservation_close]]
         return {"weekly": {day: [list(r) for r in legacy] for day in WEEKDAYS}, "overrides": [], "rules": dict(NO_RULES)}
 
     def waiter_save_reservation_schedule(self, schedule):

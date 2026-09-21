@@ -21,16 +21,19 @@ PREP_CHOICES = [("0", "Sin margen"), ("15", "15 minutos antes"), ("30", "30 minu
                 ("60", "1 hora antes"), ("120", "2 horas antes")]
 
 
-def table_ids_from(value):
-    """Ids de mesa a partir de una lista simple (lo que manda el POS) o de comandos ORM SET/LINK."""
+def table_ids_from(value, current=()):
+    """Ids de mesa a partir de una lista simple (lo que manda el POS: reemplaza) o de comandos ORM, que se aplican en
+    orden sobre las mesas actuales (`current`), como hace el ORM: LINK suma una, UNLINK quita una, SET reemplaza."""
     if all(isinstance(item, int) for item in value):
         return list(value)
-    ids = []
+    ids = list(current)
     for command in value:
         if command[0] == Command.SET:
             ids = list(command[2])
         elif command[0] == Command.LINK:
-            ids.append(command[1])
+            ids += [command[1]] if command[1] not in ids else []
+        elif command[0] == Command.UNLINK:
+            ids = [i for i in ids if i != command[1]]
         else:
             raise ValidationError(_("Las mesas de la reserva se mandan como lista de ids."))
     return ids
@@ -199,15 +202,26 @@ class WaiterReservation(models.Model):
                 super(WaiterReservation, reservation).write(own)
         else:
             super().write(vals)
+        if "table_ids" in vals or "table_id" in vals:
+            self._waiter_sync_preorder_table()
         if "date" in vals or "time_start" in vals:
             self._check_booking_rules()  # mover la hora cuenta como reservar de nuevo; cambiar mesa o estado, no
         return True
+
+    def _waiter_sync_preorder_table(self):
+        """El pre-pedido en borrador vive en la mesa principal: si la principal cambia, se va con ella. Vive aquí (y no
+        solo en waiter_set_tables) porque la principal cambia por cualquier write: table_id directo, una lista nueva o un
+        UNLINK de la mesa principal."""
+        for reservation in self:
+            order = reservation.preorder_id
+            if order and order.state == "draft" and order.table_id != reservation.table_id:
+                order.table_id = reservation.table_id
 
     def _waiter_fill_tables(self, vals):
         """Deja `table_id` (principal) y `table_ids` (todas) coherentes. Quien llama puede mandar solo la principal (una
         mesa, como siempre), solo la lista (la primera pasa a principal) o las dos (la principal entra en la lista).
         Cambiar solo la principal de una reserva que ya existe la sustituye dentro de sus mesas, sin soltar las demás."""
-        ids = table_ids_from(vals["table_ids"]) if vals.get("table_ids") is not None else None
+        ids = table_ids_from(vals["table_ids"], self.table_ids.ids if self else []) if vals.get("table_ids") is not None else None
         main = vals.get("table_id")
         if ids is None:
             if not main:
@@ -432,9 +446,7 @@ class WaiterReservation(models.Model):
         ids = list(dict.fromkeys(table_ids or []))
         if not ids or not all(isinstance(i, int) for i in ids):
             raise UserError(_("La reserva necesita al menos una mesa."))
-        self.write({"table_id": ids[0], "table_ids": ids})
-        if self.preorder_id and self.preorder_id.state == "draft" and self.preorder_id.table_id != self.table_id:
-            self.preorder_id.table_id = self.table_id
+        self.write({"table_id": ids[0], "table_ids": ids})  # write() mueve el pre-pedido con la principal
         return self.waiter_detail()[0]
 
     @api.model

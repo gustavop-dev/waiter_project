@@ -5,7 +5,7 @@ Corren con el runner de Odoo (`-u projectapp_reservations --test-enable --test-t
 import math
 from datetime import date, timedelta
 
-from odoo import fields
+from odoo import Command, fields
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
@@ -395,4 +395,39 @@ class TestReservations(TransactionCase):
         record.state = "seated"
         with self.assertRaises(UserError):
             record.waiter_set_tables([self.t4.id])
+
+    # ------------------------------------------------------------------ hallazgos de la revisión con Codex
+    # Falla si un comando LINK del ORM (el de los formularios de Odoo) reemplaza las mesas en vez de sumar una: una
+    # reserva de grupo soltaría en silencio sus otras mesas.
+    def test_linking_a_table_adds_it_instead_of_replacing_the_group(self):
+        record = self._reserve(self.t4, 19.0, table_ids=[self.t4.id, self.t2.id])
+        record.write({"table_ids": [Command.link(self.t8.id)]})
+        self.assertEqual((record.table_id, record.table_ids), (self.t4, self.t4 | self.t2 | self.t8))
+
+    # Falla si un horario escrito directamente sin «overrides» (válido para la validación) rompe después las franjas
+    # con un KeyError: se leía tal cual se guardó, sin normalizar.
+    def test_a_schedule_written_without_special_dates_still_gives_slots(self):
+        self.config.write({"reservation_schedule": {"weekly": {str(d): [[12.0, 14.0]] for d in range(7)}}})
+        self.assertEqual([s["label"] for s in self.Reservation.waiter_slots(self.config.id, self.day)], ["12:00", "12:30", "13:00", "13:30"])
+        self.assertEqual(self.config.waiter_reservation_schedule()["overrides"], [])
+
+    # Falla si un horario heredado que abre a medianoche (reservation_open = 0, válido) se lee como las 10:00: con
+    # cierre a las 8 quedaba la franja imposible 10–8 y toda reserva se rechazaba.
+    def test_a_legacy_schedule_opening_at_midnight_is_kept(self):
+        self.config.write({"reservation_schedule": False, "reservation_open": 0.0, "reservation_close": 8.0})
+        self.assertEqual(self.config.waiter_reservation_schedule()["weekly"]["1"], [[0.0, 8.0]])
+        self.assertEqual(self._reserve(self.t4, 1.0).time_start, 1.0)
+
+    # Hallazgo de Codex al revisar los arreglos: al soportar UNLINK se podía quitar la mesa principal y el pre-pedido se
+    # quedaba en ella. El hueco era más amplio: cualquier cambio de la principal por write() lo dejaba atrás (la
+    # sincronización vivía solo en waiter_set_tables). Falla si el pre-pedido en borrador no sigue a la mesa principal.
+    def test_the_draft_preorder_follows_the_main_table_whatever_changes_it(self):
+        detail = self.Reservation.waiter_create({"customer_name": "Grupo", "date": self.day, "time_start": 19.0, "people": 6,
+                                                "table_ids": [self.t4.id, self.t2.id]}, self._lines())
+        record = self.Reservation.browse(detail["id"])
+        self.assertEqual(record.preorder_id.table_id, self.t4)
+        record.write({"table_ids": [Command.unlink(self.t4.id)]})
+        self.assertEqual((record.table_id, record.table_ids, record.preorder_id.table_id), (self.t2, self.t2, self.t2))
+        record.write({"table_id": self.t8.id})
+        self.assertEqual((record.table_id, record.preorder_id.table_id), (self.t8, self.t8))
 

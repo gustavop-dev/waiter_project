@@ -146,6 +146,27 @@ class TestFloorPlan(TransactionCase):
             self.delete(first)
         self.assertTrue(self.Floor.browse(first).exists())
 
+    # Hallazgo de la revisión con Codex. Falla si borrar un piso compartido con otro terminal lo borra o lo archiva para
+    # todos: el otro terminal perdería el piso y sus mesas para siempre, aunque solo este quisiera soltarlo.
+    def test_deleting_a_floor_shared_with_another_terminal_only_detaches_it(self):
+        self.save()
+        shared = self.save({**self.plan, 'name': 'Compartido'})['id']
+        floor = self.Floor.browse(shared)
+        bar = self.config.copy({'name': 'Barra de prueba'})
+        floor.pos_config_ids = [(4, bar.id)]
+        tables = floor.table_ids
+        # Con la barra trabajando no se toca: Odoo no deja modificar un piso que un terminal tiene abierto.
+        session = self.env['pos.session'].create({'config_id': bar.id})
+        with self.assertRaises(UserError), self.cr.savepoint():
+            self.delete(shared)
+        self.assertEqual(floor.pos_config_ids, self.config | bar)
+        # Con la barra cerrada, este terminal lo suelta y la barra lo conserva con sus mesas. Antes se borraba.
+        session.write({'state': 'closed'})
+        self.assertEqual(self.delete(shared), {'id': shared, 'result': 'detached'})
+        self.assertTrue(floor.exists() and floor.active)
+        self.assertEqual(floor.pos_config_ids, bar)
+        self.assertTrue(tables.exists() and all(tables.mapped('active')))
+
     def test_delete_archives_and_detaches_a_floor_with_paid_history(self):
         keep, floor_id = self.save()['id'], self.save({**self.plan, 'name': 'Con historial'})['id']
         floor = self.Floor.browse(floor_id)

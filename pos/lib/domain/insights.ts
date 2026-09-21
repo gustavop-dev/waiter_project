@@ -9,6 +9,8 @@ export interface SalesHistory { today: string; windowDays: number; historyDays: 
 const DAY_MS = 86_400_000
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 const at = (day: string) => new Date(`${day}T00:00:00`)
+// Suma días de calendario (no 24 h fijas): segura aunque el navegador cruce un cambio de horario.
+const addDays = (day: string, n: number) => { const d = at(day); d.setDate(d.getDate() + n); return iso(d) }
 const daysBetween = (from: string, to: string) => Math.round((at(to).getTime() - at(from).getTime()) / DAY_MS)
 const weekdayOf = (day: string) => (at(day).getDay() + 6) % 7 // 0 = lunes
 
@@ -107,10 +109,11 @@ function sumBetween(history: SalesHistory, from: string, to: string): number {
   return history.daily.filter((d) => d.date >= from && d.date <= to).reduce((sum, d) => sum + d.total, 0)
 }
 // Últimos 28 días frente a los 28 anteriores. Sin ventas en el tramo anterior no hay con qué comparar: tendencia neutra.
+// Sin ventas en el tramo reciente sí la hay: cae hasta su tope (−30 %).
 function trendOf(history: SalesHistory, yesterday: string): number {
   const back = (n: number) => iso(new Date(at(yesterday).getTime() - n * DAY_MS))
   const recent = sumBetween(history, back(27), yesterday), previous = sumBetween(history, back(55), back(28))
-  return previous > 0 && recent > 0 ? Math.min(1.3, Math.max(0.7, recent / previous)) : 1
+  return previous > 0 ? Math.min(1.3, Math.max(0.7, recent / previous)) : 1
 }
 // Semanas completas (lunes a domingo) del historial: sin la que está en curso y sin la primera si llega a medias. Una
 // semana a medias parece una semana mala e infla la variación (y con ella el rango).
@@ -120,7 +123,10 @@ function weeklyTotals(history: SalesHistory): { week: string; total: number }[] 
   // La semana de la primera venta registrada solo cuenta si esa venta fue un lunes: si no, llega incompleta (el local abrió
   // a mitad de semana o la ventana de 84 días la cortó). A un local que siempre cierra los lunes solo le cuesta una semana.
   const first = history.daily[0]?.date, partial = first && mondayOf(first) !== first ? mondayOf(first) : null
-  for (const d of history.daily) { const week = mondayOf(d.date); if (week < current && week !== partial) totals.set(week, (totals.get(week) ?? 0) + d.total) }
+  // Toda semana completa desde la primera venta cuenta, aunque no haya vendido nada: una semana en cero es justo la
+  // variación que el rango debe reflejar. Antes solo existían las semanas con ventas y una semana cerrada se perdía.
+  if (first) for (let week = partial ? addDays(partial, 7) : mondayOf(first); week < current; week = addDays(week, 7)) totals.set(week, 0)
+  for (const d of history.daily) { const week = mondayOf(d.date); if (totals.has(week)) totals.set(week, totals.get(week)! + d.total) }
   return [...totals.entries()].sort(([a], [b]) => (a < b ? -1 : 1)).map(([week, total]) => ({ week, total }))
 }
 // Coeficiente de variación entre semanas: cuánto se mueve de verdad la venta de una semana a otra.
@@ -147,7 +153,9 @@ export function dishStats(history: SalesHistory, menu: { id: number; templateId:
   const topIds = new Set(top.map((d) => d.productId))
   const bottom = menu.filter((m) => !topIds.has(m.id))
     .map((m) => rank(sold.get(m.id) ?? { productId: m.id, templateId: m.templateId, name: m.name, qty: 0, amount: 0, prevQty: 0 }))
-    .sort((a, b) => a.qty - b.qty || a.name.localeCompare(b.name)).slice(0, size)
+    // Entre los de menos ventas, primero los que antes sí se vendían: una caída es más urgente que un plato que nunca
+    // arrancó, y con varios platos en cero el orden alfabético los dejaba fuera de la lista.
+    .sort((a, b) => a.qty - b.qty || Number(b.change !== null) - Number(a.change !== null) || a.name.localeCompare(b.name)).slice(0, size)
   return { top, bottom, totalQty: history.products.reduce((s, p) => s + p.qty, 0) }
 }
 

@@ -118,3 +118,31 @@ it('averages each weekday and finds the peak hours', () => {
   expect(peakHours(h)).toEqual([{ hour: 13, share: 0.3, orders: 6 }, { hour: 20, share: 0.7, orders: 9 }])
   expect(peakHours(history(8, FLAT))).toEqual([])
 })
+
+// Hallazgos de la revisión con Codex.
+// Falla si un restaurante que dejó de vender en las últimas cuatro semanas no recibe la tendencia a la baja: con
+// «recent > 0» como condición la tendencia quedaba neutra (1) en vez de caer a su tope de −30 %.
+it('drops the trend to its floor when the last four weeks had no sales', () => {
+  const h = history(8, FLAT)
+  h.daily = h.daily.filter((d) => d.date < '2026-08-17') // solo el tramo de los 28 días anteriores
+  expect(forecastNextMonth(h).trend).toBe(0.7)
+})
+
+// Falla si una semana entera sin ventas deja de contar como cero: se perdía, las semanas parecían idénticas y el
+// rango salía en el mínimo ±10 % en vez de reflejar que una semana no se vendió nada.
+it('counts a whole week without sales as a zero week', () => {
+  const f = forecastNextMonth(history(8, FLAT, (w) => (w === 3 ? 0 : 1)))
+  expect(f.weekly).toHaveLength(8)
+  expect(f.weekly.map((w) => w.total)).toContain(0)
+  expect(f.high / f.total).toBeGreaterThan(1.1)
+})
+
+// Falla si un plato que dejó de venderse queda fuera de «menos pedidos» detrás de los que nunca se vendieron (con
+// varios en cero, el orden alfabético lo sacaba de la lista de 5 aunque trajera su −100 %).
+it('ranks a dish that stopped selling ahead of dishes that never sold', () => {
+  const h: SalesHistory = { ...history(8, FLAT), products: [{ productId: 9, templateId: 19, name: 'Zanahoria glaseada', qty: 0, amount: 0, prevQty: 12 }] }
+  const menu = ['Arepa', 'Bebida', 'Crema', 'Dulce', 'Ensalada', 'Zanahoria glaseada'].map((name, i) => ({ id: i === 5 ? 9 : i + 1, templateId: i + 10, name }))
+  const bottom = dishStats(h, menu, 5).bottom
+  expect(bottom[0]).toMatchObject({ name: 'Zanahoria glaseada', qty: 0, change: -1 })
+  expect(bottom).toHaveLength(5)
+})

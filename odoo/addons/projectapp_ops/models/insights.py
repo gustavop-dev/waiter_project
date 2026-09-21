@@ -52,7 +52,10 @@ class PosConfig(models.Model):
 
         recent = units(today - timedelta(days=WINDOW_DAYS - 1), today + timedelta(days=1))
         previous = units(today - timedelta(days=2 * WINDOW_DAYS - 1), today - timedelta(days=WINDOW_DAYS - 1))
+        # Unión de las dos ventanas: un plato que se vendía y dejó de venderse también sale (con cero ahora), porque su
+        # caída es justo lo que «menos pedidos» debe mostrar.
         products = [{'product_id': product.id, 'template_id': product.product_tmpl_id.id, 'name': product.display_name,
-                     'qty': qty, 'amount': amount, 'prev_qty': previous.get(product, (0.0, 0.0))[0]} for product, (qty, amount) in recent.items()]
+                     'qty': recent.get(product, (0.0, 0.0))[0], 'amount': recent.get(product, (0.0, 0.0))[1],
+                     'prev_qty': previous.get(product, (0.0, 0.0))[0]} for product in recent.keys() | previous.keys()]
         return {'today': today.isoformat(), 'window_days': WINDOW_DAYS, 'history_days': HISTORY_DAYS,
                 'daily': sorted(daily.values(), key=lambda r: r['date']), 'hourly': sorted(hourly.values(), key=lambda r: r['hour']), 'products': sorted(products, key=lambda p: -p['qty'])}

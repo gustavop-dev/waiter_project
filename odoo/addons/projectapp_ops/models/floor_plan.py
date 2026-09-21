@@ -229,7 +229,8 @@ class Floor(models.Model):
 
     @api.model
     def waiter_delete_floor(self, config_id, floor_id, employee_id, token):
-        """Quita un piso del terminal. Sin historial se borra de verdad, con sus mesas. Con pedidos ya cobrados en sus
+        """Quita un piso del terminal. Si otro terminal también lo usa, solo se desvincula de este ('detached'). Si no:
+        sin historial se borra de verdad, con sus mesas. Con pedidos ya cobrados en sus
         mesas no se puede borrar sin dejar el historial huérfano: se archiva y se desvincula del terminal, así que para el
         restaurante desaparece igual. Mismas llaves que guardar el plano: PIN de administrador y caja cerrada."""
         authorize(self.env, employee_id, token)
@@ -247,6 +248,11 @@ class Floor(models.Model):
         self.env.cr.execute('SELECT id FROM restaurant_floor WHERE id = %s FOR UPDATE', [floor.id])
         if floor.active and not self.search_count([('pos_config_ids', 'in', [config.id]), ('id', '!=', floor.id)]):
             raise UserError(_('Deja al menos un piso activo: activa o crea otro antes de eliminar este.'))
+        # Un piso compartido con otro terminal no se destruye: este terminal solo lo suelta. Archivarlo o borrarlo se lo
+        # quitaría también al otro, que puede tener su caja abierta con esas mesas.
+        if floor.pos_config_ids - config:
+            floor.write({'pos_config_ids': [(3, config.id)]})
+            return {'id': floor_id, 'result': 'detached'}
         tables = self.env['restaurant.table'].with_context(active_test=False).search([('floor_id', '=', floor.id)])
         if tables and self.env['pos.order'].search_count([('table_id', 'in', tables.ids), ('state', '=', 'draft')]):
             raise UserError(_('Este piso tiene mesas con pedidos pendientes. Ciérralos antes de eliminarlo.'))

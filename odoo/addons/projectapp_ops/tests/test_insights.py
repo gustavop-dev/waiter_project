@@ -50,3 +50,12 @@ class TestSalesInsights(TransactionCase):
         self.assertEqual(sum(h['orders'] for h in after['hourly']) - sum(h['orders'] for h in before['hourly']), 2)
         self.assertTrue(all(0 <= h['hour'] <= 23 for h in after['hourly']))
         self.assertEqual(after['products'], sorted(after['products'], key=lambda p: -p['qty']))
+
+    # Hallazgo de la revisión con Codex. Falla si un plato que se vendía en los 28 días anteriores y dejó de venderse
+    # desaparece del historial: «menos pedidos» perdería justo la señal más útil («bajó 100 %»).
+    def test_a_dish_that_stopped_selling_keeps_its_previous_quantity(self):
+        stopped = self.env['product.product'].create({'name': 'Plato que dejó de venderse', 'list_price': 1000, 'available_in_pos': True})
+        self._order(40, [(stopped, 6, 1000)])
+        row = next(p for p in self.config.waiter_sales_insights()['products'] if p['product_id'] == stopped.id)
+        self.assertEqual((row['qty'], row['prev_qty'], row['amount']), (0, 6, 0))
+
