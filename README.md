@@ -47,6 +47,19 @@ La descripción completa del producto está en
 Todo escucha en la interfaz host-only `192.168.56.10` (el navegador corre en
 la anfitriona).
 
+**Un solo comando** (con las dependencias ya instaladas):
+
+```bash
+scripts/dev.sh up       # arranca lo que falte, en orden, y espera a que cada servicio responda
+scripts/dev.sh status   # qué está arriba, con un chequeo real de cada uno
+scripts/dev.sh down     # detiene todo (los contenedores quedan detenidos, los datos intactos)
+```
+
+Es idempotente: lo que ya responde no se vuelve a lanzar. Lanza cada Django desde
+su carpeta (su base sqlite es una ruta relativa) y avisa si encuentra un
+`db.sqlite3` en la raíz. Registros y PID en `/tmp/waiter-dev/`. Los pasos
+manuales de abajo son lo que hace el script, por si hace falta uno solo.
+
 ```bash
 # Odoo (motor POS) — addons propios: projectapp_pos_design, projectapp_kitchen, projectapp_ops
 docker compose -p odoo-spike -f odoo/compose/docker-compose.yml up -d        # :8069
