@@ -13,11 +13,14 @@ antes de crear, así que repetirla no duplica nada.
 """
 from odoo import api, fields, models
 
+# Los tres presets los trae Odoo (pos_restaurant). Se reutilizan por su identificador interno, que no depende del idioma:
+# buscarlos por nombre fallaba en una base en español (allí se llaman «Comer en el local», «Para llevar», «Entrega») y la
+# siembra creaba duplicados. El nombre en inglés queda solo para crearlos si faltara pos_restaurant.
 PRESETS = [
-    # (nombre, service_at, identification)
-    ("Dine In", "table", "none"),
-    ("Takeout", "counter", "name"),
-    ("Delivery", "delivery", "address"),
+    # (nombre en inglés, service_at, identification, identificador interno de Odoo)
+    ("Dine In", "table", "none", "pos_restaurant.pos_takein_preset"),
+    ("Takeout", "counter", "name", "pos_restaurant.pos_takeout_preset"),
+    ("Delivery", "delivery", "address", "pos_restaurant.pos_delivery_preset"),
 ]
 LOYALTY_NAME = "Puntos Waiter"
 COP_PER_POINT = 1000.0          # 1 punto por cada 1.000 COP
@@ -44,14 +47,15 @@ class WaiterSeed(models.AbstractModel):
 
     @api.model
     def seed_presets(self):
-        preset_model = self.env["pos.preset"]
-        presets = preset_model.browse()
-        for name, service_at, identification in PRESETS:
-            preset = preset_model.search([("name", "=", name)], limit=1)
+        preset_model = self.env["pos.preset"].with_context(lang="en_US")
+        presets = self.env["pos.preset"].browse()
+        for name, service_at, identification, xml_id in PRESETS:
+            preset = self.env.ref(xml_id, raise_if_not_found=False) or preset_model.search([("name", "=", name)], limit=1)
             if not preset:
                 preset = preset_model.create({"name": name, "service_at": service_at, "identification": identification})
             elif preset.service_at != service_at or preset.identification != identification:
                 preset.write({"service_at": service_at, "identification": identification})
+            self._merge_duplicate_presets(preset, name)
             presets |= preset
         config = self._demo_config()
         if config:
@@ -60,6 +64,27 @@ class WaiterSeed(models.AbstractModel):
                 values["default_preset_id"] = presets[0].id
             config.write(values)
         return presets
+
+    @api.model
+    def _merge_duplicate_presets(self, canonical, name):
+        """Funde en `canonical` los presets que una siembra anterior creó con el mismo nombre en inglés (los que no tienen
+        identificador interno): repunta pedidos y terminales y los borra. Nunca toca un preset que traiga otro módulo.
+
+        Los pedidos conservan su prefijo y su número: el prefijo sale del tipo de servicio, que es el mismo, y el número se
+        asigna una sola vez al crear el pedido (ya está impreso en comandas)."""
+        duplicates = self.env["pos.preset"].with_context(lang="en_US").search([("name", "=", name), ("id", "!=", canonical.id)])
+        external = duplicates.get_external_id()
+        duplicates = duplicates.filtered(lambda preset: not external.get(preset.id))
+        if not duplicates:
+            return
+        self.env["pos.order"].sudo().search([("preset_id", "in", duplicates.ids)]).write({"preset_id": canonical.id})
+        configs = self.env["pos.config"].sudo().search(["|", ("available_preset_ids", "in", duplicates.ids), ("default_preset_id", "in", duplicates.ids)])
+        for config in configs:
+            values = {"available_preset_ids": [(3, dup.id) for dup in duplicates] + [(4, canonical.id)]}
+            if config.default_preset_id in duplicates:
+                values["default_preset_id"] = canonical.id
+            config.write(values)
+        duplicates.sudo().unlink()
 
     @api.model
     def _loyalty_configured(self, program):

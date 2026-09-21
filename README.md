@@ -55,6 +55,17 @@ scripts/dev.sh status   # qué está arriba, con un chequeo real de cada uno
 scripts/dev.sh down     # detiene todo (los contenedores quedan detenidos, los datos intactos)
 ```
 
+**Pruebas de los addons de Odoo**, sobre una copia desechable de la base de desarrollo:
+
+```bash
+scripts/odoo-test.sh projectapp_ops,projectapp_reservations   # todas
+scripts/odoo-test.sh projectapp_ops TestFloorPlan              # una clase
+```
+
+No las corras a mano con `odoo --test-enable` sobre la copia: sin `--db-filter` el Odoo de desarrollo cierra la sesión
+de las pruebas HTTP y fallan por eso, no por el código. El script lo encapsula, borra la copia al terminar, revisa el
+disco antes y falla si no corrió ninguna prueba.
+
 Es idempotente: lo que ya responde no se vuelve a lanzar. Lanza cada Django desde
 su carpeta (su base sqlite es una ruta relativa) y avisa si encuentra un
 `db.sqlite3` en la raíz. Registros y PID en `/tmp/waiter-dev/`. Los pasos

@@ -45,6 +45,10 @@ class KitCase(TransactionCase):
 class TestWaiterOrder(KitCase):
     def test_prefix_and_number_follow_the_preset_and_count_per_day_and_config(self):
         """Atrapa un prefijo que no salga de service_at o una secuencia que no reinicie por prefijo (DI001, DI002, TA001)."""
+        # La numeración es por terminal y por día: con el terminal demo, los pedidos que la base de desarrollo ya tenga hoy
+        # corrían la cuenta (el primero salía DI002). Un terminal propio de la prueba parte de cero.
+        config = self.config.copy({"name": "Numeración de prueba"})
+        self.session = self.env["pos.session"].create({"config_id": config.id, "user_id": self.env.uid})
         first, second = self._order("Dine In"), self._order("Dine In")
         takeout, delivery, bare = self._order("Takeout"), self._order("Delivery"), self._order()
         self.assertEqual((first.waiter_prefix, first.waiter_number), ("DI", "DI001"))
@@ -105,7 +109,10 @@ class TestEmployeePin(KitCase):
         self.assertEqual((attendance.employee_id, attendance.check_out), (self.employee, False))
         again = self.Employee.waiter_check_pin(self.employee.id, "123456")
         self.assertEqual(again["attendance_id"], attendance.id)
-        self.assertNotEqual(again["token"], result["token"], "cada validación emite un token nuevo")
+        # Un nuevo acceso del mismo empleado conserva el token vigente del turno, para no invalidar las pantallas que ya
+        # tenía abiertas (decisión del 2026-09-08, docs/decisiones/2026-09-08-editor-plano-y-zonas.md; la prueba del
+        # editor la cubre también). Esta prueba seguía pidiendo un token nuevo y contradecía a aquella.
+        self.assertEqual(again["token"], result["token"], "un nuevo acceso conserva el token vigente del turno")
         ended = self.Employee.waiter_end_shift(self.employee.id, token=again["token"])
         self.assertEqual((ended["ok"], ended["attendance_id"], bool(attendance.check_out)), (True, attendance.id, True))
         with self.assertRaises(AccessError, msg="cerrar el turno invalida el token"):
@@ -222,6 +229,31 @@ class TestUserNotifyAndSeed(KitCase):
         self.assertEqual(sum(result.values()), 5)
         self.assertEqual(json.loads(user.waiter_notify)["kitchen_sound"], False)
         self.assertEqual(user.with_user(user).set_waiter_notify({"system_popup": False})["kitchen_sound"], False, "conserva lo anterior")
+
+    # Falla si la siembra vuelve a crear presets propios en vez de usar los de Odoo cuando la base está en español: los de
+    # Odoo se llaman «Comer en el local», «Para llevar» y «Entrega» en es_CO, la búsqueda por el nombre en inglés no los
+    # encontraba y cada base nueva nacía con los tres presets duplicados (pasó en la base de desarrollo el 7 de septiembre).
+    def test_seed_reuses_odoo_presets_whatever_the_language(self):
+        canonical = {self.env.ref(f"pos_restaurant.{xml_id}") for xml_id in ("pos_takein_preset", "pos_takeout_preset", "pos_delivery_preset")}
+        before = self.env["pos.preset"].search_count([])
+        presets = self.env["waiter.seed"].with_context(lang="es_CO").seed_presets()
+        self.assertEqual(set(presets), canonical)
+        self.assertEqual(self.env["pos.preset"].search_count([]), before)
+
+    # Falla si los presets duplicados que ya existen no se funden en los de Odoo, o si al fundirlos un pedido pierde su
+    # tipo de servicio, su número (ya impreso en comandas) o el terminal se queda apuntando a uno borrado.
+    def test_seed_merges_duplicate_presets_into_odoo_ones_keeping_orders_intact(self):
+        takein = self.env.ref("pos_restaurant.pos_takein_preset")
+        duplicate = self.env["pos.preset"].with_context(lang="en_US").create({"name": "Dine In", "service_at": "table"})
+        order = self._order()
+        order.preset_id = duplicate
+        number, prefix = order.waiter_number, order.waiter_prefix
+        self.config.write({"default_preset_id": duplicate.id, "available_preset_ids": [(4, duplicate.id)]})
+        self.env["waiter.seed"].seed_kit()
+        self.assertFalse(duplicate.exists())
+        self.assertEqual((order.preset_id, order.waiter_number, order.waiter_prefix), (takein, number, prefix))
+        self.assertEqual(self.config.default_preset_id, takein)
+        self.assertIn(takein, self.config.available_preset_ids)
 
     def test_seed_is_idempotent_and_configures_presets_loyalty_and_demo_employees(self):
         """Atrapa una siembra que duplique al repetirse o que deje el preset Dine In sin service_at=table."""

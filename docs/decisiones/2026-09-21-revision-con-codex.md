@@ -69,15 +69,27 @@ Codex revisó el segundo lote del día (48 ficheros). De 4 hallazgos, 3 eran rea
 
 Los dos primeros tienen prueba que falla sin el arreglo.
 
-## Fallos que ya existían antes de esta revisión
+## Los 10 fallos que ya existían, resueltos
 
-Al correr **todo** `projectapp_ops` (antes solo se corrían las clases tocadas) aparecieron 7 fallos y 3 errores en
-`test_kit`, `test_menu_settings` y `test_gateway_payments`. Se confirmó que **ya existían** sin los cambios de hoy
-(mismo resultado exacto sobre el código subido). Causas probables, sin investigar a fondo:
+Al correr **todo** `projectapp_ops` aparecían 7 fallos y 3 errores que ya estaban antes de esta revisión. Se habían dado
+por «estado de la base». Investigados uno por uno, eran tres cosas distintas:
 
-- `test_seed_is_idempotent` y el contador `DI001` de `test_prefix_and_number`: las pruebas corren sobre una copia de la
-  base de desarrollo, que ya trae empleados demo y pedidos del día.
-- `test_correct_pin_opens_one_attendance`: espera un token nuevo en cada acceso, pero una decisión anterior hizo que el
-  token del turno se conserve (ver `2026-09-08-editor-plano-y-zonas.md`). La prueba quedó desactualizada.
-- `test_menu_settings` y `test_gateway_payments`: fallan con y sin `--no-http`, así que no es la invocación. Pendiente de
-  investigar.
+- **7 — la forma de correr las pruebas, no el código.** El Odoo de desarrollo tiene un `dbfilter` que solo admite la base
+  `projectapp`; las pruebas corren en una copia con otro nombre, y Odoo cerraba la sesión de cada petición HTTP
+  («Logged into database 'waiter_…', but dbfilter rejects it»). Con `--db-filter` de la copia, las 7 pasan: la protección
+  «a un mesero se le niega» sí funciona. Para que no se repita, `scripts/odoo-test.sh` corre las pruebas con lo necesario.
+- **1 — un fallo real que las pruebas llevaban tiempo señalando: presets duplicados.** La siembra buscaba los presets
+  por su nombre en inglés, pero en una base en español los de Odoo se llaman «Comer en el local», «Para llevar» y
+  «Entrega»: no los encontraba y creaba otros tres. La base de desarrollo los tenía desde el 7 de septiembre, con 11
+  pedidos y el preset por defecto del terminal apuntando a los duplicados, y **cada restaurante nuevo en español habría
+  nacido con los tres duplicados**. Ahora la siembra usa los presets de Odoo por su identificador interno (no depende del
+  idioma) y funde los duplicados que encuentre en los originales, repuntando pedidos y terminales; los pedidos conservan
+  su prefijo y su número. Aplicado en la base de desarrollo (respaldo previo en `~/waiter-dev-backups/`): quedan los 3
+  de Odoo y los 203 pedidos con preset intactos.
+- **2 — pruebas que suponían otra cosa.** La numeración de pedidos se probaba con el terminal demo, que en la base de
+  desarrollo ya tenía pedidos del día (ahora usa un terminal propio). Y la del PIN seguía pidiendo un token nuevo en cada
+  acceso, contra la decisión del 2026-09-08 de conservar el token vigente del turno, que otra prueba ya cubría: se
+  contradecían.
+
+Resultado: `projectapp_ops` y `projectapp_reservations` pasan completos, **99 de 99**.
+
