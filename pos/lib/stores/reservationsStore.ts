@@ -51,28 +51,36 @@ interface ReservationsState {
 
 // Reservas del kit (7 – Reservation): la grilla del día y el asistente de cuatro pasos. El servidor
 // (`projectapp_reservations`) decide franjas, mesas libres y solapes; aquí solo se orquesta la pantalla.
+// Número de la petición de grilla más reciente. Solo esa puede instalar su respuesta: una más vieja que llega tarde (se
+// cambió de fecha o se salió de la página) se descarta. Sin esto, volver a una fecha ya cargada mientras la otra aún
+// llegaba dejaba la grilla de la otra fecha, y una respuesta tardía deshacía el `forget` de la salida.
+let generation = 0
+
 export const useReservationsStore = create<ReservationsState>((set, get) => ({
   date: todayIso(), floorId: null, timeline: null, loading: false, error: null, loadingKey: null, loadedKey: null,
   open: false, stepIndex: 0, draft: emptyDraft(), slots: [], tables: [], lines: [], extras: null, taxes: [], busy: false,
 
   setDate: (date) => set({ date }),
   setFloor: (floorId) => set({ floorId }),
-  forget: () => set({ loadedKey: null }),
+  forget: () => { generation++; set({ loadedKey: null, loadingKey: null, loading: false }) },
   load: async (configId, force = false) => {
     const { date, floorId } = get()
     const key = `${configId}|${date}|${floorId ?? ''}`
     // La misma grilla ya pedida o ya cargada no se vuelve a pedir: el efecto de la página se dispara también cuando
     // `load` fija el piso por defecto, y el modo desarrollo de React ejecuta cada efecto dos veces.
     if (!force && (get().loadingKey === key || get().loadedKey === key)) return
-    set({ loading: true, error: null, loadingKey: key })
+    const mine = ++generation
+    // Lo cargado deja de valer en cuanto se pide otra cosa: si se vuelve a la selección anterior, se pide de nuevo.
+    set({ loading: true, error: null, loadingKey: key, loadedKey: null })
     try {
       const timeline = await getTimeline(configId, date, floorId)
+      if (mine !== generation) return
       // Sin piso elegido se pidieron todos: se muestra el primero filtrando aquí, sin volver a pedirlo. Antes se
       // fijaba el piso y ese cambio disparaba una segunda petición, en serie: Reservas tardaba el doble en pintar.
       const floor = floorId ?? timeline.floors[0]?.id ?? null
       const shown = floorId === null ? { ...timeline, tables: timeline.tables.filter((t) => t.floorId === floor) } : timeline
       set({ timeline: shown, loading: false, floorId: floor, loadingKey: null, loadedKey: `${configId}|${date}|${floor ?? ''}` })
-    } catch (e) { set({ loading: false, error: message(e), loadingKey: null }) }
+    } catch (e) { if (mine === generation) set({ loading: false, error: message(e), loadingKey: null }) }
   },
   loadExtras: async (catalog) => {
     try {

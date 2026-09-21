@@ -50,6 +50,25 @@ corrección del nº 3 y el alcance más estrecho del nº 4, y encontró **un fal
 El ciclo que funcionó: Codex revisa → Claude verifica contra el código y arregla con prueba primero → Codex revisa los
 arreglos. Cada uno encontró algo que el otro no vio.
 
+## Tercera ronda: el lote de velocidad, esqueletos y registro
+
+Codex revisó el segundo lote del día (48 ficheros). De 4 hallazgos, 3 eran reales y 1 no aplicaba:
+
+- **Real — Reservas podía mostrar la grilla de otro día.** Introducido por Claude al evitar peticiones repetidas:
+  cargar la fecha A, pasar a B (lenta) y volver a A. La vuelta se saltaba por «A ya cargada» y la respuesta tardía de
+  B se instalaba debajo de la fecha A. Arreglado con un número de generación: solo la petición más reciente instala su
+  respuesta, y pedir otra cosa deja de dar lo cargado por válido.
+- **Real — una respuesta tardía deshacía el `forget` de la salida:** al volver a Reservas no se pedían datos frescos.
+  `forget` ahora invalida también la petición en vuelo.
+- **Real — `scripts/dev.sh` devolvía éxito aunque fallaran servicios** (`fail` devolvía el código de `printf`), así que
+  `scripts/dev.sh up && …` seguía contra un entorno a medias. Ahora termina con 1 si algo falló.
+- **No aplica — fuga entre restaurantes por los cachés en memoria.** Codex lo condicionó a cambiar de restaurante sin
+  recargar la página. Se verificó que cada instalación del POS atiende a un solo restaurante: la base se fija al compilar
+  (`NEXT_PUBLIC_ODOO_DB`). Los cachés van ligados a la sesión de caja y al piso, que dentro de un restaurante es lo
+  correcto.
+
+Los dos primeros tienen prueba que falla sin el arreglo.
+
 ## Fallos que ya existían antes de esta revisión
 
 Al correr **todo** `projectapp_ops` (antes solo se corrían las clases tocadas) aparecieron 7 fallos y 3 errores en

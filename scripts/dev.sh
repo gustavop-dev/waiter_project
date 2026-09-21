@@ -22,7 +22,10 @@ mkdir -p "$LOGS"
 
 ok()   { printf '  \033[32m✓\033[0m %s\n' "$*"; }
 warn() { printf '  \033[33m!\033[0m %s\n' "$*"; }
-fail() { printf '  \033[31m✗\033[0m %s\n' "$*"; }
+# `fail` anota el fallo: `up` y `status` terminan con código distinto de cero si algo falló, para que
+# `scripts/dev.sh up && …` no siga contra un entorno a medias (antes devolvían éxito igual).
+FAILED=0
+fail() { printf '  \033[31m✗\033[0m %s\n' "$*"; FAILED=1; }
 code() { curl -s -o /dev/null -m "${2:-10}" -w '%{http_code}' "$1" 2>/dev/null || true; }
 # Espera hasta `secs` segundos a que `cmd` tenga éxito, con pausas (no un bucle que queme CPU).
 wait_for() { local secs=$1; shift; local i; for ((i = 0; i < secs; i += 2)); do "$@" && return 0; sleep 2; done; return 1; }
@@ -128,3 +131,4 @@ case "${1:-up}" in
   down) cmd_down ;;
   *) echo "uso: $0 {up|status|down}"; exit 2 ;;
 esac
+exit "$FAILED"

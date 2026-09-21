@@ -48,3 +48,32 @@ it('asks again when the floor or the date changes', async () => {
   expect(m).toHaveBeenCalledTimes(3)
   expect(m).toHaveBeenLastCalledWith(7, '2030-10-16', 2)
 })
+
+// Hallazgos de la segunda revisión con Codex.
+// Falla si volver a una fecha ya cargada mientras la otra aún llega deja la grilla de la otra fecha: la vuelta se
+// saltaba por «ya cargada» y la respuesta lenta de la otra fecha se instalaba debajo de la fecha elegida.
+it('never shows the timeline of a date that is no longer selected', async () => {
+  const dayA = { ...timeline, date: '2030-10-15' }, dayB = { ...timeline, date: '2030-10-16', tables: [table(99, 1)] }
+  m.mockResolvedValueOnce(dayA)
+  await store().load(7)                                    // A cargada
+  let answerB: (t: typeof dayB) => void = () => undefined
+  m.mockReturnValueOnce(new Promise((resolve) => { answerB = resolve }))
+  store().setDate('2030-10-16'); const pendingB = store().load(7)   // B, lenta
+  m.mockResolvedValueOnce({ ...dayA, tables: [table(10, 1)] }) // con el piso ya elegido, el servidor devuelve solo el suyo
+  store().setDate('2030-10-15'); await store().load(7)     // vuelta a A
+  answerB(dayB); await pendingB                            // B llega tarde
+  expect(store().date).toBe('2030-10-15')
+  expect(store().timeline?.tables.map((t) => t.id)).toEqual([10]) // la de A, no la mesa 99 de B
+})
+
+// Falla si una respuesta que llega después de salir de Reservas restaura «ya cargado» y la visita siguiente no pide
+// datos frescos (otro terminal pudo cambiar reservas entre medio).
+it('asks again on the next visit even if the last request finished after leaving', async () => {
+  let answer: (t: typeof timeline) => void = () => undefined
+  m.mockReturnValueOnce(new Promise((resolve) => { answer = resolve }))
+  const pending = store().load(7)
+  store().forget()                                         // se sale con la petición en vuelo
+  answer(timeline); await pending
+  await store().load(7)                                    // se vuelve
+  expect(m).toHaveBeenCalledTimes(2)
+})
