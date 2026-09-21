@@ -78,14 +78,27 @@ aislamiento más estricto, o trabajar sin conexión.
    sola clave compartida y, **sin token de mesa**, devuelve la contraseña de Odoo **descifrada** del inquilino. Los
    nombres de restaurante y sede son públicos (van en las URLs del menú). Quien obtenga la clave de `experience` puede
    recorrer todos los restaurantes y llevarse todas las credenciales. La separación del registro —la razón por la que se
-   descartó fusionarlo con `experience`— protege mucho menos de lo que su decisión documenta. Opciones, de menor a mayor
-   esfuerzo:
-   - no devolver credenciales cuando la petición no trae un token de mesa válido;
-   - límite de peticiones y registro de auditoría en `resolve`, con alerta ante recorridos;
-   - un usuario de servicio por inquilino **con permisos mínimos** (ya previsto en
+   descartó fusionarlo con `experience`— protege mucho menos de lo que su decisión documenta.
+
+   **Corrección (mismo día, al implementarlo):** la opción «no devolver credenciales sin token de mesa» **no sirve**.
+   Resolver sin mesa es un flujo legítimo que necesita credenciales: la entrada de domicilio (ya documentada como tal en
+   las pruebas del registro), la página de pago de una reserva, favoritos y recompensas. Sobre ese punto, lo que hay:
+
+   - **Hecho — rastro de auditoría** (`registry_app.models.CredentialRelease`): cada entrega de credenciales queda
+     anotada (inquilino, si traía mesa, quién la pidió, cuándo), sin la credencial. Tras un incidente,
+     `manage.py credential_releases --since <fecha>` da la lista exacta de inquilinos expuestos, para rotar solo esos en
+     vez de todos. No aparece en el admin: la decisión del registro prohíbe exponer nada de credenciales ahí.
+   - **Pendiente — el arreglo de fondo: un usuario de servicio con permisos mínimos por inquilino** (ya previsto en
      [`2026-09-05-registro-minimo-tokens-y-credenciales.md`](../decisiones/2026-09-05-registro-minimo-tokens-y-credenciales.md),
-     punto 4; hoy la demo usa `admin`), y a largo plazo claves de API de Odoo con alcance limitado en vez de la
-     contraseña.
+     punto 4; hoy la demo usa `admin`). No es un cambio rápido: `experience` hace **36 operaciones distintas** en Odoo,
+     varias sensibles (escribe en `product.template` y `res.company`, abre sesiones de caja, registra pagos y marca
+     pedidos pagados). Hay que definir un grupo que cubra exactamente esas, probar de punta a punta cada flujo del
+     comensal con ese usuario y, en el mismo cambio, restringir `waiter_deposit_paid` a ese grupo (hallazgo nº 1 de la
+     revisión con Codex). Conviene revisar antes si las escrituras en productos y compañía deben pasar por
+     `experience` o ir del POS a Odoo directamente.
+   - **Descartado — límite de peticiones en `resolve`:** con cientos de inquilinos, un límite que frene un recorrido
+     también frenaría el tráfico legítimo; el rastro da la detección sin ese riesgo.
+
 2. **Llamadas por pantalla, no por dato.** Métodos de Odoo que devuelvan en una sola llamada lo que una pantalla
    necesita (por ejemplo, Mesas: plano + pedidos + reservas del momento + meseros por zona). Es el arreglo real de la
    lentitud y deja la lógica donde están los datos. Migrar de a poco, empezando por lo que más se mide lento.
