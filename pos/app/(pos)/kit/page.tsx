@@ -4,7 +4,7 @@ import { useRef, useState } from 'react'
 
 import { KpiTile as DashboardKpiTile } from '@/components/dashboard/KpiTile'
 import { DocSection, Example, Swatch } from '@/components/design/parts'
-import { Aurora } from '@/components/kit/Aurora'
+import { Aurora, AuroraBackground } from '@/components/kit/Aurora'
 import { BrandMark } from '@/components/kit/BrandMark'
 import { Card } from '@/components/kit/Card'
 import { Chip } from '@/components/kit/Chip'
@@ -47,7 +47,7 @@ const TOKEN_GROUPS: [string, KitToken[]][] = [
 ]
 
 // Sistema de diseño del POS, vivo: cada ejemplo es el componente real con los tokens reales, así que lo que se ve
-// aquí es lo que se ve en el salón. Solo administración (lib/domain/navigation.ts). Cómo ampliarlo: docs/diseno.
+// aquí es lo que se ve en el salón. Solo disponible en desarrollo. Cómo ampliarlo: docs/diseno.
 export default function DesignSystemPage() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [pin, setPin] = useState('')
@@ -85,7 +85,7 @@ export default function DesignSystemPage() {
               <ol className="grid gap-4 md:grid-cols-2">
                 {[
                   ['Se usa con el dedo y de pie', 'Nada tocable mide menos de 48 px. El texto base es de 16 px porque la tablet está a un brazo de distancia.'],
-                  ['El color dice el estado', 'Ámbar es en curso, verde es listo, rojo es alerta, azul es acción. Un color nunca adorna: si no significa nada, va en gris.'],
+                  ['El estado sigue siendo claro', 'Ámbar es en curso, verde es listo, rojo es alerta, azul es acción. Aurora aporta ambiente al fondo; los controles y estados conservan sus colores semánticos.'],
                   ['Una sola fuente de verdad', 'Los valores viven en lib/design/tokens.ts y en globals.css. Una prueba falla si dejan de coincidir.'],
                   ['Claro y oscuro desde el primer día', 'Un componente usa tokens semánticos (surface, ink, border), nunca un hex. Así el tema oscuro sale gratis.'],
                 ].map(([title, body]) => <li key={title} className="rounded-lg border border-border bg-surface p-5"><p className="text-[16px] font-semibold">{title}</p><p className="mt-1.5 text-[15px] leading-relaxed text-soft">{body}</p></li>)}
@@ -193,17 +193,29 @@ export default function DesignSystemPage() {
               </div>
             </DocSection>
 
-            <DocSection id="aurora" title="Patrón Aurora" intro="El fondo del acceso: azul noche con cinco manchas de color a la deriva. Es el único lugar donde el color es ambiente y no estado, por eso se reserva para pantallas de entrada y de bienvenida, nunca dentro de la operación."
-              extend={<>suma la mancha a <code className="font-mono">AURORA.blobs</code> y su clase <code className="font-mono">.login-blob-…</code> con su animación en <code className="font-mono">globals.css</code>. Para usar el fondo en otra pantalla, envuelve el contenido en <code className="font-mono">&lt;Aurora&gt;</code>.</>}>
+            <DocSection id="aurora" title="Patrón Aurora" intro="Cinco manchas de color a la deriva: intensas sobre azul noche en el acceso, amplias y suaves detrás de todas las vistas del POS. El fondo se difumina; el texto, las cifras y los controles permanecen nítidos."
+              extend={<>la paleta sale de <code className="font-mono">AURORA.blobs</code>. El acceso usa <code className="font-mono">&lt;Aurora&gt;</code>; el POS monta una sola <code className="font-mono">&lt;AuroraBackground /&gt;</code> dentro de <code className="font-mono">.pos-ambient</code>. Las vistas con KitShell ya la heredan. Ajusta intensidad y blur en <code className="font-mono">globals.css</code>; usa <code className="font-mono">.ambient-panel</code> en paneles grandes, sin añadir blur a cada tarjeta.</>}>
               <Aurora className="h-[280px] rounded-lg"><div className="h-full p-8 flex flex-col justify-between"><BrandMark size="lg" tone="inverse" /><p className="max-w-[360px] text-[28px] leading-[1.15] font-semibold tracking-[-0.02em]">Opera más mesas con menos carga.</p></div></Aurora>
+              <div className="pos-ambient overflow-hidden rounded-lg border border-border p-6 sm:p-8">
+                <AuroraBackground />
+                <p className="text-[13px] font-semibold text-soft">Aurora ambiental · POS</p>
+                <div className="mt-3 mb-8 flex flex-wrap justify-between gap-4">
+                  <p className="text-[24px] font-semibold text-ink">Todo listo para un buen servicio.</p>
+                  <p className="text-[24px] font-semibold tabular text-ink">09:41</p>
+                </div>
+                <div className="ambient-panel rounded-lg border border-border p-5 flex flex-wrap items-center justify-between gap-4">
+                  <div><p className="text-[15px] text-soft">Pedidos en curso</p><p className="mt-2 text-[28px] font-semibold tabular text-ink">12</p></div>
+                  <StatusPill tone="success">Listo para servir</StatusPill>
+                </div>
+              </div>
               <div className="grid gap-3 grid-cols-2 md:grid-cols-5">
                 {AURORA.blobs.map((blob) => <div key={blob.key} className="rounded-lg border border-border bg-surface overflow-hidden"><span className="block h-12" style={{ background: blob.core }} aria-hidden /><div className="px-3 py-2.5"><p className="text-[14px] font-semibold">{blob.key}</p><p className="font-mono text-[12px] text-soft">{blob.core} · {blob.seconds} s</p><p className="mt-1 text-[12px] text-soft">{blob.from}</p></div></div>)}
               </div>
               <ul className="max-w-[68ch] list-disc pl-5 text-[15px] leading-relaxed text-soft">
                 <li>El difuminado se aplica una sola vez, sobre el campo que contiene las manchas. Cada mancha anima solo <code className="font-mono">transform</code>, para que una tablet modesta no pierda cuadros.</li>
-                <li>Las manchas se mezclan en modo <code className="font-mono">screen</code> sobre el azul: donde se cruzan nace un color nuevo en vez de barro.</li>
+                <li>En el acceso las manchas se mezclan en modo <code className="font-mono">screen</code>. En el POS su intensidad se reduce según el tema, conservando una zona de lectura tranquila.</li>
                 <li>Cada mancha tiene una duración distinta y prima, entre 22 y 36 segundos, así el dibujo no se repite a la vista.</li>
-                <li>El texto encima va en blanco y en la mitad inferior, donde un degradado oscuro asegura el contraste.</li>
+                <li>El acceso usa texto blanco. La variante ambiental usa <code className="font-mono">text-ink</code> y <code className="font-mono">text-soft</code>, con superficies casi opacas para tablas y controles. El reloj se integra directamente en el fondo.</li>
               </ul>
             </DocSection>
 

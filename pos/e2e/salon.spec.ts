@@ -5,7 +5,7 @@ import { loginAsAdmin } from './helpers/odoo'
 // @flow: salon-view-tables  @outcome: display
 test('the floor shows the seeded tables with their state word', async ({ page }) => {
   await loginAsAdmin(page)
-  await expect(page.getByRole('tab', { name: 'Terraza' })).toBeVisible()
+  await expect(page.getByRole('combobox', { name: 'Cambiar de piso' })).toBeVisible()
   await expect(page.getByRole('button', { name: /^Mesa \d+: (Disponible|En progreso|Reservada)/ }).first()).toBeVisible()
   // El kit abre el detalle en un modal; el panel lateral del diseño anterior ya no existe.
   // "Crear pedido" no está arriba: aparece en la barra de la mesa cuando hay una elegida.

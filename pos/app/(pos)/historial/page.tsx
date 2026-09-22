@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { BillInfo } from '@/components/history/BillInfo'
 import { HistoryRow } from '@/components/history/HistoryRow'
 import { Chip } from '@/components/kit/Chip'
+import { PageTitle } from '@/components/ui/PageHeader'
 import { Icon } from '@/components/kit/Icon'
 import { KitEmptyState } from '@/components/kit/KitEmptyState'
 import { ListSkeleton } from '@/components/kit/Skeleton'
@@ -44,13 +45,13 @@ export default function HistorialPage() {
       <div className="flex-1 min-h-0 grid grid-cols-[1fr_400px] gap-4 p-4">
         <div className="min-h-0 flex flex-col gap-4">
           <div className="flex items-center gap-4">
-            <span className="h-12 px-4 rounded-md bg-muted inline-flex items-center gap-2 text-[18px] font-semibold text-ink"><Icon name="history" size={20} />{t('title')}</span>
+            <PageTitle>{t('title')}</PageTitle>
             <label className="ml-auto w-[360px] h-11 px-3 rounded-md border border-border bg-surface flex items-center gap-2 text-dim">
               <Icon name="search" size={20} />
               <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('search')} aria-label={t('search')} className="flex-1 min-w-0 bg-transparent outline-none text-[15px] text-ink placeholder:text-dim" />
             </label>
           </div>
-          <div className="flex-1 min-h-0 rounded-lg border border-border bg-surface flex flex-col">
+          <div className="flex-1 min-h-0 rounded-lg border border-border ambient-panel flex flex-col">
             <div className="p-2 flex items-center gap-2 border-b border-border shrink-0">
               {FILTERS.map((f) => <Chip key={f} label={t(`filters.${f}`)} active={f === filter} onClick={() => setFilter(f)} />)}
             </div>

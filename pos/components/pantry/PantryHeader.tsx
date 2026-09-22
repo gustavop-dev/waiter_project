@@ -2,21 +2,22 @@
 
 import { useTranslations } from 'next-intl'
 
+import { PageTitle } from '@/components/ui/PageHeader'
 import { Icon, type KitIcon } from '@/components/kit/Icon'
 import type { PantryTab } from '@/lib/stores/pantryStore'
 import { cn } from '@/lib/utils'
 
 const TABS: PantryTab[] = ['menu', 'ingredients', 'requests']
 
-// Fila de título del kit (Inventory / Home): "Inventario" en píldora gris, pestañas chip, buscador y botón "+".
+// Título de la vista, pestañas de contenido, buscador y acción principal.
 export function PantryHeader({ tab, onTab, query, onQuery, searchPlaceholder, action, actionIcon = 'plus', onAction }: {
   tab: PantryTab; onTab: (t: PantryTab) => void; query: string; onQuery: (q: string) => void; searchPlaceholder: string
   action?: string; actionIcon?: KitIcon; onAction?: () => void
 }) {
   const t = useTranslations('pantry')
   return (
-    <div className="shrink-0 h-[76px] px-4 flex items-center gap-4">
-      <div className="h-12 px-4 rounded-md bg-muted flex items-center gap-2 text-[18px] font-semibold text-ink"><Icon name="inventory" size={22} />{t('title')}</div>
+    <div className="shrink-0 min-h-[88px] px-5 py-4 flex flex-wrap items-center gap-x-5 gap-y-3">
+      <PageTitle>{t('title')}</PageTitle>
       <div role="tablist" aria-label={t('title')} className="flex items-center gap-2">
         {TABS.map((x) => (
           <button key={x} type="button" role="tab" aria-selected={x === tab} onClick={() => onTab(x)}

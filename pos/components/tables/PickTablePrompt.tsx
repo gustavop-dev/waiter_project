@@ -15,7 +15,7 @@ export function PickTablePrompt({ open, onClose }: { open: boolean; onClose: () 
     <Modal open={open} onClose={onClose} footer={
       <div className="flex flex-col items-center gap-3">
         <Button variant="primary" className="w-full h-12" onClick={onClose}>{t('choose')}</Button>
-        <Link href="/pedidos/nuevo" className="text-[15px] font-semibold text-primary">{t('noTable')}</Link>
+        <Link href="/salon/nuevo?sinMesa=1" className="text-[15px] font-semibold text-primary">{t('noTable')}</Link>
       </div>
     }>
       <div className="p-8 text-center flex flex-col items-center gap-3">

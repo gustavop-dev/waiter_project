@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 
 import { FloorSwitcher } from '@/components/tables/FloorHeader'
@@ -9,26 +9,26 @@ import type { Floor } from '@/lib/types'
 const floor = (id: number, name: string): Floor => ({ id, name, tableIds: [], hasBackground: false } as unknown as Floor)
 const wrap = (ui: React.ReactElement) => render(<NextIntlClientProvider locale="es" messages={messages}>{ui}</NextIntlClientProvider>)
 
-// Falla si el selector vuelve a ser unas pestañas sin rótulo (se confundían con la leyenda de colores), si el piso
-// activo deja de anunciarse, o si cambiar de piso no avisa.
-it('labels itself as the floor picker and marks the floor you are on', () => {
+// Con dos o muchos pisos se usa el mismo control, con la selección actual y nombres completos.
+it('shows the current floor and lets the user select another', () => {
   const onChange = jest.fn()
   wrap(<FloorSwitcher floors={[floor(1, 'Terraza'), floor(2, 'Salón principal')]} activeId={1} onChange={onChange} />)
-  expect(screen.getByText('Piso')).toBeInTheDocument()
-  const tabs = within(screen.getByRole('tablist', { name: 'Pisos' }))
-  expect(tabs.getByRole('tab', { name: 'Terraza' })).toHaveAttribute('aria-selected', 'true')
-  fireEvent.click(tabs.getByRole('tab', { name: 'Salón principal' }))
+  const picker = screen.getByRole('combobox', { name: 'Cambiar de piso' })
+  expect(picker).toHaveValue('1')
+  expect(screen.getByRole('option', { name: 'Salón principal' })).toBeInTheDocument()
+  fireEvent.change(picker, { target: { value: '2' } })
   expect(onChange).toHaveBeenCalledWith(2)
 })
 
-// Falla si con muchos pisos (o en un panel angosto de pantalla partida) las pestañas desbordan en vez de plegarse.
-it('folds into a labelled dropdown when the tabs would not fit', () => {
+// El control conserva la selección también en la versión de pantalla partida.
+it('uses the same labelled dropdown in a compact pane', () => {
   const floors = [1, 2, 3].map((n) => floor(n, `Piso ${n}`))
   const onChange = jest.fn()
   wrap(<FloorSwitcher compact floors={floors} activeId={2} onChange={onChange} />)
   expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
-  fireEvent.click(screen.getByRole('button', { name: /Piso.*Piso 2/ }))
-  fireEvent.click(within(screen.getByRole('listbox', { name: 'Pisos' })).getByRole('option', { name: /Piso 3/ }))
+  const picker = screen.getByRole('combobox', { name: 'Cambiar de piso' })
+  expect(picker).toHaveValue('2')
+  fireEvent.change(picker, { target: { value: '3' } })
   expect(onChange).toHaveBeenCalledWith(3)
 })
 
@@ -42,4 +42,22 @@ it('remembers the split preference and clears the chosen table when either pane 
   expect(useFloorStore.getState()).toMatchObject({ split: true, secondFloorId: 2, selectedTableId: null })
   useFloorStore.getState().setSplit(false)
   expect(localStorage.getItem('waiter.salonSplit')).toBe('0')
+})
+
+it('keeps all twenty floors selectable without creating twenty tabs', () => {
+  const onChange = jest.fn()
+  wrap(<FloorSwitcher floors={Array.from({ length: 20 }, (_, i) => floor(i + 1, `Piso ${i + 1}`))} activeId={1} onChange={onChange} />)
+  const picker = screen.getByRole('combobox', { name: 'Cambiar de piso' })
+  expect(screen.getAllByRole('option')).toHaveLength(20)
+  expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
+  fireEvent.change(picker, { target: { value: '20' } })
+  expect(onChange).toHaveBeenCalledWith(20)
+})
+
+it('shows a single floor as the current location without offering a false choice', () => {
+  wrap(<FloorSwitcher floors={[floor(1, 'Terraza')]} activeId={1} onChange={jest.fn()} />)
+  expect(screen.getByText('Piso actual')).toBeInTheDocument()
+  expect(screen.getByText('Terraza')).toBeInTheDocument()
+  expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
+  expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
 })

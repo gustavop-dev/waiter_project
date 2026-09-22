@@ -1,3 +1,4 @@
+import { roleCan, type RolePolicy } from '@/lib/domain/permissions'
 import { pathAllowed } from '@/lib/domain/navigation'
 
 // Módulos del POS anteriores al kit; siguen nombrando las pantallas de administración (Shell y navFor).
@@ -27,8 +28,8 @@ export function navFor(role: Role): NavItem[] {
 }
 
 // Desde la oleada I.1 la guarda sigue a las pestañas del kit (lib/domain/navigation.ts).
-export function allowedPath(role: Role, pathname: string): boolean {
-  return pathAllowed(role, pathname)
+export function allowedPath(role: Role, pathname: string, policy?: RolePolicy): boolean {
+  return pathAllowed(role, pathname, policy)
 }
 
 // Acciones puntuales que no son una pantalla entera.
@@ -40,8 +41,8 @@ export const can = {
   manageFloors: (role: Role) => role === 'admin',
   // Cobrar. Lo decide el restaurante en Configuración: con `waiterCanCharge` apagado, cobrar es de caja y
   // el mesero deja la mesa servida para que el cajero la elija en el plano.
-  charge: (role: Role, waiterCanCharge: boolean) => role !== 'waiter' || waiterCanCharge,
+  charge: (role: Role, waiterCanCharge: boolean, policy?: RolePolicy) => policy ? roleCan(role, 'charge_orders', policy) : role !== 'waiter' || waiterCanCharge,
   // Ver el inventario lo hace cualquiera; crear, editar o borrar platos e ingredientes, no. Apagado por
   // defecto para la sala; el restaurante lo enciende si quiere dárselo.
-  editInventory: (role: Role, waiterCanEditInventory: boolean) => role !== 'waiter' || waiterCanEditInventory,
+  editInventory: (role: Role, waiterCanEditInventory: boolean, policy?: RolePolicy) => policy ? roleCan(role, 'edit_inventory', policy) : role !== 'waiter' || waiterCanEditInventory,
 }

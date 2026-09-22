@@ -40,7 +40,7 @@ export default function AutomatizacionPage() {
   const history = ranges.map((r, i) => ({ label: r.label.replace(/ \d{4}$/, ''), hoursPer100: perRange[i].hoursPer100 }))
   return (
     <>
-      <PageHeader icon="chartLine" title={t('title')} actions={
+      <PageHeader title={t('title')} actions={
         <div role="tablist" aria-label={t('title')} className="flex items-center gap-2">
           {PERIODS.map((p) => <Chip key={p} label={t(`periods.${p}`)} active={period === p} onClick={() => setPeriod(p)} />)}
         </div>

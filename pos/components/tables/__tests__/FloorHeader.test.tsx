@@ -8,12 +8,13 @@ import { messages } from '@/lib/i18n/messages'
 const floor = (id: number, name: string) => ({ id, name, tableIds: [], hasBackground: false })
 const wrap = (ui: React.ReactElement) => render(<NextIntlClientProvider locale="es" messages={messages}>{ui}</NextIntlClientProvider>)
 
-// Falla si con tres pisos o menos dejan de verse como pestañas, o si el sufijo "· Exterior" se cuela en la pestaña.
-it('shows up to three floors as tabs without the type suffix', async () => {
+// El nombre del piso se muestra sin el sufijo técnico del tipo.
+it('shows floor names without the type suffix', async () => {
   const onChange = jest.fn()
   wrap(<FloorSwitcher floors={[floor(1, 'Terraza'), floor(2, 'Piso 2 · Exterior')]} activeId={1} onChange={onChange} />)
-  expect(screen.getByRole('tab', { name: 'Terraza' })).toHaveAttribute('aria-selected', 'true')
-  await userEvent.click(screen.getByRole('tab', { name: 'Piso 2' }))
+  expect(screen.getByRole('combobox', { name: 'Cambiar de piso' })).toHaveValue('1')
+  expect(screen.getByRole('option', { name: 'Piso 2' })).toBeInTheDocument()
+  await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Cambiar de piso' }), '2')
   expect(onChange).toHaveBeenCalledWith(2)
 })
 
@@ -22,8 +23,7 @@ it('switches to a dropdown with four or more floors', async () => {
   const onChange = jest.fn()
   wrap(<FloorSwitcher floors={[floor(1, 'Piso 1'), floor(2, 'Piso 2'), floor(3, 'Piso 3'), floor(4, 'Piso 4')]} activeId={1} onChange={onChange} />)
   expect(screen.queryByRole('tab')).toBeNull()
-  await userEvent.click(screen.getByRole('button', { name: /Piso 1/ }))
-  await userEvent.click(screen.getByRole('option', { name: /Piso 4/ }))
+  await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Cambiar de piso' }), '4')
   expect(onChange).toHaveBeenCalledWith(4)
 })
 

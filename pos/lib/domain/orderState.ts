@@ -4,7 +4,7 @@
 
 export type OrderType = 'dine_in' | 'takeout' | 'delivery'
 export type ServiceAt = 'table' | 'counter' | 'delivery'
-export type KitStatus = 'in_progress' | 'ready' | 'served' | 'waiting_payment' | 'completed'
+export type KitStatus = 'pending_send' | 'in_progress' | 'ready' | 'served' | 'waiting_payment' | 'completed'
 export type LineGroup = 'waiting' | 'in_progress' | 'ready' | 'served'
 export type OrdersFilter = 'all' | KitStatus
 export type OrdersSort = 'latest' | 'oldest' | 'type'
@@ -26,7 +26,7 @@ export interface KitOrder {
 
 const PREFIX: Record<OrderType, string> = { dine_in: 'DI', takeout: 'TA', delivery: 'DE' }
 const PAID = new Set(['paid', 'done', 'invoiced'])
-const STATUS_ORDER: KitStatus[] = ['in_progress', 'ready', 'served', 'waiting_payment', 'completed']
+const STATUS_ORDER: KitStatus[] = ['pending_send', 'in_progress', 'ready', 'served', 'waiting_payment', 'completed']
 
 // El tipo sale del preset de Odoo (Dine In `table`, Takeout `counter`, Delivery `delivery`).
 // Sin preset (pedidos anteriores a la oleada), una mesa significa "en mesa" y sin mesa "para llevar".
@@ -75,6 +75,7 @@ export function progressPercent(order: KitOrder): number {
 export function orderStatus(order: KitOrder, billing: boolean): KitStatus {
   if (PAID.has(order.state)) return 'completed'
   if (billing) return 'waiting_payment'
+  if (!order.lines.some((line) => courseOf(order, line)?.fired)) return 'pending_send'
   const groups = order.lines.map((l) => lineGroup(order, l))
   if (groups.length > 0 && groups.every((g) => g === 'served')) return 'served'
   // Basta un plato esperando en el pase para que el pedido reclame al mesero.
@@ -110,7 +111,7 @@ export function filterOrders(orders: KitOrder[], filter: OrdersFilter, statusOf:
 }
 
 export function countByStatus(orders: KitOrder[], statusOf: (o: KitOrder) => KitStatus): Record<OrdersFilter, number> {
-  const counts = { all: orders.length, in_progress: 0, ready: 0, served: 0, waiting_payment: 0, completed: 0 }
+  const counts = { all: orders.length, pending_send: 0, in_progress: 0, ready: 0, served: 0, waiting_payment: 0, completed: 0 }
   orders.forEach((o) => { counts[statusOf(o)] += 1 })
   return counts
 }

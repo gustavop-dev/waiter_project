@@ -3,6 +3,8 @@
 import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
 
+import { FloorSwitcher } from '@/components/tables/FloorHeader'
+import { PageTitle } from '@/components/ui/PageHeader'
 import { Icon } from '@/components/kit/Icon'
 import { ReservationDetailModal } from '@/components/reservations/ReservationDetailModal'
 import { ReservationTimeline, TimelineSkeleton } from '@/components/reservations/ReservationTimeline'
@@ -12,7 +14,6 @@ import { useCatalogStore } from '@/lib/stores/catalogStore'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useReservationsStore } from '@/lib/stores/reservationsStore'
 import { toast } from '@/lib/stores/toastStore'
-import { cn } from '@/lib/utils'
 
 // Reservas del kit (7 – Reservation / Home.png): grilla mesa × hora del día, con piso, fecha y "Nueva reserva".
 export default function ReservasPage() {
@@ -28,28 +29,13 @@ export default function ReservasPage() {
   // dentro de una visita, no volver a pedirla en la siguiente).
   useEffect(() => () => r.forget(), []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const floors = r.timeline?.floors ?? []
+  const floors = r.timeline?.floors ?? catalog?.floors ?? []
+  const floorSelector = <FloorSwitcher compact floors={floors} activeId={r.floorId} onChange={r.setFloor} />
+  const timelineCurrent = r.loadedKey === `${configId}|${r.date}|${r.floorId ?? ''}`
   return (
     <>
-      <header className="shrink-0 px-6 py-4 flex items-center gap-4 bg-surface border-b border-border">
-        <span className="flex items-center gap-2 h-11 px-4 rounded-md border border-border text-[17px] font-semibold text-ink">
-          <Icon name="reservations" size={20} />{t('title')}
-        </span>
-
-        {floors.length > 0 && (floors.length <= 3 ? (
-          <nav aria-label={t('floors')} className="flex items-center gap-1 p-1 rounded-lg bg-muted">
-            {floors.map((floor) => (
-              <button key={floor.id} type="button" aria-pressed={r.floorId === floor.id} onClick={() => r.setFloor(floor.id)}
-                className={cn('h-9 px-4 rounded-md text-[15px] font-semibold', r.floorId === floor.id ? 'bg-surface border border-border text-ink' : 'text-dim')}>{floor.name}</button>
-            ))}
-          </nav>
-        ) : (
-          <label className="flex items-center gap-2 text-[15px] text-soft">{t('floors')}
-            <select aria-label={t('floors')} value={r.floorId ?? ''} onChange={(e) => r.setFloor(Number(e.target.value))}
-              className="h-11 px-3 rounded-md border border-border bg-surface text-[15px] text-ink">
-              {floors.map((floor) => <option key={floor.id} value={floor.id}>{floor.name}</option>)}
-            </select></label>
-        ))}
+      <header className="shrink-0 min-h-[88px] px-5 py-4 flex flex-wrap items-center gap-x-6 gap-y-3">
+        <PageTitle>{t('title')}</PageTitle>
 
         <label className="ml-auto flex items-center gap-2 h-11 px-3 rounded-md border border-border text-[15px] text-ink">
           <Icon name="reservations" size={18} className="text-soft" />
@@ -58,10 +44,9 @@ export default function ReservasPage() {
         <Button variant="primary" size="money" disabled={!configId} onClick={r.openWizard}><Icon name="plus" size={18} />{t('add')}</Button>
       </header>
 
-      {r.error && <p role="alert" className="mx-6 mt-3 px-4 py-3 rounded-md bg-danger-soft text-danger-ink text-[15px]">{r.error}</p>}
-      {r.loading && !r.timeline
-        ? <TimelineSkeleton />
-        : <ReservationTimeline slots={r.timeline?.slots ?? []} tables={r.timeline?.tables ?? []} onOpen={(card) => setDetail(card.id)} />}
+      {!r.error && (!timelineCurrent || r.loading)
+        ? <TimelineSkeleton floorSelector={floorSelector} />
+        : <ReservationTimeline floorSelector={floorSelector} error={r.error} slots={r.timeline?.slots ?? []} tables={r.timeline?.tables ?? []} onOpen={(card) => setDetail(card.id)} />}
 
       <ReservationDetailModal reservationId={detail} open={detail !== null} onClose={() => setDetail(null)} configId={configId} onChanged={() => { if (configId) void r.load(configId, true) }}
         onAction={(id, state) => { if (configId) { void r.changeState(id, state, configId); setDetail(null) } }} />

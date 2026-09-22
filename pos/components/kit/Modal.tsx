@@ -6,7 +6,7 @@ import { useEffect, type ReactNode } from 'react'
 import { Icon } from '@/components/kit/Icon'
 import { cn } from '@/lib/utils'
 
-const SIZE = { center: 'w-[480px] max-h-[80vh]', medium: 'w-[760px] max-w-[96vw] max-h-[88vh]', wide: 'w-[1046px] h-[640px] max-w-[96vw] max-h-[92vh]', full: 'w-[1174px] h-[754px] max-w-[98vw] max-h-[96vh]' }
+const SIZE = { center: 'w-[480px] max-w-[96vw] max-h-[90dvh]', medium: 'w-[760px] max-w-[96vw] max-h-[88vh]', wide: 'w-[1046px] h-[640px] max-w-[96vw] max-h-[92vh]', full: 'w-[1174px] h-[754px] max-w-[98vw] max-h-[96vh]' }
 
 // Modales del kit: centrado (confirmaciones), mediano (formularios de una sola decisión), ancho (Setting, Table Detail) y pantalla casi completa (wizards).
 export function Modal({ open, onClose, title, size = 'center', children, footer }: { open: boolean; onClose: () => void; title?: string; size?: keyof typeof SIZE; children: ReactNode; footer?: ReactNode }) {

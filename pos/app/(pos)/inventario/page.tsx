@@ -37,7 +37,8 @@ export default function InventarioPage() {
   const s = usePantryStore()
   const { role } = useIdentity()
   const canEditSetting = useCatalogStore((c) => c.catalog?.settings.waiterCanEditInventory ?? false)
-  const mayEdit = can.editInventory(role, canEditSetting)
+  const policy = useCatalogStore((c) => c.catalog?.settings.rolePermissions)
+  const mayEdit = can.editInventory(role, canEditSetting, policy)
   const [detail, setDetail] = useState<{id:number;name:string} | null>(null)
   const [control, setControl] = useState<Ingredient | null>(null)
   const [addDish, setAddDish] = useState(false)
@@ -120,7 +121,7 @@ export default function InventarioPage() {
       <div className="flex-1 min-h-0 px-4 pb-4 flex gap-4">
         {s.tab === 'menu' && <FilterPanel sections={menuSections} onReset={s.resetFilters} />}
         {s.tab === 'ingredients' && <FilterPanel sections={ingredientSections} onReset={s.resetFilters} />}
-        <section aria-label={listTitle} className="flex-1 min-w-0 min-h-0 bg-surface border border-border rounded-lg flex flex-col">
+        <section aria-label={listTitle} className="flex-1 min-w-0 min-h-0 ambient-panel border border-border rounded-lg flex flex-col">
           <header className="h-14 px-4 flex items-center border-b border-border shrink-0"><h2 className="text-[16px] font-semibold text-ink">{listTitle}</h2>
             {/* Lo que antes era Administración → Catálogo: categorías de la carta y platos ocultos o sin categoría. */}
             {s.tab === 'menu' && role === 'admin' && <span className="ml-4 flex gap-2">

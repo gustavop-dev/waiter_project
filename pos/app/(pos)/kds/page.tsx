@@ -7,6 +7,7 @@ import { KdsFooter } from '@/components/kds/KdsFooter'
 import { KdsHeader } from '@/components/kds/KdsHeader'
 import { ReadyList } from '@/components/kds/ReadyList'
 import { TicketCard } from '@/components/kds/TicketCard'
+import { AuroraBackground } from '@/components/kit/Aurora'
 import { KitEmptyState } from '@/components/kit/KitEmptyState'
 import { CardGridSkeleton } from '@/components/kit/Skeleton'
 import { ALL, LATE, averagePrepSeconds, countTickets, filterTickets, stations } from '@/lib/domain/kitchen'
@@ -65,7 +66,8 @@ export default function KdsPage() {
   const readyOnes = tickets.filter((tk) => tk.lines.some((l) => l.readyAt && !l.servedAt))
   const visible = filterTickets(cooking, tab, now)
   return (
-    <main data-theme="dark" className="h-screen flex flex-col bg-canvas text-ink">
+    <main data-theme="dark" className="pos-ambient h-screen flex flex-col text-ink">
+      <AuroraBackground />
       {(actionError || error) && <p role="alert" className="p-3 text-danger">{actionError || error}</p>}
       <KdsHeader tabs={[ALL, ...stations(cooking), LATE]} counts={countTickets(cooking, now)} active={tab} onTab={setTab} avgSeconds={averagePrepSeconds(done)} now={now} />
       <div className="flex flex-1 min-h-0 gap-5 p-5">

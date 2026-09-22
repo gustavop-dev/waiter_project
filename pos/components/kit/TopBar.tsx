@@ -8,6 +8,8 @@ import { BrandMark } from '@/components/kit/BrandMark'
 import { Icon, type KitIcon } from '@/components/kit/Icon'
 import { NotificationPopover } from '@/components/notifications/NotificationPopover'
 import { TAB_ROUTES, adminSubtabsFor, tabsFor, type AdminSubtab, type KitTab } from '@/lib/domain/navigation'
+import type { RolePolicy } from '@/lib/domain/permissions'
+import { homePath } from '@/lib/domain/navigation'
 import type { Role } from '@/lib/domain/roles'
 import { useNotificationStore } from '@/lib/stores/notificationStore'
 import { cn, initials } from '@/lib/utils'
@@ -16,7 +18,7 @@ const ICON: Record<KitTab, KitIcon> = { dashboard: 'dashboard', orders: 'orders'
 
 // Barra superior del kit (Dashboard / Filled.png): logo, pestañas en píldora gris, campana con punto, chip de usuario.
 // `unread` fuerza el conteo (galería y pruebas); sin él, la campana lee las no leídas del centro de notificaciones.
-export function TopBar({ active, role, userName, unread, activeSubtab, onOpenSettings, administrationOnly = false }: { administrationOnly?: boolean; active: KitTab | null; role: Role; userName: string; unread?: number; activeSubtab?: AdminSubtab | null; onOpenSettings: () => void }) {
+export function TopBar({ active, role, policy, userName, unread, activeSubtab, onOpenSettings, administrationOnly = false }: { policy?: RolePolicy; administrationOnly?: boolean; active: KitTab | null; role: Role; userName: string; unread?: number; activeSubtab?: AdminSubtab | null; onOpenSettings: () => void }) {
   const t = useTranslations('pos.kit.nav')
   const storeUnread = useNotificationStore((s) => s.unread())
   const count = unread ?? storeUnread
@@ -34,14 +36,14 @@ export function TopBar({ active, role, userName, unread, activeSubtab, onOpenSet
     const ro = new ResizeObserver(move)
     if (nav.current) ro.observe(nav.current)
     return () => ro.disconnect()
-  }, [active, role, administrationOnly])
+  }, [active, role, administrationOnly, policy])
   const tr = useTranslations('pos.nav.roles')
-  const tabs = tabsFor(role).filter((tab) => !administrationOnly || !['dashboard', 'orders', 'kitchen'].includes(tab))
-  const subtabs = adminSubtabsFor(role)
+  const tabs = tabsFor(role, policy).filter((tab) => !administrationOnly || !['dashboard', 'orders', 'kitchen'].includes(tab))
+  const subtabs = adminSubtabsFor(role, policy)
   return (
-    <header className="shrink-0 bg-surface border-b border-border">
+    <header className="kit-topbar shrink-0">
       <div className="h-topbar px-5 flex items-center gap-4">
-        <BrandMark href={administrationOnly ? '/configuracion' : '/dashboard'} />
+        <BrandMark href={homePath(role, !administrationOnly, policy)} />
         <nav ref={nav} aria-label={t('main')} className="relative min-w-0 flex items-center gap-0.5 p-1 rounded-lg bg-muted overflow-x-auto">
           {pill && <span aria-hidden className="absolute top-1 bottom-1 rounded-md bg-primary transition-[left,width] duration-300 ease-out" style={{ left: pill.left, width: pill.width }} />}
           {tabs.map((tab) => (
@@ -65,7 +67,7 @@ export function TopBar({ active, role, userName, unread, activeSubtab, onOpenSet
         </div>
       </div>
       {active === 'admin' && subtabs.length > 0 && (
-        <nav aria-label={t('adminRow')} className="h-14 px-6 flex items-center gap-2 border-t border-border">
+        <nav aria-label={t('adminRow')} className="h-14 px-6 flex items-center gap-2">
           {subtabs.map(([key, href]) => (
             <Link key={key} href={href} aria-current={key === activeSubtab ? 'page' : undefined}
               className={cn('h-10 px-4 rounded-md border text-[15px] font-semibold inline-flex items-center', key === activeSubtab ? 'bg-primary-soft border-primary/40 text-primary' : 'bg-surface border-border text-soft')}>{t(`sub.${key}`)}</Link>

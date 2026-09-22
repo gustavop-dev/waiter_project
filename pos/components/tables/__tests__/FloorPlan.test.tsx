@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 
@@ -37,7 +37,7 @@ it('places each table at its Odoo position and marks the selected one', async ()
 it('only lets available tables be picked while choosing a destination', () => {
   wrap(<FloorPlan views={[view(1, 'free'), view(2, 'occupied', 9)]} selectedId={null} onSelect={() => undefined} pickFree />)
   expect(screen.getByRole('button', { name: 'Mesa 1: Disponible' })).toBeEnabled()
-  expect(screen.getByRole('button', { name: 'Mesa 2: En progreso' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: 'Mesa 2: Sin enviar a cocina' })).toBeDisabled()
 })
 
 it('shows the kit empty state when the floor has no tables', () => {
@@ -54,4 +54,22 @@ it('paints a free table with a booking as reserved, with the hour of the kit', (
   expect(table).toHaveClass('bg-reserved')
   expect(table).toHaveTextContent('17:00')
   expect(table).toBeDisabled()
+})
+
+
+it('labels an occupied table without kitchen dispatch as unsent', () => {
+  wrap(<FloorPlan views={[view(2, 'occupied', 9)]} selectedId={null} onSelect={() => undefined} />)
+  expect(screen.getByRole('button', { name: 'Mesa 2: Sin enviar a cocina' })).toBeEnabled()
+  expect(screen.queryByText('En progreso')).not.toBeInTheDocument()
+})
+
+
+it('opens the table detail on double click and exposes simultaneous service notices', async () => {
+  const onOpenTable = jest.fn()
+  wrap(<FloorPlan views={[{ ...view(2, 'assist', 9), notices: ['ready', 'unsent', 'assist'] }]} selectedId={null} onSelect={jest.fn()} onOpenTable={onOpenTable} />)
+  const table = screen.getByRole('button', { name: /Mesa 2: Pide mesero.*Listo para servir.*Sin enviar a cocina/ })
+  expect(within(table).getByTitle('Pide mesero')).toBeInTheDocument()
+  expect(within(table).getByTitle('Sin enviar a cocina')).toBeInTheDocument()
+  await userEvent.dblClick(table)
+  expect(onOpenTable).toHaveBeenCalledWith(2)
 })

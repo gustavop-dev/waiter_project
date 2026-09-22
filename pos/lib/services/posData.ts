@@ -1,3 +1,4 @@
+import { rolePolicy } from '@/lib/services/rolePermissions'
 import { callKw } from '@/lib/services/odoo'
 import type { Catalog, Category, Floor, PaymentMethod, Product, Settings, Table } from '@/lib/types'
 
@@ -48,6 +49,9 @@ export async function loadPosData(sessionId: number | null): Promise<Catalog> {
   const settings: Settings = { configId: c.id, configName: c.name, waiterCanCharge: c.waiter_can_charge !== false, waiterCanEditInventory: c.waiter_can_edit_inventory === true, alertLateMinutes: c.alert_late_minutes, alertBillMinutes: c.alert_bill_minutes,
     roiHourCost: c.roi_hour_cost, roiMinutesPerOrder: c.roi_minutes_per_order, roiBaselineHoursPer100: c.roi_baseline_hours_per_100,
     roiMonthlyCost: c.roi_monthly_cost, roiStartDate: c.roi_start_date || null, tipProductId: c.tip_product_id || null }
+  settings.rolePermissions = await rolePolicy(c.id)
+  settings.waiterCanCharge = settings.rolePermissions.waiter.actions.includes('charge_orders')
+  settings.waiterCanEditInventory = settings.rolePermissions.waiter.actions.includes('edit_inventory')
   return { company, settings, products, categories, floors, tables, paymentMethods }
 }
 

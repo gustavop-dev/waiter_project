@@ -1,14 +1,13 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 
 import { Icon } from '@/components/kit/Icon'
+import { Select } from '@/components/ui/Select'
 import { parseFloorName, type FloorType } from '@/lib/domain/tablesKit'
 import type { Floor } from '@/lib/types'
 import { cn } from '@/lib/utils'
-
-const TABS_MAX = 3
 
 // Leyenda del kit: punto vacío (disponible), naranja (no disponible), tinta (reservada).
 export function TableLegend() {
@@ -23,70 +22,45 @@ export function TableLegend() {
   )
 }
 
-// Selector de piso. Lleva icono de escaleras y la palabra «Piso» por delante: sin eso las pestañas se confundían con la
-// leyenda de colores que tienen al lado. Hasta tres pisos son pestañas (Home.png); con cuatro o más, un desplegable
-// (If Floor 4+.png). El piso activo va en azul, no solo en blanco, para que se lea como «estás aquí».
-export function FloorSwitcher({ floors, activeId, onChange, compact = false }: { floors: Floor[]; activeId: number | null; onChange: (id: number) => void; compact?: boolean }) {
+// Un control de ancho acotado para cualquier cantidad de pisos. El menú nativo permite
+// desplazarse, escribir el nombre y elegir con teclado sin crear otra barra de navegación.
+export function FloorSwitcher({ floors, activeId, onChange, compact = false, stacked = false }: { floors: Pick<Floor, 'id' | 'name'>[]; activeId: number | null; onChange: (id: number) => void; compact?: boolean; stacked?: boolean }) {
   const t = useTranslations('tables')
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    if (!open) return
-    const close = (e: PointerEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false) }
-    window.addEventListener('pointerdown', close)
-    return () => window.removeEventListener('pointerdown', close)
-  }, [open])
-  const label = (f: Floor) => parseFloorName(f.name).label
-  const caption = <span className="flex items-center gap-1.5 pl-2 pr-1 text-[13px] font-semibold text-soft whitespace-nowrap"><Icon name="floors" size={18} />{t('floorLabel')}</span>
-  if (floors.length <= (compact ? 2 : TABS_MAX)) {
-    return (
-      <div className="inline-flex items-center gap-1 p-1 rounded-md bg-muted min-w-0">
-        {caption}
-        <div role="tablist" aria-label={t('floors')} className="inline-flex items-center gap-0.5 min-w-0">
-          {floors.map((f) => (
-            <button key={f.id} type="button" role="tab" aria-selected={f.id === activeId} onClick={() => onChange(f.id)} title={label(f)}
-              className={cn('h-10 px-3.5 rounded-sm text-[15px] font-semibold whitespace-nowrap max-w-[220px] truncate', f.id === activeId ? 'bg-surface border border-primary/40 text-primary shadow-sm' : 'text-soft hover:bg-surface/60 hover:text-ink')}>{label(f)}</button>
-          ))}
-        </div>
-      </div>
-    )
-  }
-  const active = floors.find((f) => f.id === activeId)
-  const index = active ? floors.indexOf(active) + 1 : 1
-  return (
-    <div ref={ref} className="relative min-w-0">
-      <button type="button" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((v) => !v)}
-        className="h-12 max-w-full pl-3 pr-3 rounded-md border border-border bg-surface flex items-center gap-2 text-[15px] font-semibold text-ink">
-        <Icon name="floors" size={18} className="shrink-0 text-soft" /><span className="text-soft font-medium">{t('floorLabel')}</span>
-        <span className="truncate text-primary">{active ? label(active) : t('floorPicker', { number: index })}</span><Icon name="chevronDown" size={18} className="shrink-0" />
-      </button>
-      {open && (
-        <ul role="listbox" aria-label={t('floors')} className="absolute right-0 top-14 z-30 min-w-[220px] max-h-[60vh] overflow-auto p-2 rounded-md bg-surface border border-border shadow-xl flex flex-col gap-0.5">
-          {floors.map((f, i) => (
-            <li key={f.id} role="option" aria-selected={f.id === activeId} onClick={() => { onChange(f.id); setOpen(false) }}
-              className={cn('h-11 px-3 rounded-sm flex items-center justify-between gap-3 text-[15px] cursor-pointer', f.id === activeId ? 'bg-primary-soft text-primary font-semibold' : 'text-ink hover:bg-muted')}>
-              <span className="truncate">{label(f)}</span><span className="text-[13px] text-dim">#{i + 1}</span>
-            </li>
-          ))}
-        </ul>
-      )}
+  const label = (f: Pick<Floor, 'name'>) => parseFloorName(f.name).label
+  if (floors.length === 0) return null
+  if (floors.length === 1) return (
+    <div className={cn("flex gap-2 min-w-0 text-[14px]", stacked ? "flex-col" : "items-center")}>
+      <span className="text-soft shrink-0">{t('currentFloor')}</span>
+      <span className="font-semibold text-ink break-words">{label(floors[0])}</span>
     </div>
+  )
+  const active = floors.find((f) => f.id === activeId)
+  return (
+    <label className={cn("flex gap-2 min-w-0 max-w-full", stacked ? "flex-col w-full" : "items-center")}>
+      <span className="shrink-0 text-[13px] font-medium text-soft">{t('floorLabel')}</span>
+      <span className={cn('relative min-w-0 max-w-full', stacked ? 'w-full' : compact ? 'w-[180px]' : 'w-[240px]')}>
+        <Select aria-label={t('changeFloor')} title={active ? label(active) : t('chooseFloor')} value={active?.id ?? ''} onChange={(e) => onChange(Number(e.target.value))}>
+          {!active && <option value="" disabled>{t('chooseFloor')}</option>}
+          {floors.map((f) => <option key={f.id} value={f.id}>{label(f)}</option>)}
+        </Select>
+      </span>
+    </label>
   )
 }
 
-// Chip flotante "Info del piso: Tipo Interior >" (Dropdown.png); al tocarlo muestra las mesas libres por tamaño.
+// Información del piso dentro del lateral; el detalle despliega las mesas libres por tamaño.
 export function FloorInfoChip({ type, remaining }: { type: FloorType; remaining: { large: number; small: number } }) {
   const t = useTranslations('tables.floorInfo')
   const [open, setOpen] = useState(false)
   return (
-    <div className="absolute left-6 top-6 z-10 rounded-md bg-surface border border-border shadow-lg text-[14px]">
-      <button type="button" aria-expanded={open} aria-label={t('toggle')} onClick={() => setOpen((v) => !v)} className="h-11 pl-3 pr-2 flex items-center gap-2">
-        <span className="font-semibold text-ink">{t('label')}</span>
-        <span className="text-soft">{t('type')} <strong className="text-ink font-semibold">{t(type)}</strong></span>
-        <span className="w-6 h-6 rounded-sm border-l border-border grid place-items-center text-soft"><Icon name={open ? 'chevronDown' : 'chevronRight'} size={16} /></span>
+    <div className="rounded-md border border-border bg-surface text-[14px] overflow-hidden">
+      <button type="button" aria-expanded={open} aria-label={t('toggle')} onClick={() => setOpen((v) => !v)} className="min-h-12 w-full px-3.5 py-3 text-left flex items-center justify-between gap-2 hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary focus-visible:-outline-offset-2">
+        <span className="flex flex-col gap-1"><span className="font-semibold text-ink">{t('label')}</span>
+        <span className="text-soft">{t('type')} <strong className="text-ink font-medium">{t(type)}</strong></span></span>
+        <Icon name="chevronDown" size={18} className={cn("shrink-0 text-soft transition-transform motion-reduce:transition-none", open && "rotate-180")} />
       </button>
       {open && (
-        <dl className="px-3 pb-3 pt-1 border-t border-border grid grid-cols-[1fr_auto] gap-x-6 gap-y-1 text-soft">
+        <dl className="border-t border-border px-3.5 py-3 grid grid-cols-[1fr_auto] gap-x-2 gap-y-2 text-[13px] text-soft">
           <dt>{t('remainingLarge')}</dt><dd className="font-semibold text-ink text-right">{remaining.large}</dd>
           <dt>{t('remainingSmall')}</dt><dd className="font-semibold text-ink text-right">{remaining.small}</dd>
         </dl>
@@ -98,12 +72,12 @@ export function FloorInfoChip({ type, remaining }: { type: FloorType; remaining:
 // Barra flotante del kit (Table Selected.png). Es donde empieza el trabajo con una mesa concreta, así que
 // aquí está "Crear pedido": la mesa ya está elegida. "Info de reserva" solo si la mesa tiene alguna; un
 // botón que siempre abre una lista vacía no es un botón, es ruido.
-export function SelectedTableBar({ name, hasReservation, onClear, onReservations, onDetail, onNewOrder }: {
-  name: string; hasReservation: boolean; onClear: () => void; onReservations: () => void; onDetail: () => void; onNewOrder: () => void
+export function SelectedTableBar({ name, hasReservation, onClear, onReservations, onDetail, onNewOrder, mayCreate = true }: {
+  mayCreate?: boolean; name: string; hasReservation: boolean; onClear: () => void; onReservations: () => void; onDetail: () => void; onNewOrder: () => void
 }) {
   const t = useTranslations('tables')
   return (
-    <div role="toolbar" aria-label={t('selected.label')} className="absolute left-1/2 -translate-x-1/2 bottom-8 z-20 h-14 pl-4 pr-1.5 rounded-md bg-overlay text-[#F7F7F7] shadow-xl flex items-center gap-3 whitespace-nowrap">
+    <div role="toolbar" aria-label={t('selected.label')} className="absolute left-1/2 -translate-x-1/2 bottom-8 z-20 w-max max-w-[calc(100%_-_24px)] min-h-14 py-1.5 pl-4 pr-1.5 rounded-md bg-overlay text-[#F7F7F7] shadow-xl flex flex-wrap justify-center items-center gap-3">
       <span className="text-[15px] font-semibold">{t('selected.label')}</span>
       <span className="h-11 pl-3 pr-1.5 rounded-sm bg-[#F7F7F7] text-[#0F172A] flex items-center gap-1 text-[15px] font-semibold">
         {t('table', { name })}
@@ -114,7 +88,7 @@ export function SelectedTableBar({ name, hasReservation, onClear, onReservations
         <button type="button" onClick={onReservations} className="h-11 px-3.5 rounded-sm bg-[#F7F7F7] text-[#0F172A] flex items-center gap-2 text-[15px] font-semibold"><Icon name="reservations" size={20} />{t('selected.reservation')}</button>
       )}
       <button type="button" onClick={onDetail} className="h-11 px-3.5 rounded-sm bg-[#F7F7F7] text-[#0F172A] flex items-center gap-2 text-[15px] font-semibold"><Icon name="tables" size={20} />{t('selected.detail')}</button>
-      <button type="button" onClick={onNewOrder} className="h-11 px-3.5 rounded-sm bg-primary text-primary-ink flex items-center gap-2 text-[15px] font-semibold"><Icon name="plus" size={20} />{t('createOrder')}</button>
+      {mayCreate && <button type="button" onClick={onNewOrder} className="h-11 px-3.5 rounded-sm bg-primary text-primary-ink flex items-center gap-2 text-[15px] font-semibold"><Icon name="plus" size={20} />{t('createOrder')}</button>}
     </div>
   )
 }

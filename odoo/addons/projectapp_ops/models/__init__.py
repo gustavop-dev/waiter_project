@@ -14,3 +14,6 @@ from . import gateway_payments
 
 from . import menu_banners
 from . import insights
+from . import billing
+
+from . import role_permissions

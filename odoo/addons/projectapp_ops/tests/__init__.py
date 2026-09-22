@@ -8,3 +8,6 @@ from . import test_gateway_payments
 
 from . import test_menu_banners
 from . import test_insights
+from . import test_billing
+
+from . import test_role_permissions

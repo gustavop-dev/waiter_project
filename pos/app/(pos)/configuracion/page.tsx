@@ -1,27 +1,27 @@
 'use client'
 
-import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Suspense, useEffect, useState } from 'react'
 
 import { Icon, type KitIcon } from '@/components/kit/Icon'
 import { CompanyForm, DisplayForm, FloorsForm, PaymentMethodsList, TaxesList, UsersForm } from '@/components/settings/KitSettingsForms'
+import { RolePermissionsForm } from '@/components/settings/RolePermissionsForm'
 import { KitchenPaymentPolicyForm } from '@/components/settings/KitchenPaymentPolicyForm'
 import { ReservationHoursForm } from '@/components/settings/ReservationHoursForm'
 import { PaymentGatewayForm } from '@/components/settings/PaymentGatewayForm'
 import { BenefitsForm } from '@/components/settings/BenefitsForm'
 import { MenuBannersForm } from '@/components/settings/MenuBannersForm'
 import { MenuTemplateForm } from '@/components/settings/MenuTemplateForm'
-import { ThresholdsForm, WaiterPermissionsForm } from '@/components/settings/SettingsForms'
+import { ThresholdsForm } from '@/components/settings/SettingsForms'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { getCompany, listFloors, listPaymentMethods, listTaxes, listUsers, saveSettings, type CompanyInfo, type FloorInfo, type PaymentMethodInfo, type TaxInfo, type UserInfo } from '@/lib/services/settings'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useCatalogStore } from '@/lib/stores/catalogStore'
 import { cn } from '@/lib/utils'
 
-const SECTIONS: [Section, KitIcon][] = [['restaurant', 'store'], ['menuTemplate', 'layout'], ['benefits', 'percentage'], ['floors', 'grid'], ['reservationHours', 'reservations'], ['payments', 'card'], ['taxes', 'percentage'], ['users', 'users'], ['alerts', 'alert'], ['roi', 'chartLine'], ['display', 'tablet']]
-type Section = 'benefits' | 'reservationHours' | 'restaurant' | 'brand' | 'menuTemplate' | 'floors' | 'payments' | 'taxes' | 'users' | 'alerts' | 'roi' | 'display'
+const SECTIONS: [Section, KitIcon][] = [['restaurant', 'store'], ['menuTemplate', 'layout'], ['benefits', 'percentage'], ['floors', 'grid'], ['reservationHours', 'reservations'], ['payments', 'card'], ['taxes', 'percentage'], ['users', 'users'], ['permissions', 'lock'], ['alerts', 'alert'], ['roi', 'chartLine'], ['display', 'tablet']]
+type Section = 'permissions' | 'benefits' | 'reservationHours' | 'restaurant' | 'brand' | 'menuTemplate' | 'floors' | 'payments' | 'taxes' | 'users' | 'alerts' | 'roi' | 'display'
 
 // Configuración con la estructura del modal "Setting" del kit (Account Setting / Profile.png): pestañas verticales con
 // icono a la izquierda y panel con cabecera a la derecha, para las secciones del restaurante.
@@ -44,9 +44,9 @@ function ConfiguracionInner() {
   const onSaveSettings = async (s: typeof catalog.settings) => { await saveSettings(s); await load(session?.id ?? null) }
   return (
     <>
-      <PageHeader icon="settings" title={t('title')} />
+      <PageHeader title={t('title')} />
       <div className="flex-1 min-h-0 px-5 pb-5">
-        <div className="h-full bg-surface border border-border rounded-lg flex overflow-hidden">
+        <div className="h-full ambient-panel border border-border rounded-lg flex overflow-hidden">
           <nav aria-label={t('title')} className="w-[280px] shrink-0 border-r border-border p-4 flex flex-col gap-1 overflow-y-auto">
             {SECTIONS.map(([s, icon]) => (
               <button key={s} type="button" aria-current={section === s ? 'page' : undefined} onClick={() => setSection(s)}
@@ -54,7 +54,6 @@ function ConfiguracionInner() {
                 <Icon name={icon} size={20} /><span>{t(`sections.${s}`)}</span>
               </button>
             ))}
-            <Link href="/kit" className="mt-auto flex items-center gap-3 h-12 px-3 rounded-md text-[15px] font-semibold text-soft hover:bg-muted"><Icon name="layout" size={20} /><span>Sistema de diseño</span></Link>
           </nav>
           <section aria-label={t(`sections.${section}`)} className="flex-1 min-w-0 m-4 rounded-lg border border-border flex flex-col overflow-hidden">
             <header className="h-14 px-5 flex items-center border-b border-border shrink-0"><h2 className="text-[16px] font-semibold text-ink">{t(`sections.${section}`)}</h2></header>
@@ -66,7 +65,8 @@ function ConfiguracionInner() {
               {section === 'reservationHours' && <ReservationHoursForm configId={catalog.settings.configId} />}
               {section === 'payments' && <><PaymentMethodsList methods={methods} /><PaymentGatewayForm methods={methods} /></>}
               {section === 'taxes' && <TaxesList taxes={taxes} />}
-              {section === 'users' && <><KitchenPaymentPolicyForm configId={catalog.settings.configId} /><WaiterPermissionsForm initial={catalog.settings} onSave={onSaveSettings} /><UsersForm users={users} onChanged={reloadUsers} /></>}
+              {section === 'users' && <UsersForm users={users} onChanged={reloadUsers} />}
+              {section === 'permissions' && <div className="space-y-8"><RolePermissionsForm configId={catalog.settings.configId} initial={catalog.settings.rolePermissions} /><KitchenPaymentPolicyForm configId={catalog.settings.configId} /></div>}
               {section === 'alerts' && <ThresholdsForm key="alerts" initial={catalog.settings} section="alerts" onSave={onSaveSettings} />}
               {section === 'roi' && <ThresholdsForm key="roi" initial={catalog.settings} section="roi" onSave={onSaveSettings} />}
               {section === 'display' && <DisplayForm />}

@@ -38,7 +38,7 @@ Cada test: ≤50 líneas, ≤7 asserts, sin condicionales, y un comentario
   `WizardSteps`, `Toaster` (con `lib/stores/toastStore.ts`).
 - Navegación por rol en `lib/domain/navigation.ts`; `Shell` delega en `KitShell`.
 - Tema: `lib/hooks/useTheme.ts` (`waiter.theme`); preferencias de aviso en `waiter.notify` hasta la oleada I.5.
-- Galería de componentes en `/kit` (solo admin). Capturas a 1194×834 para cotejar con los PNG del kit:
+- Galería interna en `/kit` (solo desarrollo y sesión admin; 404 en producción, sin enlace en Configuración). Capturas a 1194×834 para cotejar con los PNG del kit:
   `PLAYWRIGHT_BASE_URL=http://192.168.56.10:3000 npm run kit:compare -- /kit /salon` → `kit-compare/`.
 - Playwright tiene el proyecto `Tablet` (iPad Pro 11 apaisado sobre Chromium): `npx playwright test <spec> --project=Tablet`.
 

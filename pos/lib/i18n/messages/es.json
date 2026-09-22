@@ -722,17 +722,18 @@
         "declined": "Rechazado"
       },
       "receipt": {
-        "title": "Recibo",
+        "title": "Comprobante de pago",
         "table": "Mesa {n}",
         "subtotal": "Subtotal",
-        "tax": "IVA",
+        "tax": "Impuestos",
         "tip": "Propina",
         "total": "Total",
         "change": "Cambio",
+        "fiscalHint": "Este comprobante no reemplaza la factura electrónica o el documento equivalente electrónico validado.",
         "thanks": "Gracias por su visita",
         "print": "Imprimir",
         "close": "Cerrar",
-        "discountIncluded": "Descuento incluido (antes de IVA)"
+        "discountIncluded": "Descuento incluido (antes de impuestos)"
       }
     },
     "cash": {

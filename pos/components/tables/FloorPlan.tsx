@@ -12,6 +12,7 @@ import type { TableReservation } from '@/lib/services/tables'
 import { cn } from '@/lib/utils'
 
 interface Props {
+  onOpenTable?: (id: number) => void
   plan?: FloorDocument | null; visibleIds?: number[] | null; views: TableView[]; selectedId: number | null; selectedIds?: number[]; onSelect: (id: number) => void; background?: string | null; pickFree?: boolean
   codeFor?: (view: TableView) => string | null; reserved?: Record<number, TableReservation | null>
   // Mesas que se ven pero no se pueden elegir (al reservar: no alcanzan para el grupo). Salen atenuadas.
@@ -24,6 +25,7 @@ interface Props {
 // la misma píldora naranja y su propio texto: son reales y el mesero los necesita.
 export function pillFor(state: TableState, t: (key: string) => string): TablePill | null {
   if (state === 'free') return null
+  if (state === 'occupied') return { text: t('pendingSend'), icon: 'cart' }
   if (state === 'served') return { text: t('served'), icon: 'check' }
   if (state === 'ready') return { text: t('ready'), icon: 'chef', tone: 'success' }
   if (state === 'billing') return { text: t('billing'), icon: 'receipt' }
@@ -35,7 +37,7 @@ export function pillFor(state: TableState, t: (key: string) => string): TablePil
 }
 
 // Plano real del piso (posición y tamaño de restaurant.table) con scroll horizontal, como en el kit.
-export function FloorPlan({ views, selectedId, selectedIds, onSelect, background = null, pickFree = false, codeFor, reserved = {}, plan, visibleIds, blockedIds, blockedLabel, zoneStaff }: Props) {
+export function FloorPlan({ views, selectedId, selectedIds, onSelect, onOpenTable, background = null, pickFree = false, codeFor, reserved = {}, plan, visibleIds, blockedIds, blockedLabel, zoneStaff }: Props) {
   const t = useTranslations('tables')
   const ts = useTranslations('tables.state')
   const empty = views.length === 0 && !plan?.zones.length && !plan?.walls.length && !background && !plan?.images?.length
@@ -62,12 +64,17 @@ export function FloorPlan({ views, selectedId, selectedIds, onSelect, background
             const pickable = (!pickFree || state === 'available') && !blocked
             const name = String(v.table.number)
             const pill = state === 'reserved' && booking ? { text: booking.label, icon: 'clock' as const } : pillFor(v.state, ts)
+            const notices: TablePill[] = (v.notices ?? []).map((notice) => notice === 'ready'
+              ? { text: ts('ready'), icon: 'chef', tone: 'success' }
+              : notice === 'unsent' ? { text: ts('pendingSend'), icon: 'cart' }
+              : { text: ts(notice === 'bill' ? 'billing' : notice), icon: 'bell' })
+            const extraLabels = notices.filter((notice) => notice.text !== pill?.text).map((notice) => notice.text)
             const legend = state === 'reserved' ? t('legend.reserved') : t('legend.available')
             return (
-              <TableShape key={v.table.id} rect={v.table} name={name} state={state} selected={v.table.id === selectedId || !!selectedIds?.includes(v.table.id)} dimmed={(pickFree && !pickable) || (visibleIds != null && !visibleIds.includes(v.table.id))}
+              <TableShape key={v.table.id} rect={v.table} notices={notices} name={name} state={state} selected={v.table.id === selectedId || !!selectedIds?.includes(v.table.id)} dimmed={(pickFree && !pickable) || (visibleIds != null && !visibleIds.includes(v.table.id))}
                 code={codeFor ? codeFor(v) : v.orderId !== null ? orderCode('DI', null, v.orderId) : null} pill={pill ?? {text: `${v.table.seats} personas`,icon:'user'}}
-                label={t('tableLabel', { name, state: blocked && blockedLabel ? blockedLabel : state === 'unavailable' && pill ? pill.text : legend })}
-                onClick={pickable ? () => onSelect(v.table.id) : undefined} className={cn(!pickable && 'pointer-events-none')} />
+                label={t('tableLabel', { name, state: blocked && blockedLabel ? blockedLabel : state === 'unavailable' && pill ? [pill.text, ...extraLabels].join(' · ') : legend })}
+                onDoubleClick={pickable && onOpenTable ? () => onOpenTable(v.table.id) : undefined} onClick={pickable ? () => onSelect(v.table.id) : undefined} className={cn(!pickable && 'pointer-events-none')} />
             )
           })}
         </div>

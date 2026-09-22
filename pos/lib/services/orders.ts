@@ -2,13 +2,13 @@ import { toSyncPayload } from '@/lib/domain/order'
 import { kitchenPhase, type KitchenPhase } from '@/lib/domain/kitchen'
 import { uuid } from '@/lib/domain/uuid'
 import type { DraftOrder } from '@/lib/domain/order'
-import type { KitOrder } from '@/lib/domain/orderState'
+import { lineGroup, type KitOrder } from '@/lib/domain/orderState'
 import { listCourseSummaries } from '@/lib/services/kitchen'
 import { callKw } from '@/lib/services/odoo'
 import { activeEmployeeId } from '@/lib/stores/authStore'
 
 export interface SavedOrder { id: number; reference: string; state: 'draft' | 'paid'; total: number; tax: number; paid: number }
-export interface OpenOrder { id: number; tableId: number; total: number; tax: number; state: 'draft' | 'paid'; lineCount: number; startedAt: string; waiter: string; kitchen: KitchenPhase; tracking: string | null }
+export interface OpenOrder { unsent?: boolean; id: number; tableId: number; total: number; tax: number; state: 'draft' | 'paid'; lineCount: number; startedAt: string; waiter: string; kitchen: KitchenPhase; tracking: string | null }
 export interface OrderLineView { uuid: string; name: string; qty: number; unitPrice: number; note: string; discount?: number; subtotal?: number; total?: number }
 export interface ShiftSummary { sales: number; orders: number; waiters: number }
 
@@ -76,7 +76,8 @@ export function openOrderFromKit(o: KitOrder): OpenOrder | null {
   if (o.tableId === null || o.state !== 'draft') return null
   const fired = o.courses.filter((c) => c.fired).map((c) => ({ orderId: o.id, firedAt: '', readyAt: c.readyAt, servedAt: c.servedAt }))
   return { id: o.id, tableId: o.tableId, total: o.total, tax: o.tax, state: 'draft', lineCount: o.lines.length, startedAt: o.startedAt,
-    waiter: o.waiter ?? '', kitchen: kitchenPhase(fired), tracking: o.tracking ?? null }
+    waiter: o.waiter ?? '', kitchen: o.lines.some((line) => lineGroup(o, line) === 'ready') ? 'ready' : kitchenPhase(fired), tracking: o.tracking ?? null,
+    unsent: o.lines.some((line) => !o.courses.some((course) => course.id === line.courseId && course.fired)) }
 }
 
 // Líneas de un pedido que vive en Odoo pero no se compuso en este dispositivo (otra tablet, el comensal).

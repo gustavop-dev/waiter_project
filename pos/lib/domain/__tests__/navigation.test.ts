@@ -1,16 +1,17 @@
+import { DEFAULT_ROLE_POLICY } from '@/lib/domain/permissions'
 import { administrationPath, ADMIN_SUBTABS, TAB_ROUTES, adminSubtabsFor, tabForPath, tabsFor, homePath, withShell } from '@/lib/domain/navigation'
 import { allowedPath } from '@/lib/domain/roles'
 
 // Falla si el mesero ve pestañas de cocina o administración, o si el cajero y el admin las pierden.
 it('gives each role its tabs', () => {
-  expect(tabsFor('waiter')).toEqual(['dashboard', 'orders', 'tables', 'reservations', 'history', 'inventory'])
-  expect(tabsFor('cashier')).toEqual(['dashboard', 'orders', 'tables', 'reservations', 'history', 'inventory', 'kitchen', 'admin'])
+  expect(tabsFor('waiter')).toEqual(['tables'])
+  expect(tabsFor('cashier')).toEqual(['orders'])
   expect(tabsFor('admin')).toContain('admin')
 })
 
 // Falla si el cajero ve chips de administración que no le tocan (catálogo, configuración).
 it('filters the administration row by role', () => {
-  expect(adminSubtabsFor('cashier').map(([key]) => key)).toEqual(['sales', 'customers', 'billing'])
+  expect(adminSubtabsFor('cashier').map(([key]) => key)).toEqual([])
   expect(adminSubtabsFor('admin')).toHaveLength(ADMIN_SUBTABS.length)
 })
 
@@ -25,9 +26,9 @@ it('maps paths to tabs, including admin subtabs', () => {
 
 // Falla si un mesero puede entrar a /ventas o si pierde /reservas; si el cajero pierde facturación o gana catálogo.
 it('allowedPath follows the tabs and the admin row', () => {
-  expect(allowedPath('waiter', '/reservas')).toBe(true)
+  expect(allowedPath('waiter', '/reservas')).toBe(false)
   expect(allowedPath('waiter', '/ventas')).toBe(false)
-  expect(allowedPath('cashier', '/facturacion')).toBe(true)
+  expect(allowedPath('cashier', '/facturacion')).toBe(false)
   expect(allowedPath('cashier', '/catalogo')).toBe(false)
   expect(allowedPath('admin', '/configuracion')).toBe(true)
   expect(allowedPath('admin', '/kit')).toBe(true)
@@ -46,7 +47,7 @@ it('sends each role to its own home screen', () => {
   expect(homePath('admin', true)).toBe('/dashboard')
   expect(homePath('admin', false)).toBe('/dashboard')
   expect(homePath('waiter', true)).toBe('/salon')
-  expect(homePath('cashier', true)).toBe('/salon')
+  expect(homePath('cashier', true)).toBe('/pedidos')
   expect(homePath('waiter', false)).toBe('/caja')
 })
 
@@ -61,4 +62,20 @@ it('lets an admin open Inicio with the register closed', () => {
 it('knows which screens carry the navigation bar', () => {
   for (const path of ['/dashboard', '/pedidos', '/salon', '/reservas', '/automatizacion', '/ventas']) expect(withShell(path)).toBe(true)
   for (const path of ['/kds', '/operacion', '/automatizacion/ia', '/automatizacion/ia/configurar']) expect(withShell(path)).toBe(false)
+})
+
+
+it('uses the saved policy for links, direct routes and action routes', () => {
+  const policy = JSON.parse(JSON.stringify(DEFAULT_ROLE_POLICY))
+  policy.waiter.views.push('orders', 'history')
+  policy.waiter.actions.push('charge_orders')
+  policy.cashier.actions = ['charge_orders']
+  expect(tabsFor('waiter', policy)).toEqual(['orders', 'tables', 'history'])
+  expect(allowedPath('waiter', '/pago/1', policy)).toBe(true)
+  expect(allowedPath('waiter', '/pago/1')).toBe(false)
+  expect(allowedPath('waiter', '/salon/nuevo')).toBe(true)
+  expect(allowedPath('waiter', '/pedidos/nuevo')).toBe(false)
+  expect(allowedPath('cashier', '/pedidos/nuevo', policy)).toBe(false)
+  expect(allowedPath('cashier', '/pedidos/1/agregar', policy)).toBe(false)
+  expect(allowedPath('cashier', '/pago/1', policy)).toBe(true)
 })

@@ -89,7 +89,7 @@ export default function VentasPage() {
   )
   return (
     <>
-      <PageHeader icon="sales" title={t('title')} />
+      <PageHeader title={t('title')} />
       {/* Filtro de periodo: fichas para lo habitual, fechas para un rango y el turno para cuadrar la caja. */}
       <div role="group" aria-label={t('period.label')} className="shrink-0 px-5 pb-4 flex flex-wrap items-center gap-2">
         {SALES_PERIODS.map((p) => (

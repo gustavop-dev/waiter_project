@@ -94,9 +94,9 @@ export default function DashboardPage() {
   return (
     <>
       <div className="flex-1 min-h-0 overflow-y-auto p-4 flex flex-col gap-4">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-[22px] font-semibold text-ink">{t(`greeting.${greetingFor(new Date().getHours())}`, { name: firstName })}</h1>
+        <div className="shrink-0 px-2 py-4 sm:px-3 flex flex-wrap items-start justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-[24px] sm:text-[28px] font-semibold tracking-tight text-ink">{t(`greeting.${greetingFor(new Date().getHours())}`, { name: firstName })}</h1>
             <p className="text-[15px] text-soft">{t('motto')}</p>
           </div>
           <LiveClock label={t('clock')} />

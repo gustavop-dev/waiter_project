@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
 
 import { AmountInput, popDigit, pushDigit } from '@/components/cash/AmountInput'
+import { AuroraBackground } from '@/components/kit/Aurora'
 import { Icon } from '@/components/kit/Icon'
 import { NumericKeypad } from '@/components/kit/NumericKeypad'
 import { Button } from '@/components/ui/Button'
@@ -42,7 +43,8 @@ export default function CajaPage() {
   }
   if (!hydrated || !user || !employee || session) return null
   return (
-    <main className="min-h-screen grid place-items-center bg-canvas text-ink p-6">
+    <main className="pos-ambient min-h-screen grid place-items-center text-ink p-6">
+      <AuroraBackground />
       <form onSubmit={(e) => { e.preventDefault(); void open() }} className="w-[900px] max-w-full rounded-xl bg-surface border border-border shadow-xl overflow-hidden flex flex-col">
         <header className="h-[72px] px-6 flex items-center gap-3 border-b border-border">
           <span className="w-9 h-9 rounded-md bg-primary text-primary-ink grid place-items-center font-semibold">W</span>

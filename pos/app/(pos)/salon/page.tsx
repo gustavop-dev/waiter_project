@@ -1,10 +1,11 @@
 'use client'
 
-import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 
+import { PageTitle } from '@/components/ui/PageHeader'
+import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/kit/Icon'
 import { cn } from '@/lib/utils'
 import { ChangeTableModal } from '@/components/tables/ChangeTableModal'
@@ -12,6 +13,9 @@ import { FloorEditor } from '@/components/tables/FloorEditor'
 import type { FloorDocument } from '@/lib/domain/floorPlan'
 import { deleteFloor, readPlan } from '@/lib/services/floorPlan'
 import { FloorSwitcher, SelectedTableBar, TableLegend } from '@/components/tables/FloorHeader'
+import { ServiceSidebar } from '@/components/tables/ServiceSidebar'
+import { useKitOrders } from '@/lib/hooks/useKitOrders'
+import { useOrderLocations } from '@/lib/hooks/useOrderLocations'
 import { FloorPane } from '@/components/tables/FloorPane'
 import { FloorSkeleton } from '@/components/tables/FloorSkeleton'
 import { FloorSettingsPopover } from '@/components/tables/FloorSettingsPopover'
@@ -21,11 +25,13 @@ import { PickTablePrompt } from '@/components/tables/PickTablePrompt'
 import { ReservationDetailModal } from '@/components/tables/ReservationDetailModal'
 import { ReservationListModal } from '@/components/tables/ReservationListModal'
 import { TableDetailModal } from '@/components/tables/TableDetailModal'
+import { roleCan } from '@/lib/domain/permissions'
 import { can } from '@/lib/domain/roles'
 import { deriveTableViews } from '@/lib/domain/tableState'
 import { orderCode, orderPrefix } from '@/lib/domain/tablesKit'
 import { useIdentity } from '@/lib/hooks/useIdentity'
 import { getOrderLines, type OrderLineView } from '@/lib/services/orders'
+import { fireUnsentLines } from '@/lib/services/kitchen'
 import { serveLines } from '@/lib/services/ordersKit'
 import { listAllFloors, moveOrder, reservedAtByTable, setFloorActive, type FloorSetting, type OrderDetail, type OrderDetailLine, type TableReservation } from '@/lib/services/tables'
 import { useAuthStore } from '@/lib/stores/authStore'
@@ -61,7 +67,14 @@ export default function SalonPage() {
   const session = useAuthStore((s) => s.session)
   const { catalog, load } = useCatalogStore()
   const { activeFloorId, secondFloorId, split, selectedTableId, setFloor, setSecondFloor, setSplit, selectTable } = useFloorStore()
-  const { openOrders, calls, flags, refreshOpenOrders, refreshShift, settle, receipt, closeReceipt, busy } = useOrderStore()
+  const { openOrders, calls, flags, attendCall, refreshShift, settle, receipt, closeReceipt, busy } = useOrderStore()
+  const { orders, loaded: ordersLoaded, refresh: refreshOrders } = useKitOrders()
+  const [zoneTables, setZoneTables] = useState<Record<number, number[] | null>>({})
+  const onVisibleTables = useCallback((id: number, ids: number[] | null) => {
+    setZoneTables((previous) => previous[id] === ids ? previous : { ...previous, [id]: ids })
+  }, [])
+  const locationSources = useMemo(() => [...orders, ...calls.map((call) => ({ tableId: call.tableId }))], [orders, calls])
+  const locations = useOrderLocations(locationSources)
   const [sheet, setSheet] = useState<Sheet>(null)
   const [settings, setSettings] = useState(false)
   const [allFloors, setAllFloors] = useState<FloorSetting[]>([])
@@ -74,12 +87,8 @@ export default function SalonPage() {
   const [movingBusy, setMovingBusy] = useState(false)
   const [pickTable, setPickTable] = useState(false)
 
-  const reload = useCallback(async () => { await load(session?.id ?? null); if (session) await refreshOpenOrders(session.id) }, [session, load, refreshOpenOrders])
-  useEffect(() => {
-    const id = setInterval(() => { if (session) void refreshOpenOrders(session.id) }, 30_000)
-    return () => clearInterval(id)
-  }, [session, refreshOpenOrders])
-  useEffect(() => { if (session) { void refreshOpenOrders(session.id); void refreshShift(session.id) } }, [session, refreshOpenOrders, refreshShift])
+  const reload = useCallback(async () => { await load(session?.id ?? null); await refreshOrders() }, [session, load, refreshOrders])
+  useEffect(() => { if (session) void refreshShift(session.id) }, [session, refreshShift])
   // Llegar aquí para elegir mesa descarta la que quedara seleccionada de antes: la elección tiene que ser de ahora.
   const askForTable = useCallback(() => {
     selectTable(null)
@@ -113,6 +122,17 @@ export default function SalonPage() {
       .catch(() => { if (alive) setLoadedReserved({ key: tableIds, map: {} }) })
     return () => { alive = false }
   }, [tableIds])
+  const visibleTableIds = useMemo(() => views.filter((view) => {
+    const id = view.table.floorId
+    return (id === floorId || id === secondId) && (zoneTables[id] == null || zoneTables[id]!.includes(view.table.id))
+  }).map((view) => view.table.id), [views, floorId, secondId, zoneTables])
+  function openServiceTable(tableId: number) {
+    const table = catalog?.tables.find((entry) => entry.id === tableId)
+    if (!table) return
+    if (table.floorId !== floorId && table.floorId !== secondId) setFloor(table.floorId)
+    selectTable(tableId)
+    setSheet('detail')
+  }
   const reserved = loadedReserved?.key === tableIds ? loadedReserved.map : EMPTY_RESERVED
   const selected = views.find((v) => v.table.id === selectedTableId) ?? null
   const floor = catalog?.floors.find((f) => f.id === floorId) ?? null
@@ -187,8 +207,8 @@ export default function SalonPage() {
   // Entregar desde la mesa: lo mismo que marcarlo en Pedidos, guardado en Odoo. Uno o todos los que
   // cocina ya sacó al pase.
   async function serveLine(lines: OrderDetailLine[]) {
-    try { await serveLines(lines.map((l) => l.id)); await reload() }
-    catch { toast({ title: t('detail.deliverFailed'), tone: 'danger' }) }
+    await serveLines(lines.map((line) => line.id))
+    await refreshOrders()
   }
 
   if (!catalog) return <FloorSkeleton />
@@ -196,53 +216,55 @@ export default function SalonPage() {
     background={editing.id && catalog.floors.find(f => f.id === editing.id)?.hasBackground ? `/odoo/web/image/restaurant.floor/${editing.id}/floor_background_image?unique=${editing.revision}` : null}
     onCancel={() => setEditing(null)} onSaved={async (saved) => { await reload(); setFloor(saved.id!); setEditing(null); toast({ title: 'Plano guardado' }) }} />
   // Cobrar puede ser solo de caja: lo decide el restaurante en Configuración.
-  const mayCharge = can.charge(role, catalog.settings.waiterCanCharge)
+  const mayCharge = can.charge(role, catalog.settings.waiterCanCharge, catalog.settings.rolePermissions)
   // Un pedido en mesa nace de una mesa elegida a propósito: sin selección se pide antes de abrir el asistente.
-  const newOrderHref = selected ? `/pedidos/nuevo?mesa=${selected.table.id}` : null
+  const mayCreate = roleCan(role, 'create_orders', catalog.settings.rolePermissions)
+  const mayServe = roleCan(role, 'serve_orders', catalog.settings.rolePermissions)
+  const newOrderHref = selected ? selected.orderId ? `/salon/${selected.orderId}/agregar` : `/salon/nuevo?mesa=${selected.table.id}` : null
   return (
     <>
-      <header className="shrink-0 h-[72px] px-4 flex items-center gap-4 border-b border-border">
-        <h1 className="h-12 px-4 rounded-md bg-surface border border-border flex items-center gap-2 text-[18px] font-semibold text-ink"><Icon name="tables" size={22} />{t('title')}</h1>
+      <header className="shrink-0 min-h-[88px] px-5 py-4 flex flex-wrap items-center gap-x-5 gap-y-3">
+        <PageTitle>{t('title')}</PageTitle>
         <div className="ml-auto flex items-center gap-4">
+          {!floor && mayManageFloors && <button type="button" onClick={() => setSettings((v) => !v)} aria-expanded={settings}
+            className="min-h-12 px-3 rounded-md border border-border flex items-center gap-2 text-sm text-ink"><Icon name="cog" size={18} />{t('settings')}</button>}
           <TableLegend />
           <span aria-hidden className="w-px h-8 bg-border" />
-          {/* En pantalla partida cada panel trae su propio selector de piso, como las pestañas de cada editor en VS Code. */}
-          {!splitOn && <FloorSwitcher floors={catalog.floors} activeId={floorId} onChange={setFloor} />}
           {canSplit && (
             <button type="button" aria-label={splitOn ? t('split.off') : t('split.on')} title={splitOn ? t('split.off') : `${t('split.on')} · ${t('split.hint')}`} aria-pressed={splitOn} onClick={() => setSplit(!splitOn)}
               className={cn('hidden md:grid w-12 h-12 rounded-md border place-items-center', splitOn ? 'border-primary bg-primary-soft text-primary' : 'border-border bg-surface text-ink hover:bg-muted')}><Icon name="split" size={22} /></button>
           )}
-          <span aria-hidden className="w-px h-8 bg-border" />
-          {/* Crear pedido vive en la barra de la mesa seleccionada: aquí arriba pedía la mesa que allí ya está elegida. */}
-          {mayManageFloors && (
-            <button type="button" aria-label={t('settings')} aria-expanded={settings} onClick={() => setSettings((v) => !v)} className="w-12 h-12 rounded-full border border-border bg-surface grid place-items-center text-ink"><Icon name="cog" size={22} /></button>
-          )}
         </div>
       </header>
       <div className="relative flex-1 min-h-0 flex">
+      <div className="relative flex-1 min-w-0 min-h-0 flex">
         {([floor, secondFloor] as const).map((f, i) => f && (
           <FloorPane key={`${i}:${f.id}`} floor={f} configId={catalog.settings.configId} views={views.filter((v) => v.table.floorId === f.id)} reserved={reserved} refreshKey={catalog}
             selectedId={moving ? moving.fromTableId : selectedTableId} onSelect={onSelect} pickFree={moving !== null} codeFor={codeFor}
-            header={splitOn ? (
-              <div className={cn('shrink-0 h-14 px-3 flex items-center gap-2 border-b border-border bg-surface', i === 1 && 'border-l')}>
-                <FloorSwitcher compact floors={catalog.floors.filter((x) => x.id !== (i === 0 ? secondId : floorId))} activeId={f.id} onChange={i === 0 ? setFloor : setSecondFloor} />
-                <button type="button" aria-label={t('split.close')} title={t('split.close')} onClick={() => { if (i === 0 && secondFloor) setFloor(secondFloor.id); setSplit(false) }}
-                  className="ml-auto w-10 h-10 grid place-items-center rounded-md text-soft hover:bg-muted hover:text-ink"><Icon name="close" size={18} /></button>
-              </div>
-            ) : undefined} />
+            compact={splitOn} onVisibleTables={onVisibleTables} onOpenTable={session && !moving ? openServiceTable : undefined}
+            header={<div className="flex flex-col gap-2">
+              <FloorSwitcher stacked floors={splitOn ? catalog.floors.filter((x) => x.id !== (i === 0 ? secondId : floorId)) : catalog.floors} activeId={f.id} onChange={i === 0 ? setFloor : setSecondFloor} />
+              {splitOn && <button type="button" onClick={() => { if (i === 0 && secondFloor) setFloor(secondFloor.id); setSplit(false) }}
+                className="min-h-11 flex items-center gap-2 text-[13px] text-soft hover:text-ink"><Icon name="close" size={16} />{t('split.close')}</button>}
+            </div>}
+            controls={i === 0 && mayManageFloors ? <Button type="button" size="compact" aria-expanded={settings} onClick={() => setSettings((v) => !v)}
+              className="w-full h-auto! min-h-tap-min py-3"><Icon name="cog" size={20} className="shrink-0" /><span>{t('settings')}</span></Button> : undefined} />
         ))}
         {splitOn && secondFloor && <span aria-hidden className="pointer-events-none absolute inset-y-0 left-1/2 w-px bg-border" />}
         {moving ? (
-          <div role="toolbar" aria-label={t('change.title')} className="absolute left-1/2 -translate-x-1/2 bottom-8 z-20 h-14 pl-4 pr-1.5 rounded-md bg-overlay text-[#F7F7F7] shadow-xl flex items-center gap-3 whitespace-nowrap text-[15px] font-semibold">
+          <div role="toolbar" aria-label={t('change.title')} className="absolute left-1/2 -translate-x-1/2 bottom-8 z-20 w-max max-w-[calc(100%_-_24px)] min-h-14 py-1.5 pl-4 pr-1.5 rounded-md bg-overlay text-[#F7F7F7] shadow-xl flex flex-wrap justify-center items-center gap-3 text-[15px] font-semibold">
             <span>{t('selected.moving', { code: orderCode(orderPrefix(moving.detail.serviceAt), moving.detail.tracking, moving.detail.id) })}</span>
             <button type="button" onClick={() => { setMoving(null); setTarget(null) }} className="h-11 px-3.5 rounded-sm bg-[#F7F7F7] text-[#0F172A] flex items-center gap-2"><Icon name="close" size={18} />{t('selected.cancelMove')}</button>
           </div>
         ) : selected && session && (
-          <SelectedTableBar name={String(selected.table.number)} hasReservation={Boolean(reserved[selected.table.id])}
+          <SelectedTableBar mayCreate={mayCreate} name={String(selected.table.number)} hasReservation={Boolean(reserved[selected.table.id])}
             onClear={() => selectTable(null)} onReservations={() => setSheet('reservations')} onDetail={() => setSheet('detail')}
             onNewOrder={() => newOrderHref && router.push(newOrderHref)} />
         )}
         <FloorSettingsPopover open={settings && mayManageFloors} onClose={() => setSettings(false)} floors={allFloors} currentFloor={floor ? { id: floor.id, name: floor.name, active: true, tableCount: floor.tableIds.length } : null} onAdd={addFloor} onEdit={openEdit} onToggle={toggleFloor} onDelete={(f) => void removeFloor(f)} />
+      </div>
+      <ServiceSidebar orders={session ? orders : []} calls={session ? calls : []} tables={catalog.tables} visibleTableIds={visibleTableIds} locations={locations} loaded={!session || ordersLoaded}
+        onOpenTable={openServiceTable} />
       </div>
       {selected && (
         <ReservationListModal open={sheet === 'reservations' && booking === null} onClose={() => setSheet(null)} tableId={selected.table.id}
@@ -250,9 +272,12 @@ export default function SalonPage() {
       )}
       {booking && <ReservationDetailModal open onClose={() => setBooking(null)} reservationId={booking.id} />}
       {selected && (
-        <TableDetailModal open={sheet === 'detail'} onClose={() => setSheet(null)} tableName={String(selected.table.number)} orderId={selected.orderId} imageFor={imageFor}
+        <TableDetailModal key={selected.table.id} open={sheet === 'detail'} onClose={() => setSheet(null)} tableName={String(selected.table.number)} orderId={selected.orderId} imageFor={imageFor}
           onChangeTable={(detail) => { setSheet(null); setMoving({ detail, fromTableId: selected.table.id }) }} onNewOrder={() => newOrderHref && router.push(newOrderHref)} onPay={openPay}
-          onServe={serveLine} busy={busy} mayCharge={mayCharge} />
+          onSendPending={mayCreate ? async (orderId) => { await fireUnsentLines(orderId); await refreshOrders() } : undefined}
+          call={calls.find((call) => call.tableId === selected.table.id)}
+          onAttendCall={mayServe ? async () => { await attendCall(selected.table.id); await refreshOrders() } : undefined}
+          onServe={mayServe ? serveLine : undefined} busy={busy} mayCharge={mayCharge} mayCreate={mayCreate} />
       )}
       {moving && target !== null && (
         <ChangeTableModal open onClose={() => setTarget(null)} detail={moving.detail} busy={movingBusy} onConfirm={confirmMove}

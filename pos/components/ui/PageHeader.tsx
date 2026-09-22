@@ -1,17 +1,16 @@
 import type { ReactNode } from 'react'
 
-import { Icon, type KitIcon } from '@/components/kit/Icon'
+// El título identifica la vista. Los controles conservan sus propias superficies y estados.
+export function PageTitle({ children }: { children: ReactNode }) {
+  return <h1 className="shrink-0 text-[28px] leading-tight font-semibold tracking-title text-ink">{children}</h1>
+}
 
-// Fila de título del kit (Order / Ipad View.png, Inventory / Home.png): chip de título con icono a la izquierda,
-// chips de sección a continuación y las acciones (buscador, botón primario) a la derecha.
-export function PageHeader({ icon, title, children, actions }: { icon: KitIcon; title: string; children?: ReactNode; actions?: ReactNode }) {
+export function PageHeader({ title, children, actions }: { title: string; children?: ReactNode; actions?: ReactNode }) {
   return (
-    <div className="shrink-0 h-[72px] px-5 flex items-center gap-4">
-      <h1 className="h-12 px-4 rounded-md bg-muted flex items-center gap-2 text-[18px] font-semibold text-ink whitespace-nowrap">
-        <Icon name={icon} size={22} /><span>{title}</span>
-      </h1>
+    <header className="shrink-0 min-h-[88px] px-5 py-4 flex flex-wrap items-center gap-x-6 gap-y-3">
+      <PageTitle>{title}</PageTitle>
       {children && <div className="flex items-center gap-2 min-w-0">{children}</div>}
       {actions && <div className="ml-auto flex items-center gap-3 shrink-0">{actions}</div>}
-    </div>
+    </header>
   )
 }

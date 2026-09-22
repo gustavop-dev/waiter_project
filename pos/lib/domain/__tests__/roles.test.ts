@@ -5,7 +5,7 @@ it('limits navigation and routes by role', () => {
   expect(navFor('waiter')).toEqual(['operation', 'customers'])
   expect(allowedPath('waiter', '/configuracion')).toBe(false)
   expect(allowedPath('waiter', '/mesas/3')).toBe(true)
-  expect(allowedPath('cashier', '/facturacion')).toBe(true)
+  expect(allowedPath('cashier', '/facturacion')).toBe(false)
   expect(allowedPath('cashier', '/catalogo')).toBe(false)
   expect(allowedPath('admin', '/configuracion')).toBe(true)
 })

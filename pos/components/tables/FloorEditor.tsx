@@ -3,6 +3,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { BACKGROUND_OPACITY, CELL, extent, invalidTable, MAX_EXTRA_IMAGES, normalizePlan, planFits, planImageSrc, snap, tableProblems, WALL_COLOR, zoneAt, type FloorDocument, type PlanImage, type PlanRect, type PlanTable } from '@/lib/domain/floorPlan'
 import { Icon } from '@/components/kit/Icon'
+import { AuroraBackground } from '@/components/kit/Aurora'
 import { EditorInspector, type Layer } from '@/components/tables/editor/EditorInspector'
 import { EditorPalette } from '@/components/tables/editor/EditorPalette'
 import { EditorHint, EditorToolbar } from '@/components/tables/editor/EditorToolbar'
@@ -305,7 +306,8 @@ export function FloorEditor({ initial, configId, background, onCancel, onSaved }
  const hint = tool === 'select' && selection ? 'Arrastra para mover. La esquina blanca cambia el tamaño. Las propiedades están a la derecha.' : activeTool.hint
  const counts = `${plan.tables.length} ${plan.tables.length === 1 ? 'mesa' : 'mesas'} · ${plan.walls.length} ${plan.walls.length === 1 ? 'pared' : 'paredes'} · ${plan.zones.length} ${plan.zones.length === 1 ? 'zona' : 'zonas'}`
  const blocker = !fits ? 'El plano es demasiado grande' : invalid.length ? `${invalid.length} ${invalid.length === 1 ? 'mesa por corregir' : 'mesas por corregir'}` : !plan.name.trim() ? 'Falta el nombre del piso' : plan.zones.some(z => !z.name.trim()) ? 'Hay una zona sin nombre' : ''
- return <main className="h-screen flex flex-col bg-canvas text-ink" aria-label="Editor del restaurante">
+ return <main className="pos-ambient h-screen flex flex-col text-ink" aria-label="Editor del restaurante">
+  <AuroraBackground />
   <header className="shrink-0 h-[68px] flex items-center gap-3 px-4 border-b border-border bg-surface">
    <span className="w-10 h-10 shrink-0 grid place-items-center rounded-md bg-primary-soft text-primary"><Icon name="edit" size={20}/></span>
    <div className="min-w-0 flex-1"><h1 className="text-[16px] font-semibold leading-tight">Editar plano del restaurante</h1><p className="truncate text-[13px] text-dim">Nada cambia en el salón hasta que guardes.</p></div>

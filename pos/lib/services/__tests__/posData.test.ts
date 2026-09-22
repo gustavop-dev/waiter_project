@@ -1,3 +1,4 @@
+import { DEFAULT_ROLE_POLICY } from '@/lib/domain/permissions'
 import { callKw } from '@/lib/services/odoo'
 import { loadPosData } from '@/lib/services/posData'
 
@@ -26,7 +27,7 @@ const RAW = {
 
 beforeEach(() => {
   mockCallKw.mockReset()
-  mockCallKw.mockImplementation(async (_m: string, method: string) => (method === 'load_data' ? RAW : [{ id: 6, qty_available: 0 }]))
+  mockCallKw.mockImplementation(async (_m: string, method: string) => (method === 'waiter_role_policy' ? DEFAULT_ROLE_POLICY : method === 'load_data' ? RAW : [{ id: 6, qty_available: 0 }]))
 })
 
 // Falla si el producto deja de tomar impuestos, categorías o el favorito de su plantilla.
@@ -59,6 +60,7 @@ it('reads the table floor as a bare id with its plan geometry and keeps the cash
 
 it('loads administration without reading or creating a cash session and normalizes relations', async () => {
   mockCallKw.mockImplementation(async (model: keyof typeof RAW, method: string, args: unknown[]) => {
+    if (method === 'waiter_role_policy') return DEFAULT_ROLE_POLICY
     expect(method).toBe('search_read')
     const fields = args[1] as string[]
     if (fields.includes('qty_available')) return [{ id: 6, qty_available: 2 }]

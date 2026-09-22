@@ -55,6 +55,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   employee: null,
   hydrated: false,
   login: async (l, p) => {
+    set({ employee: null })
     const user = await loginRequest(l, p)
     const session = await getOpenSession()
     set({ user, session, hydrated: true })

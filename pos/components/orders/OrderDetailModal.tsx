@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 
 import { Icon, type KitIcon } from '@/components/kit/Icon'
+import { OrderLocationRow } from '@/components/orders/OrderLocationRow'
+import type { OrderLocation } from '@/lib/domain/orderLocation'
 import { Modal } from '@/components/kit/Modal'
 import { CustomerRow, OrderHeadline, StatusBar } from '@/components/orders/OrderCard'
 import { formatCop } from '@/lib/domain/money'
@@ -18,13 +20,14 @@ const GROUPS: { key: LineGroup; icon: KitIcon; cls: string }[] = [
 ]
 
 interface Props {
+  location?: OrderLocation
   order: KitOrder | null; status: KitStatus; percent: number; onClose: () => void
   imageOf: (productId: number) => string | null; onCancelWaiting: (lines: KitLine[]) => void
   onSendPending?: () => void; onServeReady?: (lines: KitLine[]) => void; busy?: boolean; mayCharge?: boolean
 }
 
 // "Detail Order" del kit: cabecera del pedido, líneas agrupadas por estado de cocina y pie con total, "+ Nuevo pedido" e "Ir a pagar".
-export function OrderDetailModal({ order, status, percent, onClose, imageOf, onCancelWaiting, onSendPending, onServeReady, busy = false, mayCharge = true }: Props) {
+export function OrderDetailModal({ order, location, status, percent, onClose, imageOf, onCancelWaiting, onSendPending, onServeReady, busy = false, mayCharge = true }: Props) {
   const t = useTranslations('orders')
   if (!order) return null
   const groups = GROUPS.map((g) => ({ ...g, lines: order.lines.filter((l) => lineGroup(order, l) === g.key) })).filter((g) => g.lines.length > 0)
@@ -45,6 +48,7 @@ export function OrderDetailModal({ order, status, percent, onClose, imageOf, onC
       <div className="px-4 pt-3 pb-4 flex flex-col gap-3 border-b border-border">
         <OrderHeadline order={order} />
         <CustomerRow order={order} size="sm" />
+        {order.tableId !== null && <OrderLocationRow location={location} />}
         {order.channel === 'whatsapp' && (
           <div className="flex flex-wrap items-center gap-2 text-[13px] text-soft">
             <span className="rounded-sm bg-success-soft px-2 py-1 text-success-ink">WhatsApp</span>

@@ -4,6 +4,8 @@ import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Icon } from '@/components/kit/Icon'
+import { Button } from '@/components/ui/Button'
+import { Select } from '@/components/ui/Select'
 import { ZoneStaffModal, type StaffSave } from '@/components/tables/ZoneStaffModal'
 import type { FloorDocument } from '@/lib/domain/floorPlan'
 import { EMPTY_STAFF, staffNames, zonesWithoutStaff, type ZoneStaff } from '@/lib/domain/zoneStaff'
@@ -55,7 +57,7 @@ export function FloorZones({ plan, floorName, configId, onFilter, onStaff }: {
   if (!hasZones) {
     if (role !== 'admin') return null
     return (
-      <p className="shrink-0 border-b border-border bg-surface px-4 py-2 text-sm text-soft flex items-center gap-2">
+      <p className="border-t border-border pt-4 text-[13px] leading-relaxed text-soft flex items-start gap-2">
         <Icon name="zone" size={18} className="shrink-0" />{t('noZones')}
       </p>
     )
@@ -83,21 +85,21 @@ export function FloorZones({ plan, floorName, configId, onFilter, onStaff }: {
   const zoneCalls = plan.tables.filter((tb) => calls.some((c) => c.tableId === tb.id) && inView(tb.zone)).length
   const missing = zonesWithoutStaff(plan.zones, staff.assignments).length
   return (
-    <section className="shrink-0 border-b border-border bg-surface px-4 py-2 text-sm" aria-label={t('bar')}>
-      <div className="flex flex-wrap items-center gap-3">
-        <label className="flex items-center gap-2 text-soft">{t('filter')}
-          <select className="h-10 border border-border rounded-md px-2 bg-surface text-ink" value={filter} onChange={(e) => setFilter(e.target.value)}>
+    <section className="border-t border-border pt-4 text-sm" aria-label={t('bar')}>
+      <div className="flex flex-col gap-3">
+        <label className="flex flex-col gap-2 text-soft">{t('filter')}
+          <Select value={filter} onChange={(e) => setFilter(e.target.value)}>
             <option value="all">{t('all')}</option>
             {employee && <option value="mine">{t('mine')}</option>}
             {plan.zones.map((z) => <option key={z.id} value={z.id}>{z.name}</option>)}
-          </select>
+          </Select>
         </label>
         <span className="text-soft">{t('calls', { count: zoneCalls })}</span>
         {role === 'admin' && (
-          <button type="button" onClick={() => void open()} className="ml-auto h-10 px-3 rounded-md border border-border text-ink font-medium flex items-center gap-2 hover:bg-muted">
-            <Icon name="users" size={18} />{t('open')}
+          <Button type="button" size="compact" onClick={() => void open()} className="w-full h-auto! min-h-tap-min py-3 flex-wrap">
+            <span className="flex min-w-0 items-center gap-2"><Icon name="users" size={20} className="shrink-0" /><span>{t('open')}</span></span>
             {missing > 0 && <span className="px-2 py-0.5 rounded-full bg-progress-soft text-progress-ink text-xs font-semibold">{t('missing', { count: missing })}</span>}
-          </button>
+          </Button>
         )}
       </div>
       {error && !editing && <p role="alert" className="text-danger-ink py-2">{error}</p>}

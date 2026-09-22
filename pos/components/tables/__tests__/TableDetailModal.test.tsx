@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
 
@@ -51,4 +51,56 @@ it('shows an honest empty state for a table without an open order', () => {
   wrap(null)
   expect(screen.getByText('Sin pedido abierto')).toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'Nuevo pedido' })).toBeEnabled()
+})
+
+
+it('shows an unsent order honestly and can retry its dispatch without leaving the table', async () => {
+  const unsent = { ...detail([line(1, 'unsent')]), sent: 0 }
+  const load = jest.fn().mockResolvedValue(unsent)
+  const send = jest.fn().mockRejectedValueOnce(new Error('Inicia sesión con tu PIN para enviar a cocina.')).mockImplementationOnce(async () => {
+    load.mockResolvedValue(detail([line(1, 'waiting')]))
+  })
+  wrapUnsent()
+  function wrapUnsent() {
+    render(<NextIntlClientProvider locale="es" messages={messages}>
+      <TableDetailModal open onClose={noop} tableName="11" orderId={9} imageFor={() => null}
+        onChangeTable={noop} onNewOrder={noop} onPay={noop} load={load} onSendPending={send} />
+    </NextIntlClientProvider>)
+  }
+  const button = await screen.findByRole('button', { name: 'Enviar pendientes a cocina' })
+  expect(screen.getAllByText('Sin enviar a cocina')).toHaveLength(2)
+  expect(screen.queryByText(/En progreso/)).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Ir a pagar' })).toBeDisabled()
+  await userEvent.click(button)
+  expect(await screen.findByRole('alert')).toHaveTextContent('Inicia sesión con tu PIN')
+  expect(button).toBeEnabled()
+  await userEvent.click(button)
+  await waitFor(() => expect(screen.queryByRole('button', { name: 'Enviar pendientes a cocina' })).not.toBeInTheDocument())
+  expect(send).toHaveBeenNthCalledWith(2, 9)
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+})
+
+
+it('delivers all ready dishes from the detail and immediately refreshes their status', async () => {
+  const load = jest.fn().mockResolvedValue(detail([line(1, 'ready'), line(2, 'ready')]))
+  const serve = jest.fn().mockImplementation(async () => { load.mockResolvedValue(detail([line(1, 'served'), line(2, 'served')])) })
+  render(<NextIntlClientProvider locale="es" messages={messages}>
+    <TableDetailModal open onClose={noop} tableName="11" orderId={9} imageFor={() => null}
+      onChangeTable={noop} onNewOrder={noop} onPay={noop} load={load} onServe={serve} />
+  </NextIntlClientProvider>)
+  await userEvent.click(await screen.findByRole('button', { name: 'Entregar todo' }))
+  expect(serve).toHaveBeenCalledWith([expect.objectContaining({ id: 1 }), expect.objectContaining({ id: 2 })])
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Ir a pagar' })).toBeEnabled())
+  expect(screen.queryByRole('button', { name: 'Entregar todo' })).not.toBeInTheDocument()
+})
+
+it('shows and attends calls even when a table has no order', async () => {
+  const attend = jest.fn().mockResolvedValue(undefined)
+  render(<NextIntlClientProvider locale="es" messages={messages}>
+    <TableDetailModal open onClose={noop} tableName="11" orderId={null} imageFor={() => null}
+      onChangeTable={noop} onNewOrder={noop} onPay={noop} call={{ tableId: 11, kind: 'assist', since: '' }} onAttendCall={attend} />
+  </NextIntlClientProvider>)
+  expect(screen.getByText('Solicita un mesero')).toBeInTheDocument()
+  await userEvent.click(screen.getByRole('button', { name: 'Marcar atendida' }))
+  expect(attend).toHaveBeenCalledTimes(1)
 })

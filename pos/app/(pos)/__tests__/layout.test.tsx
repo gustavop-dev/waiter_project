@@ -1,3 +1,4 @@
+import { DEFAULT_ROLE_POLICY } from '@/lib/domain/permissions'
 import { render, screen } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import PosLayout from '../layout'
@@ -18,7 +19,7 @@ beforeEach(() => {
   jest.clearAllMocks()
   pathname = '/inventario'
   ;(useAuthStore as unknown as jest.Mock).mockReturnValue(auth)
-  ;(useCatalogStore as unknown as jest.Mock).mockImplementation((select) => select({ load, status: 'ready', error: null }))
+  ;(useCatalogStore as unknown as jest.Mock).mockImplementation((select) => select({ load, status: 'ready', error: null, catalog: { settings: { rolePermissions: DEFAULT_ROLE_POLICY } } }))
 })
 it('allows administrator inventory access with cash closed', () => {
   render(<PosLayout><p>Inventario editable</p></PosLayout>)

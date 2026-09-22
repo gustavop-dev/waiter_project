@@ -63,7 +63,7 @@ it('derives the kit status from courses, state and the billing flag', () => {
   expect(orderStatus(order({ courses: [course(1, { readyAt: 'x' })], lines: [line(1, 1)] }), false)).toBe('ready')
   // Basta un plato en el pase para que el pedido reclame al mesero, aunque el resto siga en cocina.
   expect(orderStatus(order({ courses: [course(1, { readyAt: 'x' }), course(2)], lines: [line(1, 1), line(2, 2)] }), false)).toBe('ready')
-  expect(orderStatus(order({ lines: [line(1, null)] }), false)).toBe('in_progress')
+  expect(orderStatus(order({ lines: [line(1, null)] }), false)).toBe('pending_send')
 })
 
 // Falla si "Cobrar" se habilita con líneas sin servir o con un pedido vacío.
@@ -80,7 +80,7 @@ it('searches by number or customer and counts orders per status chip', () => {
   expect(matchesOrderSearch(served, 'noa')).toBe(true)
   expect(matchesOrderSearch(served, 'eva')).toBe(false)
   const counts = countByStatus([order(), served], (o) => orderStatus(o, false))
-  expect(counts).toEqual({ all: 2, in_progress: 1, ready: 0, served: 1, waiting_payment: 0, completed: 0 })
+  expect(counts).toEqual({ all: 2, pending_send: 1, in_progress: 0, ready: 0, served: 1, waiting_payment: 0, completed: 0 })
 })
 
 // Falla si "más reciente" no pone primero el último pedido o si ordenar por tipo mezcla en mesa con para llevar.
@@ -109,4 +109,11 @@ it('allows cancellation after receipt until preparation starts', () => {
   expect(lineGroup(o, o.lines[0])).toBe('waiting')
   o.courses[0].preparationAt = '2026-09-08 10:01:00'
   expect(lineGroup(o, o.lines[0])).toBe('in_progress')
+})
+
+
+it('distinguishes a saved order from an actual kitchen dispatch', () => {
+  expect(orderStatus(order(), false)).toBe('pending_send')
+  expect(orderStatus(order({ courses: [course(1, { fired: false })], lines: [line(1, 1)] }), false)).toBe('pending_send')
+  expect(orderStatus(order({ courses: [course(1, { preparationAt: null })], lines: [line(1, 1)] }), false)).toBe('in_progress')
 })

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState, type ReactNode } from 'react'
 
 import { SettingsModal } from '@/components/kit/SettingsModal'
+import { AuroraBackground } from '@/components/kit/Aurora'
 import { TopBar } from '@/components/kit/TopBar'
 import { adminSubtabForPath, tabForPath } from '@/lib/domain/navigation'
 import { useIdentity } from '@/lib/hooks/useIdentity'
@@ -20,6 +21,7 @@ export function KitShell({ children }: { children: ReactNode }) {
   const router = useRouter()
   const session = useAuthStore((s) => s.session)
   const endShift = useAuthStore((s) => s.endShift)
+  const policy = useCatalogStore((s) => s.catalog?.settings.rolePermissions)
   const restaurant = useCatalogStore((s) => s.catalog?.company.name ?? '')
   const [settings, setSettings] = useState(false)
   // Una sola conexión al bus por tablet: el servidor avisa de lo que cambia y el sondeo pasa a ser red
@@ -33,8 +35,9 @@ export function KitShell({ children }: { children: ReactNode }) {
   // Manda el empleado que marcó su PIN, no la credencial con la que se abrió la tablet.
   const { name: shownName, role } = useIdentity()
   return (
-    <div className="h-screen flex flex-col bg-canvas text-ink">
-      <TopBar active={tabForPath(pathname)} role={role} administrationOnly={!session} userName={shownName} activeSubtab={adminSubtabForPath(pathname)} onOpenSettings={() => setSettings(true)} />
+    <div className="pos-ambient h-screen flex flex-col text-ink">
+      <AuroraBackground />
+      <TopBar active={tabForPath(pathname)} role={role} policy={policy} administrationOnly={!session} userName={shownName} activeSubtab={adminSubtabForPath(pathname)} onOpenSettings={() => setSettings(true)} />
       {!session && role === 'admin' && <div className="px-5 py-2 border-b border-border flex items-center justify-between text-sm"><span>Administración · Caja cerrada</span><Link href="/caja" className="font-semibold text-primary">Abrir caja</Link></div>}
       <div className="flex-1 min-h-0 flex flex-col">{children}</div>
       <SettingsModal open={settings} onClose={() => setSettings(false)} user={{ name: shownName, role }} restaurant={restaurant}

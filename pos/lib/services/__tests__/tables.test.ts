@@ -30,7 +30,7 @@ beforeEach(() => { m.mockReset(); m.mockImplementation(async (model: string, met
 it('reads the order detail with per-line status, additions and sent/served counts', async () => {
   const d = await getOrderDetail(9)
   expect(d).toMatchObject({ tracking: '104', serviceAt: null, customerName: 'Eva', total: 87822, sent: 2, served: 1 })
-  expect(d.lines.map((l) => [l.name, l.status])).toEqual([['Hamburguesa Angus', 'served'], ['Club Colombia', 'ready'], ['Papas', 'waiting']])
+  expect(d.lines.map((l) => [l.name, l.status])).toEqual([['Hamburguesa Angus', 'served'], ['Club Colombia', 'ready'], ['Papas', 'unsent']])
   expect(d.lines[0]).toMatchObject({ additions: ['Queso extra'], note: 'Sin cebolla', total: 43911, productId: 3 })
 })
 
@@ -88,4 +88,14 @@ it('lists the active reservations of one table, also when it is a secondary tabl
   const rows = await listTableReservations(2)
   expect(m.mock.calls[0][2][0]).toEqual([['table_ids', 'in', [2]], ['state', 'in', ['confirmed', 'seated']]])
   expect(rows[0]).toMatchObject({ name: 'Rv001', customerName: 'Eva', timeLabel: '10:00 – 11:00', people: 2, babyChair: true, tableId: 2 })
+})
+
+
+it('distinguishes unsent dishes, received tickets and preparation started in kitchen', async () => {
+  m.mockImplementation(async (model: string, method: string) => model === 'restaurant.order.course'
+    ? [{ id: 1, fired: true, preparation_date: false }, { id: 2, fired: true, preparation_date: '2026-09-21 12:00:00' }]
+    : byModel(model, method))
+  const d = await getOrderDetail(9)
+  expect(d.lines.map((line) => line.status)).toEqual(['waiting', 'progress', 'unsent'])
+  expect(d.sent).toBe(2)
 })

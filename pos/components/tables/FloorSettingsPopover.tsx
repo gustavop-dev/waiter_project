@@ -32,7 +32,7 @@ export function FloorSettingsPopover({ open, onClose, floors, currentFloor, onAd
   const groups = [['activeGroup', floors.filter((f) => f.active)], ['inactiveGroup', floors.filter((f) => !f.active)]] as const
   return (
     <>
-      <div ref={ref} role="dialog" aria-label={t('title')} className="absolute right-4 top-2 z-30 w-[360px] max-w-[calc(100vw-2rem)] max-h-[calc(100%-1rem)] rounded-md bg-surface border border-border shadow-xl flex flex-col">
+      <div ref={ref} role="dialog" aria-label={t('title')} className="absolute left-4 bottom-4 z-30 w-[360px] max-w-[calc(100vw-2rem)] max-h-[calc(100%-1rem)] rounded-md bg-surface border border-border shadow-xl flex flex-col">
         <div className="p-3 flex flex-col gap-2 border-b border-border">
           <h2 className="px-1 flex items-center gap-2 text-[15px] font-semibold text-ink"><Icon name="tables" size={18} />{t('title')}</h2>
           {currentFloor && <button type="button" onClick={() => onEdit(currentFloor)} className="min-h-14 p-3 rounded-sm border border-primary/30 bg-primary-soft flex items-center gap-3 text-left text-primary">

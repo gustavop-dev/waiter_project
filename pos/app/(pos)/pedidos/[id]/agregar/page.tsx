@@ -1,6 +1,6 @@
 'use client'
 
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
@@ -25,6 +25,7 @@ export default function AgregarRondaPage() {
   const router = useRouter()
   const params = useParams<{ id: string }>()
   const orderId = Number(params.id)
+  const returnTo = usePathname().startsWith('/salon') ? '/salon' : '/pedidos'
   const session = useAuthStore((s) => s.session)
   const catalog = useCatalogStore((s) => s.catalog)
   const { draft, start, add, changeQty, note, remove, discard } = useOrderStore()
@@ -56,7 +57,7 @@ export default function AgregarRondaPage() {
   const totals = useMemo(() => cartTotals(lines, taxes), [lines, taxes])
   const productOf = useCallback((id: number) => catalog?.products.find((p) => p.id === id), [catalog])
   const inCart = (productId: number) => lines.filter((l) => l.productId === productId).reduce((a, l) => a + l.qty, 0)
-  const close = () => router.push('/pedidos')
+  const close = () => router.push(returnTo)
 
   async function send() {
     if (!order || lines.length === 0) return
@@ -65,7 +66,7 @@ export default function AgregarRondaPage() {
       await addRound(order.id, lines)
       toast({ title: t('addRound.sent', { number: order.number }), body: t('addRound.sentBody') })
       discard()
-      router.push('/pedidos')
+      router.push(returnTo)
     } catch (e) {
       toast({ title: e instanceof Error ? e.message : String(e), tone: 'danger' })
     } finally { setBusy(false) }

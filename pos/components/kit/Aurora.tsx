@@ -16,3 +16,15 @@ export function Aurora({ className, children }: { className?: string; children?:
     </div>
   )
 }
+
+// Variante ambiental: se monta una vez en un contenedor .pos-ambient. Comparte la paleta y
+// el movimiento del acceso; solo el fondo se difumina, nunca los textos ni los controles.
+export function AuroraBackground() {
+  return (
+    <div className="pos-aurora-backdrop" aria-hidden="true">
+      <div className="pos-aurora-field">
+        {AURORA.blobs.map((blob) => <span key={blob.key} className={`login-blob login-blob-${blob.key}`} />)}
+      </div>
+    </div>
+  )
+}

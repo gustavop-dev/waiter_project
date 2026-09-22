@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl'
 
 import { Icon, type KitIcon } from '@/components/kit/Icon'
 import { formatOrderDate } from '@/components/orders/format'
+import { OrderLocationRow } from '@/components/orders/OrderLocationRow'
+import type { OrderLocation } from '@/lib/domain/orderLocation'
 import { ProgressRing } from '@/components/orders/ProgressRing'
 import { Button } from '@/components/ui/Button'
 import { formatCop } from '@/lib/domain/money'
@@ -12,6 +14,7 @@ import { canCharge, lineGroup, type KitLine, type KitOrder, type KitStatus, type
 import { cn } from '@/lib/utils'
 
 const TONE: Record<KitStatus, { bg: string; text: string; icon: KitIcon | null }> = {
+  pending_send: { bg: 'bg-muted', text: 'text-soft', icon: 'cart' },
   in_progress: { bg: 'bg-progress-soft', text: 'text-progress-ink', icon: null },
   ready: { bg: 'bg-success-soft', text: 'text-success-ink', icon: 'chef' },
   served: { bg: 'bg-success-soft', text: 'text-success-ink', icon: 'check' },
@@ -116,19 +119,21 @@ function LinesTable({ order, onToggle }: LinesTableProps) {
 }
 
 interface OrderCardProps {
+  location?: OrderLocation
   order: KitOrder; status: KitStatus; percent: number; variant?: 'dashboard' | 'full'
   checked?: Set<number>; onToggleLine?: (line: KitLine) => void; onDetails?: () => void; mayCharge?: boolean
 }
 // Tarjeta de pedido del kit. En el Dashboard es la versión corta; en Pedidos lleva la tabla de ítems y el pie.
 // Al detalle se entra por la flecha de "N ítems", así que el pie deja sitio a lo que se hace más veces en
 // una mesa que ya está comiendo: pedir otra ronda.
-export function OrderCard({ order, status, percent, variant = 'full', checked = new Set(), onToggleLine = () => undefined, onDetails, mayCharge = true }: OrderCardProps) {
+export function OrderCard({ order, location, status, percent, variant = 'full', checked = new Set(), onToggleLine = () => undefined, onDetails, mayCharge = true }: OrderCardProps) {
   const t = useTranslations('orders')
   const chargeable = canCharge(order) && mayCharge
   return (
     <article aria-label={`${t('card.orderNo')} ${order.number}`} className="bg-surface border border-border rounded-lg p-3 flex flex-col gap-3 shrink-0">
       <OrderHeadline order={order} />
       <CustomerRow order={order} />
+      {order.tableId !== null && <OrderLocationRow location={location} />}
       <StatusBar order={order} status={status} percent={percent} onItems={onDetails} />
       {variant === 'full' && (
         <>

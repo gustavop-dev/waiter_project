@@ -5,7 +5,8 @@ import type { Table } from '@/lib/types'
 
 export type TableState = 'free' | 'occupied' | 'kitchen' | 'ready' | 'billing' | 'paid' | 'ordering' | 'served' | 'assist' | 'closed'
 export interface LocalFlags { billing?: boolean; assist?: boolean; closed?: boolean; ordering?: boolean }
-export interface TableView { table: Table; state: TableState; total: number; tax: number; orderId: number | null; startedAt: string | null; waiter: string | null; callSince: string | null }
+export type TableNotice = 'ready' | 'unsent' | 'assist' | 'ordering' | 'bill'
+export interface TableView { notices?: TableNotice[]; table: Table; state: TableState; total: number; tax: number; orderId: number | null; startedAt: string | null; waiter: string | null; callSince: string | null }
 
 const STATES: TableState[] = ['free', 'occupied', 'kitchen', 'ready', 'billing', 'paid', 'ordering', 'served', 'assist', 'closed']
 
@@ -17,8 +18,9 @@ const STATES: TableState[] = ['free', 'occupied', 'kitchen', 'ready', 'billing',
 function stateFor(order: OpenOrder | undefined, flags: LocalFlags, call: TableCall | undefined): TableState {
   if (flags.closed) return 'closed'
   if (flags.assist || call?.kind === 'assist') return 'assist'
-  if (!order) return flags.ordering || call?.kind === 'ordering' ? 'ordering' : 'free'
   if (flags.billing || call?.kind === 'bill') return 'billing'
+  if (flags.ordering || call?.kind === 'ordering') return 'ordering'
+  if (!order) return 'free'
   return phaseState(order.kitchen)
 }
 // "Listo" es su propio estado en el plano: es la mesa a la que el mesero tiene que ir ya.
@@ -32,7 +34,12 @@ export function deriveTableViews(tables: Table[], orders: OpenOrder[], flags: Re
   return tables.map((table) => {
     const order = orders.find((o) => o.tableId === table.id)
     const call = calls.find((c) => c.tableId === table.id)
-    return { table, state: stateFor(order, flags[table.id] ?? {}, call), total: order?.total ?? 0, tax: order?.tax ?? 0, orderId: order?.id ?? null,
+    const tableOrders = orders.filter((entry) => entry.tableId === table.id)
+    const notices: TableNotice[] = []
+    if (tableOrders.some((entry) => entry.kitchen === 'ready')) notices.push('ready')
+    if (tableOrders.some((entry) => entry.unsent || (entry.kitchen === 'none' && entry.lineCount > 0))) notices.push('unsent')
+    if (call) notices.push(call.kind)
+    return { table, notices, state: stateFor(order, flags[table.id] ?? {}, call), total: order?.total ?? 0, tax: order?.tax ?? 0, orderId: order?.id ?? null,
       startedAt: order?.startedAt ?? null, waiter: order?.waiter ?? null, callSince: call?.since || null }
   })
 }

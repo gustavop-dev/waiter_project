@@ -13,6 +13,18 @@ const order: KitOrder = {
 }
 const ui = (node: React.ReactNode) => render(<NextIntlClientProvider locale="es" messages={messages}>{node}</NextIntlClientProvider>)
 
+it('shows the floor and zone for table orders, but not for takeout', () => {
+  const location = { floor: 'Terraza', zone: 'Ventanas', zoneStatus: 'ready' as const }
+  const { unmount } = ui(<OrderCard order={order} location={location} status="in_progress" percent={0} />)
+  expect(screen.getByText('Piso')).toBeInTheDocument()
+  expect(screen.getByText('Terraza')).toBeInTheDocument()
+  expect(screen.getByText('Zona')).toBeInTheDocument()
+  expect(screen.getByText('Ventanas')).toBeInTheDocument()
+  unmount()
+  ui(<OrderCard order={{ ...order, tableId: null, tableNumber: null, type: 'takeout' }} location={location} status="in_progress" percent={0} />)
+  expect(screen.queryByText('Ventanas')).not.toBeInTheDocument()
+})
+
 // Falla si la tarjeta pierde el número DI, el tipo, la mesa, el % o el conteo de ítems del kit.
 it('renders number, type, table chip, progress and items like the kit card', () => {
   ui(<OrderCard order={order} status="in_progress" percent={50} />)

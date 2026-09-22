@@ -1,7 +1,7 @@
+import { roleCan, DEFAULT_ROLE_POLICY, type RolePolicy, type RoleView } from '@/lib/domain/permissions'
 import type { Role } from '@/lib/domain/roles'
 
-// Pestañas de la barra superior del kit CloudPos. Las seis primeras son las del mesero, tal cual el kit;
-// Cocina y Administración usan el mismo componente "Navigation Item" y aparecen según el rol.
+// Pestañas disponibles. La política guardada del restaurante decide cuáles ve cada rol.
 export const KIT_TABS = ['dashboard', 'orders', 'tables', 'reservations', 'history', 'inventory', 'kitchen', 'admin'] as const
 export type KitTab = (typeof KIT_TABS)[number]
 
@@ -15,12 +15,9 @@ export const TAB_ROUTES: Record<KitTab, string> = {
 export const ADMIN_SUBTABS = [['sales', '/ventas'], ['customers', '/clientes'], ['billing', '/facturacion'], ['roi', '/automatizacion'], ['settings', '/configuracion']] as const
 export type AdminSubtab = (typeof ADMIN_SUBTABS)[number][0]
 
-const WAITER: KitTab[] = ['dashboard', 'orders', 'tables', 'reservations', 'history', 'inventory']
-const BY_ROLE: Record<Role, KitTab[]> = { waiter: WAITER, cashier: [...WAITER, 'kitchen', 'admin'], admin: [...WAITER, 'kitchen', 'admin'] }
-const SUBTABS_BY_ROLE: Record<Role, AdminSubtab[]> = { waiter: [], cashier: ['sales', 'customers', 'billing'], admin: ['sales', 'customers', 'billing', 'roi', 'settings'] }
-
-export const tabsFor = (role: Role): KitTab[] => BY_ROLE[role]
-export const adminSubtabsFor = (role: Role) => ADMIN_SUBTABS.filter(([key]) => SUBTABS_BY_ROLE[role].includes(key))
+export const tabsFor = (role: Role, policy: RolePolicy = DEFAULT_ROLE_POLICY): KitTab[] => KIT_TABS.filter((tab) =>
+  tab === 'admin' ? role === 'admin' || ['sales', 'customers', 'billing'].some((view) => policy[role].views.includes(view as RoleView)) : roleCan(role, tab, policy))
+export const adminSubtabsFor = (role: Role, policy: RolePolicy = DEFAULT_ROLE_POLICY) => ADMIN_SUBTABS.filter(([key]) => role === 'admin' || policy[role].views.includes(key as RoleView))
 
 const PATH_TAB: [RegExp, KitTab][] = [
   [/^\/dashboard/, 'dashboard'], [/^\/(pedidos|operacion)/, 'orders'], [/^\/(salon|mesas)/, 'tables'], [/^\/reservas/, 'reservations'],
@@ -31,22 +28,24 @@ export const tabForPath = (pathname: string): KitTab | null => PATH_TAB.find(([r
 export const adminSubtabForPath = (pathname: string): AdminSubtab | null => ADMIN_SUBTABS.find(([, href]) => pathname.startsWith(href))?.[0] ?? null
 
 // Una ruta se permite si su pestaña es del rol y, dentro de Administración, si su chip también lo es. Rutas sin pestaña (galería, etc.) pasan.
-export function pathAllowed(role: Role, pathname: string): boolean {
+export function pathAllowed(role: Role, pathname: string, policy: RolePolicy = DEFAULT_ROLE_POLICY): boolean {
+  if (/^\/pago(\/|$)/.test(pathname)) return roleCan(role, 'charge_orders', policy)
+  if (/^\/(salon|pedidos)\/(nuevo|\d+\/agregar)(\/|$)/.test(pathname) && !roleCan(role, 'create_orders', policy)) return false
   const tab = tabForPath(pathname)
   if (!tab) return true
-  if (!BY_ROLE[role].includes(tab)) return false
+  if (!tabsFor(role, policy).includes(tab)) return false
   if (tab !== 'admin') return true
   const sub = adminSubtabForPath(pathname)
-  return sub ? SUBTABS_BY_ROLE[role].includes(sub) : role === 'admin'
+  return sub ? adminSubtabsFor(role, policy).some(([key]) => key === sub) : role === 'admin'
 }
 
-// Las operaciones de pedidos y cocina requieren caja; la configuración del restaurante no.
-// Pantalla de inicio de cada rol, al marcar el PIN y al abrir la app. El administrador va a Inicio: su trabajo es la
-// visión general, no las mesas, y la ve con la caja abierta o cerrada. Meseros y cajeros van a Mesas si hay caja abierta
-// y, si no, a abrirla.
-export function homePath(role: Role, hasOpenSession: boolean): string {
+// Inicio por rol y por vistas autorizadas. Sin caja, el equipo operativo va a abrirla.
+export function homePath(role: Role, hasOpenSession: boolean, policy: RolePolicy = DEFAULT_ROLE_POLICY): string {
   if (role === 'admin') return '/dashboard'
-  return hasOpenSession ? '/salon' : '/caja'
+  if (!hasOpenSession) return '/caja'
+  const preferred: KitTab[] = role === 'waiter' ? ['tables', 'orders'] : ['orders', 'tables']
+  const tab = [...preferred, ...tabsFor(role, policy)].find((entry) => tabsFor(role, policy).includes(entry))
+  return tab === 'admin' ? adminSubtabsFor(role, policy)[0]?.[1] ?? '/salon' : TAB_ROUTES[tab ?? 'tables']
 }
 
 // Pantallas a pantalla completa, sin la barra de navegación: la cocina, la operación en vivo y el mesero IA.

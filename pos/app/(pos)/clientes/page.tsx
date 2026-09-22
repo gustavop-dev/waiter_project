@@ -50,7 +50,7 @@ export default function ClientesPage() {
   }
   return (
     <>
-      <PageHeader icon="customers" title={t('title')} actions={<>
+      <PageHeader title={t('title')} actions={<>
         <SearchInput value={query} onChange={setQuery} placeholder={t('search')} className="w-[360px]" />
         <Button variant="primary" onClick={() => setForm({ id: null })}><Icon name="plus" size={18} />{t('new')}</Button>
       </>}>

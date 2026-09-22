@@ -103,7 +103,24 @@
   "title": "Pedidos",
   "search": "Buscar por número o cliente",
   "createOrder": "Crear pedido",
+  "locationFilters": {
+    "floor": "Piso",
+    "zone": "Zona",
+    "allFloors": "Todos los pisos",
+    "allZones": "Todas las zonas",
+    "noTable": "Sin mesa",
+    "unassigned": "Sin zona asignada",
+    "unavailable": "Ubicación por verificar",
+    "loading": "Cargando zonas…",
+    "noActiveZone": "Zona seleccionada",
+    "clear": "Limpiar filtros",
+    "count": "{count} de {total} pedidos",
+    "emptyTitle": "No hay pedidos con estos filtros",
+    "emptyBody": "Cambia de piso o zona, o limpia los filtros para ver todos los pedidos."
+  },
   "filters": {
+    "served": "Servidos",
+    "pending_send": "Sin enviar",
     "all": "Todos",
     "in_progress": "En progreso",
     "ready": "Listos para servir",
@@ -122,11 +139,19 @@
     "delivery": "Domicilio"
   },
   "status": {
+    "pending_send": "Sin enviar",
     "in_progress": "En progreso",
     "ready": "Listo para servir",
     "served": "Servido",
     "waiting_payment": "Esperando pago",
     "completed": "Completado"
+  },
+  "location": {
+    "floor": "Piso",
+    "zone": "Zona",
+    "loading": "Cargando…",
+    "unassigned": "Sin zona asignada",
+    "unavailable": "No disponible"
   },
   "card": {
     "orderNo": "Pedido#",
@@ -199,5 +224,5 @@
     "increase": "Más",
     "notFound": "No se encontró el pedido."
   },
-  "lineState": { "waiting": "Pendiente de preparación", "in_progress": "Cocina", "ready": "Listo", "served": "Servido" }
+  "lineState": { "unsent": "Sin enviar a cocina", "waiting": "Pendiente de preparación", "in_progress": "Cocina", "ready": "Listo", "served": "Servido" }
 }
