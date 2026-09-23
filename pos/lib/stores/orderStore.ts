@@ -8,6 +8,7 @@ import type { LocalFlags } from '@/lib/domain/tableState'
 import { play } from '@/lib/audio/sounds'
 import { change, type SettlePlan } from '@/lib/domain/payment'
 import { fireUnsentLines } from '@/lib/services/kitchen'
+import { clearTableCall, listTableCalls, type TableCall } from '@/lib/services/tables'
 import { useOpsStore } from '@/lib/stores/opsStore'
 import { addTip, closeOrder, setChange, getShiftSummary, listOpenOrders, payOrder, saveOrder } from '@/lib/services/orders'
 import type { OpenOrder, SavedOrder, ShiftSummary } from '@/lib/services/orders'
@@ -17,6 +18,7 @@ interface OrderState {
   draft: DraftOrder | null
   saved: SavedOrder | null
   openOrders: OpenOrder[]
+  calls: TableCall[]
   shift: ShiftSummary | null
   flags: Record<number, LocalFlags>
   busy: boolean
@@ -30,22 +32,26 @@ interface OrderState {
   save: () => Promise<void>
   sendToKitchen: () => Promise<void>
   requestBill: () => Promise<void>
-  charge: (paymentMethodId: number) => Promise<void>
-  chargeExisting: (orderId: number, tableId: number, total: number, paymentMethodId: number) => Promise<void>
   receipt: ReceiptData | null
   settle: (plan: SettlePlan, ctx: SettleContext) => Promise<boolean>
   closeReceipt: () => void
+  discard: () => void
   refreshOpenOrders: (sessionId: number) => Promise<void>
+  // La lista del salón ya derivada de los pedidos del kit (useKitOrders), con las llamadas de mesa, sin volver a pedirla.
+  adoptOpenOrders: (openOrders: OpenOrder[], calls: TableCall[]) => void
+  attendCall: (tableId: number) => Promise<void>
   refreshShift: (sessionId: number) => Promise<void>
 }
 
 export interface ReceiptData {
-  company: string; tableNumber: number; reference: string; at: number; lines: { uuid: string; name: string; qty: number; unitPrice: number }[]
+  // `tableLabel` es el nombre que ve el cliente ("A8", "Terraza 8"); `tableNumber` se conserva para quien
+  // solo tiene el número. El documento imprime la etiqueta cuando existe.
+  company: string; tableNumber: number; tableLabel?: string; reference: string; at: number; lines: { uuid: string; name: string; qty: number; unitPrice: number; discount?: number; total?: number }[]
   subtotal: number; tax: number; tip: number; total: number; payments: { method: string; amount: number; reference: string }[]; change: number
 }
 // Lo que el cobro necesita saber además del plan: dónde está el pedido y con qué pintar el recibo.
 export interface SettleContext {
-  existing: { orderId: number; tableId: number } | null; tipProductId: number | null; tableNumber: number; company: string
+  existing: { orderId: number; tableId: number } | null; tipProductId: number | null; tableNumber: number; tableLabel?: string; company: string
   lines: ReceiptData['lines']; methodName: (id: number) => string
 }
 
@@ -75,7 +81,7 @@ export const useOrderStore = create<OrderState>((set, get) => {
     set((s) => ({ flags: { ...s.flags, [tableId]: { ...s.flags[tableId], ...patch } } }))
 
   return {
-    draft: null, saved: null, openOrders: [], shift: null, flags: {}, busy: false, error: null, receipt: null,
+    draft: null, saved: null, openOrders: [], calls: [], shift: null, flags: {}, busy: false, error: null, receipt: null,
     start: (sessionId, tableId, guests) => set({ draft: createDraft({ sessionId, tableId, guests }), saved: null, error: null }),
     add: (p) => { play('tap'); update((d) => addProduct(d, p)) },
     changeQty: (u, q) => update((d) => setQty(d, u, q)),
@@ -93,32 +99,6 @@ export const useOrderStore = create<OrderState>((set, get) => {
     requestBill: async () => {
       const saved = await persist()
       if (saved) { flag(get().draft!.tableId, { billing: true }); useOpsStore.getState().markBilling(get().draft!.tableId, Date.now()) }
-    },
-    charge: async (paymentMethodId) => {
-      const saved = await persist()
-      if (!saved) return
-      set({ busy: true })
-      try {
-        await payOrder(saved.id, paymentMethodId, saved.total)
-        await closeOrder(saved.id)
-        play('cobro')
-        const tableId = get().draft!.tableId
-        set((s) => ({ draft: null, saved: null, busy: false, flags: { ...s.flags, [tableId]: {} } }))
-      } catch (e) {
-        set({ busy: false, error: message(e) })
-      }
-    },
-    // Pedido creado en otro dispositivo (o por el comensal): se cobra por su id, sin borrador local.
-    chargeExisting: async (orderId, tableId, total, paymentMethodId) => {
-      set({ busy: true, error: null })
-      try {
-        await payOrder(orderId, paymentMethodId, total)
-        await closeOrder(orderId)
-        play('cobro')
-        set((s) => ({ busy: false, flags: { ...s.flags, [tableId]: {} } }))
-      } catch (e) {
-        set({ busy: false, error: message(e) })
-      }
     },
     // Cobro completo: propina (línea en Odoo), un add_payment por pago, cambio en amount_return, cierre y recibo.
     settle: async (plan, ctx) => {
@@ -138,9 +118,12 @@ export const useOrderStore = create<OrderState>((set, get) => {
         if (ch > 0) await setChange(orderId, ch)
         const closed = await closeOrder(orderId)
         play('cobro')
-        const receipt: ReceiptData = { company: ctx.company, tableNumber: ctx.tableNumber, reference: closed.reference, at: Date.now(), lines: ctx.lines,
+        const receipt: ReceiptData = { company: ctx.company, tableNumber: ctx.tableNumber, tableLabel: ctx.tableLabel, reference: closed.reference, at: Date.now(), lines: ctx.lines,
           subtotal: closed.total - closed.tax - plan.tip, tax: closed.tax, tip: plan.tip, total: closed.total,
           payments: plan.payments.map((p) => ({ method: ctx.methodName(p.methodId), amount: p.amount, reference: p.reference })), change: ch }
+        // La mesa deja de llamar al cobrar, pero lo hace Odoo dentro del cierre del pedido
+        // (`_waiter_release_table`): pedirlo desde aquí exigía al cajero permisos de servicio que no tiene,
+        // y el rechazo se perdía en el `catch`, dejando el aviso encendido después de pagar.
         set((s) => ({ draft: null, saved: null, busy: false, receipt, flags: { ...s.flags, [tableId!]: {} } }))
         return true
       } catch (e) {
@@ -150,7 +133,22 @@ export const useOrderStore = create<OrderState>((set, get) => {
       }
     },
     closeReceipt: () => set({ receipt: null }),
-    refreshOpenOrders: async (sessionId) => set({ openOrders: await listOpenOrders(sessionId) }),
-    refreshShift: async (sessionId) => set({ shift: await getShiftSummary(sessionId) }),
+    // La ronda del kit (/pedidos/[id]/agregar) usa el borrador como carrito y lo suelta al enviar o al cerrar.
+    discard: () => set({ draft: null, saved: null, error: null }),
+    // Sondeos periódicos: un corte de red no debe tumbar la vista ni dejar rechazos sin capturar. Se conserva lo último
+    // conocido y se reintenta en el siguiente tick.
+    refreshOpenOrders: async (sessionId) => {
+      try {
+        const [openOrders, calls] = await Promise.all([listOpenOrders(sessionId), listTableCalls().catch(() => [] as TableCall[])])
+        set({ openOrders, calls })
+      } catch (e) {
+        console.warn('No se pudo refrescar el salón; se muestra lo último conocido.', e)
+      }
+    },
+    adoptOpenOrders: (openOrders, calls) => set({ openOrders, calls }),
+    attendCall: async (tableId) => { await clearTableCall(tableId); set((s) => ({ calls: s.calls.filter((c) => c.tableId !== tableId) })) },
+    refreshShift: async (sessionId) => {
+      try { set({ shift: await getShiftSummary(sessionId) }) } catch (e) { console.warn('No se pudo refrescar el turno.', e) }
+    },
   }
 })

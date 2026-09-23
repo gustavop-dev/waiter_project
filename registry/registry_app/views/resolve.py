@@ -6,7 +6,7 @@ from django.conf import settings
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from registry_app.models import TableToken, Venue
+from registry_app.models import CredentialRelease, TableToken, Venue
 
 
 def _authorized(request) -> bool:
@@ -34,9 +34,13 @@ def resolve(request, restaurant, venue, token=None):
         table = site.tokens.filter(token=token, active=True).first()
         if table is None:
             return Response({"detail": "mesa no disponible"}, status=404)
+    # Rastro de cada entrega de credenciales (sin la credencial): si se compromete quien las pide, dice qué inquilinos
+    # quedaron expuestos. Ver docs/arquitectura/2026-09-21-odoo-headless-y-django-orquestador.md.
+    CredentialRelease.objects.create(venue=site, restaurant_slug=site.restaurant.slug, venue_slug=site.slug,
+                                     with_table=table is not None, client=request.META.get("REMOTE_ADDR") or None)
     return Response(
         {
-            "restaurant": {"slug": site.restaurant.slug, "name": site.restaurant.name},
+            "restaurant": {"slug": site.restaurant.slug, "name": site.restaurant.name, "brand": site.restaurant.brand()},
             "venue": {"slug": site.slug, "name": site.name},
             "table": _table_payload(table),
             "odoo": {

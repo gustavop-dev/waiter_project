@@ -102,3 +102,24 @@ Thumbs.db
 /pos/test-results/
 /pos/playwright-report/
 /pos/e2e-results/
+
+# diner (paquete propio)
+/diner/node_modules/
+/diner/.next/
+/diner/test-results/
+/diner/playwright-report/
+
+# Worktrees de agentes de la sesión
+.claude/worktrees/
+
+# Los venv y node_modules también como symlink (los worktrees de agentes los enlazan al repo principal)
+/experience/venv
+/registry/venv
+/pos/node_modules
+/diner/node_modules
+
+# Figma binario del kit del POS (215 MB): no se versiona
+*.fig
+
+# Kits de diseño descargados (60–95 MB); las referencias útiles ya están en docs/diseno/exporty y diner/public/smart-menu
+/*.zip

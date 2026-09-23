@@ -5,7 +5,7 @@ from django.urls import reverse
 
 from experience_app.adapters.odoo.client import OdooUnavailable
 from experience_app.adapters.odoo.pos import OdooOrder, OrderStatus
-from experience_app.models import CartLine, Order
+from experience_app.models import CartLine, Order, TableSession
 from experience_app.tests.conftest import TABLE
 
 PAYLOAD = {'restaurante': 'burger-house', 'sede': 'poblado', 'token': '8H2KQ7'}
@@ -17,7 +17,7 @@ def odoo():
     with patch('experience_app.services.orders.resolve', return_value=TABLE), patch('experience_app.services.orders.OdooClient'), \
             patch('experience_app.services.orders.pos.ensure_open_session', return_value=4), \
             patch('experience_app.services.orders.pos.create_order', return_value=SENT) as create, \
-            patch('experience_app.services.orders.pos.fire_course', return_value=21) as fire:
+            patch('experience_app.services.orders.pos.fire_course', return_value=21) as fire, patch('experience_app.services.orders.pos.set_table_call'):
         yield create, fire
 
 
@@ -29,13 +29,17 @@ def cart(api_client, table_tenant, catalog_stub):
 
 
 @pytest.mark.django_db
-def test_confirm_sends_the_cart_to_odoo_with_the_order_uuid_and_fires_the_kitchen(api_client, cart, odoo):
+def test_confirm_reserves_the_order_for_payment_without_firing_kitchen(api_client, cart, odoo):
     """Atrapa un pedido que llega a Odoo sin uuid (duplicable) o que no va a cocina."""
     create, fire = odoo
     body = api_client.post(reverse('confirm', args=[cart]), format='json').json()
     assert create.call_args.kwargs['order_uuid'] == body['pedido']
     assert create.call_args.kwargs['table_id'] == 9
-    assert fire.call_args.args[1] == 13
+    fire.assert_not_called()
+    assert create.call_args.kwargs['requires_payment'] is True
+    assert body['estado'] == 'pendiente_pago'
+    assert Order.objects.get().state == Order.CHECKOUT
+    assert Order.objects.get().sent_at is None
     assert body['total'] == 87822.0
     assert CartLine.objects.filter(status=CartLine.CONFIRMED).count() == 1
 
@@ -65,7 +69,7 @@ def test_confirming_twice_without_new_lines_returns_the_same_order_without_calli
 
 
 @pytest.mark.django_db
-@patch('experience_app.services.orders.pos.read_order_status', return_value=OrderStatus(state='draft', kitchen='ready'))
+@patch('experience_app.services.orders.pos.read_order_status', return_value=OrderStatus(state='paid', kitchen='ready'))
 def test_order_status_maps_odoo_state_and_kitchen_phase(read, api_client, cart, odoo):
     """Atrapa un estado del pedido que no refleje lo que cocina marcó."""
     order_id = api_client.post(reverse('confirm', args=[cart]), format='json').json()['pedido']
@@ -80,3 +84,71 @@ def test_order_detail_requires_a_diner_of_that_table(api_client, cart, odoo):
     order_id = api_client.post(reverse('confirm', args=[cart]), format='json').json()['pedido']
     stranger = api_client.__class__()
     assert stranger.get(reverse('order-detail', args=[order_id])).status_code == 404
+
+
+# Falla si a un pedido que el salón ya cobró se le pueden seguir agregando líneas, o si la mesa no vuelve a empezar limpia.
+@pytest.mark.django_db
+@patch('experience_app.services.orders.pos.read_order_status', return_value=OrderStatus(state='paid', kitchen='served'))
+def test_a_paid_bill_ends_the_visit_and_the_next_tap_opens_a_new_session(read, api_client, cart, odoo):
+    api_client.post(reverse('confirm', args=[cart]), format='json')
+    api_client.post(reverse('add-line', args=[cart]), {'producto_id': 7}, format='json')
+    response = api_client.post(reverse('confirm', args=[cart]), format='json')
+    assert response.status_code == 409
+    assert TableSession.objects.get(id=cart).state == TableSession.PAID
+    again = api_client.post(reverse('open-session'), PAYLOAD, format='json').json()
+    assert again['sesion']['id'] != cart
+
+
+# Falla si el siguiente comensal de la mesa hereda la sesión (y el carrito) de una cuenta que el salón ya cobró.
+@pytest.mark.django_db
+@patch('experience_app.services.sessions.pos.read_order_status', return_value=OrderStatus(state='paid', kitchen='served'))
+def test_the_next_tap_after_the_floor_charged_the_bill_starts_a_clean_session(read, api_client, cart, odoo):
+    api_client.post(reverse('confirm', args=[cart]), format='json')
+    again = api_client.post(reverse('open-session'), PAYLOAD, format='json').json()
+    assert again['sesion']['id'] != cart
+    assert TableSession.objects.get(id=cart).state == TableSession.PAID
+    assert api_client.get(reverse('cart', args=[again['sesion']['id']])).json()['lineas'] == []
+
+@pytest.mark.django_db
+@patch('experience_app.services.orders.pos.read_order_status', return_value=OrderStatus(state='draft', kitchen='none'))
+def test_unpaid_checkout_reports_pending_and_never_preparation(read,api_client,cart,odoo):
+    oid=api_client.post(reverse('confirm',args=[cart]),format='json').json()['pedido']
+    assert api_client.get(reverse('order-detail',args=[oid])).json()['estado']=='pendiente_pago'
+    odoo[1].assert_not_called()
+
+@pytest.mark.django_db
+@patch('experience_app.services.sessions.pos.read_order_status', return_value=OrderStatus(state='paid', kitchen='cooking'))
+def test_prepayment_keeps_the_visit_while_the_customer_waits(read,api_client,cart,odoo):
+    api_client.post(reverse('confirm',args=[cart]),format='json')
+    same=api_client.post(reverse('open-session'),PAYLOAD,format='json').json()
+    assert same['sesion']['id']==cart
+    assert TableSession.objects.get(id=cart).state==TableSession.CONFIRMED
+
+
+@pytest.mark.django_db
+def test_checkout_notes_are_personal_and_survive_remote_retry(api_client, cart, odoo):
+    from experience_app.models import Diner
+    create, _ = odoo
+    mine = CartLine.objects.get(session_id=cart)
+    mine.note = 'Sin cebolla'
+    mine.save()
+    other_diner = Diner.objects.create(session_id=cart, name='Otro')
+    other = CartLine.objects.create(session_id=cart, diner=other_diner, product_id=7, name='Otro plato', unit_price=10, allergens='Leche')
+    create.side_effect = [OdooUnavailable('down'), SENT]
+    url = reverse('confirm', args=[cart])
+    assert api_client.post(url, {'notas':'Salsa aparte', 'alergenos':'Maní'}, format='json').status_code == 503
+    mine.refresh_from_db(); other.refresh_from_db()
+    assert mine.note == 'Sin cebolla' and mine.checkout_note == 'Salsa aparte' and mine.allergens == 'Maní'
+    assert other.allergens == 'Leche' and other.checkout_note == ''
+    assert api_client.post(url, {'notas':'Cambio tardío', 'alergenos':''}, format='json').status_code == 201
+    first = create.call_args_list[0].kwargs['lines']
+    retry = create.call_args_list[1].kwargs['lines']
+    assert [line.note for line in first] == [line.note for line in retry]
+    assert any('Sin cebolla' in line.note and 'Salsa aparte' in line.note and 'ALERGIAS / ALÉRGENOS: Maní' in line.note for line in retry)
+
+
+@pytest.mark.django_db
+def test_checkout_rejects_invalid_allergen_and_note_input(api_client, cart, odoo):
+    for data in [{'alergenos': ['Maní']}, {'notas': 'x'*501}]:
+        assert api_client.post(reverse('confirm', args=[cart]), data, format='json').status_code == 400
+    odoo[0].assert_not_called()

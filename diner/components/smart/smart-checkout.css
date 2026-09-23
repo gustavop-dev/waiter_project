@@ -1,0 +1,33 @@
+/* The checkout's card sheet keeps expiry and security code on the same row. */
+.sm-wallet-dialog form { grid-template-columns:1fr 1fr; gap:16px 12px; }
+.sm-wallet-dialog form > .sm-segmented,
+.sm-wallet-dialog form > .sm-field:nth-of-type(-n+2),
+.sm-wallet-dialog form > .sm-primary,
+.sm-wallet-dialog form > .sm-error { grid-column:1 / -1; }
+.sm-wallet-dialog form > .sm-field { min-width:0; }
+.sm-wallet-dialog form input { width:100%; min-width:0; }
+.sm-wallet-embedded:has(.sm-wallet-empty) { display:flex; flex-direction:column; padding:20px; border-radius:16px; background:var(--sm-surface); }
+.sm-wallet-embedded:has(.sm-wallet-empty) .sm-checkout-method-heading { order:2; margin:20px 0 0; justify-content:center; }
+.sm-wallet-embedded:has(.sm-wallet-empty) .sm-checkout-method-heading > span { display:none; }
+.sm-wallet-embedded .sm-wallet-empty { padding:0; }
+.sm-wallet-embedded .sm-wallet-empty img { width:56px; height:56px; display:block; margin:0 auto 16px; }
+.sm-wallet-embedded .sm-wallet-empty h2 { font:500 16px/24px var(--t-display); margin-bottom:8px; }
+.sm-wallet-embedded .sm-wallet-empty p { font:400 12px/20px var(--t-cuerpo); }
+.sm-wallet-dialog .sm-field { position:relative; gap:0; }
+.sm-wallet-dialog .sm-field > span { position:absolute; top:6px; left:14px; font-size:10px; line-height:16px; color:var(--sm-muted); }
+.sm-wallet-dialog .sm-field > input { height:54px; padding:22px 14px 6px; font-size:14px; }
+.sm-checkout .sm-checkout-method-heading { margin-bottom:16px; }
+.sm-checkout-prices dl { gap:12px; }
+.sm-checkout-prices dl:first-child { padding-bottom:12px; }
+.sm-checkout-prices dt,.sm-checkout-prices dd { font-size:13px; }
+.sm-checkout-prices .sm-coupon { margin:12px 0; }
+.sm-checkout-tip { padding:10px 12px; margin-bottom:16px; }
+.sm-checkout-footer { position:sticky; bottom:0; z-index:2; }
+.sm-order-details { display:grid; gap:12px; margin:20px 0; text-align:left; }
+.sm-order-details h3 { font-size:16px; font-weight:600; }
+.sm-order-details .sm-field { min-width:0; }
+.sm-order-details textarea { width:100%; resize:vertical; min-height:72px; }
+.sm-fulfillment-dialog { max-height:calc(100dvh - 24px); overflow-y:auto; }
+.sm-account-edit textarea { width:100%; resize:vertical; min-height:96px; }
+.smart-menu .sm-fulfillment-dialog { background:var(--sm-surface,#fff); }
+.smart-menu .sm-order-details textarea:focus,.smart-menu .sm-account-edit textarea:focus { outline:2px solid var(--sm-accent); outline-offset:1px; box-shadow:none; border-color:transparent; }

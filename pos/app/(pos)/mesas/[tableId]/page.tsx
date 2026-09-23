@@ -4,7 +4,6 @@ import { useParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useEffect, useMemo, useState } from 'react'
 
-import { Rail } from '@/components/layout/Rail'
 import { Topbar } from '@/components/layout/Topbar'
 import { CategoryChips } from '@/components/order/CategoryChips'
 import { OrderPanel } from '@/components/order/OrderPanel'
@@ -51,9 +50,8 @@ export default function OrderPage() {
 
   if (!catalog || !table || !order.draft) return null
   return (
-    <div className="h-screen flex bg-canvas">
-      <Rail active="tables" userName={useAuthStore.getState().user?.name ?? ''} />
-      <div className="flex-1 min-w-0 flex flex-col">
+    <>
+      <div className="flex-1 min-h-0 flex flex-col">
         <Topbar
           left={<><Button size="compact" onClick={() => router.push('/salon')}>← {t('back')}</Button><span className="text-[22px] font-bold">{t('header', { number: table.number })}</span><span className="text-[15px] text-soft">{t('meta', { pax: table.seats, ref: order.saved?.reference ?? '—' })}</span></>}
           right={<><input aria-label={t('search')} placeholder={t('search')} value={query} onChange={(e) => setQuery(e.target.value)} className="h-tap-min px-4 rounded-[10px] border border-border bg-surface text-[15px] w-56" />
@@ -71,6 +69,6 @@ export default function OrderPage() {
         </div>
       </div>
       {noteFor && <NoteDialog title={'order' in noteFor ? t('kitchenNoteTitle') : t('notePrompt')} initial={noteInitial} onSave={saveNote} onCancel={() => setNoteFor(null)} />}
-    </div>
+    </>
   )
 }

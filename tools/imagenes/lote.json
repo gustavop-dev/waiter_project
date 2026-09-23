@@ -1,0 +1,414 @@
+{
+  "descripcion": "Lote mínimo viable de la especificación de imágenes (24 tomas). Cada toma genera una imagen base y de ella salen los recortes. Las tomas con \"odoo.producto\" se cargan en ese product.template de la base demo con subir_odoo.py.",
+  "tomas": [
+    {
+      "sku": "HAMB-ANGUS",
+      "grupo": "top10",
+      "nombre": "hamburguesa Angus",
+      "encuadre": "45",
+      "base": "paisaje",
+      "recortes": [
+        "4x3",
+        "1x1"
+      ],
+      "descripcion": "Dos carnes de res gruesas, queso cheddar derretido, cebolla caramelizada, pan brioche tostado, papas rústicas al lado",
+      "vajilla": "plato de cerámica negra mate",
+      "odoo": {
+        "producto": "Hamburguesa Angus",
+        "categoria": "Hamburguesas",
+        "precio": 36900
+      }
+    },
+    {
+      "sku": "HAMB-CLASICA",
+      "grupo": "top10",
+      "nombre": "hamburguesa clásica",
+      "encuadre": "45",
+      "base": "paisaje",
+      "recortes": [
+        "4x3",
+        "1x1"
+      ],
+      "descripcion": "Una carne de res jugosa, queso americano, lechuga fresca, tomate, cebolla morada, pan con ajonjolí, papas fritas al lado",
+      "vajilla": "plato de cerámica negra mate",
+      "odoo": {
+        "producto": "Hamburguesa Clásica",
+        "categoria": "Hamburguesas",
+        "precio": 32000
+      }
+    },
+    {
+      "sku": "PAPAS-TRUFADAS",
+      "grupo": "top10",
+      "nombre": "papas trufadas",
+      "encuadre": "45",
+      "base": "paisaje",
+      "recortes": [
+        "4x3",
+        "1x1"
+      ],
+      "descripcion": "Papas rústicas doradas con aceite de trufa, parmesano rallado y perejil picado, un ramekin pequeño de alioli al lado",
+      "vajilla": "bol bajo de cerámica negra mate",
+      "odoo": {
+        "producto": "Papas Trufadas",
+        "categoria": "Para compartir",
+        "precio": 8900
+      }
+    },
+    {
+      "sku": "LIMONADA-COCO",
+      "grupo": "top10",
+      "nombre": "limonada de coco",
+      "encuadre": "45",
+      "base": "paisaje",
+      "recortes": [
+        "4x3",
+        "1x1"
+      ],
+      "descripcion": "Bebida cremosa blanca con hielo triturado, una rodaja de limón en el borde y ralladura de coco encima",
+      "vajilla": "vaso alto de vidrio",
+      "odoo": {
+        "producto": "Limonada de Coco",
+        "categoria": "Bebidas",
+        "precio": 9900
+      }
+    },
+    {
+      "sku": "CERVEZA-COPA",
+      "grupo": "top10",
+      "nombre": "cerveza rubia en copa",
+      "encuadre": "45",
+      "base": "paisaje",
+      "recortes": [
+        "4x3",
+        "1x1"
+      ],
+      "descripcion": "Cerveza rubia dorada con espuma blanca de dos dedos, gotas de condensación, sin etiqueta ni marca",
+      "vajilla": "copa de vidrio tipo tulipa",
+      "odoo": {
+        "producto": "Club Colombia",
+        "categoria": "Bebidas",
+        "precio": 14000
+      }
+    },
+    {
+      "sku": "BOWL-POKE",
+      "grupo": "top10",
+      "nombre": "bowl de salmón",
+      "encuadre": "45",
+      "base": "paisaje",
+      "recortes": [
+        "4x3",
+        "1x1"
+      ],
+      "descripcion": "Cubos de salmón fresco sobre arroz, aguacate en láminas, edamame, pepino, ajonjolí y cebollín",
+      "vajilla": "bol hondo de cerámica negra mate",
+      "odoo": {
+        "producto": "Bowl de salmón",
+        "categoria": "Platos",
+        "precio": 42900
+      }
+    },
+    {
+      "sku": "PIZZA-MARGARITA",
+      "grupo": "top10",
+      "nombre": "pizza margarita",
+      "encuadre": "cenital",
+      "base": "paisaje",
+      "recortes": [
+        "4x3",
+        "1x1"
+      ],
+      "descripcion": "Pizza entera de masa fina con borde dorado, salsa de tomate, mozzarella fundida y hojas de albahaca fresca",
+      "vajilla": "tabla redonda de madera clara",
+      "odoo": {
+        "producto": "Pizza margarita",
+        "categoria": "Platos",
+        "precio": 38900
+      }
+    },
+    {
+      "sku": "PASTA-CARBONARA",
+      "grupo": "top10",
+      "nombre": "pasta carbonara",
+      "encuadre": "45",
+      "base": "paisaje",
+      "recortes": [
+        "4x3",
+        "1x1"
+      ],
+      "descripcion": "Espaguetis cremosos con panceta crocante, pimienta negra recién molida y parmesano rallado",
+      "vajilla": "plato hondo de cerámica negra mate",
+      "odoo": {
+        "producto": "Pasta carbonara",
+        "categoria": "Platos",
+        "precio": 34900
+      }
+    },
+    {
+      "sku": "AREPA-DESAYUNO",
+      "grupo": "top10",
+      "nombre": "arepa con huevo y queso",
+      "encuadre": "45",
+      "base": "paisaje",
+      "recortes": [
+        "4x3",
+        "1x1"
+      ],
+      "descripcion": "Arepa de maíz dorada a la plancha con queso fundido y huevos revueltos con tomate y cebolla, una taza de café negro al lado",
+      "vajilla": "plato de cerámica negra mate",
+      "odoo": {
+        "producto": "Arepa con huevo y queso",
+        "categoria": "Desayunos",
+        "precio": 16900
+      }
+    },
+    {
+      "sku": "TACOS-TRIO",
+      "grupo": "top10",
+      "nombre": "tacos de carne",
+      "encuadre": "45",
+      "base": "paisaje",
+      "recortes": [
+        "4x3",
+        "1x1"
+      ],
+      "descripcion": "Tacos de tortilla de maíz con carne asada, cebolla, cilantro y limón, salsa roja en un ramekin pequeño",
+      "vajilla": "tabla de madera oscura",
+      "odoo": {
+        "producto": "Tacos de carne",
+        "categoria": "Platos",
+        "precio": 29900
+      }
+    },
+    {
+      "sku": "BANDEJA-PICADA",
+      "grupo": "compartir",
+      "nombre": "picada colombiana para compartir",
+      "encuadre": "cenital",
+      "base": "paisaje",
+      "recortes": [
+        "4x3"
+      ],
+      "descripcion": "Bandeja grande con chorizo, morcilla, chicharrón, papa criolla dorada, arepas pequeñas, plátano maduro y salsas en ramekines",
+      "vajilla": "bandeja rectangular de madera",
+      "odoo": {
+        "producto": "Picada para compartir",
+        "categoria": "Para compartir",
+        "precio": 58900
+      }
+    },
+    {
+      "sku": "TABLA-QUESOS",
+      "grupo": "compartir",
+      "nombre": "tabla de quesos y charcutería",
+      "encuadre": "cenital",
+      "base": "paisaje",
+      "recortes": [
+        "4x3"
+      ],
+      "descripcion": "Quesos variados en cuñas, jamón serrano, salami, uvas, nueces, miel en un frasco pequeño y pan tostado",
+      "vajilla": "tabla redonda de madera",
+      "odoo": {
+        "producto": "Tabla de quesos",
+        "categoria": "Para compartir",
+        "precio": 52900
+      }
+    },
+    {
+      "sku": "SET-SUSHI",
+      "grupo": "compartir",
+      "nombre": "tabla de sushi para compartir",
+      "encuadre": "cenital",
+      "base": "paisaje",
+      "recortes": [
+        "4x3"
+      ],
+      "descripcion": "Rollos de sushi variados y nigiris ordenados en filas, jengibre encurtido, wasabi y un cuenco pequeño de salsa de soya",
+      "vajilla": "tabla rectangular de pizarra negra",
+      "odoo": {
+        "producto": "Tabla de sushi",
+        "categoria": "Para compartir",
+        "precio": 64900
+      }
+    },
+    {
+      "sku": "POSTRE-BROWNIE",
+      "grupo": "venta_cruzada",
+      "nombre": "brownie con helado",
+      "encuadre": "45",
+      "base": "cuadrado",
+      "recortes": [
+        "1x1"
+      ],
+      "descripcion": "Brownie de chocolate tibio con una bola de helado de vainilla encima y salsa de chocolate",
+      "vajilla": "plato pequeño de cerámica negra mate",
+      "odoo": {
+        "producto": "Brownie con helado",
+        "categoria": "Postres",
+        "precio": 14900
+      }
+    },
+    {
+      "sku": "SALSA-EXTRA",
+      "grupo": "venta_cruzada",
+      "nombre": "salsa extra de la casa",
+      "encuadre": "45",
+      "base": "cuadrado",
+      "recortes": [
+        "1x1"
+      ],
+      "descripcion": "Ramekin pequeño con alioli cremoso espolvoreado con paprika, una cucharita al lado",
+      "vajilla": "ramekin de cerámica blanca sobre platito negro",
+      "odoo": {
+        "producto": "Salsa de la casa",
+        "categoria": "Adiciones",
+        "precio": 3500
+      }
+    },
+    {
+      "sku": "GASEOSA-GRANDE",
+      "grupo": "venta_cruzada",
+      "nombre": "gaseosa grande",
+      "encuadre": "45",
+      "base": "cuadrado",
+      "recortes": [
+        "1x1"
+      ],
+      "descripcion": "Vaso grande de gaseosa oscura con mucho hielo, burbujas y una rodaja de limón, sin marca ni etiqueta",
+      "vajilla": "vaso alto de vidrio",
+      "odoo": {
+        "producto": "Gaseosa grande",
+        "categoria": "Bebidas",
+        "precio": 7900
+      }
+    },
+    {
+      "sku": "ADICION-TOCINETA",
+      "grupo": "venta_cruzada",
+      "nombre": "adición de tocineta",
+      "encuadre": "45",
+      "base": "cuadrado",
+      "recortes": [
+        "1x1"
+      ],
+      "descripcion": "Tiras de tocineta crocante y dorada apiladas",
+      "vajilla": "platito de cerámica negra mate",
+      "odoo": {
+        "producto": "Adición de tocineta",
+        "categoria": "Adiciones",
+        "precio": 6900
+      }
+    },
+    {
+      "sku": "CROISSANT",
+      "grupo": "panaderia",
+      "nombre": "croissant de mantequilla",
+      "encuadre": "45",
+      "base": "paisaje",
+      "recortes": [
+        "4x3"
+      ],
+      "superficie": "piedra",
+      "descripcion": "Croissant recién horneado, hojaldre visible, dorado uniforme, algunas migas alrededor",
+      "vajilla": "papel de horno",
+      "odoo": {
+        "producto": "Croissant de mantequilla",
+        "categoria": "Panadería",
+        "precio": 7900
+      }
+    },
+    {
+      "sku": "PAN-CHOCOLATE",
+      "grupo": "panaderia",
+      "nombre": "pan de chocolate",
+      "encuadre": "45",
+      "base": "paisaje",
+      "recortes": [
+        "4x3"
+      ],
+      "superficie": "piedra",
+      "descripcion": "Pain au chocolat de hojaldre dorado con las barras de chocolate asomando en los extremos",
+      "vajilla": "papel de horno",
+      "odoo": {
+        "producto": "Pan de chocolate",
+        "categoria": "Panadería",
+        "precio": 8500
+      }
+    },
+    {
+      "sku": "CINNAMON-ROLL",
+      "grupo": "panaderia",
+      "nombre": "rollo de canela",
+      "encuadre": "45",
+      "base": "paisaje",
+      "recortes": [
+        "4x3"
+      ],
+      "superficie": "piedra",
+      "descripcion": "Rollo de canela esponjoso con glaseado blanco escurriendo por los lados",
+      "vajilla": "papel de horno",
+      "odoo": {
+        "producto": "Rollo de canela",
+        "categoria": "Panadería",
+        "precio": 9500
+      }
+    },
+    {
+      "sku": "PANDEBONO",
+      "grupo": "panaderia",
+      "nombre": "pandebonos",
+      "encuadre": "45",
+      "base": "paisaje",
+      "recortes": [
+        "4x3"
+      ],
+      "superficie": "piedra",
+      "descripcion": "Pandebonos redondos dorados recién salidos del horno, uno partido mostrando la miga de queso",
+      "vajilla": "papel de horno",
+      "odoo": {
+        "producto": "Pandebonos",
+        "categoria": "Panadería",
+        "precio": 6500
+      }
+    },
+    {
+      "sku": "TORTA-ZANAHORIA",
+      "grupo": "panaderia",
+      "nombre": "porción de torta de zanahoria",
+      "encuadre": "45",
+      "base": "paisaje",
+      "recortes": [
+        "4x3"
+      ],
+      "superficie": "piedra",
+      "descripcion": "Porción triangular de torta de zanahoria con capas de crema de queso y nueces encima",
+      "vajilla": "papel de horno",
+      "odoo": {
+        "producto": "Torta de zanahoria",
+        "categoria": "Postres",
+        "precio": 12900
+      }
+    },
+    {
+      "sku": "AMBIENTE-SALON",
+      "grupo": "ambiente",
+      "nombre": "ambiente del salón",
+      "base": "paisaje",
+      "recortes": [
+        "16x9"
+      ],
+      "prompt": "Fotografía de interior de restaurante realista al anochecer, luz cálida de bombillas colgantes, mesas de madera con mantel de lino, copas sobre la mesa, profundidad de campo media, sin personas reconocibles, sin texto, colores naturales sin saturar, aspecto de cámara réflex con lente 35mm. Espacio despejado en la parte superior de la imagen."
+    },
+    {
+      "sku": "AMBIENTE-PORTADA",
+      "grupo": "ambiente",
+      "nombre": "portada vertical del menú",
+      "base": "vertical",
+      "recortes": [
+        "3x4"
+      ],
+      "prompt": "Fotografía vertical de interior de restaurante realista al anochecer, barra de madera con una vela encendida y una copa de vino, luz cálida de bombillas colgantes al fondo, profundidad de campo media, sin personas, sin texto, colores naturales sin saturar, aspecto de cámara réflex con lente 35mm. Encuadre vertical con el motivo en el tercio superior y el tercio inferior de la imagen vacío y uniforme para poner texto encima."
+    }
+  ]
+}

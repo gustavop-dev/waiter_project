@@ -1,0 +1,140 @@
+{
+  "brand": "Waiter.",
+  "brandBy": "By ProjectApp.",
+  "terminal": {
+    "title": "Inicio de terminal",
+    "subtitle": "Entra con el correo del terminal para conectar este dispositivo.",
+    "submit": "Entrar",
+    "forgot": "¿Olvidaste tu contraseña?",
+    "codeTitle": "Tengo un código",
+    "back": "Volver a iniciar sesión"
+  },
+  "employee": {
+    "title": "Inicio de empleado",
+    "subtitle": "Elige tu cuenta para iniciar tu turno.",
+    "select": "Empleado",
+    "list": "Lista de empleados",
+    "pinHint": "Escribe tu PIN para validarte.",
+    "pin": "PIN",
+    "forgot": "¿Olvidaste tu PIN?",
+    "start": "Iniciar turno",
+    "wrongPin": "PIN incorrecto. Inténtalo de nuevo.",
+    "noEmployees": "No hay empleados para este terminal. Crea empleados en Odoo (Empleados) o revisa el terminal.",
+    "noShift": "Sin horario",
+    "loading": "Cargando empleados…",
+    "pinLength": "Escribe los 6 dígitos de tu PIN.",
+    "wrongPinLeft": "PIN incorrecto. Te quedan {left} intentos antes de bloquearlo.",
+    "locked": "PIN bloqueado por demasiados intentos. Vuelve a intentarlo en {minutes} minutos.",
+    "unknown": "Este empleado ya no está disponible. Elige otra cuenta.",
+    "pinFailed": "No se pudo validar el PIN. Revisa la conexión con Odoo."
+  },
+  "forgot": {
+    "title": "¿Olvidaste tu PIN?",
+    "subtitle": "Tranquilo, te enviamos tu PIN",
+    "email": "Correo",
+    "placeholder": "Escribe tu correo",
+    "submit": "Solicitar PIN",
+    "back": "Volver a iniciar sesión",
+    "checkTitle": "Revisa tu correo",
+    "checkBody": "Enviamos un PIN a",
+    "notReceived": "¿No recibiste el correo?",
+    "resend": "Reenviar",
+    "resent": "Enviado de nuevo."
+  },
+  "mockup": {
+    "greeting": "Buenos días",
+    "motto": "Da lo mejor de ti a los clientes, ¡feliz jornada!",
+    "tabs": [
+      "Inicio",
+      "Pedidos",
+      "Mesas",
+      "Reservas",
+      "Historial"
+    ],
+    "kpis": [
+      "Ventas de hoy",
+      "En progreso",
+      "Listos para servir"
+    ],
+    "columns": [
+      "En progreso",
+      "Esperando pago"
+    ],
+    "seeAll": "Ver todos los pedidos"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "tabs": {
+      "profile": "Empleado",
+      "notifications": "Notificaciones",
+      "security": "Seguridad",
+      "display": "Pantalla"
+    },
+    "time": "Tiempo",
+    "logout": "Cerrar sesión",
+    "logoutTitle": "¿Cerrar sesión?",
+    "logoutBody": "¿Seguro que quieres salir de la aplicación?",
+    "logoutNo": "No, volver",
+    "logoutYes": "Sí, salir",
+    "profile": {
+      "heading": "Información del empleado",
+      "employeeId": "Empleado #",
+      "shiftToday": "Tu turno de hoy",
+      "personal": "Personal",
+      "work": "Trabajo",
+      "fullName": "Nombre completo",
+      "phone": "Teléfono",
+      "email": "Correo",
+      "address": "Dirección",
+      "joiningDate": "Fecha de ingreso",
+      "accessRole": "Rol de acceso",
+      "employmentStatus": "Estado laboral",
+      "manager": "Responsable",
+      "noEmployee": "Este dispositivo no tiene un empleado activo. Vuelve al inicio de empleado para elegir uno.",
+      "employmentStatusValue": {
+        "full_time": "Tiempo completo",
+        "part_time": "Medio tiempo",
+        "contract": "Contrato"
+      }
+    },
+    "notify": {
+      "popup": "Aviso en pantalla",
+      "sound": "Sonido de notificación",
+      "kitchen": {
+        "title": "Novedades de cocina",
+        "body": "Avisos de cocina para informar sobre los pedidos."
+      },
+      "inventory": {
+        "title": "Inventario",
+        "body": "Avisos de inventario para informar sobre las existencias de ingredientes."
+      },
+      "system": {
+        "title": "Actualizaciones del sistema",
+        "body": "Avisos sobre actualizaciones del sistema."
+      }
+    },
+    "security": {
+      "heading": "Seguridad",
+      "pin": "PIN",
+      "pinBody": "Cambia el PIN de tu cuenta",
+      "changePin": "Cambiar PIN",
+      "newPin": "Escribe tu nuevo PIN",
+      "successTitle": "¡PIN cambiado!",
+      "successBody": "Tu PIN se cambió correctamente, no olvides tu nuevo PIN.",
+      "ok": "Ok",
+      "failed": "No se pudo cambiar el PIN. Inténtalo de nuevo."
+    },
+    "display": {
+      "heading": "Pantalla",
+      "language": "Idioma",
+      "languageBody": "Idioma de la aplicación",
+      "chooseLanguage": "Elige un idioma",
+      "soon": "Próximamente",
+      "colorMode": "Modo de color",
+      "colorModeBody": "Cambia entre los modos Sistema, Claro y Oscuro",
+      "system": "Sistema",
+      "light": "Claro",
+      "dark": "Oscuro"
+    }
+  }
+}

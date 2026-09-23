@@ -1,0 +1,12 @@
+# Ubicación, cupones y puntos del menú
+
+Las pantallas 25, 64 y 66 usan las ilustraciones originales de Exporty y la marca elegida en el POS.
+
+- **Ubicación:** Configuración → Restaurante permite guardar dirección, ciudad, latitud y longitud. El menú solicita ubicación al pulsar Continuar, calcula la distancia en el dispositivo y permite buscar el restaurante manualmente. Las coordenadas del visitante no se envían ni se guardan en el servidor. El navegador requiere HTTPS para GPS; en la red host-only HTTP se ofrece la búsqueda manual.
+- **Cupones:** Configuración → Cupones y puntos crea o edita códigos reutilizables, porcentaje, compra mínima con impuestos, vigencia y activación. Los programas son `loyalty.program` del POS. El comensal aplica el código a sus platos pendientes; sustituye el beneficio de primera compra y se valida nuevamente antes de confirmar. El descuento viaja en cada línea del pedido, con su código visible al cobrar en el POS. Las líneas ya confirmadas conservan su descuento.
+- **Puntos:** La cuenta del menú tiene una identidad estable y su tarjeta de fidelización del POS. Al cobrar, Odoo acredita puntos sobre el consumo neto elegible de esa persona; una mesa compartida puede acreditar tarjetas distintas. El menú muestra saldo, código de tarjeta y puntos ganados por el pedido pagado. El pago online de demostración no cobra ni acredita puntos.
+- **Canje en el POS:** Presentar el código de Mis recompensas en el diálogo de cobro. El servidor valida programa, saldo, mínimo y pedido abierto. El borrador reserva los puntos; el cobro los descuenta una vez. Cancelar el borrador libera la reserva. Las devoluciones de líneas POS mediante `refunded_orderline_id` revierten sus puntos.
+
+La base conserva `loyalty.card` y `loyalty.history` como saldo e historial. Los nuevos campos de Experience se crean con la migración `0014_menu_benefits`; los campos y métodos de Odoo requieren actualizar `projectapp_ops`.
+
+Pruebas: casos de permisos, cupones vencidos y mínimos, pertenencia del consumo, reintentos, pago real, canje, cancelación y devolución en `test_menu_benefits.py` de Odoo/Experience; geolocalización y validación del cupón en `SmartBenefits.test.tsx`. Las comparaciones visuales tienen fixtures independientes de los datos reales. Se comprobó además un cupón temporal creado desde el administrador y confirmado desde el menú contra Odoo; sus datos de prueba fueron eliminados.

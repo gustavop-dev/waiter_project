@@ -1,0 +1,105 @@
+{
+  "codigo": "A3",
+  "nombre": "Carta de vinos indexada",
+  "familia": "A",
+  "familiaNombre": "Alta cocina",
+  "descripcion": "Listas largas: agrupa por origen, filtra por uva y no intenta vender con fotos.",
+  "fotos": { "requiere": "ninguna", "recorte": "ninguno" },
+  "tokens": {
+    "modo": "claro",
+    "fondo": "#FFFFFF",
+    "superficie": "#FAF8F5",
+    "tinta": "#1A1815",
+    "tintaSuave": "#7A7166",
+    "tintaTerciaria": "#9A8F7E",
+    "borde": "#EFE9E0",
+    "acento": "#6B2233",
+    "acentoTinta": "#FFFFFF",
+    "acentoSuave": "#FDF6EA",
+    "displayFont": "Instrument Serif",
+    "displayPeso": 400,
+    "displayTracking": "0",
+    "displayTransform": "none",
+    "cuerpoFont": "Ubuntu",
+    "monoFont": "IBM Plex Mono",
+    "radioTarjeta": 12,
+    "radioBoton": 12,
+    "radioChip": 999,
+    "densidad": "media"
+  },
+  "personalizable": { "colores": ["acento", "fondo", "superficie", "tinta"], "tipografiaDisplay": true, "logo": true },
+  "pantallas": {
+    "menu": {
+      "layout": "A3",
+      "resumen": "Fondo blanco; fila de pills de categoría con conteo ('Tintos 42', la activa en vino #6B2233); lista indexada con rótulos de grupo en versalitas sobre #FAF8F5 ('Argentina · Mendoza') y filas de dos líneas: nombre en Ubuntu 500 16 (no serif) + '2021 · malbec' en gris, precio en mono a la derecha; pie con dos botones: 'Filtrar por uva' (contorno) y 'Pedir sumiller' (vino). Mapeo: pills = categorías con número de productos; grupos = atributos.origen (si no existe, un solo grupo por categoría); línea secundaria = atributos.anada + atributos.uva (si no existen, producto.descripcion); 'Filtrar por uva' = filtro de Waiter sobre atributos.uva; 'Pedir sumiller' = llamar al mesero.",
+      "datosOpcionales": ["origen", "uva", "anada"],
+      "estructura": [
+        { "bloque": "marco", "que": "contenedor", "css": "background: #FFFFFF; border: 1px solid #DDD6C9; border-radius: 20px" },
+        { "bloque": "pillsCategoria", "que": "categorias[] con conteo de productos; la activa rellena", "css": "padding: 18px 20px; border-bottom: 1px solid #EFE9E0; display: flex; gap: 6px; overflow-x: auto | activa: height: 40px; padding: 0 14px; border-radius: 999px; background: #6B2233; color: #FFFFFF; font-size: 14px; font-weight: 500 | inactiva: height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #E4DED4; font-size: 14px" },
+        { "bloque": "rotuloGrupo", "que": "atributos.origen ('País · Región')", "css": "padding: 12px 20px; background: #FAF8F5; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #9A8F7E" },
+        { "bloque": "fila", "que": "producto.nombre / 'anada · uva' / producto.precio; tocar la fila abre el producto", "css": "padding: 14px 20px; border-bottom: 1px solid #F3EFE8; display: flex; justify-content: space-between; gap: 12px | nombre: font-size: 16px; font-weight: 500 | secundaria: font-size: 13px; color: #7A7166 | precio: font-family: 'IBM Plex Mono'; font-size: 15px; white-space: nowrap" },
+        { "bloque": "pieAcciones", "que": "'Filtrar por uva' (abre el filtro de Waiter) + 'Pedir sumiller' (llamar al mesero). La barra 'Tu pedido' no está dibujada en este marco", "css": "padding: 14px 20px; border-top: 1px solid #EFE9E0; display: flex; gap: 8px | filtrar: flex: 1; height: 48px; border-radius: 10px; border: 1px solid #D6CEC1; font-size: 15px; font-weight: 500 | sumiller: flex: 1; height: 48px; border-radius: 10px; background: #6B2233; color: #FFFFFF; font-size: 15px; font-weight: 500" }
+      ]
+    },
+    "carrito": {
+      "layout": "A3",
+      "resumen": "Difiere estructuralmente del carrito base de la familia A (A1): cabecera en una fila con 'Tu pedido' a la izquierda y 'N platos' a la derecha; las líneas usan nombre en Ubuntu 500 16 (no serif ni guía de puntos) y debajo una fila de chips grises pequeños ('tomate confitado', 'IVA incluido'); en los totales el descuento aparece como línea verde y además como chip '−5% aplicado' junto al total; CTA vino en Ubuntu 700 con radio 12. Marco con radio 18.",
+      "descuento5": "chip",
+      "estructura": [
+        { "bloque": "marco", "que": "contenedor", "css": "background: #FFFFFF; border: 1px solid #DDD6C9; border-radius: 18px; color: #1A1815" },
+        { "bloque": "cabecera", "que": "'Tu pedido' + 'N platos' en una fila", "css": "padding: 16px 18px; border-bottom: 1px solid #EFE9E0; display: flex; align-items: baseline; justify-content: space-between; gap: 10px | titulo: font-family: 'Instrument Serif'; font-size: 22px; line-height: 1.1 | conteo: font-size: 14px; color: #7A7166" },
+        { "bloque": "linea", "que": "producto.nombre + precio; chips: nota de la línea (descripcion corta) y 'IVA incluido'. Sin stepper ni 'Quitar' dibujados", "css": "padding: 12px 18px; border-bottom: 1px solid #EFE9E0 | nombre: font-size: 16px; font-weight: 500 | precio: font-family: 'IBM Plex Mono'; font-size: 15px | chips: display: flex; gap: 6px; margin-top: 7px | chip: height: 26px; padding: 0 9px; border-radius: 6px; background: #F2EEE8; color: #7A7166; font-size: 12px" },
+        { "bloque": "totales", "que": "Subtotal / Descuento primera compra 5% / Propina 10% / Total con chip '−5% aplicado'", "css": "padding: 16px 18px; border-top: 1px solid #EFE9E0; background: #FAF8F5 | fila: font-size: 15px; color: #7A7166; padding: 3px 0 | filaDescuento: color: #2F7A4F | total: padding-top: 10px; margin-top: 8px; border-top: 1px solid #EFE9E0 | totalRotulo: font-family: 'Instrument Serif'; font-size: 21px | chipDescuento: height: 26px; padding: 0 9px; border-radius: 7px; background: #E6F1EA; color: #216239; font-size: 13px; font-weight: 500 | totalImporte: font-family: 'IBM Plex Mono'; font-size: 25px" },
+        { "bloque": "cta", "que": "'Ir a pagar'", "css": "padding: 14px 18px; border-top: 1px solid #EFE9E0; background: #FAF8F5 | boton: height: 56px; border-radius: 12px; background: #6B2233; color: #FFFFFF; font-size: 16px; font-weight: 700" }
+      ]
+    },
+    "pago": {
+      "layout": "A3",
+      "resumen": "Difiere del pago base de la familia A (A1): cabecera a la izquierda 'Confirmar y pagar' en serif con subtítulo 'N platos · mesa X' (sin monto grande); caja resumen sobre #FAF8F5 con Productos / Descuento 5% / Total; campos de tarjeta; nota 'Enviaremos la factura electrónica a tu correo al confirmar el pago.' sin caja; CTA vino 'Pagar $ X' en Ubuntu 700. A5 usa esta misma estructura con su piel.",
+      "estructura": [
+        { "bloque": "marco", "que": "contenedor", "css": "background: #FFFFFF; border: 1px solid #DDD6C9; border-radius: 18px; color: #1A1815" },
+        { "bloque": "cabecera", "que": "'Confirmar y pagar' + 'N platos · mesa X'", "css": "padding: 16px 18px; border-bottom: 1px solid #EFE9E0 | titulo: font-family: 'Instrument Serif'; font-size: 21px; line-height: 1.1 | sub: font-size: 14px; color: #7A7166; margin-top: 3px" },
+        { "bloque": "resumen", "que": "Productos (bill.subtotal) / Descuento 5% / Total", "css": "padding: 13px 14px; border-radius: 12px; background: #FAF8F5; border: 1px solid #EFE9E0 | fila: font-size: 15px; color: #7A7166; padding: 3px 0 | filaDescuento: color: #2F7A4F | filaTotal: color: #1A1815 | importes: font-family: 'IBM Plex Mono'" },
+        { "bloque": "campos", "que": "Número de la tarjeta; Vence + CVV", "css": "gap: 12px | label: font-size: 14px; font-weight: 500; color: #7A7166 | input: height: 52px; border: 1px solid #EFE9E0; border-radius: 10px; background: #FFFFFF; padding: 0 14px; font-family: 'IBM Plex Mono'; font-size: 16px; color: #1A1815" },
+        { "bloque": "notaFactura", "que": "texto fijo sobre factura electrónica", "css": "font-size: 13px; line-height: 1.45; color: #7A7166" },
+        { "bloque": "cta", "que": "'Pagar $ bill.total'", "css": "padding: 14px 18px; border-top: 1px solid #EFE9E0; background: #FAF8F5 | boton: height: 60px; border-radius: 12px; background: #6B2233; color: #FFFFFF; font-size: 16px; font-weight: 700" }
+      ]
+    },
+    "registro": {
+      "patron": "beneficios",
+      "resumen": "Cabecera 'Crear cuenta' en serif con subtítulo 'Tres razones, ninguna de marketing'; tres filas de beneficio: '5% de descuento hoy' sobre #FDF6EA con la cifra en vino, 'Tu tarjeta guardada…' y 'Tus alergias van solas a la comanda' con check en círculo gris; solo campo Correo (foco vino); casilla de política de datos; CTA vino en serif y 'Ya tengo cuenta'.",
+      "estructura": [
+        { "bloque": "marco", "que": "contenedor", "css": "background: #FFFFFF; border: 1px solid #DDD6C9; border-radius: 18px; color: #1A1815" },
+        { "bloque": "cabecera", "que": "'Crear cuenta' + subtítulo", "css": "padding: 18px 20px; border-bottom: 1px solid #EFE9E0 | titulo: font-family: 'Instrument Serif'; font-size: 22px; line-height: 1.1 | sub: font-size: 14px; color: #7A7166; margin-top: 3px" },
+        { "bloque": "beneficios", "que": "tres filas; la primera con el porcentaje del descuento", "css": "display: flex; flex-direction: column; gap: 10px | beneficio5: padding: 13px 14px; border-radius: 12px; background: #FDF6EA; display: flex; gap: 11px; align-items: center | cifra: font-size: 24px; font-weight: 700; color: #6B2233; letter-spacing: -0.03em | texto5: font-size: 14px; line-height: 1.4; color: #6B4A05 | beneficio: padding: 13px 14px; border-radius: 12px; background: #FAF8F5 | check: width: 26px; height: 26px; border-radius: 999px; background: #EFE9E0; font-size: 13px | texto: font-size: 14px; color: #7A7166" },
+        { "bloque": "campos", "que": "solo Correo (foco)", "css": "label: font-size: 14px; font-weight: 500; color: #7A7166 | inputFoco: height: 52px; border: 2px solid #6B2233; border-radius: 10px; background: #FFFFFF; padding: 0 14px; font-size: 16px" },
+        { "bloque": "casilla", "que": "aceptaDatos marcada", "css": "width: 24px; height: 24px; border-radius: 7px; background: #6B2233; color: #FFFFFF; font-size: 13px; font-weight: 700 | texto: font-size: 14px; color: #7A7166" },
+        { "bloque": "cta", "que": "'Crear cuenta y aplicar 5%' + 'Ya tengo cuenta'", "css": "padding: 16px 20px; border-top: 1px solid #EFE9E0; background: #FAF8F5 | boton: height: 56px; border-radius: 12px; background: #6B2233; color: #FFFFFF; font-family: 'Instrument Serif'; font-size: 19px | enlace: text-align: center; font-size: 14px; color: #7A7166; margin-top: 11px" }
+      ]
+    },
+    "codigo": {
+      "patron": "canal",
+      "resumen": "Cabecera 'Entrar sin contraseña' con subtítulo 'Elige por dónde te llega el código'; dos opciones de canal en tarjetas: Correo seleccionada (borde 2 px vino, fondo #FDF6EA, check) y SMS con flecha; seis casillas vacías; nota 'Escribe el código cuando llegue. No cierres esta pantalla.'; CTA deshabilitado.",
+      "estructura": [
+        { "bloque": "marco", "que": "contenedor", "css": "background: #FFFFFF; border: 1px solid #DDD6C9; border-radius: 18px; color: #1A1815" },
+        { "bloque": "cabecera", "que": "título + subtítulo", "css": "padding: 18px 20px; border-bottom: 1px solid #EFE9E0 | titulo: font-family: 'Instrument Serif'; font-size: 21px | sub: font-size: 14px; color: #7A7166; margin-top: 3px" },
+        { "bloque": "canales", "que": "Correo (email) seleccionado / SMS (celular) — onOtherChannel", "css": "gap: 10px | seleccionado: padding: 15px; border-radius: 12px; border: 2px solid #6B2233; background: #FDF6EA | otro: padding: 15px; border-radius: 12px; border: 1px solid #EFE9E0 | titulo: font-size: 15px; font-weight: 500 | detalle: font-size: 13px; color: #7A7166 | check: width: 22px; height: 22px; border-radius: 999px; background: #6B2233; color: #FFFFFF; font-size: 12px; font-weight: 700 | flecha: color: #7A7166" },
+        { "bloque": "casillas", "que": "6 dígitos (vacías hasta que llegue el código)", "css": "display: flex; gap: 7px | casilla: flex: 1; height: 60px; border-radius: 10px; border: 1px solid #EFE9E0; background: #FFFFFF; font-family: 'IBM Plex Mono'; font-size: 23px" },
+        { "bloque": "ayuda", "que": "texto fijo; sin contador de reenvío dibujado", "css": "font-size: 14px; line-height: 1.45; color: #7A7166" },
+        { "bloque": "cta", "que": "'Confirmar código' deshabilitado", "css": "padding: 16px 20px; border-top: 1px solid #EFE9E0; background: #FAF8F5 | botonDeshabilitado: height: 56px; border-radius: 12px; background: #EFE9E0; color: #7A7166; font-family: 'Instrument Serif'; font-size: 19px" }
+      ]
+    },
+    "historial": {
+      "patron": "porMes",
+      "resumen": "Cabecera de perfil negra con avatar vino; pedidos agrupados por mes con rótulo en versalitas sobre #FAF8F5 ('Noviembre', 'Octubre'); cada fila: local en Ubuntu 500 + total mono, meta 'Sáb 16 · mesa 14 · 3 ítems' y chips de estado (Pagado verde, Factura enviada gris, −5% dorado, Factura pendiente ámbar); pie con 'Facturas' y 'Volver a pedir' vino.",
+      "estructura": [
+        { "bloque": "marco", "que": "contenedor", "css": "background: #FFFFFF; border: 1px solid #DDD6C9; border-radius: 18px; color: #1A1815" },
+        { "bloque": "perfil", "que": "iniciales / account.nombre / '14 pedidos · 62.400 ahorrados'", "css": "padding: 20px; background: #1A1815; color: #F5F1EA; gap: 13px | avatar: width: 44px; height: 44px; border-radius: 999px; background: #6B2233; color: #FFFFFF; font-size: 16px; font-weight: 700 | nombre: font-family: 'Instrument Serif'; font-size: 20px | meta: font-size: 13px; opacity: 0.72" },
+        { "bloque": "rotuloMes", "que": "mes del pedido", "css": "padding: 10px 20px; background: #FAF8F5; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #7A7166; font-weight: 500" },
+        { "bloque": "filaPedido", "que": "local / total / meta (día · mesa · ítems) / chips de estado (pagado, factura, descuento)", "css": "padding: 13px 20px; border-bottom: 1px solid #EFE9E0 | local: font-size: 16px; font-weight: 500 | total: font-family: 'IBM Plex Mono'; font-size: 15px | meta: font-size: 13px; color: #7A7166; margin-top: 2px | chips: display: flex; gap: 6px; margin-top: 8px | chip: height: 26px; padding: 0 9px; border-radius: 6px; font-size: 12px; font-weight: 500 | pagado: background: #E6F1EA; color: #216239 | facturaEnviada: background: #FAF8F5; color: #7A7166 | descuento: background: #FDF6EA; color: #6B4A05 | facturaPendiente: background: #FDF2DC; color: #8A5A05" },
+        { "bloque": "pieFijo", "que": "'Facturas' + 'Volver a pedir'", "css": "padding: 14px 20px; border-top: 1px solid #EFE9E0; background: #FAF8F5; display: flex; gap: 10px | secundario: height: 50px; border-radius: 11px; border: 1px solid #EFE9E0; font-size: 15px; font-weight: 500; color: #7A7166 | primario: height: 50px; border-radius: 11px; background: #6B2233; color: #FFFFFF; font-size: 15px; font-weight: 500" }
+      ]
+    }
+  },
+  "fuentesGoogle": ["Instrument Serif"]
+}

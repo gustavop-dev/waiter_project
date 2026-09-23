@@ -1,0 +1,1660 @@
+{
+  "source": "exporty-light-mode.zip",
+  "screens": [
+    {
+      "name": "Captions",
+      "folder": "001-captions",
+      "assets": [
+        "assets/vectors/line-31-78b67aa1.svg",
+        "assets/vectors/line-31-34f79abf.svg",
+        "assets/vectors/line-31-97135e2f.svg",
+        "assets/vectors/line-31-b2784002.svg",
+        "assets/vectors/line-31-69aa4e55.svg"
+      ]
+    },
+    {
+      "name": "1. First Page",
+      "folder": "002-1.-first-page",
+      "assets": [
+        "assets/exports/1.-first-page-311891d1.png",
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/food-picture-d86e4360.png"
+      ]
+    },
+    {
+      "name": "2. Onboarding - Step 1",
+      "folder": "003-2.-onboarding-step-1",
+      "assets": [
+        "assets/exports/2.-onboarding-step-1-be8a8aa8.png",
+        "assets/images/illustration-phone-01-a9a5cbae.png",
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg"
+      ]
+    },
+    {
+      "name": "3. Onboarding - Step 2",
+      "folder": "004-3.-onboarding-step-2",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/3.-onboarding-step-2-cc8cdda8.png",
+        "assets/images/illustration-phone-03-0cebed3f.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg"
+      ]
+    },
+    {
+      "name": "4. Onboarding - Step 3",
+      "folder": "005-4.-onboarding-step-3",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/4.-onboarding-step-3-2abcec8a.png",
+        "assets/images/illustration-phone-02-b7e241b3.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg"
+      ]
+    },
+    {
+      "name": "5. Onboarding - Step 4",
+      "folder": "006-5.-onboarding-step-4",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/5.-onboarding-step-4-a5a4ab78.png",
+        "assets/images/illustration-phone-01-14fb3b33.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg"
+      ]
+    },
+    {
+      "name": "6. Authentication page",
+      "folder": "007-6.-authentication-page",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/6.-authentication-page-affd4d8a.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-b7fa5450.svg",
+        "assets/vectors/line-adcecf47.svg",
+        "assets/vectors/frame-398-93bb262b.svg",
+        "assets/vectors/social-media-facebook-logo-9e72d6cb.svg",
+        "assets/vectors/social-media-google-logo-212e3fdd.svg"
+      ]
+    },
+    {
+      "name": "7. Email Verification",
+      "folder": "008-7.-email-verification",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/7.-email-verification-ce267452.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-b7fa5450.svg"
+      ]
+    },
+    {
+      "name": "8. Email Verification + keyboard",
+      "folder": "009-8.-email-verification-keyboard",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/8.-email-verification-keyboard-36de969d.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-b7fa5450.svg",
+        "assets/vectors/caret-d6e02191.svg",
+        "assets/vectors/key-fcb82c04.svg",
+        "assets/vectors/key-b0f86845.svg",
+        "assets/vectors/key-f476cec3.svg",
+        "assets/vectors/key-b10e1cf0.svg",
+        "assets/vectors/key-6697c524.svg",
+        "assets/vectors/key-a7b46024.svg",
+        "assets/vectors/key-0c41e1ea.svg",
+        "assets/vectors/key-e3241d75.svg",
+        "assets/vectors/key-08b165e4.svg",
+        "assets/vectors/key-c30d2dae.svg",
+        "assets/vectors/key-da256d2e.svg",
+        "assets/vectors/key-216c1987.svg",
+        "assets/vectors/key-d6674783.svg",
+        "assets/vectors/key-6f96f9ea.svg",
+        "assets/vectors/key-a2abce05.svg",
+        "assets/vectors/key-af112ace.svg",
+        "assets/vectors/key-302b5cb2.svg",
+        "assets/vectors/key-8e37e820.svg",
+        "assets/vectors/key-69f4e672.svg",
+        "assets/vectors/key-f7ddb7b2.svg",
+        "assets/vectors/letters-7cd4d4d6.svg",
+        "assets/vectors/key-c0c1d543.svg",
+        "assets/vectors/key-4286dba0.svg",
+        "assets/vectors/key-d942c8a7.svg",
+        "assets/vectors/key-e116d448.svg",
+        "assets/vectors/icon-emoji-16d39f31.svg",
+        "assets/vectors/icon-dictation-3570d648.svg"
+      ]
+    },
+    {
+      "name": "9. Email Verification",
+      "folder": "010-9.-email-verification",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/9.-email-verification-4d5abc6a.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-b7fa5450.svg",
+        "assets/vectors/right-icon-284aadb3.svg"
+      ]
+    },
+    {
+      "name": "10. Create account",
+      "folder": "011-10.-create-account",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/10.-create-account-6499e9dd.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-b7fa5450.svg",
+        "assets/vectors/atom-country-drop-down-caret-d9985036.svg",
+        "assets/vectors/right-icon-699a8a0d.svg"
+      ]
+    },
+    {
+      "name": "11. Create account",
+      "folder": "012-11.-create-account",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/11.-create-account-09e6e889.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-b7fa5450.svg",
+        "assets/vectors/atom-country-drop-down-caret-d9985036.svg",
+        "assets/vectors/right-icon-5f60b459.svg",
+        "assets/vectors/right-icon-1b06cb1d.svg",
+        "assets/vectors/right-icon-429709b1.svg"
+      ]
+    },
+    {
+      "name": "12. Create account",
+      "folder": "013-12.-create-account",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/12.-create-account-0ebb6cd6.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-b7fa5450.svg",
+        "assets/vectors/atom-country-drop-down-caret-d9985036.svg",
+        "assets/vectors/right-icon-eca45b99.svg",
+        "assets/vectors/right-icon-59127743.svg",
+        "assets/vectors/right-icon-459f7cc3.svg",
+        "assets/vectors/right-icon-de4f1f71.svg"
+      ]
+    },
+    {
+      "name": "️13. Verify Code",
+      "folder": "014-13.-verify-code",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/13.-verify-code-5aab14f0.png",
+        "assets/images/illustration-4d402649.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-b7fa5450.svg",
+        "assets/vectors/variants-navigation-button-a72481c2.svg",
+        "assets/vectors/icons-arrow-right-e65f140c.svg"
+      ]
+    },
+    {
+      "name": "1️4. Verify Code",
+      "folder": "015-1-4.-verify-code",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/1-4.-verify-code-703d7e94.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-b7fa5450.svg",
+        "assets/vectors/variants-navigation-button-b0d3f0c9.svg"
+      ]
+    },
+    {
+      "name": "️15. Verify Code",
+      "folder": "016-15.-verify-code",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/15.-verify-code-09ecacc5.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-b7fa5450.svg",
+        "assets/vectors/variants-navigation-button-c3149f5e.svg"
+      ]
+    },
+    {
+      "name": "16. Congratulation - create account",
+      "folder": "017-16.-congratulation-create-account",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/16.-congratulation-create-account-f22f01d1.png",
+        "assets/images/star-fcc5ff15.png",
+        "assets/images/virtual-assistant-front-16fbb309.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-b7fa5450.svg"
+      ]
+    },
+    {
+      "name": "17. Login",
+      "folder": "018-17.-login",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/17.-login-2eafb5c2.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-b7fa5450.svg",
+        "assets/vectors/right-icon-1969d575.svg"
+      ]
+    },
+    {
+      "name": "18. Forget Password",
+      "folder": "019-18.-forget-password",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/18.-forget-password-fa6f122c.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-b7fa5450.svg",
+        "assets/vectors/variants-navigation-button-90bf0d38.svg"
+      ]
+    },
+    {
+      "name": "19. Forget Password",
+      "folder": "020-19.-forget-password",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/19.-forget-password-9ca2d83a.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-b7fa5450.svg",
+        "assets/vectors/variants-navigation-button-b515ef76.svg",
+        "assets/vectors/right-icon-e24cedc7.svg"
+      ]
+    },
+    {
+      "name": "20. Forget Password",
+      "folder": "021-20.-forget-password",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/20.-forget-password-c8d5ce51.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-b7fa5450.svg",
+        "assets/vectors/variants-navigation-button-9db7952e.svg",
+        "assets/vectors/right-icon-1bffb1b5.svg",
+        "assets/vectors/right-icon-048c0f95.svg"
+      ]
+    },
+    {
+      "name": "21. Congratulation - reset password",
+      "folder": "022-21.-congratulation-reset-password",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/virtual-assistant-front-16fbb309.png",
+        "assets/exports/21.-congratulation-reset-password-6b491978.png",
+        "assets/images/illustration-lock-211ab8d0.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-b7fa5450.svg"
+      ]
+    },
+    {
+      "name": "22. Open Mobile Application ",
+      "folder": "023-22.-open-mobile-application",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/illustration-4d402649.png",
+        "assets/exports/22.-open-mobile-application-dfe68f57.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-b7fa5450.svg",
+        "assets/vectors/menu-124eac3d.svg"
+      ]
+    },
+    {
+      "name": "23. QR Code - Scan code",
+      "folder": "024-23.-qr-code-scan-code",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/23.-qr-code-scan-code-fb8423e1.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-b7fa5450.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/content-1c986fd6.svg",
+        "assets/vectors/icons-scan-qrcode-a1123672.svg"
+      ]
+    },
+    {
+      "name": "24. QR Code - enter code",
+      "folder": "025-24.-qr-code-enter-code",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/24.-qr-code-enter-code-afa43833.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-b7fa5450.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/icons-scan-qrcode-a1123672.svg"
+      ]
+    },
+    {
+      "name": "25. Share your location",
+      "folder": "026-25.-share-your-location",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/25.-share-your-location-6b298adb.png",
+        "assets/vectors/right-side-b7fa5450.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/left-side-1c46c959.svg"
+      ]
+    },
+    {
+      "name": "26. Use current location",
+      "folder": "027-26.-use-current-location",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/illustration-4d402649.png",
+        "assets/exports/26.-use-current-location-58398e27.png",
+        "assets/vectors/right-side-b7fa5450.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/left-side-1c46c959.svg",
+        "assets/vectors/radio-button-93b8976b.svg",
+        "assets/vectors/radio-button-66d0de1f.svg"
+      ]
+    },
+    {
+      "name": "27. Search your location",
+      "folder": "028-27.-search-your-location",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/27.-search-your-location-45b89dd6.png",
+        "assets/vectors/right-side-b7fa5450.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/left-side-1c46c959.svg",
+        "assets/vectors/left-icon-0641f30d.svg",
+        "assets/vectors/right-icon-14c1e6bf.svg"
+      ]
+    },
+    {
+      "name": "28. Search results",
+      "folder": "029-28.-search-results",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/illustration-4d402649.png",
+        "assets/exports/28.-search-results-8f5a9d53.png",
+        "assets/vectors/right-side-b7fa5450.svg",
+        "assets/vectors/caret-d6e02191.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/left-side-1c46c959.svg",
+        "assets/vectors/radio-button-93b8976b.svg",
+        "assets/vectors/radio-button-66d0de1f.svg",
+        "assets/vectors/left-icon-bfda4748.svg",
+        "assets/vectors/right-icon-58108a27.svg"
+      ]
+    },
+    {
+      "name": "29. Open Mobile Application ",
+      "folder": "030-29.-open-mobile-application",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/29.-open-mobile-application-2ff16ad7.png",
+        "assets/images/illustration-565be53a.png",
+        "assets/images/illustration-04a473f3.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-77b0ed44.svg",
+        "assets/vectors/icon-location-point-3efd1956.svg",
+        "assets/vectors/icons-arrow-right-e81bc074.svg"
+      ]
+    },
+    {
+      "name": "30. Choose Digital Assistent",
+      "folder": "031-30.-choose-digital-assistent",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/star-fcc5ff15.png",
+        "assets/images/virtual-assistant-front-16fbb309.png",
+        "assets/exports/30.-choose-digital-assistent-c692a944.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-77b0ed44.svg"
+      ]
+    },
+    {
+      "name": "31. Old customer screen",
+      "folder": "032-31.-old-customer-screen",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/illustration-4d402649.png",
+        "assets/exports/31.-old-customer-screen-75357eb7.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-77b0ed44.svg",
+        "assets/vectors/variants-navigation-button-b9064eb2.svg",
+        "assets/vectors/icons-arrow-right-1240d1cc.svg",
+        "assets/vectors/icon-a84e6085.svg"
+      ]
+    },
+    {
+      "name": "32. Virtual Assistant - Step 1",
+      "folder": "033-32.-virtual-assistant-step-1",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/32.-virtual-assistant-step-1-eaa70a48.png",
+        "assets/images/emoji-hot-face-114345a8.png",
+        "assets/images/emoji-face-savouring-food-87b512b2.png",
+        "assets/images/emojy-tired-dc738f72.png",
+        "assets/images/emojy-angry-6b6e2f23.png",
+        "assets/images/emoji-expressionless-face-df552f87.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-77b0ed44.svg",
+        "assets/vectors/variants-navigation-button-f668909a.svg",
+        "assets/vectors/full-174e3b5d.svg",
+        "assets/vectors/step-1-40a48051.svg"
+      ]
+    },
+    {
+      "name": "33. Virtual Assistant - Step 2",
+      "folder": "034-33.-virtual-assistant-step-2",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/33.-virtual-assistant-step-2-c4713e62.png",
+        "assets/images/emoji-omelette-417fbf4b.png",
+        "assets/images/emoji-sandwich-fe1bd4dd.png",
+        "assets/images/emoji-spaghetti-de6ca56a.png",
+        "assets/images/emoji-champagne-glasses-cc9e0852.png",
+        "assets/images/emoji-candy-5815cf1a.png",
+        "assets/images/emoji-teapot-102a699a.png",
+        "assets/images/emoji-shortcake-06f64454.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-77b0ed44.svg",
+        "assets/vectors/full-174e3b5d.svg",
+        "assets/vectors/variants-navigation-button-a8477777.svg",
+        "assets/vectors/step-2-afa468e7.svg"
+      ]
+    },
+    {
+      "name": "34. Virtual Assistant - Step 3",
+      "folder": "035-34.-virtual-assistant-step-3",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/34.-virtual-assistant-step-3-d6df887b.png",
+        "assets/images/emoji-beverage-box-57eba283.png",
+        "assets/images/emoji-beer-mug-ecf4f8fc.png",
+        "assets/images/emoji-coffee-80d5013a.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-77b0ed44.svg",
+        "assets/vectors/full-174e3b5d.svg",
+        "assets/vectors/variants-navigation-button-03f2a066.svg",
+        "assets/vectors/step-3-334c2465.svg"
+      ]
+    },
+    {
+      "name": "35. Virtual Assistant - Step 4",
+      "folder": "036-35.-virtual-assistant-step-4",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/35.-virtual-assistant-step-4-12776368.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-77b0ed44.svg",
+        "assets/vectors/full-174e3b5d.svg",
+        "assets/vectors/variants-navigation-button-353e1628.svg",
+        "assets/vectors/step-4-f0e685ec.svg",
+        "assets/vectors/line-22-4e9e0fb3.svg",
+        "assets/vectors/line-23-763c28a2.svg",
+        "assets/vectors/line-24-f1ed87ef.svg",
+        "assets/vectors/line-25-a2f3331c.svg",
+        "assets/vectors/line-26-b62cbe39.svg",
+        "assets/vectors/line-27-b0f7ef9e.svg",
+        "assets/vectors/variants-navigation-button-b5e86cc6.svg"
+      ]
+    },
+    {
+      "name": "36. Virtual Assistant - Step 5",
+      "folder": "037-36.-virtual-assistant-step-5",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/36.-virtual-assistant-step-5-0557ad05.png",
+        "assets/images/emoji-plant-1b858620.png",
+        "assets/images/emoji-gluten-free-1447917d.png",
+        "assets/images/emoji-broccoli-ac46b7ca.png",
+        "assets/images/emoji-paleo-1c7c80ca.png",
+        "assets/images/emoji-thinking-face-fd261ed9.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-77b0ed44.svg",
+        "assets/vectors/full-174e3b5d.svg",
+        "assets/vectors/variants-navigation-button-6e2bf13d.svg",
+        "assets/vectors/step-5-85e63905.svg"
+      ]
+    },
+    {
+      "name": "37. Virtual Assistant - Step 6",
+      "folder": "038-37.-virtual-assistant-step-6",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/emoji-broccoli-ac46b7ca.png",
+        "assets/images/emoji-thinking-face-fd261ed9.png",
+        "assets/exports/37.-virtual-assistant-step-6-4efd2a52.png",
+        "assets/images/emoji-none-9382ba6b.png",
+        "assets/images/emoji-egg-01063649.png",
+        "assets/images/emoji-milk-6f6158aa.png",
+        "assets/images/emoji-gluten-cc655099.png",
+        "assets/images/emoji-corn-a49471ee.png",
+        "assets/images/emoji-shells-8148e86c.png",
+        "assets/images/emoji-nuts-c099ade3.png",
+        "assets/images/emoji-carrot-2046dbdd.png",
+        "assets/images/emoji-green-apple-46ae8214.png",
+        "assets/images/emoji-tomato-7bb84cd7.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-77b0ed44.svg",
+        "assets/vectors/full-174e3b5d.svg",
+        "assets/vectors/variants-navigation-button-a6ea300c.svg",
+        "assets/vectors/step-6-537dd163.svg"
+      ]
+    },
+    {
+      "name": "38. Virtual Assistant - Step 7",
+      "folder": "039-38.-virtual-assistant-step-7",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/38.-virtual-assistant-step-7-695c1b07.png",
+        "assets/images/emoji-mushroom-24999c52.png",
+        "assets/images/emoji-ananas-05056646.png",
+        "assets/images/emoji-microscope-9fb3d908.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-77b0ed44.svg",
+        "assets/vectors/full-174e3b5d.svg",
+        "assets/vectors/variants-navigation-button-73b508ea.svg",
+        "assets/vectors/step-7-b085d050.svg"
+      ]
+    },
+    {
+      "name": "39. Virtual Assistant - Step 8",
+      "folder": "040-39.-virtual-assistant-step-8",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/emoji-plant-1b858620.png",
+        "assets/exports/39.-virtual-assistant-step-8-1ca89c1e.png",
+        "assets/images/emoji-chicken-0761b2ab.png",
+        "assets/images/emoji-pork-92bfff84.png",
+        "assets/images/emoji-beef-07f11dae.png",
+        "assets/images/emoji-fish-2f434630.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-77b0ed44.svg",
+        "assets/vectors/full-174e3b5d.svg",
+        "assets/vectors/variants-navigation-button-cd04ba3a.svg",
+        "assets/vectors/step-8-424cb1ee.svg"
+      ]
+    },
+    {
+      "name": "40. Recommendations - grid",
+      "folder": "041-40.-recommendations-grid",
+      "assets": [
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/40.-recommendations-grid-1884863c.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-77b0ed44.svg",
+        "assets/vectors/icon-location-point-138df0ab.svg",
+        "assets/vectors/divider-a8adb786.svg",
+        "assets/vectors/variants-navigation-button-471b2288.svg",
+        "assets/vectors/icons-star-full-738e43a2.svg",
+        "assets/vectors/icons-star-full-bf32a698.svg",
+        "assets/vectors/icons-star-full-c6b1bd6b.svg"
+      ]
+    },
+    {
+      "name": "41. Recommendations - list",
+      "folder": "042-41.-recommendations-list",
+      "assets": [
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/41.-recommendations-list-5ab93492.png",
+        "assets/images/avocado-sandwich-26497c75.png",
+        "assets/images/avocado-sandwich-1d234106.png",
+        "assets/images/avocado-sandwich-a21bc7fe.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-77b0ed44.svg",
+        "assets/vectors/icon-location-point-138df0ab.svg",
+        "assets/vectors/divider-a8adb786.svg",
+        "assets/vectors/variants-navigation-button-1d97daa7.svg",
+        "assets/vectors/icons-star-half-c7203d7e.svg"
+      ]
+    },
+    {
+      "name": "42. Recommendations - list",
+      "folder": "043-42.-recommendations-list",
+      "assets": [
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/emoji-egg-01063649.png",
+        "assets/images/avocado-sandwich-26497c75.png",
+        "assets/exports/42.-recommendations-list-c418a2e1.png",
+        "assets/images/emoji-avocado-51f303eb.png",
+        "assets/images/emoji-salad-3c3eac8a.png",
+        "assets/images/emoji-french-bread-1049b0de.png",
+        "assets/images/avocado-sandwich-38f1d095.png",
+        "assets/images/avocado-sandwich-73cbe1c7.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-77b0ed44.svg",
+        "assets/vectors/icon-location-point-138df0ab.svg",
+        "assets/vectors/divider-a8adb786.svg",
+        "assets/vectors/icons-star-full-c6b1bd6b.svg",
+        "assets/vectors/icons-star-half-c7203d7e.svg",
+        "assets/vectors/variants-navigation-button-7477cba4.svg",
+        "assets/vectors/icons-minus-69556187.svg",
+        "assets/vectors/icons-plus-c3581c50.svg"
+      ]
+    },
+    {
+      "name": "43. Recommendations - list",
+      "folder": "044-43.-recommendations-list",
+      "assets": [
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/emoji-egg-01063649.png",
+        "assets/images/avocado-sandwich-26497c75.png",
+        "assets/images/emoji-avocado-51f303eb.png",
+        "assets/images/emoji-salad-3c3eac8a.png",
+        "assets/images/emoji-french-bread-1049b0de.png",
+        "assets/images/avocado-sandwich-38f1d095.png",
+        "assets/images/avocado-sandwich-73cbe1c7.png",
+        "assets/exports/43.-recommendations-list-579c454f.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-77b0ed44.svg",
+        "assets/vectors/icon-location-point-138df0ab.svg",
+        "assets/vectors/divider-a8adb786.svg",
+        "assets/vectors/icons-star-full-c6b1bd6b.svg",
+        "assets/vectors/icons-star-half-c7203d7e.svg",
+        "assets/vectors/icons-plus-c3581c50.svg",
+        "assets/vectors/variants-navigation-button-27e007d0.svg",
+        "assets/vectors/icons-minus-937050a0.svg"
+      ]
+    },
+    {
+      "name": "44. View a selected dish",
+      "folder": "045-44.-view-a-selected-dish",
+      "assets": [
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/emoji-egg-01063649.png",
+        "assets/images/avocado-sandwich-26497c75.png",
+        "assets/images/emoji-avocado-51f303eb.png",
+        "assets/images/emoji-salad-3c3eac8a.png",
+        "assets/images/emoji-french-bread-1049b0de.png",
+        "assets/images/avocado-sandwich-38f1d095.png",
+        "assets/images/avocado-sandwich-73cbe1c7.png",
+        "assets/exports/44.-view-a-selected-dish-d54f0c3f.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-77b0ed44.svg",
+        "assets/vectors/icon-location-point-138df0ab.svg",
+        "assets/vectors/divider-a8adb786.svg",
+        "assets/vectors/icons-star-full-c6b1bd6b.svg",
+        "assets/vectors/icons-star-half-c7203d7e.svg",
+        "assets/vectors/icons-minus-937050a0.svg",
+        "assets/vectors/variants-navigation-button-a1b7320b.svg",
+        "assets/vectors/checkbox-55496d20.svg",
+        "assets/vectors/variants-add-or-removal-button-c3b35e23.svg",
+        "assets/vectors/variants-add-or-removal-button-2cda9fcd.svg",
+        "assets/vectors/variants-add-or-removal-button-021091b2.svg",
+        "assets/vectors/icons-star-half-2e9a5716.svg",
+        "assets/vectors/icons-plus-16e0a466.svg"
+      ]
+    },
+    {
+      "name": "45. View a selected dish with extra toppings",
+      "folder": "046-45.-view-a-selected-dish-with-extra-toppings",
+      "assets": [
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/emoji-egg-01063649.png",
+        "assets/images/avocado-sandwich-26497c75.png",
+        "assets/images/emoji-avocado-51f303eb.png",
+        "assets/images/emoji-salad-3c3eac8a.png",
+        "assets/images/emoji-french-bread-1049b0de.png",
+        "assets/images/avocado-sandwich-38f1d095.png",
+        "assets/images/avocado-sandwich-73cbe1c7.png",
+        "assets/exports/45.-view-a-selected-dish-with-extra-toppings-ae517895.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-77b0ed44.svg",
+        "assets/vectors/icon-location-point-138df0ab.svg",
+        "assets/vectors/divider-a8adb786.svg",
+        "assets/vectors/icons-star-full-c6b1bd6b.svg",
+        "assets/vectors/icons-star-half-c7203d7e.svg",
+        "assets/vectors/icons-minus-69556187.svg",
+        "assets/vectors/icons-plus-c3581c50.svg",
+        "assets/vectors/icons-minus-937050a0.svg",
+        "assets/vectors/checkbox-55496d20.svg",
+        "assets/vectors/variants-add-or-removal-button-c3b35e23.svg",
+        "assets/vectors/variants-add-or-removal-button-2cda9fcd.svg",
+        "assets/vectors/variants-add-or-removal-button-021091b2.svg",
+        "assets/vectors/icons-star-half-2e9a5716.svg",
+        "assets/vectors/icons-plus-16e0a466.svg",
+        "assets/vectors/variants-navigation-button-ed9e459a.svg",
+        "assets/vectors/checkbox-c2d89333.svg"
+      ]
+    },
+    {
+      "name": "46. Full Menu",
+      "folder": "047-46.-full-menu",
+      "assets": [
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/food-picture-d86e4360.png",
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/avocado-sandwich-1d234106.png",
+        "assets/images/avocado-sandwich-a21bc7fe.png",
+        "assets/images/avocado-sandwich-38f1d095.png",
+        "assets/exports/46.-full-menu-ca8d5283.png",
+        "assets/images/group-32-1-5529f0bd.png",
+        "assets/images/avocado-sandwich-5a59b73c.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/icon-location-point-d47a2359.svg",
+        "assets/vectors/left-icon-2a56f04c.svg",
+        "assets/vectors/right-icon-e9752163.svg",
+        "assets/vectors/icons-star-full-89021d6d.svg"
+      ]
+    },
+    {
+      "name": "47. Full Menu",
+      "folder": "048-47.-full-menu",
+      "assets": [
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/avocado-sandwich-1d234106.png",
+        "assets/images/avocado-sandwich-38f1d095.png",
+        "assets/images/group-32-1-5529f0bd.png",
+        "assets/exports/47.-full-menu-af85f473.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/left-icon-2a56f04c.svg",
+        "assets/vectors/icon-location-point-24cee7d0.svg",
+        "assets/vectors/right-icon-bf63f26c.svg",
+        "assets/vectors/icons-star-half-ca4cebab.svg"
+      ]
+    },
+    {
+      "name": "48. Search in restaurant menu",
+      "folder": "049-48.-search-in-restaurant-menu",
+      "assets": [
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/food-picture-d86e4360.png",
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/avocado-sandwich-1d234106.png",
+        "assets/exports/48.-search-in-restaurant-menu-67428b2e.png",
+        "assets/images/avocado-sandwich-e338c68a.png",
+        "assets/images/avocado-sandwich-39aa86cc.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/caret-d6e02191.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/left-icon-2a56f04c.svg",
+        "assets/vectors/icon-location-point-24cee7d0.svg",
+        "assets/vectors/right-icon-65bea0d8.svg",
+        "assets/vectors/icons-star-half-0117cead.svg",
+        "assets/vectors/icons-plus-91327a32.svg",
+        "assets/vectors/icons-plus-574489a1.svg"
+      ]
+    },
+    {
+      "name": "49. Filters",
+      "folder": "050-49.-filters",
+      "assets": [
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/avocado-sandwich-1d234106.png",
+        "assets/images/avocado-sandwich-38f1d095.png",
+        "assets/images/group-32-1-5529f0bd.png",
+        "assets/exports/49.-filters-91ca2197.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/line-22-4e9e0fb3.svg",
+        "assets/vectors/line-23-763c28a2.svg",
+        "assets/vectors/line-24-f1ed87ef.svg",
+        "assets/vectors/line-25-a2f3331c.svg",
+        "assets/vectors/line-26-b62cbe39.svg",
+        "assets/vectors/line-27-b0f7ef9e.svg",
+        "assets/vectors/left-icon-2a56f04c.svg",
+        "assets/vectors/icons-star-half-0117cead.svg",
+        "assets/vectors/right-icon-a285baa0.svg",
+        "assets/vectors/icons-star-full-962a076e.svg",
+        "assets/vectors/interval-0b2f630c.svg"
+      ]
+    },
+    {
+      "name": "50. Notification",
+      "folder": "051-50.-notification",
+      "assets": [
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/illustration-565be53a.png",
+        "assets/images/avocado-sandwich-1d234106.png",
+        "assets/images/avocado-sandwich-38f1d095.png",
+        "assets/images/group-32-1-5529f0bd.png",
+        "assets/exports/50.-notification-bfa02945.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/icon-location-point-d47a2359.svg",
+        "assets/vectors/left-icon-5d76abca.svg",
+        "assets/vectors/right-icon-cd1b5d5c.svg",
+        "assets/vectors/icons-star-half-c676496a.svg"
+      ]
+    },
+    {
+      "name": "51. View a product from menu",
+      "folder": "052-51.-view-a-product-from-menu",
+      "assets": [
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/emoji-egg-01063649.png",
+        "assets/images/avocado-sandwich-26497c75.png",
+        "assets/images/emoji-avocado-51f303eb.png",
+        "assets/images/emoji-salad-3c3eac8a.png",
+        "assets/images/emoji-french-bread-1049b0de.png",
+        "assets/images/avocado-sandwich-38f1d095.png",
+        "assets/images/avocado-sandwich-73cbe1c7.png",
+        "assets/exports/51.-view-a-product-from-menu-ecb3ea64.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/variants-add-or-removal-button-c3b35e23.svg",
+        "assets/vectors/variants-add-or-removal-button-2cda9fcd.svg",
+        "assets/vectors/icons-star-half-c676496a.svg",
+        "assets/vectors/variants-navigation-button-a2f63b99.svg",
+        "assets/vectors/icons-star-full-31db4451.svg",
+        "assets/vectors/variants-add-or-removal-button-9c076bb6.svg",
+        "assets/vectors/icons-minus-11492dea.svg",
+        "assets/vectors/icons-plus-f3dfccb4.svg"
+      ]
+    },
+    {
+      "name": "52. View order",
+      "folder": "053-52.-view-order",
+      "assets": [
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/food-picture-d86e4360.png",
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/avocado-sandwich-1d234106.png",
+        "assets/images/avocado-sandwich-a21bc7fe.png",
+        "assets/images/avocado-sandwich-38f1d095.png",
+        "assets/images/avocado-sandwich-5a59b73c.png",
+        "assets/exports/52.-view-order-71e86c8a.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/icon-location-point-d47a2359.svg",
+        "assets/vectors/left-icon-08f3ccca.svg",
+        "assets/vectors/right-icon-3c08380c.svg",
+        "assets/vectors/icons-star-full-bc3823d7.svg",
+        "assets/vectors/icons-star-full-1e4ca5c4.svg",
+        "assets/vectors/icons-shopping-basket-d2ecbf1b.svg"
+      ]
+    },
+    {
+      "name": "53. View order",
+      "folder": "054-53.-view-order",
+      "assets": [
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/avocado-sandwich-38f1d095.png",
+        "assets/images/avocado-sandwich-73cbe1c7.png",
+        "assets/exports/53.-view-order-91cdc9cb.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/variants-add-or-removal-button-c3b35e23.svg",
+        "assets/vectors/variants-add-or-removal-button-2cda9fcd.svg",
+        "assets/vectors/variants-navigation-button-4a3b4c8b.svg",
+        "assets/vectors/icons-star-half-fdd5f1c1.svg",
+        "assets/vectors/icons-plus-dc27b7da.svg",
+        "assets/vectors/icons-arrow-right-d5ea5fe8.svg"
+      ]
+    },
+    {
+      "name": "54. View order - remove a product",
+      "folder": "055-54.-view-order-remove-a-product",
+      "assets": [
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/avocado-sandwich-38f1d095.png",
+        "assets/images/avocado-sandwich-73cbe1c7.png",
+        "assets/exports/54.-view-order-remove-a-product-2e2eb0d8.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/variants-add-or-removal-button-c3b35e23.svg",
+        "assets/vectors/variants-add-or-removal-button-2cda9fcd.svg",
+        "assets/vectors/icons-star-half-fdd5f1c1.svg",
+        "assets/vectors/icons-plus-dc27b7da.svg",
+        "assets/vectors/icons-arrow-right-d5ea5fe8.svg",
+        "assets/vectors/variants-navigation-button-0ea4054e.svg",
+        "assets/vectors/remove-area-e4ccccd4.svg"
+      ]
+    },
+    {
+      "name": "55. Take away or dine-in?",
+      "folder": "056-55.-take-away-or-dine-in",
+      "assets": [
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/avocado-sandwich-38f1d095.png",
+        "assets/images/avocado-sandwich-73cbe1c7.png",
+        "assets/exports/55.-take-away-or-dine-in-27b2736b.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/variants-add-or-removal-button-c3b35e23.svg",
+        "assets/vectors/variants-add-or-removal-button-2cda9fcd.svg",
+        "assets/vectors/icons-star-half-fdd5f1c1.svg",
+        "assets/vectors/icons-plus-dc27b7da.svg",
+        "assets/vectors/icons-arrow-right-d5ea5fe8.svg",
+        "assets/vectors/variants-navigation-button-83431a3b.svg",
+        "assets/vectors/icons-shopping-bag-85851dec.svg",
+        "assets/vectors/icons-store-f36dd785.svg"
+      ]
+    },
+    {
+      "name": "56. Order status 1 - preparing",
+      "folder": "057-56.-order-status-1-preparing",
+      "assets": [
+        "assets/images/illustration-4d402649.png",
+        "assets/exports/56.-order-status-1-preparing-2b2d8871.png",
+        "assets/images/illustration-hands-thumbsup-ff123f80.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/variants-navigation-button-c7fff173.svg",
+        "assets/vectors/icons-chevron-down-0025181c.svg"
+      ]
+    },
+    {
+      "name": "57. Order status 1 - preparing",
+      "folder": "058-57.-order-status-1-preparing",
+      "assets": [
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/avocado-sandwich-38f1d095.png",
+        "assets/images/avocado-sandwich-73cbe1c7.png",
+        "assets/images/illustration-hands-thumbsup-ff123f80.png",
+        "assets/exports/57.-order-status-1-preparing-1dfda1bf.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/variants-navigation-button-631a1f9e.svg",
+        "assets/vectors/icons-chevron-up-c42184f5.svg",
+        "assets/vectors/icons-plus-fd76b197.svg",
+        "assets/vectors/divider-0de2f479.svg"
+      ]
+    },
+    {
+      "name": "58. Order status 2 - almost ready",
+      "folder": "059-58.-order-status-2-almost-ready",
+      "assets": [
+        "assets/images/illustration-4d402649.png",
+        "assets/images/illustration-hands-thumbsup-ff123f80.png",
+        "assets/exports/58.-order-status-2-almost-ready-6b03426d.png",
+        "assets/images/illustration-hands-little-044aa25f.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/icons-chevron-down-0025181c.svg",
+        "assets/vectors/variants-navigation-button-37411a81.svg"
+      ]
+    },
+    {
+      "name": "59. Order status 3 - done",
+      "folder": "060-59.-order-status-3-done",
+      "assets": [
+        "assets/images/illustration-4d402649.png",
+        "assets/images/illustration-hands-thumbsup-ff123f80.png",
+        "assets/exports/59.-order-status-3-done-d36e886c.png",
+        "assets/images/illustration-hands-peace-0780c32e.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/icons-chevron-down-0025181c.svg",
+        "assets/vectors/variants-navigation-button-391b8351.svg"
+      ]
+    },
+    {
+      "name": "60. Add a new card",
+      "folder": "061-60.-add-a-new-card",
+      "assets": [
+        "assets/images/avocado-sandwich-73cbe1c7.png",
+        "assets/exports/60.-add-a-new-card-2ebb4a96.png",
+        "assets/images/illustration-c9ef55eb.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/divider-0de2f479.svg",
+        "assets/vectors/variants-navigation-button-081c1ef8.svg",
+        "assets/vectors/icons-plus-87a37806.svg",
+        "assets/vectors/left-icon-1931fea4.svg",
+        "assets/vectors/left-icon-a54fcc41.svg"
+      ]
+    },
+    {
+      "name": "61. Add a new card",
+      "folder": "062-61.-add-a-new-card",
+      "assets": [
+        "assets/images/avocado-sandwich-73cbe1c7.png",
+        "assets/images/illustration-c9ef55eb.png",
+        "assets/exports/61.-add-a-new-card-e29e9414.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/icons-plus-87a37806.svg",
+        "assets/vectors/left-icon-1931fea4.svg",
+        "assets/vectors/left-icon-a54fcc41.svg",
+        "assets/vectors/variants-navigation-button-a9daacce.svg",
+        "assets/vectors/line-11-22f17613.svg",
+        "assets/vectors/line-12-59f66666.svg",
+        "assets/vectors/atom-card-logo-19e0abb7.svg"
+      ]
+    },
+    {
+      "name": "62. Checkout - 1 card",
+      "folder": "063-62.-checkout-1-card",
+      "assets": [
+        "assets/images/avocado-sandwich-73cbe1c7.png",
+        "assets/exports/62.-checkout-1-card-136077ad.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/left-icon-1931fea4.svg",
+        "assets/vectors/left-icon-a54fcc41.svg",
+        "assets/vectors/line-11-22f17613.svg",
+        "assets/vectors/line-12-59f66666.svg",
+        "assets/vectors/variants-navigation-button-3a44d580.svg",
+        "assets/vectors/logo-content-363b2967.svg"
+      ]
+    },
+    {
+      "name": "63. Checkout - 3 cards",
+      "folder": "064-63.-checkout-3-cards",
+      "assets": [
+        "assets/images/avocado-sandwich-73cbe1c7.png",
+        "assets/exports/63.-checkout-3-cards-75eff3d2.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/left-icon-1931fea4.svg",
+        "assets/vectors/left-icon-a54fcc41.svg",
+        "assets/vectors/line-11-22f17613.svg",
+        "assets/vectors/line-12-59f66666.svg",
+        "assets/vectors/logo-content-363b2967.svg",
+        "assets/vectors/variants-navigation-button-a3c2c271.svg"
+      ]
+    },
+    {
+      "name": "64. Checkout - discount applied",
+      "folder": "065-64.-checkout-discount-applied",
+      "assets": [
+        "assets/images/avocado-sandwich-73cbe1c7.png",
+        "assets/exports/64.-checkout-discount-applied-f75970fc.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/left-icon-1931fea4.svg",
+        "assets/vectors/left-icon-a54fcc41.svg",
+        "assets/vectors/line-11-22f17613.svg",
+        "assets/vectors/line-12-59f66666.svg",
+        "assets/vectors/variants-navigation-button-93f02df4.svg",
+        "assets/vectors/logo-content-7b51f36b.svg",
+        "assets/vectors/right-icon-e2673232.svg"
+      ]
+    },
+    {
+      "name": "65. After Checkout ",
+      "folder": "066-65.-after-checkout",
+      "assets": [
+        "assets/exports/65.-after-checkout-7b7a7958.png",
+        "assets/images/illustration-fb20613f.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/left-side-1c46c959.svg",
+        "assets/vectors/variants-navigation-button-3d6909c3.svg"
+      ]
+    },
+    {
+      "name": "66. After Checkout ",
+      "folder": "067-66.-after-checkout",
+      "assets": [
+        "assets/images/illustration-565be53a.png",
+        "assets/images/illustration-fb20613f.png",
+        "assets/exports/66.-after-checkout-8dd9d4c0.png",
+        "assets/images/illustration-eda86ba2.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/left-side-1c46c959.svg",
+        "assets/vectors/icon-location-point-70ffd646.svg"
+      ]
+    },
+    {
+      "name": "67. Feedback",
+      "folder": "068-67.-feedback",
+      "assets": [
+        "assets/images/star-fcc5ff15.png",
+        "assets/images/illustration-c9ef55eb.png",
+        "assets/exports/67.-feedback-11edca02.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/left-side-1c46c959.svg",
+        "assets/vectors/icon-location-point-70ffd646.svg",
+        "assets/vectors/icons-x-397878c5.svg"
+      ]
+    },
+    {
+      "name": "68. Feedback - extremely disappointed",
+      "folder": "069-68.-feedback-extremely-disappointed",
+      "assets": [
+        "assets/exports/68.-feedback-extremely-disappointed-f9e69c7a.png",
+        "assets/images/bitmap-e373c608.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/left-side-1c46c959.svg",
+        "assets/vectors/line-22-4e9e0fb3.svg",
+        "assets/vectors/line-23-763c28a2.svg",
+        "assets/vectors/line-24-f1ed87ef.svg",
+        "assets/vectors/line-25-a2f3331c.svg",
+        "assets/vectors/line-26-b62cbe39.svg",
+        "assets/vectors/line-27-b0f7ef9e.svg",
+        "assets/vectors/variants-navigation-button-77a01dca.svg",
+        "assets/vectors/variants-navigation-button-7462f3b8.svg"
+      ]
+    },
+    {
+      "name": "69. Feedback - kind of disappointed",
+      "folder": "070-69.-feedback-kind-of-disappointed",
+      "assets": [
+        "assets/exports/69.-feedback-kind-of-disappointed-1e79fe12.png",
+        "assets/images/bitmap-a0a23ed0.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/left-side-1c46c959.svg",
+        "assets/vectors/line-22-4e9e0fb3.svg",
+        "assets/vectors/line-23-763c28a2.svg",
+        "assets/vectors/line-24-f1ed87ef.svg",
+        "assets/vectors/line-25-a2f3331c.svg",
+        "assets/vectors/line-26-b62cbe39.svg",
+        "assets/vectors/line-27-b0f7ef9e.svg",
+        "assets/vectors/variants-navigation-button-a1870f13.svg",
+        "assets/vectors/icons-streering-dd03b5a8.svg"
+      ]
+    },
+    {
+      "name": "70. Feedback - neutral",
+      "folder": "071-70.-feedback-neutral",
+      "assets": [
+        "assets/exports/70.-feedback-neutral-4c8d73b7.png",
+        "assets/images/bitmap-b541a918.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/left-side-1c46c959.svg",
+        "assets/vectors/line-22-4e9e0fb3.svg",
+        "assets/vectors/line-23-763c28a2.svg",
+        "assets/vectors/line-24-f1ed87ef.svg",
+        "assets/vectors/line-25-a2f3331c.svg",
+        "assets/vectors/line-26-b62cbe39.svg",
+        "assets/vectors/line-27-b0f7ef9e.svg",
+        "assets/vectors/icons-streering-dd03b5a8.svg",
+        "assets/vectors/variants-navigation-button-a3f191d1.svg"
+      ]
+    },
+    {
+      "name": "71. Feedback - great",
+      "folder": "072-71.-feedback-great",
+      "assets": [
+        "assets/exports/71.-feedback-great-bf6529a4.png",
+        "assets/images/bitmap-901c0468.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/left-side-1c46c959.svg",
+        "assets/vectors/line-22-4e9e0fb3.svg",
+        "assets/vectors/line-23-763c28a2.svg",
+        "assets/vectors/line-24-f1ed87ef.svg",
+        "assets/vectors/line-25-a2f3331c.svg",
+        "assets/vectors/line-26-b62cbe39.svg",
+        "assets/vectors/line-27-b0f7ef9e.svg",
+        "assets/vectors/icons-streering-dd03b5a8.svg",
+        "assets/vectors/variants-navigation-button-e8d05e0a.svg"
+      ]
+    },
+    {
+      "name": "72. Feedback - awesome",
+      "folder": "073-72.-feedback-awesome",
+      "assets": [
+        "assets/exports/72.-feedback-awesome-caa7c1ce.png",
+        "assets/images/bitmap-d5de1d32.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/left-side-1c46c959.svg",
+        "assets/vectors/line-22-4e9e0fb3.svg",
+        "assets/vectors/line-23-763c28a2.svg",
+        "assets/vectors/line-24-f1ed87ef.svg",
+        "assets/vectors/line-25-a2f3331c.svg",
+        "assets/vectors/line-26-b62cbe39.svg",
+        "assets/vectors/line-27-b0f7ef9e.svg",
+        "assets/vectors/icons-streering-dd03b5a8.svg",
+        "assets/vectors/variants-navigation-button-2c0fa84b.svg"
+      ]
+    },
+    {
+      "name": "73. Extra input for low feedback",
+      "folder": "074-73.-extra-input-for-low-feedback",
+      "assets": [
+        "assets/images/bitmap-e373c608.png",
+        "assets/exports/73.-extra-input-for-low-feedback-219710b1.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/left-side-1c46c959.svg",
+        "assets/vectors/variants-navigation-button-b662f764.svg"
+      ]
+    },
+    {
+      "name": "74. Dishes feedback",
+      "folder": "075-74.-dishes-feedback",
+      "assets": [
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/avocado-sandwich-38f1d095.png",
+        "assets/images/avocado-sandwich-73cbe1c7.png",
+        "assets/images/bitmap-e373c608.png",
+        "assets/images/bitmap-a0a23ed0.png",
+        "assets/images/bitmap-b541a918.png",
+        "assets/images/bitmap-901c0468.png",
+        "assets/images/bitmap-d5de1d32.png",
+        "assets/exports/74.-dishes-feedback-35268408.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/left-side-1c46c959.svg",
+        "assets/vectors/variants-navigation-button-8646d5dc.svg"
+      ]
+    },
+    {
+      "name": "75. Scan QR Code - when leaving the restaurant",
+      "folder": "076-75.-scan-qr-code-when-leaving-the-restaurant",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/75.-scan-qr-code-when-leaving-the-restaurant-d59cd206.png",
+        "assets/vectors/right-side-7e4630ce.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/left-side-1c46c959.svg",
+        "assets/vectors/content-2f128054.svg"
+      ]
+    },
+    {
+      "name": "76. General Menu",
+      "folder": "077-76.-general-menu",
+      "assets": [
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/avocado-sandwich-26497c75.png",
+        "assets/images/avocado-sandwich-1d234106.png",
+        "assets/images/avocado-sandwich-a21bc7fe.png",
+        "assets/exports/76.-general-menu-f6ce4736.png",
+        "assets/images/profile-picture-08356205.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/right-side-70699d98.svg",
+        "assets/vectors/base-navigation-bar-86a868b5.svg",
+        "assets/vectors/active-sign-7dcd539d.svg",
+        "assets/vectors/divider-b10548f9.svg",
+        "assets/vectors/icons-log-out-50822bce.svg",
+        "assets/vectors/icon-location-point-1469f00d.svg"
+      ]
+    },
+    {
+      "name": "77. Home - Active order",
+      "folder": "078-77.-home-active-order",
+      "assets": [
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/food-picture-d86e4360.png",
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/avocado-sandwich-1d234106.png",
+        "assets/images/avocado-sandwich-a21bc7fe.png",
+        "assets/images/avocado-sandwich-38f1d095.png",
+        "assets/images/group-32-1-5529f0bd.png",
+        "assets/images/avocado-sandwich-5a59b73c.png",
+        "assets/exports/77.-home-active-order-8c6b400d.png",
+        "assets/images/restaurant-1-3004f261.jpg",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-70699d98.svg",
+        "assets/vectors/icon-location-point-1469f00d.svg",
+        "assets/vectors/icons-arrow-right-82b6e1c4.svg",
+        "assets/vectors/icons-star-full-99ae832c.svg"
+      ]
+    },
+    {
+      "name": "78. My orders",
+      "folder": "079-78.-my-orders",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/group-32-1-5529f0bd.png",
+        "assets/images/restaurant-1-3004f261.jpg",
+        "assets/exports/78.-my-orders-fda63a1c.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-70699d98.svg",
+        "assets/vectors/icons-arrow-right-1631302f.svg",
+        "assets/vectors/icons-wallet-b8c770bd.svg",
+        "assets/vectors/icons-calendar-alt-c9d454bb.svg",
+        "assets/vectors/icons-calendar-alt-1c927e55.svg"
+      ]
+    },
+    {
+      "name": "79. View order",
+      "folder": "080-79.-view-order",
+      "assets": [
+        "assets/images/food-picture-a051cfd4.png",
+        "assets/images/avocado-sandwich-38f1d095.png",
+        "assets/images/avocado-sandwich-73cbe1c7.png",
+        "assets/images/group-32-1-5529f0bd.png",
+        "assets/images/restaurant-1-3004f261.jpg",
+        "assets/exports/79.-view-order-da0d0d21.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/divider-0de2f479.svg",
+        "assets/vectors/right-side-70699d98.svg",
+        "assets/vectors/variants-navigation-button-270d7fbb.svg",
+        "assets/vectors/icons-wallet-3f76dc8e.svg",
+        "assets/vectors/icons-calendar-alt-1de50f25.svg",
+        "assets/vectors/subtract-0973a578.svg",
+        "assets/vectors/line-31-0f70dab5.svg",
+        "assets/vectors/subtract-7f646d0c.svg",
+        "assets/vectors/subtract-bacaad40.svg",
+        "assets/vectors/line-31-96945511.svg",
+        "assets/vectors/subtract-8b6ce086.svg"
+      ]
+    },
+    {
+      "name": "80. Locations",
+      "folder": "081-80.-locations",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/group-32-1-5529f0bd.png",
+        "assets/images/restaurant-1-3004f261.jpg",
+        "assets/exports/80.-locations-22a1fbc4.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-70699d98.svg",
+        "assets/vectors/icons-location-point-7db3af24.svg",
+        "assets/vectors/icons-arrow-right-a1d1d9c8.svg",
+        "assets/vectors/icons-location-point-b8159eb6.svg"
+      ]
+    },
+    {
+      "name": "81. View location",
+      "folder": "082-81.-view-location",
+      "assets": [
+        "assets/images/group-32-1-5529f0bd.png",
+        "assets/images/restaurant-1-3004f261.jpg",
+        "assets/exports/81.-view-location-ecdb3909.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-70699d98.svg",
+        "assets/vectors/icons-location-point-b8159eb6.svg",
+        "assets/vectors/variants-navigation-button-82866536.svg",
+        "assets/vectors/icons-clock-ten-ee5e63ae.svg",
+        "assets/vectors/icons-phone-1adde8d1.svg"
+      ]
+    },
+    {
+      "name": "82. My Rewards",
+      "folder": "083-82.-my-rewards",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/illustration-4d402649.png",
+        "assets/exports/82.-my-rewards-137dede1.png",
+        "assets/images/casual-life-3d-reward-badge-1-1-4869d346.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-70699d98.svg",
+        "assets/vectors/icons-arrow-right-e9a2ae26.svg"
+      ]
+    },
+    {
+      "name": "83. My Rewards - Claim Reward ",
+      "folder": "084-83.-my-rewards-claim-reward",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/illustration-4d402649.png",
+        "assets/images/casual-life-3d-reward-badge-1-1-4869d346.png",
+        "assets/exports/83.-my-rewards-claim-reward-8387cde6.png",
+        "assets/images/casual-life-3d-gold-trophy-in-air-1-eeb93977.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-70699d98.svg",
+        "assets/vectors/icons-arrow-right-e9a2ae26.svg"
+      ]
+    },
+    {
+      "name": "84. About",
+      "folder": "085-84.-about",
+      "assets": [
+        "assets/images/illustration-phone-01-a9a5cbae.png",
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/exports/84.-about-5527a958.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-70699d98.svg"
+      ]
+    },
+    {
+      "name": "85. Help",
+      "folder": "086-85.-help",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/illustration-4d402649.png",
+        "assets/exports/85.-help-2faeb1d2.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-70699d98.svg",
+        "assets/vectors/icons-arrow-right-e9a2ae26.svg"
+      ]
+    },
+    {
+      "name": "86. Help",
+      "folder": "087-86.-help",
+      "assets": [
+        "assets/images/illustration-4d402649.png",
+        "assets/exports/86.-help-256a1f03.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-70699d98.svg",
+        "assets/vectors/variants-navigation-button-e8ed299d.svg",
+        "assets/vectors/icons-arrow-right-be3d854d.svg",
+        "assets/vectors/divider-1091bf71.svg"
+      ]
+    },
+    {
+      "name": "87. Help",
+      "folder": "088-87.-help",
+      "assets": [
+        "assets/exports/87.-help-39080baf.png",
+        "assets/vectors/left-side-4148c977.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-70699d98.svg",
+        "assets/vectors/variants-navigation-button-92de6b88.svg",
+        "assets/vectors/frame-389-8162bf26.svg"
+      ]
+    },
+    {
+      "name": "88. My profile",
+      "folder": "089-88.-my-profile",
+      "assets": [
+        "assets/images/illustration-4d402649.png",
+        "assets/images/profile-picture-08356205.png",
+        "assets/exports/88.-my-profile-60a2b7cc.png",
+        "assets/vectors/base-navigation-bar-86a868b5.svg",
+        "assets/vectors/right-side-93e0d3aa.svg",
+        "assets/vectors/left-side-35df9285.svg",
+        "assets/vectors/icons-arrow-right-507ea3b1.svg"
+      ]
+    },
+    {
+      "name": "89. Account Information",
+      "folder": "090-89.-account-information",
+      "assets": [
+        "assets/exports/89.-account-information-de1fcd40.png",
+        "assets/vectors/atom-country-drop-down-caret-d9985036.svg",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-93e0d3aa.svg",
+        "assets/vectors/left-side-35df9285.svg",
+        "assets/vectors/variants-navigation-button-89df7ff7.svg"
+      ]
+    },
+    {
+      "name": "90. Account Information",
+      "folder": "091-90.-account-information",
+      "assets": [
+        "assets/exports/90.-account-information-9ad69abe.png",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-93e0d3aa.svg",
+        "assets/vectors/left-side-35df9285.svg",
+        "assets/vectors/variants-navigation-button-26858f6a.svg",
+        "assets/vectors/right-icon-e2412f37.svg",
+        "assets/vectors/right-icon-25a3868b.svg",
+        "assets/vectors/right-icon-8ca14ebf.svg"
+      ]
+    },
+    {
+      "name": "91. My cards",
+      "folder": "092-91.-my-cards",
+      "assets": [
+        "assets/images/illustration-c9ef55eb.png",
+        "assets/exports/91.-my-cards-6634c4b7.png",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-93e0d3aa.svg",
+        "assets/vectors/left-side-35df9285.svg",
+        "assets/vectors/variants-navigation-button-cc995087.svg"
+      ]
+    },
+    {
+      "name": "92. Choose a payment method",
+      "folder": "093-92.-choose-a-payment-method",
+      "assets": [
+        "assets/images/illustration-4d402649.png",
+        "assets/images/illustration-c9ef55eb.png",
+        "assets/exports/92.-choose-a-payment-method-70f81e3e.png",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-93e0d3aa.svg",
+        "assets/vectors/left-side-35df9285.svg",
+        "assets/vectors/variants-navigation-button-34765b99.svg",
+        "assets/vectors/icons-arrow-right-be5bf7e2.svg"
+      ]
+    },
+    {
+      "name": "93. My cards",
+      "folder": "094-93.-my-cards",
+      "assets": [
+        "assets/images/illustration-c9ef55eb.png",
+        "assets/exports/93.-my-cards-cdf90dc2.png",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-93e0d3aa.svg",
+        "assets/vectors/left-side-35df9285.svg",
+        "assets/vectors/variants-navigation-button-d84e75ac.svg",
+        "assets/vectors/atom-card-logo-e3e9ab2e.svg"
+      ]
+    },
+    {
+      "name": "94. My cards",
+      "folder": "095-94.-my-cards",
+      "assets": [
+        "assets/images/avocado-sandwich-73cbe1c7.png",
+        "assets/exports/94.-my-cards-cbe61797.png",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/divider-0de2f479.svg",
+        "assets/vectors/right-side-93e0d3aa.svg",
+        "assets/vectors/left-side-35df9285.svg",
+        "assets/vectors/variants-navigation-button-49c275a8.svg",
+        "assets/vectors/logo-content-d099155b.svg",
+        "assets/vectors/icons-trash-2-2701eb35.svg"
+      ]
+    },
+    {
+      "name": "95. My cards",
+      "folder": "096-95.-my-cards",
+      "assets": [
+        "assets/images/avocado-sandwich-73cbe1c7.png",
+        "assets/exports/95.-my-cards-3c047937.png",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/divider-0de2f479.svg",
+        "assets/vectors/right-side-93e0d3aa.svg",
+        "assets/vectors/left-side-35df9285.svg",
+        "assets/vectors/logo-content-d099155b.svg",
+        "assets/vectors/icons-trash-2-2701eb35.svg",
+        "assets/vectors/variants-navigation-button-8626ad96.svg"
+      ]
+    },
+    {
+      "name": "96. My preferences - no preferences",
+      "folder": "097-96.-my-preferences-no-preferences",
+      "assets": [
+        "assets/images/illustration-94cf4a5c.png",
+        "assets/images/star-fcc5ff15.png",
+        "assets/exports/96.-my-preferences-no-preferences-12412c1f.png",
+        "assets/images/virtual-assistant-left-4724171d.png",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-93e0d3aa.svg",
+        "assets/vectors/left-side-35df9285.svg",
+        "assets/vectors/variants-navigation-button-51070f27.svg"
+      ]
+    },
+    {
+      "name": "97. My preferences - preferences configured",
+      "folder": "098-97.-my-preferences-preferences-configured",
+      "assets": [
+        "assets/images/illustration-4d402649.png",
+        "assets/exports/97.-my-preferences-preferences-configured-53647967.png",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-93e0d3aa.svg",
+        "assets/vectors/left-side-35df9285.svg",
+        "assets/vectors/variants-navigation-button-0cbf8e81.svg",
+        "assets/vectors/icon-c42927c7.svg",
+        "assets/vectors/icons-arrow-right-b606da02.svg",
+        "assets/vectors/icon-232f25af.svg",
+        "assets/vectors/icon-62922809.svg"
+      ]
+    },
+    {
+      "name": "98. My preferences - no preferences",
+      "folder": "099-98.-my-preferences-no-preferences",
+      "assets": [
+        "assets/images/emoji-hot-face-114345a8.png",
+        "assets/images/emoji-face-savouring-food-87b512b2.png",
+        "assets/images/emojy-tired-dc738f72.png",
+        "assets/images/emojy-angry-6b6e2f23.png",
+        "assets/images/emoji-expressionless-face-df552f87.png",
+        "assets/images/emoji-omelette-417fbf4b.png",
+        "assets/images/emoji-sandwich-fe1bd4dd.png",
+        "assets/images/emoji-spaghetti-de6ca56a.png",
+        "assets/images/emoji-champagne-glasses-cc9e0852.png",
+        "assets/images/emoji-candy-5815cf1a.png",
+        "assets/images/emoji-teapot-102a699a.png",
+        "assets/images/emoji-shortcake-06f64454.png",
+        "assets/images/emoji-beverage-box-57eba283.png",
+        "assets/images/emoji-beer-mug-ecf4f8fc.png",
+        "assets/images/emoji-coffee-80d5013a.png",
+        "assets/images/emoji-plant-1b858620.png",
+        "assets/images/emoji-gluten-free-1447917d.png",
+        "assets/images/emoji-broccoli-ac46b7ca.png",
+        "assets/images/emoji-paleo-1c7c80ca.png",
+        "assets/images/emoji-thinking-face-fd261ed9.png",
+        "assets/exports/98.-my-preferences-no-preferences-987cb030.png",
+        "assets/images/emojy-sick-c3215f41.png",
+        "assets/images/emojy-energized-4197c3e9.png",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/right-side-93e0d3aa.svg",
+        "assets/vectors/left-side-35df9285.svg",
+        "assets/vectors/variants-navigation-button-2359f60c.svg"
+      ]
+    },
+    {
+      "name": "99. Language",
+      "folder": "100-99.-language",
+      "assets": [
+        "assets/images/illustration-4d402649.png",
+        "assets/exports/99.-language-9a180ad3.png",
+        "assets/vectors/menu-124eac3d.svg",
+        "assets/vectors/radio-button-93b8976b.svg",
+        "assets/vectors/radio-button-66d0de1f.svg",
+        "assets/vectors/divider-1091bf71.svg",
+        "assets/vectors/right-side-93e0d3aa.svg",
+        "assets/vectors/left-side-35df9285.svg",
+        "assets/vectors/variants-navigation-button-3e829c7a.svg",
+        "assets/vectors/radio-button-e452f791.svg"
+      ]
+    }
+  ]
+}

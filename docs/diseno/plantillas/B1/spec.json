@@ -1,0 +1,783 @@
+{
+  "codigo": "B1",
+  "nombre": "Rejilla con foto",
+  "familia": "B",
+  "familiaNombre": "Casual de barrio",
+  "descripcion": "La plantilla por defecto: dos columnas con foto pequeña y precio visible, para añadir en un toque sin abrir el plato.",
+  "fotos": {
+    "requiere": "todas",
+    "recorte": "3x2"
+  },
+  "tokens": {
+    "modo": "claro",
+    "fondo": "#FFFFFF",
+    "superficie": "#FAF8F5",
+    "tinta": "#1A1815",
+    "tintaSuave": "#7A7166",
+    "tintaTerciaria": "#9A8F7E",
+    "borde": "#EFE9E0",
+    "acento": "#C1873A",
+    "acentoTinta": "#1A1815",
+    "acentoSuave": "#FDF6EA",
+    "displayFont": "Ubuntu",
+    "displayPeso": 700,
+    "displayTracking": "-0.02em",
+    "displayTransform": "none",
+    "cuerpoFont": "Ubuntu",
+    "monoFont": "IBM Plex Mono",
+    "radioTarjeta": 14,
+    "radioBoton": 12,
+    "radioChip": 999,
+    "densidad": "media"
+  },
+  "personalizable": {
+    "colores": [
+      "acento",
+      "fondo",
+      "superficie",
+      "tinta"
+    ],
+    "tipografiaDisplay": true,
+    "logo": true
+  },
+  "pantallas": {
+    "menu": {
+      "layout": "B1",
+      "resumen": "Píldoras de categoría arriba (activa en acento), rejilla de 2 columnas con foto de 82 px de alto, nombre, precio en mono y ＋ redondo en acento; barra oscura de pedido abajo. acentoTinta = #1A1815 porque el blanco del marco sobre #C1873A da 3.09:1 (el motor pinta la tinta oscura sobre el acento, 5.73:1); los «color: #FFFFFF» de los botones en la estructura documentan el marco tal cual.",
+      "datosOpcionales": [],
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "Pantalla completa sobre fondo blanco.",
+          "css": {
+            "background": "#FFFFFF",
+            "color": "#1A1815",
+            "border-radius": "20px (solo el lienzo del diseño)",
+            "border": "1px solid #DDD6C9 (solo el lienzo)"
+          }
+        },
+        {
+          "bloque": "categorias",
+          "que": "Fila horizontal de píldoras con las categorías de la carta (categoria.nombre); la activa (category) va rellena en acento.",
+          "css": {
+            "padding": "16px 18px",
+            "border-bottom": "1px solid #EFE9E0",
+            "display": "flex; gap: 6px; overflow: hidden",
+            "pildora": {
+              "height": "42px",
+              "padding": "0 15px",
+              "border-radius": "999px",
+              "font-size": "15px",
+              "flex": "none",
+              "display": "grid; place-items: center"
+            },
+            "pildoraActiva": {
+              "background": "#C1873A",
+              "color": "#FFFFFF",
+              "font-weight": 500
+            },
+            "pildoraInactiva": {
+              "border": "1px solid #E4DED4",
+              "color": "#1A1815"
+            }
+          }
+        },
+        {
+          "bloque": "rejilla",
+          "que": "Rejilla de dos columnas con los productos de la categoría activa.",
+          "css": {
+            "padding": "14px 18px",
+            "display": "grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: start"
+          }
+        },
+        {
+          "bloque": "tarjetaPlato",
+          "que": "Tarjeta por producto: foto arriba (producto.foto, recorte en caja de 82 px; sin foto se pinta el placeholder «Foto»), nombre (producto.nombre), fila con precio (producto.precio, mono) y botón ＋ (onAdd sin abrir el plato). Tocar la tarjeta abre el plato (onOpen).",
+          "css": {
+            "border": "1px solid #EFE9E0",
+            "border-radius": "14px",
+            "overflow": "hidden",
+            "foto": {
+              "height": "82px",
+              "background": "#E8E1D5",
+              "placeholder": {
+                "font-size": "10px",
+                "letter-spacing": "0.08em",
+                "text-transform": "uppercase",
+                "color": "#9A8F7E"
+              }
+            },
+            "cuerpo": {
+              "padding": "9px 11px"
+            },
+            "nombre": {
+              "font-family": "Ubuntu, system-ui, sans-serif",
+              "font-size": "15px",
+              "font-weight": 500,
+              "line-height": 1.2,
+              "color": "#1A1815"
+            },
+            "filaPrecio": {
+              "display": "flex; align-items: center; justify-content: space-between",
+              "margin-top": "8px"
+            },
+            "precio": {
+              "font-family": "'IBM Plex Mono', monospace",
+              "font-size": "14px"
+            },
+            "botonMas": {
+              "width": "32px",
+              "height": "32px",
+              "border-radius": "999px",
+              "background": "#C1873A",
+              "color": "#FFFFFF",
+              "font-size": "16px",
+              "texto": "＋"
+            }
+          }
+        },
+        {
+          "bloque": "barraPedido",
+          "que": "Barra oscura fija abajo: «N ítems · total» (cart) y enlace «Ver pedido →» (orderBarHref).",
+          "css": {
+            "padding": "12px 18px",
+            "border-top": "1px solid #EFE9E0",
+            "background": "#1A1815",
+            "display": "flex; align-items: center; justify-content: space-between",
+            "resumen": {
+              "font-size": "14px",
+              "color": "#EDE7DD",
+              "total": {
+                "font-family": "'IBM Plex Mono', monospace"
+              }
+            },
+            "enlace": {
+              "font-size": "14px",
+              "font-weight": 500,
+              "color": "#C1873A"
+            }
+          }
+        }
+      ]
+    },
+    "carrito": {
+      "layout": "familia-B",
+      "descuento5": "linea",
+      "resumen": "Base de la familia: cabecera «Tu pedido · N ítems», filas con miniatura 54 px, nombre, precio, nota, stepper − 1 ＋ y «Quitar»; bloque de totales con línea de descuento en verde y propina; CTA «Ir a pagar» en acento.",
+      "datosOpcionales": [
+        "notaLinea"
+      ],
+      "estructura": [
+        {
+          "bloque": "cabecera",
+          "que": "Título «Tu pedido» y conteo de ítems del carrito (cart.items.length).",
+          "css": {
+            "padding": "16px 18px",
+            "border-bottom": "1px solid #EFE9E0",
+            "display": "flex; align-items: baseline; justify-content: space-between; gap: 10px",
+            "titulo": {
+              "font-family": "Ubuntu, system-ui, sans-serif",
+              "font-size": "19px",
+              "font-weight": 700,
+              "letter-spacing": "-0.02em",
+              "line-height": 1.15,
+              "color": "#1A1815"
+            },
+            "conteo": {
+              "font-size": "14px",
+              "color": "#7A7166"
+            }
+          }
+        },
+        {
+          "bloque": "lineaPedido",
+          "que": "Fila por línea del carrito: miniatura (producto.foto), nombre (producto.nombre), importe de la línea (cantidad × precio, mono), nota «2 · una sin cebolla» (cantidad · nota de la línea), stepper −/cantidad/＋ (setQty) y «Quitar» (remove).",
+          "css": {
+            "padding": "12px 18px",
+            "border-bottom": "1px solid #EFE9E0",
+            "display": "flex; gap: 12px",
+            "miniatura": {
+              "width": "54px",
+              "height": "54px",
+              "border-radius": "10px",
+              "background": "#E8E1D5"
+            },
+            "nombre": {
+              "font-size": "16px",
+              "font-weight": 500
+            },
+            "importe": {
+              "font-family": "'IBM Plex Mono', monospace",
+              "font-size": "15px",
+              "white-space": "nowrap"
+            },
+            "nota": {
+              "font-size": "13px",
+              "color": "#7A7166",
+              "margin-top": "2px"
+            },
+            "stepper": {
+              "margin-top": "8px",
+              "border": "1px solid #EFE9E0",
+              "border-radius": "9px",
+              "overflow": "hidden",
+              "boton": {
+                "width": "38px",
+                "height": "42px",
+                "font-size": "17px",
+                "color": "#7A7166"
+              },
+              "separadorMas": {
+                "border-left": "1px solid #EFE9E0"
+              },
+              "cantidad": {
+                "width": "32px",
+                "text-align": "center",
+                "font-family": "'IBM Plex Mono', monospace",
+                "font-size": "15px"
+              }
+            },
+            "quitar": {
+              "font-size": "14px",
+              "color": "#96241F",
+              "margin-left": "8px"
+            }
+          }
+        },
+        {
+          "bloque": "totales",
+          "que": "Bloque de totales sobre superficie: Subtotal · Descuento primera compra 5% (color #2F7A4F, monto negativo −4.680) · Propina 10% · Total. Se liga a cart.subtotal, discount (5 % primera compra), propina y cart.total.",
+          "css": {
+            "padding": "16px 18px",
+            "border-top": "1px solid #EFE9E0",
+            "background": "#FAF8F5",
+            "linea": {
+              "display": "flex; justify-content: space-between",
+              "font-size": "15px",
+              "color": "#7A7166",
+              "padding": "3px 0",
+              "monto": {
+                "font-family": "'IBM Plex Mono', monospace",
+                "white-space": "nowrap"
+              }
+            },
+            "lineaDescuento": {
+              "color": "#2F7A4F"
+            },
+            "filaTotal": {
+              "padding-top": "10px",
+              "margin-top": "8px",
+              "border-top": "1px solid #EFE9E0",
+              "display": "flex; justify-content: space-between; align-items: baseline; gap: 10px",
+              "etiqueta": {
+                "font-size": "18px",
+                "font-weight": 700,
+                "letter-spacing": "-0.02em",
+                "line-height": 1.15
+              },
+              "monto": {
+                "font-family": "'IBM Plex Mono', monospace",
+                "font-size": "25px",
+                "white-space": "nowrap",
+                "texto": "$ 97.812"
+              }
+            }
+          }
+        },
+        {
+          "bloque": "cta",
+          "que": "Botón principal «Ir a pagar».",
+          "css": {
+            "padding": "14px 18px",
+            "border-top": "1px solid #EFE9E0",
+            "background": "#FAF8F5",
+            "boton": {
+              "height": "56px",
+              "border-radius": "12px",
+              "background": "#C1873A",
+              "color": "#FFFFFF",
+              "font-size": "16px",
+              "font-weight": 700,
+              "display": "grid; place-items: center",
+              "texto": "Ir a pagar"
+            }
+          }
+        }
+      ]
+    },
+    "pago": {
+      "layout": "familia-B",
+      "resumen": "Base de la familia: píldoras de método (Tarjeta / PSE / Nequi / Efectivo), formulario de tarjeta en mono, interruptor «Guardar para la próxima visita», aviso «Tokenizado por la pasarela» y CTA «Pagar $ total».",
+      "estructura": [
+        {
+          "bloque": "metodos",
+          "que": "Píldoras de método de pago (methods): Tarjeta activa, PSE, Nequi, Efectivo.",
+          "css": {
+            "padding": "10px 18px",
+            "border-bottom": "1px solid #EFE9E0",
+            "display": "flex; gap: 7px; overflow: hidden",
+            "pildora": {
+              "height": "42px",
+              "padding": "0 13px",
+              "border-radius": "999px",
+              "font-size": "14px",
+              "flex": "none"
+            },
+            "pildoraActiva": {
+              "background": "#C1873A",
+              "color": "#FFFFFF",
+              "font-weight": 500
+            },
+            "pildoraInactiva": {
+              "border": "1px solid #EFE9E0",
+              "color": "#7A7166"
+            }
+          }
+        },
+        {
+          "bloque": "formularioTarjeta",
+          "que": "Número de la tarjeta (4242 4242 4242 4242), fila Vence (08/29) + CVV (•••) en dos columnas de flex 1 con gap 10. Valores en mono; en el demo el formulario es de maqueta.",
+          "css": {
+            "padding": "14px 18px",
+            "display": "flex; flex-direction: column; gap: 12px",
+            "label": {
+              "font-size": "14px",
+              "font-weight": 500,
+              "color": "#7A7166",
+              "gap": "6px"
+            },
+            "input": {
+              "height": "52px",
+              "border": "1px solid #EFE9E0",
+              "border-radius": "10px",
+              "background": "#FFFFFF",
+              "padding": "0 14px",
+              "font-family": "'IBM Plex Mono', monospace",
+              "font-size": "16px",
+              "color": "#1A1815"
+            },
+            "filaDoble": {
+              "display": "flex; gap: 10px"
+            }
+          }
+        },
+        {
+          "bloque": "guardarTarjeta",
+          "que": "Interruptor encendido «Guardar para la próxima visita».",
+          "css": {
+            "toggle": {
+              "width": "48px",
+              "height": "28px",
+              "border-radius": "999px",
+              "background": "#C1873A",
+              "padding": "3px",
+              "knob": {
+                "width": "22px",
+                "height": "22px",
+                "border-radius": "999px",
+                "background": "#FFFFFF"
+              }
+            },
+            "texto": {
+              "font-size": "14px",
+              "color": "#7A7166"
+            },
+            "gap": "11px"
+          }
+        },
+        {
+          "bloque": "avisoTokenizado",
+          "que": "Nota de seguridad con check verde: «Tokenizado por la pasarela. Waiter no ve tu tarjeta.» (en Waiter se acompaña de la insignia «Demo · sin cobro real», que el marco no dibuja).",
+          "css": {
+            "padding": "11px 13px",
+            "border-radius": "10px",
+            "background": "#F2EEE8",
+            "display": "flex; gap: 9px; align-items: center",
+            "check": {
+              "width": "22px",
+              "height": "22px",
+              "border-radius": "6px",
+              "background": "#2F7A4F",
+              "color": "#FFFFFF",
+              "font-size": "11px",
+              "font-weight": 700
+            },
+            "texto": {
+              "font-size": "13px",
+              "line-height": 1.4,
+              "color": "#7A7166"
+            }
+          }
+        },
+        {
+          "bloque": "cta",
+          "que": "Botón principal «Pagar $ 97.812».",
+          "css": {
+            "padding": "14px 18px",
+            "border-top": "1px solid #EFE9E0",
+            "background": "#FAF8F5",
+            "boton": {
+              "height": "60px",
+              "border-radius": "12px",
+              "background": "#C1873A",
+              "color": "#FFFFFF",
+              "font-size": "16px",
+              "font-weight": 700,
+              "display": "grid; place-items: center",
+              "texto": "Pagar $ 97.812"
+            }
+          }
+        }
+      ]
+    },
+    "registro": {
+      "patron": "banner5",
+      "resumen": "Banda «5% en tu primera compra» sobre acentoSuave, campos Nombre / Correo (foco en acento) / Celular, dos casillas (política de datos, novedades) y CTA «Crear cuenta y aplicar 5%» + «Ya tengo cuenta».",
+      "estructura": [
+        {
+          "bloque": "banner5",
+          "que": "Banda superior con el 5 % de primera compra: «5%» grande + «en tu primera compra. Después pagas en dos toques.»",
+          "css": {
+            "padding": "20px",
+            "background": "#FDF6EA",
+            "border-bottom": "1px solid #EFE9E0",
+            "display": "flex; align-items: baseline; gap: 11px",
+            "cifra": {
+              "font-size": "34px",
+              "font-weight": 700,
+              "color": "#C1873A",
+              "letter-spacing": "-0.03em"
+            },
+            "texto": {
+              "font-size": "15px",
+              "line-height": 1.4,
+              "color": "#6B4A05"
+            }
+          }
+        },
+        {
+          "bloque": "campos",
+          "que": "Tres campos apilados con gap 14: Nombre, Correo (con foco), Celular → nombre, correo, celular.",
+          "css": {
+            "padding": "18px 20px",
+            "display": "flex; flex-direction: column; gap: 14px",
+            "label": {
+              "font-size": "14px",
+              "font-weight": 500,
+              "color": "#7A7166",
+              "gap": "6px"
+            },
+            "input": {
+              "height": "52px",
+              "border": "1px solid #EFE9E0",
+              "border-radius": "10px",
+              "background": "#FFFFFF",
+              "padding": "0 14px",
+              "font-size": "16px"
+            },
+            "inputFoco": {
+              "border": "2px solid #C1873A"
+            }
+          }
+        },
+        {
+          "bloque": "consentimientoDatos",
+          "que": "Casilla «Acepto la política de datos.» (marcada) → aceptaDatos.",
+          "css": {
+            "display": "flex; gap: 11px; align-items: center",
+            "casilla": {
+              "width": "24px",
+              "height": "24px",
+              "border-radius": "7px",
+              "font-size": "13px",
+              "font-weight": 700,
+              "background": "#C1873A",
+              "color": "#FFFFFF"
+            },
+            "texto": {
+              "font-size": "14px",
+              "color": "#7A7166"
+            }
+          }
+        },
+        {
+          "bloque": "consentimientoNovedades",
+          "que": "Casilla «Quiero novedades del local.» (sin marcar) → novedades.",
+          "css": {
+            "display": "flex; gap: 11px; align-items: center",
+            "casilla": {
+              "width": "24px",
+              "height": "24px",
+              "border-radius": "7px",
+              "font-size": "13px",
+              "font-weight": 700,
+              "border": "1px solid #EFE9E0"
+            },
+            "texto": {
+              "font-size": "14px",
+              "color": "#7A7166"
+            }
+          }
+        },
+        {
+          "bloque": "pie",
+          "que": "CTA «Crear cuenta y aplicar 5%» y enlace «Ya tengo cuenta» (onSubmit / onSkip).",
+          "css": {
+            "padding": "16px 20px",
+            "border-top": "1px solid #EFE9E0",
+            "background": "#FAF8F5",
+            "boton": {
+              "height": "56px",
+              "border-radius": "12px",
+              "background": "#C1873A",
+              "color": "#FFFFFF",
+              "font-size": "16px",
+              "font-weight": 700,
+              "letter-spacing": "-0.02em",
+              "line-height": 1.15
+            },
+            "enlace": {
+              "text-align": "center",
+              "font-size": "14px",
+              "color": "#7A7166",
+              "margin-top": "11px"
+            }
+          }
+        }
+      ]
+    },
+    "codigo": {
+      "patron": "casillas",
+      "resumen": "Cabecera con flecha atrás y «Verifica que eres tú», texto con el correo y «Vence en 10 minutos», seis casillas en mono, «Reenviar en 0:38» + «Usar SMS», caja de ayuda y CTA deshabilitado «Confirmar código».",
+      "estructura": [
+        {
+          "bloque": "cabecera",
+          "que": "Botón atrás y título «Verifica que eres tú».",
+          "css": {
+            "padding": "16px 20px",
+            "border-bottom": "1px solid #EFE9E0",
+            "display": "flex; align-items: center; gap: 12px",
+            "atras": {
+              "width": "38px",
+              "height": "38px",
+              "border-radius": "10px",
+              "border": "1px solid #EFE9E0",
+              "font-size": "16px",
+              "color": "#7A7166"
+            },
+            "titulo": {
+              "font-family": "Ubuntu, system-ui, sans-serif",
+              "font-size": "18px",
+              "font-weight": 700,
+              "letter-spacing": "-0.02em",
+              "line-height": 1.15
+            }
+          }
+        },
+        {
+          "bloque": "texto",
+          "que": "«Código de seis dígitos enviado a {email}. Vence en 10 minutos.» (email en tinta).",
+          "css": {
+            "padding": "18px 20px 0",
+            "font-size": "16px",
+            "line-height": 1.5,
+            "color": "#7A7166",
+            "email": {
+              "color": "#1A1815"
+            }
+          }
+        },
+        {
+          "bloque": "casillas",
+          "que": "Seis casillas de un dígito (código de 6); la activa lleva borde de 2 px en acento (ejemplo 4 9 2 |).",
+          "css": {
+            "display": "flex; gap: 7px",
+            "casilla": {
+              "flex": 1,
+              "height": "60px",
+              "border-radius": "10px",
+              "border": "1px solid #EFE9E0",
+              "background": "#FFFFFF",
+              "font-family": "'IBM Plex Mono', monospace",
+              "font-size": "23px",
+              "display": "grid; place-items: center"
+            },
+            "casillaActiva": {
+              "border": "2px solid #C1873A"
+            }
+          }
+        },
+        {
+          "bloque": "reenvio",
+          "que": "«Reenviar en 0:38» (cuenta atrás en mono, onResend al llegar a 0) y enlace «Usar SMS» (onOtherChannel).",
+          "css": {
+            "display": "flex; align-items: center; justify-content: space-between",
+            "texto": {
+              "font-size": "15px",
+              "color": "#7A7166",
+              "contador": {
+                "font-family": "'IBM Plex Mono', monospace"
+              }
+            },
+            "enlace": {
+              "font-size": "15px",
+              "font-weight": 500,
+              "color": "#C1873A"
+            }
+          }
+        },
+        {
+          "bloque": "ayuda",
+          "que": "«¿No llega? Revisa spam. Tu pedido sigue guardado mientras verificas.»",
+          "css": {
+            "padding": "13px 15px",
+            "border-radius": "12px",
+            "background": "#FAF8F5",
+            "font-size": "14px",
+            "line-height": 1.45,
+            "color": "#7A7166"
+          }
+        },
+        {
+          "bloque": "pie",
+          "que": "CTA «Confirmar código» deshabilitado hasta completar seis dígitos (onVerify).",
+          "css": {
+            "padding": "16px 20px",
+            "border-top": "1px solid #EFE9E0",
+            "background": "#FAF8F5",
+            "boton": {
+              "height": "56px",
+              "border-radius": "12px",
+              "background": "#EFE9E0",
+              "color": "#7A7166",
+              "font-size": "16px",
+              "font-weight": 700,
+              "letter-spacing": "-0.02em",
+              "line-height": 1.15
+            }
+          }
+        }
+      ]
+    },
+    "historial": {
+      "patron": "tarjetas",
+      "resumen": "Cabecera oscura con avatar de iniciales en acento y resumen de pedidos/ahorro; una tarjeta por pedido con local, fecha + resumen, total en mono y acciones «Ver factura» / «Volver a pedir»; pie con «Facturas» y «Volver a pedir».",
+      "datosOpcionales": [
+        "ahorroAcumulado",
+        "facturaUrl"
+      ],
+      "estructura": [
+        {
+          "bloque": "cabeceraCuenta",
+          "que": "Cabecera oscura con avatar de iniciales, nombre (account.nombre) y resumen «14 pedidos · 62.400 ahorrados» (conteo de pedidos y ahorro acumulado).",
+          "css": {
+            "padding": "20px",
+            "background": "#1A1815",
+            "color": "#F5F1EA",
+            "display": "flex; align-items: center; gap: 13px",
+            "avatar": {
+              "width": "44px",
+              "height": "44px",
+              "border-radius": "999px",
+              "background": "#C1873A",
+              "color": "#FFFFFF",
+              "font-size": "16px",
+              "font-weight": 700
+            },
+            "nombre": {
+              "font-family": "Ubuntu, system-ui, sans-serif",
+              "font-size": "17px",
+              "font-weight": 700,
+              "letter-spacing": "-0.02em",
+              "line-height": 1.15
+            },
+            "resumen": {
+              "font-size": "13px",
+              "opacity": 0.72
+            }
+          }
+        },
+        {
+          "bloque": "tarjetasPedido",
+          "que": "Una tarjeta por pedido: nombre del local, «Sáb 16 nov · Hamburguesa Angus +2» (fecha + primer producto + resto), total en mono; la más reciente lleva «Ver factura» y «Volver a pedir».",
+          "css": {
+            "padding": "16px 20px",
+            "display": "flex; flex-direction: column; gap: 12px",
+            "tarjeta": {
+              "border": "1px solid #EFE9E0",
+              "border-radius": "14px",
+              "padding": "15px"
+            },
+            "local": {
+              "font-family": "Ubuntu, system-ui, sans-serif",
+              "font-size": "16px",
+              "font-weight": 700,
+              "letter-spacing": "-0.02em",
+              "line-height": 1.15
+            },
+            "detalle": {
+              "font-size": "13px",
+              "color": "#7A7166",
+              "margin-top": "3px"
+            },
+            "total": {
+              "font-family": "'IBM Plex Mono', monospace",
+              "font-size": "19px",
+              "white-space": "nowrap"
+            },
+            "acciones": {
+              "display": "flex; gap: 8px",
+              "margin-top": "12px",
+              "verFactura": {
+                "flex": 1,
+                "height": "44px",
+                "border-radius": "10px",
+                "border": "1px solid #EFE9E0",
+                "font-size": "14px",
+                "color": "#7A7166"
+              },
+              "volverAPedir": {
+                "flex": 1,
+                "height": "44px",
+                "border-radius": "10px",
+                "background": "#C1873A",
+                "color": "#FFFFFF",
+                "font-size": "14px",
+                "font-weight": 500
+              }
+            }
+          }
+        },
+        {
+          "bloque": "pie",
+          "que": "Dos botones: «Facturas» (secundario) y «Volver a pedir» (primario, onReorder del último pedido).",
+          "css": {
+            "padding": "14px 20px",
+            "border-top": "1px solid #EFE9E0",
+            "background": "#FAF8F5",
+            "display": "flex; gap: 10px",
+            "secundario": {
+              "flex": 1,
+              "height": "50px",
+              "border-radius": "11px",
+              "border": "1px solid #EFE9E0",
+              "font-size": "15px",
+              "font-weight": 500,
+              "color": "#7A7166"
+            },
+            "primario": {
+              "flex": 1,
+              "height": "50px",
+              "border-radius": "11px",
+              "background": "#C1873A",
+              "color": "#FFFFFF",
+              "font-size": "15px",
+              "font-weight": 500
+            }
+          }
+        }
+      ]
+    }
+  },
+  "fuentesGoogle": []
+}

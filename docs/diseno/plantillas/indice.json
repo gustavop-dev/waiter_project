@@ -1,0 +1,680 @@
+{
+  "familias": {
+    "A": "Alta cocina",
+    "B": "Casual de barrio",
+    "C": "Rápida y food truck",
+    "D": "Café y panadería",
+    "E": "Bar y cervecería",
+    "F": "Sushi y especializados"
+  },
+  "plantillas": {
+    "A1": {
+      "codigo": "A1",
+      "familia": "A",
+      "familiaNombre": "Alta cocina",
+      "familiaTexto": "Pocas fotos, mucho aire, tipografía con voz. El comensal ya decidió gastar; lo que busca es confianza y relato.",
+      "nombre": "Carta editorial",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/A1/menu.html",
+        "carrito": "docs/diseno/plantillas/A1/carrito.html",
+        "pago": "docs/diseno/plantillas/A1/pago.html",
+        "registro": "docs/diseno/plantillas/A1/registro.html",
+        "codigo": "docs/diseno/plantillas/A1/codigo.html",
+        "historial": "docs/diseno/plantillas/A1/historial.html"
+      },
+      "notas": {
+        "menu": "Sin fotos, precio discreto y descripción larga. Para cartas cortas donde cada plato se lee entero.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "A2": {
+      "codigo": "A2",
+      "familia": "A",
+      "familiaNombre": "Alta cocina",
+      "familiaTexto": "Pocas fotos, mucho aire, tipografía con voz. El comensal ya decidió gastar; lo que busca es confianza y relato.",
+      "nombre": "Menú degustación por pasos",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/A2/menu.html",
+        "carrito": "docs/diseno/plantillas/A2/carrito.html",
+        "pago": "docs/diseno/plantillas/A2/pago.html",
+        "registro": "docs/diseno/plantillas/A2/registro.html",
+        "codigo": "docs/diseno/plantillas/A2/codigo.html",
+        "historial": "docs/diseno/plantillas/A2/historial.html"
+      },
+      "notas": {
+        "menu": "Un solo producto, no un catálogo. Precio arriba y una sola acción: aceptar el menú.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "A3": {
+      "codigo": "A3",
+      "familia": "A",
+      "familiaNombre": "Alta cocina",
+      "familiaTexto": "Pocas fotos, mucho aire, tipografía con voz. El comensal ya decidió gastar; lo que busca es confianza y relato.",
+      "nombre": "Carta de vinos indexada",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/A3/menu.html",
+        "carrito": "docs/diseno/plantillas/A3/carrito.html",
+        "pago": "docs/diseno/plantillas/A3/pago.html",
+        "registro": "docs/diseno/plantillas/A3/registro.html",
+        "codigo": "docs/diseno/plantillas/A3/codigo.html",
+        "historial": "docs/diseno/plantillas/A3/historial.html"
+      },
+      "notas": {
+        "menu": "Listas largas: agrupa por origen, filtra por uva y no intenta vender con fotos.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "A4": {
+      "codigo": "A4",
+      "familia": "A",
+      "familiaNombre": "Alta cocina",
+      "familiaTexto": "Pocas fotos, mucho aire, tipografía con voz. El comensal ya decidió gastar; lo que busca es confianza y relato.",
+      "nombre": "Plato con relato",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/A4/menu.html",
+        "carrito": "docs/diseno/plantillas/A4/carrito.html",
+        "pago": "docs/diseno/plantillas/A4/pago.html",
+        "registro": "docs/diseno/plantillas/A4/registro.html",
+        "codigo": "docs/diseno/plantillas/A4/codigo.html",
+        "historial": "docs/diseno/plantillas/A4/historial.html"
+      },
+      "notas": {
+        "menu": "Ficha de un solo plato. Es la pantalla a la que llevan todas las demás; el maridaje es el upsell.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "A5": {
+      "codigo": "A5",
+      "familia": "A",
+      "familiaNombre": "Alta cocina",
+      "familiaTexto": "Pocas fotos, mucho aire, tipografía con voz. El comensal ya decidió gastar; lo que busca es confianza y relato.",
+      "nombre": "Índice de dos columnas",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/A5/menu.html",
+        "carrito": "docs/diseno/plantillas/A5/carrito.html",
+        "pago": "docs/diseno/plantillas/A5/pago.html",
+        "registro": "docs/diseno/plantillas/A5/registro.html",
+        "codigo": "docs/diseno/plantillas/A5/codigo.html",
+        "historial": "docs/diseno/plantillas/A5/historial.html"
+      },
+      "notas": {
+        "menu": "Portada de secciones antes de mostrar platos. Para cartas grandes que no quieren parecer catálogo.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "B1": {
+      "codigo": "B1",
+      "familia": "B",
+      "familiaNombre": "Casual de barrio",
+      "familiaTexto": "Familias, grupos, gente que vuelve. La foto vende y el precio se compara: aquí ambos van visibles.",
+      "nombre": "Rejilla con foto",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/B1/menu.html",
+        "carrito": "docs/diseno/plantillas/B1/carrito.html",
+        "pago": "docs/diseno/plantillas/B1/pago.html",
+        "registro": "docs/diseno/plantillas/B1/registro.html",
+        "codigo": "docs/diseno/plantillas/B1/codigo.html",
+        "historial": "docs/diseno/plantillas/B1/historial.html"
+      },
+      "notas": {
+        "menu": "La plantilla por defecto. Dos columnas, foto pequeña, añadir en un toque sin abrir el plato.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "B2": {
+      "codigo": "B2",
+      "familia": "B",
+      "familiaNombre": "Casual de barrio",
+      "familiaTexto": "Familias, grupos, gente que vuelve. La foto vende y el precio se compara: aquí ambos van visibles.",
+      "nombre": "Los favoritos primero",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/B2/menu.html",
+        "carrito": "docs/diseno/plantillas/B2/carrito.html",
+        "pago": "docs/diseno/plantillas/B2/pago.html",
+        "registro": "docs/diseno/plantillas/B2/registro.html",
+        "codigo": "docs/diseno/plantillas/B2/codigo.html",
+        "historial": "docs/diseno/plantillas/B2/historial.html"
+      },
+      "notas": {
+        "menu": "Usa los datos del POS: ranking real con conteo. Baja la ansiedad de elegir en cartas largas.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "B3": {
+      "codigo": "B3",
+      "familia": "B",
+      "familiaNombre": "Casual de barrio",
+      "familiaTexto": "Familias, grupos, gente que vuelve. La foto vende y el precio se compara: aquí ambos van visibles.",
+      "nombre": "Para compartir",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/B3/menu.html",
+        "carrito": "docs/diseno/plantillas/B3/carrito.html",
+        "pago": "docs/diseno/plantillas/B3/pago.html",
+        "registro": "docs/diseno/plantillas/B3/registro.html",
+        "codigo": "docs/diseno/plantillas/B3/codigo.html",
+        "historial": "docs/diseno/plantillas/B3/historial.html"
+      },
+      "notas": {
+        "menu": "Empieza por el tamaño del grupo y ofrece bandejas con precio por persona. Sube el ticket sin regatear.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "B4": {
+      "codigo": "B4",
+      "familia": "B",
+      "familiaNombre": "Casual de barrio",
+      "familiaTexto": "Familias, grupos, gente que vuelve. La foto vende y el precio se compara: aquí ambos van visibles.",
+      "nombre": "Menú del día",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/B4/menu.html",
+        "carrito": "docs/diseno/plantillas/B4/carrito.html",
+        "pago": "docs/diseno/plantillas/B4/pago.html",
+        "registro": "docs/diseno/plantillas/B4/registro.html",
+        "codigo": "docs/diseno/plantillas/B4/codigo.html",
+        "historial": "docs/diseno/plantillas/B4/historial.html"
+      },
+      "notas": {
+        "menu": "Precio único arriba, elección por pasos y recargos visibles. Nada de fotos: aquí la velocidad manda.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "B5": {
+      "codigo": "B5",
+      "familia": "B",
+      "familiaNombre": "Casual de barrio",
+      "familiaTexto": "Familias, grupos, gente que vuelve. La foto vende y el precio se compara: aquí ambos van visibles.",
+      "nombre": "Carta con secciones plegables",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/B5/menu.html",
+        "carrito": "docs/diseno/plantillas/B5/carrito.html",
+        "pago": "docs/diseno/plantillas/B5/pago.html",
+        "registro": "docs/diseno/plantillas/B5/registro.html",
+        "codigo": "docs/diseno/plantillas/B5/codigo.html",
+        "historial": "docs/diseno/plantillas/B5/historial.html"
+      },
+      "notas": {
+        "menu": "Sin fotos y con buscador: para cartas de 60+ platos donde el comensal ya sabe qué quiere.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "C1": {
+      "codigo": "C1",
+      "familia": "C",
+      "familiaNombre": "Rápida y food truck",
+      "familiaTexto": "Cola detrás, pantalla en la mano, decisión en veinte segundos. Números grandes, pocas opciones, combos.",
+      "nombre": "Combos numerados",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/C1/menu.html",
+        "carrito": "docs/diseno/plantillas/C1/carrito.html",
+        "pago": "docs/diseno/plantillas/C1/pago.html",
+        "registro": "docs/diseno/plantillas/C1/registro.html",
+        "codigo": "docs/diseno/plantillas/C1/codigo.html",
+        "historial": "docs/diseno/plantillas/C1/historial.html"
+      },
+      "notas": {
+        "menu": "El número es el producto: se pide en voz alta igual que en pantalla. Máximo seis combos.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "C2": {
+      "codigo": "C2",
+      "familia": "C",
+      "familiaNombre": "Rápida y food truck",
+      "familiaTexto": "Cola detrás, pantalla en la mano, decisión en veinte segundos. Números grandes, pocas opciones, combos.",
+      "nombre": "Foto a sangre",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/C2/menu.html",
+        "carrito": "docs/diseno/plantillas/C2/carrito.html",
+        "pago": "docs/diseno/plantillas/C2/pago.html",
+        "registro": "docs/diseno/plantillas/C2/registro.html",
+        "codigo": "docs/diseno/plantillas/C2/codigo.html",
+        "historial": "docs/diseno/plantillas/C2/historial.html"
+      },
+      "notas": {
+        "menu": "Un producto por pantalla, foto enorme y tamaño como decisión principal. Se navega deslizando.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "C3": {
+      "codigo": "C3",
+      "familia": "C",
+      "familiaNombre": "Rápida y food truck",
+      "familiaTexto": "Cola detrás, pantalla en la mano, decisión en veinte segundos. Números grandes, pocas opciones, combos.",
+      "nombre": "Ármalo tú",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/C3/menu.html",
+        "carrito": "docs/diseno/plantillas/C3/carrito.html",
+        "pago": "docs/diseno/plantillas/C3/pago.html",
+        "registro": "docs/diseno/plantillas/C3/registro.html",
+        "codigo": "docs/diseno/plantillas/C3/codigo.html",
+        "historial": "docs/diseno/plantillas/C3/historial.html"
+      },
+      "notas": {
+        "menu": "Bowls, wraps, pizzas por porción. Un paso por pantalla, precio corriendo abajo y agotados visibles.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "C4": {
+      "codigo": "C4",
+      "familia": "C",
+      "familiaNombre": "Rápida y food truck",
+      "familiaTexto": "Cola detrás, pantalla en la mano, decisión en veinte segundos. Números grandes, pocas opciones, combos.",
+      "nombre": "Pizarra de camión",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/C4/menu.html",
+        "carrito": "docs/diseno/plantillas/C4/carrito.html",
+        "pago": "docs/diseno/plantillas/C4/pago.html",
+        "registro": "docs/diseno/plantillas/C4/registro.html",
+        "codigo": "docs/diseno/plantillas/C4/codigo.html",
+        "historial": "docs/diseno/plantillas/C4/historial.html"
+      },
+      "notas": {
+        "menu": "Lista con guía de puntos, tachados reales y escasez honesta. Cero fotos: el camión ya se ve.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "C5": {
+      "codigo": "C5",
+      "familia": "C",
+      "familiaNombre": "Rápida y food truck",
+      "familiaTexto": "Cola detrás, pantalla en la mano, decisión en veinte segundos. Números grandes, pocas opciones, combos.",
+      "nombre": "Kiosco de autoservicio",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/C5/menu.html",
+        "carrito": "docs/diseno/plantillas/C5/carrito.html",
+        "pago": "docs/diseno/plantillas/C5/pago.html",
+        "registro": "docs/diseno/plantillas/C5/registro.html",
+        "codigo": "docs/diseno/plantillas/C5/codigo.html",
+        "historial": "docs/diseno/plantillas/C5/historial.html"
+      },
+      "notas": {
+        "menu": "Para tótem o tablet fija: el resumen es la pantalla principal y el upsell aparece solo antes de pagar.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "D1": {
+      "codigo": "D1",
+      "familia": "D",
+      "familiaNombre": "Café y panadería",
+      "familiaTexto": "Ticket bajo y visitas repetidas. El menú cambia según la hora y el cliente pide casi siempre lo mismo.",
+      "nombre": "Pizarra de café",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/D1/menu.html",
+        "carrito": "docs/diseno/plantillas/D1/carrito.html",
+        "pago": "docs/diseno/plantillas/D1/pago.html",
+        "registro": "docs/diseno/plantillas/D1/registro.html",
+        "codigo": "docs/diseno/plantillas/D1/codigo.html",
+        "historial": "docs/diseno/plantillas/D1/historial.html"
+      },
+      "notas": {
+        "menu": "Lista de barra con guía de puntos y ventana horaria en la cabecera. El grano rotativo da razón para volver.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "D2": {
+      "codigo": "D2",
+      "familia": "D",
+      "familiaNombre": "Café y panadería",
+      "familiaTexto": "Ticket bajo y visitas repetidas. El menú cambia según la hora y el cliente pide casi siempre lo mismo.",
+      "nombre": "Constructor de bebida",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/D2/menu.html",
+        "carrito": "docs/diseno/plantillas/D2/carrito.html",
+        "pago": "docs/diseno/plantillas/D2/pago.html",
+        "registro": "docs/diseno/plantillas/D2/registro.html",
+        "codigo": "docs/diseno/plantillas/D2/codigo.html",
+        "historial": "docs/diseno/plantillas/D2/historial.html"
+      },
+      "notas": {
+        "menu": "Tamaño, leche y extras con recargo visible. Guarda la última combinación para el siguiente pedido.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "D3": {
+      "codigo": "D3",
+      "familia": "D",
+      "familiaNombre": "Café y panadería",
+      "familiaTexto": "Ticket bajo y visitas repetidas. El menú cambia según la hora y el cliente pide casi siempre lo mismo.",
+      "nombre": "Vitrina de panadería",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/D3/menu.html",
+        "carrito": "docs/diseno/plantillas/D3/carrito.html",
+        "pago": "docs/diseno/plantillas/D3/pago.html",
+        "registro": "docs/diseno/plantillas/D3/registro.html",
+        "codigo": "docs/diseno/plantillas/D3/codigo.html",
+        "historial": "docs/diseno/plantillas/D3/historial.html"
+      },
+      "notas": {
+        "menu": "Stock en vivo por pieza y hora del próximo horneado. Evita prometer lo que ya no hay.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "D4": {
+      "codigo": "D4",
+      "familia": "D",
+      "familiaNombre": "Café y panadería",
+      "familiaTexto": "Ticket bajo y visitas repetidas. El menú cambia según la hora y el cliente pide casi siempre lo mismo.",
+      "nombre": "Lo de siempre",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/D4/menu.html",
+        "carrito": "docs/diseno/plantillas/D4/carrito.html",
+        "pago": "docs/diseno/plantillas/D4/pago.html",
+        "registro": "docs/diseno/plantillas/D4/registro.html",
+        "codigo": "docs/diseno/plantillas/D4/codigo.html",
+        "historial": "docs/diseno/plantillas/D4/historial.html"
+      },
+      "notas": {
+        "menu": "Cliente reconocido: su pedido habitual es la pantalla completa, la carta queda de respaldo. Fidelidad al pie.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "D5": {
+      "codigo": "D5",
+      "familia": "D",
+      "familiaNombre": "Café y panadería",
+      "familiaTexto": "Ticket bajo y visitas repetidas. El menú cambia según la hora y el cliente pide casi siempre lo mismo.",
+      "nombre": "Desayuno con horario",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/D5/menu.html",
+        "carrito": "docs/diseno/plantillas/D5/carrito.html",
+        "pago": "docs/diseno/plantillas/D5/pago.html",
+        "registro": "docs/diseno/plantillas/D5/registro.html",
+        "codigo": "docs/diseno/plantillas/D5/codigo.html",
+        "historial": "docs/diseno/plantillas/D5/historial.html"
+      },
+      "notas": {
+        "menu": "El menú cambia solo con la hora y avisa cuánto falta para que cierre. La pestaña futura queda visible pero apagada.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "E1": {
+      "codigo": "E1",
+      "familia": "E",
+      "familiaNombre": "Bar y cervecería",
+      "familiaTexto": "Luz baja, varias rondas, cuenta que crece. Superficie oscura, datos técnicos y división de cuenta desde el minuto uno.",
+      "nombre": "Índice de grifos",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/E1/menu.html",
+        "carrito": "docs/diseno/plantillas/E1/carrito.html",
+        "pago": "docs/diseno/plantillas/E1/pago.html",
+        "registro": "docs/diseno/plantillas/E1/registro.html",
+        "codigo": "docs/diseno/plantillas/E1/codigo.html",
+        "historial": "docs/diseno/plantillas/E1/historial.html"
+      },
+      "notas": {
+        "menu": "Color del barril como identificador, ABV e IBU en mono y barriles vacíos tachados en vivo.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "E2": {
+      "codigo": "E2",
+      "familia": "E",
+      "familiaNombre": "Bar y cervecería",
+      "familiaTexto": "Luz baja, varias rondas, cuenta que crece. Superficie oscura, datos técnicos y división de cuenta desde el minuto uno.",
+      "nombre": "Coctelería en fichas",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/E2/menu.html",
+        "carrito": "docs/diseno/plantillas/E2/carrito.html",
+        "pago": "docs/diseno/plantillas/E2/pago.html",
+        "registro": "docs/diseno/plantillas/E2/registro.html",
+        "codigo": "docs/diseno/plantillas/E2/codigo.html",
+        "historial": "docs/diseno/plantillas/E2/historial.html"
+      },
+      "notas": {
+        "menu": "Fichas con ingredientes y etiquetas de perfil. «Otra igual» repite la última ronda sin volver a la carta.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "E3": {
+      "codigo": "E3",
+      "familia": "E",
+      "familiaNombre": "Bar y cervecería",
+      "familiaTexto": "Luz baja, varias rondas, cuenta que crece. Superficie oscura, datos técnicos y división de cuenta desde el minuto uno.",
+      "nombre": "Happy hour con reloj",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/E3/menu.html",
+        "carrito": "docs/diseno/plantillas/E3/carrito.html",
+        "pago": "docs/diseno/plantillas/E3/pago.html",
+        "registro": "docs/diseno/plantillas/E3/registro.html",
+        "codigo": "docs/diseno/plantillas/E3/codigo.html",
+        "historial": "docs/diseno/plantillas/E3/historial.html"
+      },
+      "notas": {
+        "menu": "La promoción es la pantalla, con cuenta atrás real del POS. Solo los productos incluidos, sin trampas.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "E4": {
+      "codigo": "E4",
+      "familia": "E",
+      "familiaNombre": "Bar y cervecería",
+      "familiaTexto": "Luz baja, varias rondas, cuenta que crece. Superficie oscura, datos técnicos y división de cuenta desde el minuto uno.",
+      "nombre": "Cuenta compartida",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/E4/menu.html",
+        "carrito": "docs/diseno/plantillas/E4/carrito.html",
+        "pago": "docs/diseno/plantillas/E4/pago.html",
+        "registro": "docs/diseno/plantillas/E4/registro.html",
+        "codigo": "docs/diseno/plantillas/E4/codigo.html",
+        "historial": "docs/diseno/plantillas/E4/historial.html"
+      },
+      "notas": {
+        "menu": "Cada consumo con dueño desde que se pide, más una bolsa común. Elimina la discusión al final.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "E5": {
+      "codigo": "E5",
+      "familia": "E",
+      "familiaNombre": "Bar y cervecería",
+      "familiaTexto": "Luz baja, varias rondas, cuenta que crece. Superficie oscura, datos técnicos y división de cuenta desde el minuto uno.",
+      "nombre": "Flight de degustación",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/E5/menu.html",
+        "carrito": "docs/diseno/plantillas/E5/carrito.html",
+        "pago": "docs/diseno/plantillas/E5/pago.html",
+        "registro": "docs/diseno/plantillas/E5/registro.html",
+        "codigo": "docs/diseno/plantillas/E5/codigo.html",
+        "historial": "docs/diseno/plantillas/E5/historial.html"
+      },
+      "notas": {
+        "menu": "Selección con huecos visibles y botón bloqueado hasta completar. Enseña a pedir sin explicar reglas.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "F1": {
+      "codigo": "F1",
+      "familia": "F",
+      "familiaNombre": "Sushi y especializados",
+      "familiaTexto": "Carta técnica: piezas contadas, niveles de picante, alérgenos y sets. El comensal necesita datos, no adjetivos.",
+      "nombre": "Rollos con conteo de piezas",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/F1/menu.html",
+        "carrito": "docs/diseno/plantillas/F1/carrito.html",
+        "pago": "docs/diseno/plantillas/F1/pago.html",
+        "registro": "docs/diseno/plantillas/F1/registro.html",
+        "codigo": "docs/diseno/plantillas/F1/codigo.html",
+        "historial": "docs/diseno/plantillas/F1/historial.html"
+      },
+      "notas": {
+        "menu": "El conteo de piezas es el dato que decide, y el pedido suma piezas además de pesos.",
+        "carrito": "",
+        "pago": "",
+        "registro": "",
+        "codigo": "",
+        "historial": ""
+      }
+    },
+    "F2": {
+      "codigo": "F2",
+      "familia": "F",
+      "familiaNombre": "Sushi y especializados",
+      "familiaTexto": "Carta técnica: piezas contadas, niveles de picante, alérgenos y sets. El comensal necesita datos, no adjetivos.",
+      "nombre": "Bento en cuadrícula",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/F2/menu.html",
+        "carrito": "docs/diseno/plantillas/F2/carrito.html",
+        "pago": "docs/diseno/plantillas/F2/pago.html",
+        "registro": "docs/diseno/plantillas/F2/registro.html"
+      },
+      "notas": {
+        "menu": "La cuadrícula imita la caja real: tres compartimentos fijos y uno a elección.",
+        "carrito": "",
+        "pago": "",
+        "registro": ""
+      }
+    },
+    "F3": {
+      "codigo": "F3",
+      "familia": "F",
+      "familiaNombre": "Sushi y especializados",
+      "familiaTexto": "Carta técnica: piezas contadas, niveles de picante, alérgenos y sets. El comensal necesita datos, no adjetivos.",
+      "nombre": "Omakase por tiempos",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/F3/menu.html",
+        "carrito": "docs/diseno/plantillas/F3/carrito.html",
+        "pago": "docs/diseno/plantillas/F3/pago.html"
+      },
+      "notas": {
+        "menu": "No es carta, es seguimiento: el comensal ve qué ya pasó, qué viene y no puede pedir nada más.",
+        "carrito": "",
+        "pago": ""
+      }
+    },
+    "F4": {
+      "codigo": "F4",
+      "familia": "F",
+      "familiaNombre": "Sushi y especializados",
+      "familiaTexto": "Carta técnica: piezas contadas, niveles de picante, alérgenos y sets. El comensal necesita datos, no adjetivos.",
+      "nombre": "Nivel de picante y alérgenos",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/F4/menu.html",
+        "carrito": "docs/diseno/plantillas/F4/carrito.html",
+        "pago": "docs/diseno/plantillas/F4/pago.html"
+      },
+      "notas": {
+        "menu": "Picante en escala de cuatro, alérgenos literales y filtro que explica en vez de esconder.",
+        "carrito": "",
+        "pago": ""
+      }
+    },
+    "F5": {
+      "codigo": "F5",
+      "familia": "F",
+      "familiaNombre": "Sushi y especializados",
+      "familiaTexto": "Carta técnica: piezas contadas, niveles de picante, alérgenos y sets. El comensal necesita datos, no adjetivos.",
+      "nombre": "Sets para compartir",
+      "pantallas": {
+        "menu": "docs/diseno/plantillas/F5/menu.html",
+        "carrito": "docs/diseno/plantillas/F5/carrito.html",
+        "pago": "docs/diseno/plantillas/F5/pago.html"
+      },
+      "notas": {
+        "menu": "El precio por persona es el argumento: hace que el set grande se vea más barato que pedir suelto.",
+        "carrito": "",
+        "pago": ""
+      }
+    }
+  }
+}

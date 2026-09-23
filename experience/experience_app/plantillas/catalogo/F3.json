@@ -1,0 +1,273 @@
+{
+  "codigo": "F3",
+  "nombre": "Omakase por tiempos",
+  "familia": "F",
+  "familiaNombre": "Sushi y especializados",
+  "descripcion": "No es carta, es seguimiento: el comensal ve qué ya pasó, qué viene y no puede pedir nada más.",
+  "fotos": {
+    "requiere": "ninguna",
+    "recorte": "ninguno"
+  },
+  "tokens": {
+    "modo": "oscuro",
+    "fondo": "#101314",
+    "superficie": "#171C1D",
+    "tinta": "#E7EAEA",
+    "tintaSuave": "#85908F",
+    "tintaTerciaria": "#A3ACAB",
+    "borde": "#202728",
+    "acento": "#C1873A",
+    "acentoTinta": "#101314",
+    "acentoSuave": "#171C1D",
+    "displayFont": "Instrument Serif",
+    "displayPeso": 400,
+    "displayTracking": "0",
+    "displayTransform": "none",
+    "cuerpoFont": "Ubuntu",
+    "monoFont": "IBM Plex Mono",
+    "radioTarjeta": 12,
+    "radioBoton": 12,
+    "radioChip": 999,
+    "densidad": "media"
+  },
+  "personalizable": {
+    "colores": [
+      "acento"
+    ],
+    "tipografiaDisplay": true,
+    "logo": true
+  },
+  "pantallas": {
+    "menu": {
+      "layout": "F3",
+      "resumen": "Pantalla oscura #101314 de seguimiento, no de catálogo: cabecera centrada con antetítulo en versalitas «Barra · 8 asientos», «Omakase» en Instrument Serif 28 y «$ 210.000 · 16 piezas» en mono dorado; lista de tiempos con círculo de 26 px: servidos (relleno dorado con ✓ y «servido 8:12 p.m.»), en curso (fila resaltada sobre #171C1D, círculo con borde dorado 2 px y «en preparación» en dorado) y pendientes (opacity 0.5, círculo con borde #303838); nota sobre #171C1D «Sin cambios ni sustituciones. Avisaste: alergia al maní.»; única acción: botón de contorno «Llamar al itamae» (llamar al mesero). No hay ＋, barra de pedido ni onAdd en el marco. acentoTinta = #101314 porque el blanco sobre #C1873A da 3.09:1; el marco ya usa #101314 sobre los círculos dorados (6.04:1). acentoSuave = #171C1D: la superficie que el marco usa para el estado resaltado (no hay tinte dorado). Mapeo propuesto (como A2): la categoría activa es el omakase, el producto-menú da nombre, precio y piezas, y los tiempos son los demás productos de la categoría en orden; con el carrito vacío el botón del pie debería ser «Reservar el omakase» (onAdd) y, una vez pedido, la pantalla pasa al seguimiento.",
+      "datosOpcionales": [
+        "estado de cada tiempo (servido / en preparación / pendiente) y hora de servicio: sale del estado del pedido en cocina, no de la carta; sin él todos los tiempos se pintan pendientes",
+        "atributos.piezas (junto al precio: «· 16 piezas»)",
+        "antetítulo de barra («Barra · 8 asientos»): texto de la sede; sin él, categoria.nombre",
+        "alergias del comensal (account) en la nota; sin ellas solo la frase fija «Sin cambios ni sustituciones.»"
+      ],
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "height: 520px; border-radius: 20px; background: #101314; border: 1px solid #202728; overflow: hidden; display: flex; flex-direction: column; font-family: 'Ubuntu', system-ui, sans-serif; color: #E7EAEA"
+        },
+        {
+          "bloque": "cabecera",
+          "que": "antetítulo (sede/barra o categoria.nombre) / producto-menú.nombre / producto.precio + atributos.piezas",
+          "css": "padding: 22px 20px; border-bottom: 1px solid #202728; text-align: center | antetitulo: font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #85908F | titulo: font-family: 'Instrument Serif', serif; font-size: 28px; margin-top: 6px | precio: font-family: 'IBM Plex Mono', monospace; font-size: 15px; color: #C1873A; margin-top: 6px"
+        },
+        {
+          "bloque": "tiempos",
+          "que": "lista ordenada de los productos de la categoría (los tiempos)",
+          "css": "flex: 1; min-height: 0; padding: 18px 20px; display: flex; flex-direction: column; gap: 13px"
+        },
+        {
+          "bloque": "tiempoServido",
+          "que": "producto.nombre + «servido h:mm p.m.» (hora de servicio)",
+          "css": "display: flex; gap: 12px; align-items: center | circulo: width: 26px; height: 26px; border-radius: 999px; background: #C1873A; color: #101314; display: grid; place-items: center; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500; flex: none | nombre: font-size: 15px | hora: font-size: 13px; color: #85908F"
+        },
+        {
+          "bloque": "tiempoEnCurso",
+          "que": "producto.nombre + «en preparación»; fila resaltada",
+          "css": "display: flex; gap: 12px; align-items: center; padding: 12px; margin: 0 -12px; border-radius: 12px; background: #171C1D | circulo: width: 26px; height: 26px; border-radius: 999px; border: 2px solid #C1873A; flex: none | nombre: font-size: 15px; font-weight: 500 | estado: font-size: 13px; color: #C1873A"
+        },
+        {
+          "bloque": "tiempoPendiente",
+          "que": "producto.nombre apagado",
+          "css": "display: flex; gap: 12px; align-items: center; opacity: 0.5 | circulo: width: 26px; height: 26px; border-radius: 999px; border: 1px solid #303838; flex: none | nombre: font-size: 15px"
+        },
+        {
+          "bloque": "nota",
+          "que": "«Sin cambios ni sustituciones.» + «Avisaste: {alergias}» si existen",
+          "css": "margin-top: auto; padding: 12px 14px; border-radius: 10px; background: #171C1D; font-size: 13px; line-height: 1.45; color: #A3ACAB"
+        },
+        {
+          "bloque": "cta",
+          "que": "«Llamar al itamae» (llamar al mesero de Waiter); propuesta: «Reservar el omakase» (onAdd) mientras el carrito esté vacío",
+          "css": "padding: 14px 20px; border-top: 1px solid #202728 | boton: height: 52px; border-radius: 12px; border: 1px solid #303838; color: #C4CBCA; display: grid; place-items: center; font-size: 15px"
+        }
+      ]
+    },
+    "carrito": {
+      "layout": "F3",
+      "resumen": "No comparte el carrito base F1: es la estructura de la familia A en piel oscura. Cabecera centrada en columna con «Tu pedido» en Instrument Serif 22 y «44 piezas» en #85908F; líneas con nombre en serif 20, guía de puntos #202728 y precio mono 15, nota «40 piezas» debajo; totales sobre #171C1D con Subtotal, «5% ya usado en tu 1ª visita» con «—» (descuento consumido), Propina 10% y Total en serif 21 + mono 25 sobre línea punteada; CTA de contorno dorado «Ir a pagar» de 56 px (borde y texto #C1873A, sin relleno). Sin stepper, «Quitar» ni chips.",
+      "descuento5": "usado",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "height: 528px; border-radius: 18px; background: #101314; border: 1px solid #202728; overflow: hidden; display: flex; flex-direction: column; color: #E7EAEA"
+        },
+        {
+          "bloque": "cabecera",
+          "que": "«Tu pedido» + conteo de piezas (Σ atributos.piezas × qty) o «N ítems», centrados en columna",
+          "css": "padding: 16px 18px; border-bottom: 1px solid #202728; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px | titulo: font-family: 'Instrument Serif', Georgia, serif; font-size: 22px; line-height: 1.1 | conteo: font-size: 14px; color: #85908F"
+        },
+        {
+          "bloque": "linea",
+          "que": "linea.nombre + guía de puntos + linea.precio; nota «N piezas» (atributos.piezas, opcional)",
+          "css": "padding: 15px 18px; border-bottom: 1px solid #202728 | fila: display: flex; align-items: baseline; gap: 8px | nombre: font-family: 'Instrument Serif', Georgia, serif; font-size: 20px; line-height: 1.1 | guia: flex: 1; border-bottom: 1px dotted #202728 | precio: font-family: 'IBM Plex Mono', monospace; font-size: 15px; white-space: nowrap | nota: font-size: 13px; color: #85908F; margin-top: 4px"
+        },
+        {
+          "bloque": "totales",
+          "que": "Subtotal / «5% ya usado en tu 1ª visita» — (discount consumido; si está activo, la fila pasa a «Descuento primera compra 5%» con importe) / Propina 10% / Total",
+          "css": "padding: 16px 18px; border-top: 1px solid #202728; background: #171C1D | fila: display: flex; justify-content: space-between; font-size: 15px; color: #85908F; padding: 3px 0 | importe: font-family: 'IBM Plex Mono', monospace; white-space: nowrap | total: display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding-top: 10px; margin-top: 8px; border-top: 1px dotted #202728 | totalRotulo: font-family: 'Instrument Serif', Georgia, serif; font-size: 21px; line-height: 1.1 | totalImporte: font-family: 'IBM Plex Mono', monospace; font-size: 25px; white-space: nowrap"
+        },
+        {
+          "bloque": "cta",
+          "que": "«Ir a pagar» → goPay",
+          "css": "padding: 14px 18px; border-top: 1px solid #202728; background: #171C1D | boton: height: 56px; border-radius: 12px; border: 1px solid #C1873A; color: #C1873A; display: grid; place-items: center; font-size: 16px; font-weight: 700"
+        }
+      ]
+    },
+    "pago": {
+      "layout": "F3",
+      "resumen": "No comparte el pago base F1 (no hay cabecera «Confirmar y pagar», caja resumen ni nota de factura): es el pago de la familia A en piel oscura. Cabecera centrada «TOTAL A PAGAR» en versalitas #85908F y el monto en mono 38; campos Número de la tarjeta, Vence + CVV sobre #171C1D con borde #202728 (52 px, mono); nota «Tokenizado por la pasarela. Waiter no ve tu tarjeta.» con check verde sobre #171C1D; CTA de contorno dorado «Pagar $ total» de 60 px.",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "height: 528px; border-radius: 18px; background: #101314; border: 1px solid #202728; overflow: hidden; display: flex; flex-direction: column; color: #E7EAEA"
+        },
+        {
+          "bloque": "cabecera",
+          "que": "«Total a pagar» + bill.total",
+          "css": "padding: 26px 18px 20px; text-align: center; border-bottom: 1px solid #202728 | rotulo: font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #85908F; font-weight: 500 | monto: font-family: 'IBM Plex Mono', monospace; font-size: 38px; margin-top: 8px; white-space: nowrap"
+        },
+        {
+          "bloque": "campos",
+          "que": "Número de la tarjeta; Vence + CVV (contenedor padding: 16px 18px; display: flex; flex-direction: column; gap: 12px)",
+          "css": "label: display: flex; flex-direction: column; gap: 6px | rotulo: font-size: 14px; font-weight: 500; color: #85908F | input: height: 52px; border: 1px solid #202728; border-radius: 10px; background: #171C1D; display: flex; align-items: center; padding: 0 14px; font-family: 'IBM Plex Mono', monospace; font-size: 16px; color: #E7EAEA | fila: display: flex; gap: 10px (cada label flex: 1; min-width: 0)"
+        },
+        {
+          "bloque": "notaSeguridad",
+          "que": "«Tokenizado por la pasarela. Waiter no ve tu tarjeta.»",
+          "css": "display: flex; gap: 9px; align-items: center; padding: 11px 13px; border-radius: 10px; background: #171C1D | check: width: 22px; height: 22px; border-radius: 6px; background: #2F7A4F; color: #FFFFFF; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none | texto: font-size: 13px; line-height: 1.4; color: #85908F"
+        },
+        {
+          "bloque": "cta",
+          "que": "«Pagar $ bill.total» → onPay(method)",
+          "css": "padding: 14px 18px; border-top: 1px solid #202728; background: #171C1D | boton: height: 60px; border-radius: 12px; border: 1px solid #C1873A; color: #C1873A; display: grid; place-items: center; font-size: 16px; font-weight: 700"
+        }
+      ]
+    },
+    "registro": {
+      "patron": "beneficios",
+      "reconstruido": true,
+      "motivo": "El catálogo llegó sin pantallas de cuenta para F3; patrón de la rotación de la familia (X3 = beneficios, como A3/B3/C3/D3) con la piel del pago de F3 (oscuro #101314, superficies #171C1D, serif en títulos, dorado de contorno).",
+      "resumen": "Cabecera «Crear cuenta» en Instrument Serif 22 con subtítulo «Tres razones, ninguna de marketing»; tres filas de beneficio sobre #171C1D: «5% de descuento hoy» con la cifra en dorado y borde dorado, «Tu tarjeta guardada para la próxima visita» y «Tus alergias van solas a la comanda» con check en círculo #202728; solo campo Correo (foco: borde 2 px dorado sobre #171C1D); casilla de política de datos marcada (dorada con ✓ #101314); pie sobre #171C1D con CTA de contorno dorado «Crear cuenta y aplicar 5%» y «Ya tengo cuenta».",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "min-height: 400px; border-radius: 18px; background: #101314; border: 1px solid #202728; overflow: hidden; display: flex; flex-direction: column; color: #E7EAEA"
+        },
+        {
+          "bloque": "cabecera",
+          "que": "«Crear cuenta» + subtítulo fijo",
+          "css": "padding: 18px 20px; border-bottom: 1px solid #202728 | titulo: font-family: 'Instrument Serif', Georgia, serif; font-size: 22px; line-height: 1.1 | sub: font-size: 14px; color: #85908F; margin-top: 3px"
+        },
+        {
+          "bloque": "beneficios",
+          "que": "tres filas; la primera con descuento.porcentaje",
+          "css": "padding: 18px 20px; display: flex; flex-direction: column; gap: 10px | beneficio5: padding: 13px 14px; border-radius: 12px; background: #171C1D; border: 1px solid #C1873A; display: flex; gap: 11px; align-items: center | cifra: font-size: 24px; font-weight: 700; color: #C1873A; letter-spacing: -0.03em | texto5: font-size: 14px; line-height: 1.4; color: #E7EAEA | beneficio: padding: 13px 14px; border-radius: 12px; background: #171C1D; display: flex; gap: 11px; align-items: center | check: width: 26px; height: 26px; border-radius: 999px; background: #202728; color: #C4CBCA; display: grid; place-items: center; font-size: 13px | texto: font-size: 14px; color: #85908F"
+        },
+        {
+          "bloque": "campos",
+          "que": "solo Correo (foco)",
+          "css": "label: display: flex; flex-direction: column; gap: 6px | rotulo: font-size: 14px; font-weight: 500; color: #85908F | inputFoco: height: 52px; border: 2px solid #C1873A; border-radius: 10px; background: #171C1D; display: flex; align-items: center; padding: 0 14px; font-size: 16px; color: #E7EAEA"
+        },
+        {
+          "bloque": "casilla",
+          "que": "aceptaDatos (marcada)",
+          "css": "display: flex; gap: 11px; align-items: center | marcada: width: 24px; height: 24px; border-radius: 7px; background: #C1873A; color: #101314; display: grid; place-items: center; font-size: 13px; font-weight: 700 | texto: font-size: 14px; color: #85908F"
+        },
+        {
+          "bloque": "pie",
+          "que": "«Crear cuenta y aplicar 5%» (onSubmit) + «Ya tengo cuenta» (onSkip)",
+          "css": "padding: 16px 20px; border-top: 1px solid #202728; background: #171C1D | boton: height: 56px; border-radius: 12px; border: 1px solid #C1873A; color: #C1873A; display: grid; place-items: center; font-size: 16px; font-weight: 700 | enlace: text-align: center; font-size: 14px; color: #85908F; margin-top: 11px"
+        }
+      ]
+    },
+    "codigo": {
+      "patron": "canal",
+      "reconstruido": true,
+      "motivo": "El catálogo llegó sin pantallas de cuenta para F3; patrón de la rotación de la familia (X3 = canal, como A3/B3/C3/D3) con la piel del pago de F3.",
+      "resumen": "Cabecera «Entrar sin contraseña» en serif 21 con «Elige por dónde te llega el código»; dos tarjetas de canal sobre #171C1D: Correo seleccionada (borde 2 px dorado, check dorado con ✓ #101314) y SMS con flecha #85908F; seis casillas vacías sobre #171C1D con borde #202728; nota «Escribe el código cuando llegue. No cierres esta pantalla.»; CTA «Confirmar código» deshabilitado en #202728.",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "min-height: 400px; border-radius: 18px; background: #101314; border: 1px solid #202728; overflow: hidden; display: flex; flex-direction: column; color: #E7EAEA"
+        },
+        {
+          "bloque": "cabecera",
+          "que": "título + subtítulo fijo",
+          "css": "padding: 18px 20px; border-bottom: 1px solid #202728 | titulo: font-family: 'Instrument Serif', Georgia, serif; font-size: 21px; line-height: 1.1 | sub: font-size: 14px; color: #85908F; margin-top: 3px"
+        },
+        {
+          "bloque": "canales",
+          "que": "Correo (email) seleccionado / SMS (celular) → onOtherChannel (cuerpo padding: 18px 20px; gap: 15px)",
+          "css": "display: flex; flex-direction: column; gap: 10px | seleccionado: padding: 15px; border-radius: 12px; border: 2px solid #C1873A; background: #171C1D | otro: padding: 15px; border-radius: 12px; border: 1px solid #202728; background: #171C1D | titulo: font-size: 15px; font-weight: 500 | detalle: font-size: 13px; color: #85908F | check: width: 22px; height: 22px; border-radius: 999px; background: #C1873A; color: #101314; display: grid; place-items: center; font-size: 12px; font-weight: 700 | flecha: color: #85908F"
+        },
+        {
+          "bloque": "casillas",
+          "que": "6 dígitos (vacías hasta que llegue el código)",
+          "css": "display: flex; gap: 7px | casilla: flex: 1; height: 60px; border-radius: 10px; border: 1px solid #202728; background: #171C1D; display: grid; place-items: center; font-family: 'IBM Plex Mono', monospace; font-size: 23px | activa: border: 2px solid #C1873A"
+        },
+        {
+          "bloque": "ayuda",
+          "que": "«Escribe el código cuando llegue. No cierres esta pantalla.» (sin contador de reenvío dibujado; onResend queda como enlace de texto)",
+          "css": "font-size: 14px; line-height: 1.45; color: #85908F"
+        },
+        {
+          "bloque": "cta",
+          "que": "«Confirmar código» → onVerify; deshabilitado hasta 6 dígitos",
+          "css": "padding: 16px 20px; border-top: 1px solid #202728; background: #171C1D | botonDeshabilitado: height: 56px; border-radius: 12px; background: #202728; color: #85908F; display: grid; place-items: center; font-size: 16px; font-weight: 700"
+        }
+      ]
+    },
+    "historial": {
+      "patron": "porMes",
+      "reconstruido": true,
+      "motivo": "El catálogo llegó sin pantallas de cuenta para F3; patrón de la rotación de la familia (X3 = porMes, como A3/B3/C3/D3) con la piel del pago de F3.",
+      "resumen": "Cabecera de perfil sobre #171C1D con avatar dorado (iniciales en #101314), nombre en serif 20 y «14 pedidos · 62.400 ahorrados»; pedidos agrupados por mes con rótulo en versalitas sobre #171C1D; cada fila: local 16/500 + total mono 15, meta «Sáb 16 · mesa 14 · 3 ítems» en #85908F y chips de estado (Pagado verde relleno, Factura enviada #202728, −5% dorado, Factura pendiente con borde); pie sobre #171C1D con «Facturas» de contorno gris y «Volver a pedir» de contorno dorado.",
+      "datosOpcionales": [
+        "ahorroAcumulado",
+        "estadoFactura"
+      ],
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "min-height: 400px; border-radius: 18px; background: #101314; border: 1px solid #202728; overflow: hidden; display: flex; flex-direction: column; color: #E7EAEA"
+        },
+        {
+          "bloque": "perfil",
+          "que": "iniciales, account.nombre, conteo de pedidos y ahorro acumulado",
+          "css": "padding: 20px; background: #171C1D; color: #E7EAEA; display: flex; align-items: center; gap: 13px | avatar: width: 44px; height: 44px; border-radius: 999px; background: #C1873A; color: #101314; display: grid; place-items: center; font-size: 16px; font-weight: 700 | nombre: font-family: 'Instrument Serif', Georgia, serif; font-size: 20px; line-height: 1.1 | meta: font-size: 13px; opacity: 0.72"
+        },
+        {
+          "bloque": "rotuloMes",
+          "que": "mes del pedido",
+          "css": "padding: 10px 20px; background: #171C1D; border-bottom: 1px solid #202728; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #85908F; font-weight: 500"
+        },
+        {
+          "bloque": "filaPedido",
+          "que": "orders[]: local (marca.nombre) / total / meta (día · mesa · ítems) / chips de estado (pagado, factura, descuento)",
+          "css": "padding: 13px 20px; border-bottom: 1px solid #202728 | fila: display: flex; justify-content: space-between; gap: 10px | local: font-size: 16px; font-weight: 500 | total: font-family: 'IBM Plex Mono', monospace; font-size: 15px | meta: font-size: 13px; color: #85908F; margin-top: 2px | chips: display: flex; gap: 6px; margin-top: 8px | chip: height: 26px; padding: 0 9px; border-radius: 6px; font-size: 12px; font-weight: 500; display: grid; place-items: center | pagado: background: #2F7A4F; color: #FFFFFF | facturaEnviada: background: #202728; color: #C4CBCA | descuento: background: #C1873A; color: #101314 | facturaPendiente: border: 1px solid #303838; color: #A3ACAB"
+        },
+        {
+          "bloque": "pieFijo",
+          "que": "«Facturas» + «Volver a pedir» (onReorder)",
+          "css": "padding: 14px 20px; border-top: 1px solid #202728; background: #171C1D; display: flex; gap: 10px | secundario: flex: 1; height: 50px; border-radius: 11px; border: 1px solid #303838; color: #C4CBCA; font-size: 15px; font-weight: 500 | primario: flex: 1; height: 50px; border-radius: 11px; border: 1px solid #C1873A; color: #C1873A; font-size: 15px; font-weight: 500"
+        }
+      ]
+    }
+  },
+  "fuentesGoogle": [
+    "Instrument Serif"
+  ]
+}

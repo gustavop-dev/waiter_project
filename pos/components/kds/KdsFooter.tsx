@@ -2,20 +2,19 @@
 
 import { useTranslations } from 'next-intl'
 
+import { Icon } from '@/components/kit/Icon'
 import { Button } from '@/components/ui/Button'
 
-const LEGEND = [['ok', 'bg-free'], ['warn', 'bg-pending'], ['late', 'bg-busy']] as const
+const LEGEND = [['ok', 'bg-success'], ['warn', 'bg-progress'], ['late', 'bg-danger']] as const
 
+// Pie de la pantalla de cocina: leyenda de tiempos con los tonos del kit y el botón de silenciar avisos.
 export function KdsFooter({ muted, onToggleMute }: { muted: boolean; onToggleMute: () => void }) {
-  const t = useTranslations('pos.kds')
+  const t = useTranslations('kds')
   return (
-    <footer className="h-16 px-6 flex items-center gap-6 border-t border-kds-raised bg-kds-bg text-[15px] text-sidebar-soft">
+    <footer className="shrink-0 h-16 px-5 flex items-center gap-6 border-t border-border bg-surface text-[14px] text-soft">
       {LEGEND.map(([key, dot]) => <span key={key} className="flex items-center gap-2"><span aria-hidden className={`w-2.5 h-2.5 rounded-full ${dot}`} />{t(`legend.${key}`)}</span>)}
       <span>{t('legend.suffix')}</span>
-      <span className="ml-auto flex gap-3">
-        <Button size="compact" className="bg-kds-surface text-sidebar-soft border-transparent" disabled>{t('history')}</Button>
-        <Button size="compact" className="bg-kds-surface text-kds-ink border-transparent" aria-pressed={muted} onClick={onToggleMute}>{muted ? t('unmute') : t('mute')}</Button>
-      </span>
+      <Button size="compact" className="ml-auto" aria-pressed={muted} onClick={onToggleMute}><Icon name={muted ? 'volumeOff' : 'volume'} size={18} />{muted ? t('unmute') : t('mute')}</Button>
     </footer>
   )
 }

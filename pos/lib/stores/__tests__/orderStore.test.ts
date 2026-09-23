@@ -30,15 +30,7 @@ it('sendToKitchen saves the draft and fires the unsent lines in Odoo, without lo
   expect(useOrderStore.getState().draft?.serverId).toBe(13)
 })
 
-// Falla si cobrar paga un monto distinto al total recalculado por Odoo.
-it('charge pays the server total with the chosen method and closes the order', async () => {
-  mSave.mockResolvedValue(saved); mPay.mockResolvedValue({ ...saved, paid: 87822 }); mClose.mockResolvedValue({ ...saved, state: 'paid', paid: 87822 })
-  act(() => { useOrderStore.getState().start(1, 6, 2); useOrderStore.getState().add(angus) })
-  await act(() => useOrderStore.getState().charge(1))
-  expect(mPay).toHaveBeenCalledWith(13, 1, 87822)
-  expect(mClose).toHaveBeenCalledWith(13)
-  expect(useOrderStore.getState().draft).toBeNull()
-})
+const CTX = { existing: { orderId: 13, tableId: 6 }, tipProductId: 1, tableNumber: 6, company: 'Demo', lines: [], methodName: (id: number) => (id === 1 ? 'Efectivo' : 'Tarjeta') }
 
 // Falla si un error de Odoo deja el store "ocupado" para siempre (botón bloqueado).
 it('save surfaces the Odoo message and releases busy', async () => {
@@ -48,18 +40,20 @@ it('save surfaces the Odoo message and releases busy', async () => {
   expect(useOrderStore.getState()).toMatchObject({ busy: false, error: 'Invalid preset' })
 })
 
-// Falla si un pedido hecho en otro dispositivo no se puede cobrar desde el salón (bloquea el cobro de pedidos del comensal).
-it('chargeExisting pays and closes an order by id without a local draft', async () => {
-  mPay.mockResolvedValue({ ...saved, paid: 87822 }); mClose.mockResolvedValue({ ...saved, state: 'paid', paid: 87822 })
-  useOrderStore.setState({ flags: { 6: { billing: true } } })
-  await act(() => useOrderStore.getState().chargeExisting(13, 6, 87822, 1))
+// Falla si un pedido hecho en otro dispositivo (o por el comensal) no se puede cobrar sin borrador local:
+// es el caso normal del cajero, que cobra desde Pedidos lo que tomó el mesero. Sustituye a la cobertura de
+// `chargeExisting`, el cobro de un solo método que se retiró con el camino de Mesas.
+it('settles an order created elsewhere, with no local draft', async () => {
+  mPay.mockResolvedValue({ ...saved, paid: 87822 }); mClose.mockResolvedValue({ ...saved, state: 'paid', total: 87822, tax: 0, paid: 87822 })
+  useOrderStore.setState({ draft: null, saved: null, flags: { 6: { billing: true } } })
+  const ok = await useOrderStore.getState().settle({ tip: 0, payments: [{ methodId: 1, type: 'cash', amount: 87822, received: 87822, reference: '' }] }, CTX)
+  expect(ok).toBe(true)
   expect(mPay).toHaveBeenCalledWith(13, 1, 87822)
   expect(mClose).toHaveBeenCalledWith(13)
   expect(useOrderStore.getState().flags[6]).toEqual({})
 })
 
 
-const CTX = { existing: { orderId: 13, tableId: 6 }, tipProductId: 1, tableNumber: 6, company: 'Demo', lines: [], methodName: (id: number) => (id === 1 ? 'Efectivo' : 'Tarjeta') }
 
 // Falla si el cobro mixto no registra cada pago, la propina o el cambio en Odoo, o si no deja recibo.
 it('settle tips, records every payment and the change, closes and leaves a receipt', async () => {
@@ -71,4 +65,16 @@ it('settle tips, records every payment and the change, closes and leaves a recei
   expect(mPay.mock.calls.map((c) => c.slice(1))).toEqual([[2, 50000], [1, 45822]])
   expect(setChange).toHaveBeenCalledWith(13, 4178)
   expect(useOrderStore.getState().receipt).toMatchObject({ total: 95822, tip: 8000, change: 4178, payments: [{ method: 'Tarjeta', amount: 50000, reference: 'A1' }, { method: 'Efectivo', amount: 45822, reference: '' }] })
+})
+
+
+// Falla si un corte de red durante el sondeo del salón deja un rechazo sin capturar o borra lo último conocido.
+test('a network error while polling keeps the last known open orders', async () => {
+  const known = [{ id: 1, uuid: 'u1', tableId: 3, lines: [], amountTotal: 0, state: 'draft' }] as never
+  useOrderStore.setState({ openOrders: known })
+  mList.mockRejectedValueOnce(new Error('Network Error'))
+  const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+  await expect(useOrderStore.getState().refreshOpenOrders(7)).resolves.toBeUndefined()
+  expect(useOrderStore.getState().openOrders).toBe(known)
+  warn.mockRestore()
 })

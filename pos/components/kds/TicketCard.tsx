@@ -2,57 +2,85 @@
 
 import { useTranslations } from 'next-intl'
 
+import { Icon } from '@/components/kit/Icon'
+import { StatusPill, type PillTone } from '@/components/kit/StatusPill'
 import { Button } from '@/components/ui/Button'
-import { elapsedSeconds, formatClock, ticketMood } from '@/lib/domain/kitchen'
+import { elapsedSeconds, formatClock, ticketMood, type TicketMood } from '@/lib/domain/kitchen'
 import { BAR_SCALE_MIN, barFill, barTone } from '@/lib/domain/tableState'
 import type { KitchenTicket } from '@/lib/services/kitchen'
 import { cn } from '@/lib/utils'
 
-const EDGE = { late: 'border-busy', attention: 'border-pending', fresh: 'border-free', normal: 'border-kds-raised' }
-const TAG = { late: 'bg-busy text-white', attention: 'bg-pending text-white', fresh: 'bg-free text-white' }
-const FILL = { ok: 'bg-free', warn: 'bg-pending', late: 'bg-busy' }
+const TONE: Record<TicketMood, PillTone> = { late: 'danger', attention: 'progress', fresh: 'success', normal: 'info' }
+const EDGE: Record<TicketMood, string> = { late: 'border-danger', attention: 'border-progress', fresh: 'border-success', normal: 'border-border' }
+const FILL = { ok: 'bg-success', warn: 'bg-progress', late: 'bg-danger' }
 const MARKS = [12, 18]
 
-interface TicketCardProps { ticket: KitchenTicket; tableNumber: number; now: number; onReady: (courseId: number) => void }
+interface TicketCardProps { ticket: KitchenTicket; tableNumber: number; now: number; onStart?: (courseId: number) => void; onReady: (courseId: number) => void; onReadyDish: (lineId: number) => void }
 
-export function TicketCard({ ticket, tableNumber, now, onReady }: TicketCardProps) {
-  const t = useTranslations('pos.kds')
+// Tarjeta de comanda con la estructura de la tarjeta de pedido del kit (Order / Ipad View.png):
+// cabecera "Pedido# / tipo", mesa como avatar, banda de estado con cronómetro, tabla Ítems / Cant. y botón al pie.
+// Cada plato tiene su "Listo" porque salen de uno en uno; el del pie saca la comanda entera de una vez.
+export function TicketCard({ ticket, tableNumber, now, onStart, onReady, onReadyDish }: TicketCardProps) {
+  const t = useTranslations('kds')
   const seconds = elapsedSeconds(ticket.firedAt, now)
   const minutes = Math.floor(seconds / 60)
   const mood = ticketMood(ticket, now)
+  const started = Boolean(ticket.preparationAt || ticket.readyAt || ticket.lines.some((l) => l.readyAt))
+  const cooking = ticket.lines.filter((l) => !l.readyAt)
+  const dishes = cooking.reduce((acc, l) => acc + l.qty, 0)
   return (
-    <article aria-label={t('table', { n: tableNumber })} className={cn('bg-kds-surface rounded-lg border-2 p-5 flex flex-col gap-4 text-kds-ink', EDGE[mood])}>
-      <header className="flex items-start justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-bold leading-none">{t('table', { n: tableNumber })}</h2>
-          <p className="mt-2 text-sm text-sidebar-soft">#{ticket.tracking} · {ticket.waiter}</p>
-        </div>
-        <div className="text-right">
-          <span className={cn('font-mono tabular text-[34px] leading-none', mood === 'late' && 'text-busy-soft')}>{formatClock(seconds)}</span>
-          {mood !== 'normal' && <span className={cn('block mt-2 ml-auto w-fit rounded-full px-2.5 h-7 leading-7 text-[13px] font-medium', TAG[mood])}>{t(`mood.${mood}`)}</span>}
-        </div>
+    <article aria-label={t('table', { n: tableNumber })} className={cn('bg-surface rounded-lg border flex flex-col overflow-hidden text-ink', EDGE[mood])}>
+      <header className="h-10 px-4 flex items-center justify-between gap-3 bg-muted text-[13px] text-soft">
+        <span>{t('order')} <span className="font-semibold text-ink">{ticket.tracking}</span> / {t('typeTable')}</span>
+        <span className="truncate">{ticket.waiter}</span>
       </header>
-      {ticket.note && <p className="px-3 py-2 rounded-[10px] bg-pending-soft text-pending-ink text-[15px] font-medium">{ticket.note}</p>}
-      <ul className="flex flex-col gap-2.5 text-lg">
-        {ticket.lines.map((l) => (
-          <li key={l.id}>
-            <span className="font-mono tabular font-medium mr-2">{l.qty}×</span><span className="font-medium">{l.name}</span>
-            {l.note && <p className="text-[15px] text-sidebar-soft pl-9">{l.note}</p>}
-          </li>
-        ))}
-      </ul>
-      <div className="mt-auto">
-        <div className="relative h-2 rounded-full bg-kds-raised">
-          <span className={cn('absolute inset-y-0 left-0 rounded-full', FILL[barTone(minutes)])} style={{ width: `${barFill(minutes)}%` }} />
-          {MARKS.map((m) => <span key={m} aria-hidden className="absolute -top-0.5 -bottom-0.5 w-px bg-sidebar-dim" style={{ left: `${(m / BAR_SCALE_MIN) * 100}%` }} />)}
+      <div className="p-4 flex flex-col gap-3">
+        <div className="flex items-center gap-3">
+          <span aria-hidden className="w-11 h-11 rounded-md bg-primary text-primary-ink grid place-items-center text-[16px] font-semibold">{tableNumber}</span>
+          <div className="min-w-0"><p className="text-[13px] text-soft">{t('typeTable')}</p><h2 className="text-[16px] font-semibold leading-tight">{t('table', { n: tableNumber })}</h2></div>
+          <span className={cn('ml-auto font-mono tabular text-[30px] font-semibold leading-none', mood === 'late' && 'text-danger')}>{formatClock(seconds)}</span>
         </div>
-        <div className="relative h-4 mt-1.5 text-[12px] text-sidebar-dim font-mono tabular">
-          <span className="absolute left-0">0</span>
-          {MARKS.map((m) => <span key={m} className="absolute -translate-x-1/2" style={{ left: `${(m / BAR_SCALE_MIN) * 100}%` }}>{m}</span>)}
-          <span className="absolute right-0">{BAR_SCALE_MIN} {t('minutes')}</span>
+        <div className="flex items-center justify-between gap-2">
+          <StatusPill tone={TONE[mood]} icon={mood === 'late' ? 'alarm' : 'clock'}>{t(started ? 'preparing' : 'received')}</StatusPill>
+          {mood === 'late' && <span>{t('mood.late')}</span>}
+          <span className="text-[14px] text-soft">{t('dishes', { n: dishes })}</span>
+        </div>
+        <div>
+          <div className="relative h-1.5 rounded-full bg-muted">
+            <span className={cn('absolute inset-y-0 left-0 rounded-full', FILL[barTone(minutes)])} style={{ width: `${barFill(minutes)}%` }} />
+            {MARKS.map((m) => <span key={m} aria-hidden className="absolute -top-0.5 -bottom-0.5 w-px bg-dim" style={{ left: `${(m / BAR_SCALE_MIN) * 100}%` }} />)}
+          </div>
+          <div className="relative h-4 mt-1 text-[12px] text-dim font-mono tabular">
+            <span className="absolute left-0">0</span>
+            {MARKS.map((m) => <span key={m} className="absolute -translate-x-1/2" style={{ left: `${(m / BAR_SCALE_MIN) * 100}%` }}>{m}</span>)}
+            <span className="absolute right-0">{BAR_SCALE_MIN} {t('minutes')}</span>
+          </div>
+        </div>
+        {ticket.note && <p className="px-3 py-2 rounded-sm bg-progress-soft text-progress-ink text-[14px] font-medium flex items-start gap-2"><Icon name="alert" size={18} className="shrink-0 mt-0.5" />{ticket.note}</p>}
+        <div className="rounded-md border border-border overflow-hidden">
+          <div className="grid grid-cols-[1fr_auto_auto] gap-3 px-3 h-9 items-center bg-muted text-[13px] text-soft"><span>{t('items')}</span><span>{t('qty')}</span><span aria-hidden className="w-[54px]" /></div>
+          <ul>
+            {ticket.lines.map((l) => {
+              const done = Boolean(l.readyAt)
+              return (
+                <li key={l.id} className={cn('grid grid-cols-[1fr_auto_auto] gap-3 px-3 py-2 border-t border-border items-center', done && 'text-dim')}>
+                  <div className="min-w-0 leading-tight"><span className={cn('text-[16px] font-medium', done && 'line-through')}>{l.name}</span>{l.note && <p className="text-[14px] text-progress-ink">{t('note')}: {l.note}</p>}</div>
+                  <span className="font-mono tabular text-[16px] font-semibold">{l.qty}×</span>
+                  {done ? (
+                    <span className="w-[54px] inline-flex items-center justify-center gap-1 text-[13px] font-semibold text-success-ink"><Icon name="check" size={13} />{t('dishReady')}</span>
+                  ) : (
+                    <button type="button" disabled={!started} onClick={() => onReadyDish(l.id)}
+                      className="w-[54px] h-9 rounded-sm border border-border bg-surface text-[14px] font-semibold text-ink grid place-items-center">
+                      {t('readyBtn')}
+                    </button>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
         </div>
       </div>
-      <Button variant="primary" className="w-full" onClick={() => onReady(ticket.id)}>{t('readyBtn')}</Button>
+      <div className="px-4 pb-4 mt-auto"><Button variant="primary" className="w-full" onClick={() => started ? onReady(ticket.id) : onStart?.(ticket.id)}><Icon name="checks" size={18} />{t(started ? 'readyAll' : 'startPreparation')}</Button></div>
     </article>
   )
 }

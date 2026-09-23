@@ -21,5 +21,5 @@ echo "4) Confirma: POST /api/v1/sesiones/$SID/confirmar/  → Odoo → cocina"
 PEDIDO=$(curl -s -b "$JAR" -X POST "$API/api/v1/sesiones/$SID/confirmar/" | j "d['pedido'] + ' total ' + str(d['total'])")
 echo "   pedido $PEDIDO"
 echo "5) Estado: GET /api/v1/pedidos/${PEDIDO%% *}/"
-curl -s "$API/api/v1/pedidos/${PEDIDO%% *}/" | j "'   estado', d['estado'], '· total', d['total'], '· impuestos', d['impuestos']"
+curl -s -b "$JAR" "$API/api/v1/pedidos/${PEDIDO%% *}/" | j "'   estado', d['estado'], '· total', d['total'], '· impuestos', d['impuestos']"
 rm -f "$JAR"

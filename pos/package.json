@@ -33,10 +33,13 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
     "test:all": "npm run test:coverage && npm run test:e2e",
-    "test:contract": "NODE_OPTIONS=--no-deprecation jest --config jest.contract.config.cjs"
+    "test:contract": "NODE_OPTIONS=--no-deprecation jest --config jest.contract.config.cjs",
+    "kit:compare": "node scripts/kit-compare.cjs"
   },
   "dependencies": {
+    "@fontsource/open-sans": "^5.3.0",
     "@heroicons/react": "2.2.0",
+    "@tabler/icons-react": "^3.46.0",
     "axios": "1.20.0",
     "js-cookie": "3.0.8",
     "next": "16.3.3",

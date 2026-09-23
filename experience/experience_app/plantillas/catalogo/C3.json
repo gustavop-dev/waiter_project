@@ -1,0 +1,331 @@
+{
+  "codigo": "C3",
+  "nombre": "Ármalo tú",
+  "familia": "C",
+  "familiaNombre": "Rápida y food truck",
+  "descripcion": "Bowls, wraps o pizzas por porción armados paso a paso: una categoría por pantalla, barra de progreso arriba, precio corriendo abajo y los agotados visibles pero apagados.",
+  "fotos": {
+    "requiere": "ninguna",
+    "recorte": "ninguno"
+  },
+  "tokens": {
+    "modo": "claro",
+    "fondo": "#FFFFFF",
+    "superficie": "#FAF8F5",
+    "tinta": "#1A1815",
+    "tintaSuave": "#6B6259",
+    "tintaTerciaria": "#9A8F7E",
+    "borde": "#E4DED4",
+    "acento": "#C1873A",
+    "acentoTinta": "#1A1815",
+    "acentoSuave": "#FDF6EA",
+    "displayFont": "Ubuntu",
+    "displayPeso": 700,
+    "displayTracking": "-0.02em",
+    "displayTransform": "none",
+    "cuerpoFont": "Ubuntu",
+    "monoFont": "IBM Plex Mono",
+    "radioTarjeta": 12,
+    "radioBoton": 12,
+    "radioChip": 6,
+    "densidad": "compacta"
+  },
+  "personalizable": {
+    "colores": [
+      "acento",
+      "fondo",
+      "superficie",
+      "tinta"
+    ],
+    "tipografiaDisplay": true,
+    "logo": true
+  },
+  "pantallas": {
+    "menu": {
+      "layout": "C3",
+      "resumen": "Marco blanco. Cabecera con barra de progreso (un segmento por categoría/paso, los hechos en acento), «Paso {i} de {n}» 13 px terciario y el título «Elige {categoría}» 21/700; lista de opciones (productos de la categoría) como filas de borde 1 px radio 12 con nombre 16 px y precio mono 14 px a la derecha («incluido» o «+{precio}»); la elegida con borde 2 px de acento y fondo acento suave; el agotado con opacidad 0,6 y «agotado» en rojo. Pie con «Va en {total acumulado}» en mono 18 y CTA «Siguiente» (último paso: «Añadir»). Cada categoría es un paso; los pasos son las categorías de la carta en orden. El marco pinta blanco sobre el acento (#FFFFFF / #C1873A = 3.09:1); acentoTinta se fija en la tinta oscura del marco #1A1815 (5.73:1) y así deben pintarse los CTAs, la banda de total y los botones sobre acento.",
+      "datosOpcionales": [
+        "incluido",
+        "precioBase"
+      ],
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #FFFFFF; border: 1px solid #DDD6C9; border-radius: 20px; color: #1A1815; font-family: 'Ubuntu'"
+        },
+        {
+          "bloque": "cabecera",
+          "que": "progreso, contador y título del paso",
+          "css": "padding: 16px 20px; border-bottom: 1px solid #EFE9E0"
+        },
+        {
+          "bloque": "cabecera.progreso",
+          "que": "un segmento por categoría; hechos y actual en acento, pendientes en borde",
+          "css": "display: flex; gap: 6px; margin-bottom: 12px; segmento: flex 1 height 6px border-radius 3px background #E4DED4; hecho: background #C1873A"
+        },
+        {
+          "bloque": "cabecera.paso",
+          "que": "«Paso {i} de {n}»",
+          "css": "font-size: 13px; color: #9A8F7E"
+        },
+        {
+          "bloque": "cabecera.titulo",
+          "que": "«Elige {categoria.nombre}»",
+          "css": "font-size: 21px; font-weight: 700; margin-top: 2px; letter-spacing: normal"
+        },
+        {
+          "bloque": "opciones",
+          "que": "productos de la categoría del paso",
+          "css": "padding: 14px 20px; display: flex; flex-direction: column; gap: 10px"
+        },
+        {
+          "bloque": "opciones.opcion",
+          "que": "producto.nombre + precio («incluido» si atributos.incluido o precio 0; «+{precio}» si no)",
+          "css": "display: flex; align-items: center; justify-content: space-between; padding: 14px; border-radius: 12px; border: 1px solid #E4DED4; nombre: font-size 16px; precio: font-family 'IBM Plex Mono' font-size 14px color #6B6259"
+        },
+        {
+          "bloque": "opciones.opcionElegida",
+          "que": "opción seleccionada",
+          "css": "border: 2px solid #C1873A; background: #FDF6EA; nombre: font-weight 500; precio: color #6B4A05"
+        },
+        {
+          "bloque": "opciones.opcionAgotada",
+          "que": "producto.agotado: no se puede elegir",
+          "css": "border: 1px solid #EFE9E0; background: #FAF8F5; opacity: 0.6; etiqueta: font-size 13px color #96241F texto «agotado»"
+        },
+        {
+          "bloque": "pie",
+          "que": "precio acumulado y CTA",
+          "css": "padding: 14px 20px; border-top: 1px solid #EFE9E0; display: flex; align-items: center; gap: 12px"
+        },
+        {
+          "bloque": "pie.vaEn",
+          "que": "«Va en» + suma de precioBase y extras elegidos",
+          "css": "display: flex; flex-direction: column; line-height: 1.2; etiqueta: font-size 13px color #9A8F7E; cifra: font-family 'IBM Plex Mono' font-size 18px"
+        },
+        {
+          "bloque": "pie.cta",
+          "que": "«Siguiente» (último paso «Añadir» → onAdd)",
+          "css": "flex: 1; height: 56px; border-radius: 12px; background: #C1873A; color: #FFFFFF; font-size: 16px; font-weight: 700"
+        }
+      ]
+    },
+    "carrito": {
+      "layout": "familia-C",
+      "resumen": "Esqueleto de la familia C en piel clara. Variante de fila C3: nombre 16/500 y precio mono 15 en una línea, debajo chips grises de radio 6 con los modificadores y «IVA incluido»; sin stepper visible. Tras las filas, una fila de upsell sobre acento al 12 % («¿Algo para cerrar?» con ＋ redondo) y una nota de cocina apagada («Cocina tarda unos 12 min…»). Totales sobre #FAF8F5 y CTA «Ir a pagar» de 60 px radio 8.",
+      "descuento5": "linea",
+      "datosOpcionales": [
+        "sugerenciaCierre",
+        "tiempoCocinaMinutos"
+      ],
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #FFFFFF; border: 1px solid #DDD6C9; border-radius: 14px; color: #1A1815"
+        },
+        {
+          "bloque": "cabecera",
+          "que": "«Tu pedido» y «{n} ítems»",
+          "css": "padding: 16px 18px; border-bottom: 1px solid #EFE9E0; display: flex; align-items: baseline; justify-content: space-between; titulo: font-size 19px font-weight 700 letter-spacing -0.02em line-height 1.15; conteo: font-size 14px color #6B6259"
+        },
+        {
+          "bloque": "filaItem",
+          "que": "línea del carrito",
+          "css": "padding: 12px 18px; border-bottom: 1px solid #EFE9E0; nombre: font-size 16px font-weight 500; precio: font-family 'IBM Plex Mono' font-size 15px white-space nowrap"
+        },
+        {
+          "bloque": "filaItem.chips",
+          "que": "modificadores de la línea + «IVA incluido»",
+          "css": "display: flex; gap: 6px; margin-top: 7px; chip: height 26px padding 0 9px border-radius 6px background #F2EEE8 color #6B6259 font-size 12px"
+        },
+        {
+          "bloque": "upsell",
+          "que": "«¿Algo para cerrar?» + «{mesero} sugiere postre o café · desde {precio}» (dato no estándar sugerenciaCierre; se omite si no hay)",
+          "css": "padding: 12px 18px; display: flex; gap: 11px; align-items: center; background: rgba(193,135,58,0.12); boton: width 32px height 32px border-radius 999px background #C1873A color #1A1815 font-size 16px; titulo: font-size 15px font-weight 500; sub: font-size 13px opacity 0.72"
+        },
+        {
+          "bloque": "notaCocina",
+          "que": "«Cocina tarda unos {n} min. Puedes seguir pidiendo hasta que cierres la cuenta.» (tiempoCocinaMinutos; se omite si no hay)",
+          "css": "padding: 12px 18px; font-size: 13px; line-height: 1.4; opacity: 0.62"
+        },
+        {
+          "bloque": "totales",
+          "que": "Subtotal / Descuento primera compra 5% / Total",
+          "css": "padding: 16px 18px; border-top: 1px solid #EFE9E0; background: #FAF8F5; linea: font-size 15px color #6B6259 padding 3px 0 cifra 'IBM Plex Mono'; descuento: color #2F7A4F; total: padding-top 10px margin-top 8px border-top 1px solid #EFE9E0 etiqueta font-size 18px font-weight 700 letter-spacing -0.02em cifra 'IBM Plex Mono' 25px"
+        },
+        {
+          "bloque": "pie",
+          "que": "CTA (goPay)",
+          "css": "padding: 14px 18px; border-top: 1px solid #EFE9E0; background: #FAF8F5; cta: height 60px border-radius 8px background #C1873A color #FFFFFF font-size 17px font-weight 700 letter-spacing -0.02em"
+        }
+      ]
+    },
+    "pago": {
+      "layout": "C3",
+      "resumen": "Difiere del pago de familia C: no hay banda de total ni lista de métodos; arriba una fila de chips redondos (Tarjeta activo en acento, PSE, Nequi, Efectivo) y debajo el formulario de tarjeta (número, vence, CVV en mono), toggle «Guardar para la próxima visita» y aviso verde «Tokenizado por la pasarela. Waiter no ve tu tarjeta.»; CTA «Pagar $ {total}» de 64 px radio 8. En demo los campos son maquetados: no se envían a ningún sitio.",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #FFFFFF; border: 1px solid #DDD6C9; border-radius: 14px; color: #1A1815"
+        },
+        {
+          "bloque": "chipsMetodo",
+          "que": "métodos como chips desplazables",
+          "css": "padding: 10px 18px; border-bottom: 1px solid #EFE9E0; display: flex; gap: 7px; overflow: hidden; chip: height 42px padding 0 13px border-radius 999px border 1px solid #EFE9E0 color #6B6259 font-size 14px flex none; activo: background #C1873A color #FFFFFF font-weight 500 sin borde"
+        },
+        {
+          "bloque": "formulario",
+          "que": "campos de tarjeta (maquetados)",
+          "css": "padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; etiqueta: font-size 14px font-weight 500 color #6B6259; campo: height 52px border 1px solid #EFE9E0 border-radius 10px background #FFFFFF padding 0 14px font-family 'IBM Plex Mono' font-size 16px color #1A1815"
+        },
+        {
+          "bloque": "formulario.numero",
+          "que": "«Número de la tarjeta»",
+          "css": "ancho completo"
+        },
+        {
+          "bloque": "formulario.venceCvv",
+          "que": "«Vence» y «CVV» en una fila",
+          "css": "display: flex; gap: 10px; cada campo flex 1"
+        },
+        {
+          "bloque": "formulario.guardar",
+          "que": "toggle encendido + «Guardar para la próxima visita»",
+          "css": "display: flex; align-items: center; gap: 11px; toggle: width 48px height 28px border-radius 999px background #C1873A padding 3px; bola: width 22px height 22px border-radius 999px background #FFFFFF alineada a la derecha; texto: font-size 14px color #6B6259"
+        },
+        {
+          "bloque": "formulario.aviso",
+          "que": "check verde + «Tokenizado por la pasarela. Waiter no ve tu tarjeta.»",
+          "css": "display: flex; gap: 9px; align-items: center; padding: 11px 13px; border-radius: 10px; background: #F2EEE8; check: width 22px height 22px border-radius 6px background #2F7A4F color #FFFFFF font-size 11px font-weight 700; texto: font-size 13px line-height 1.4 color #6B6259"
+        },
+        {
+          "bloque": "pie",
+          "que": "CTA (onPay)",
+          "css": "padding: 14px 18px; border-top: 1px solid #EFE9E0; background: #FAF8F5; cta: height 64px border-radius 8px background #C1873A color #FFFFFF font-size 17px font-weight 700 letter-spacing -0.02em"
+        }
+      ]
+    },
+    "registro": {
+      "patron": "beneficios",
+      "resumen": "Cabecera «Crear cuenta» 19/700 con «Tres razones, ninguna de marketing»; tres tarjetas de beneficio (la primera «5% de descuento hoy» en acento suave con la cifra en acento; las otras dos con check gris: tarjeta guardada, alergias a la comanda); solo el campo Correo (con foco) y la casilla de datos; CTA «Crear cuenta y aplicar 5%» y «Ya tengo cuenta». No pide nombre ni celular.",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #FFFFFF; border: 1px solid #DDD6C9; border-radius: 14px; color: #1A1815"
+        },
+        {
+          "bloque": "cabecera",
+          "que": "título y subtítulo",
+          "css": "padding: 18px 20px; border-bottom: 1px solid #EFE9E0; titulo: font-size 19px font-weight 700 letter-spacing -0.02em line-height 1.15; sub: font-size 14px color #6B6259 margin-top 3px"
+        },
+        {
+          "bloque": "beneficios",
+          "que": "tres filas",
+          "css": "padding: 18px 20px 0; display: flex; flex-direction: column; gap: 10px"
+        },
+        {
+          "bloque": "beneficios.descuento",
+          "que": "«5%» + «de descuento hoy»",
+          "css": "display: flex; gap: 11px; align-items: center; padding: 13px 14px; border-radius: 12px; background: #FDF6EA; cifra: font-size 24px font-weight 700 color #C1873A letter-spacing -0.03em; texto: font-size 14px line-height 1.4 color #6B4A05"
+        },
+        {
+          "bloque": "beneficios.otro",
+          "que": "check + texto («Tu tarjeta guardada, sin volver a escribirla», «Tus alergias van solas a la comanda»)",
+          "css": "display: flex; gap: 11px; align-items: center; padding: 13px 14px; border-radius: 12px; background: #FAF8F5; check: width 26px height 26px border-radius 999px background #EFE9E0 font-size 13px; texto: font-size 14px color #6B6259"
+        },
+        {
+          "bloque": "formulario",
+          "que": "correo (foco) y casilla aceptaDatos",
+          "css": "padding: 14px 20px 18px; display: flex; flex-direction: column; gap: 14px; etiqueta: font-size 14px font-weight 500 color #6B6259; campo: height 52px border 2px solid #C1873A border-radius 10px background #FFFFFF padding 0 14px font-size 16px; casilla: width 24px height 24px border-radius 7px background #C1873A color #FFFFFF font-size 13px font-weight 700; texto casilla: font-size 14px color #6B6259"
+        },
+        {
+          "bloque": "pie",
+          "que": "CTA y enlace",
+          "css": "padding: 16px 20px; border-top: 1px solid #EFE9E0; background: #FAF8F5; cta: height 56px border-radius 12px background #C1873A color #FFFFFF font-size 16px font-weight 700 letter-spacing -0.02em; enlace: text-align center font-size 14px color #6B6259 margin-top 11px"
+        }
+      ]
+    },
+    "codigo": {
+      "patron": "canal",
+      "resumen": "Cabecera «Entrar sin contraseña» 18/700 y «Elige por dónde te llega el código»; dos opciones de canal (Correo seleccionado con borde de acento y fondo suave y check; SMS con flecha), seis casillas vacías de 60 px y el texto «Escribe el código cuando llegue. No cierres esta pantalla.»; CTA «Confirmar código» apagado.",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #FFFFFF; border: 1px solid #DDD6C9; border-radius: 14px; color: #1A1815"
+        },
+        {
+          "bloque": "cabecera",
+          "que": "título y subtítulo",
+          "css": "padding: 18px 20px; border-bottom: 1px solid #EFE9E0; titulo: font-size 18px font-weight 700 letter-spacing -0.02em line-height 1.15; sub: font-size 14px color #6B6259 margin-top 3px"
+        },
+        {
+          "bloque": "canales",
+          "que": "Correo (email) y SMS (celular); onOtherChannel al cambiar",
+          "css": "padding: 18px 20px 0; display: flex; flex-direction: column; gap: 10px; opcion: display flex justify-content space-between align-items center padding 15px border-radius 12px border 1px solid #EFE9E0; titulo: font-size 15px; dato: font-size 13px color #6B6259; flecha: color #6B6259"
+        },
+        {
+          "bloque": "canales.activo",
+          "que": "canal elegido",
+          "css": "border: 2px solid #C1873A; background: #FDF6EA; titulo: font-weight 500; check: width 22px height 22px border-radius 999px background #C1873A color #FFFFFF font-size 12px font-weight 700"
+        },
+        {
+          "bloque": "cuerpo.casillas",
+          "que": "seis dígitos vacíos",
+          "css": "padding: 15px 20px 0; display: flex; gap: 7px; casilla: flex 1 height 60px border-radius 10px border 1px solid #EFE9E0 background #FFFFFF font-family 'IBM Plex Mono' font-size 23px"
+        },
+        {
+          "bloque": "cuerpo.texto",
+          "que": "«Escribe el código cuando llegue. No cierres esta pantalla.»",
+          "css": "padding: 15px 20px 18px; font-size: 14px; line-height: 1.45; color: #6B6259"
+        },
+        {
+          "bloque": "pie",
+          "que": "CTA apagado (onVerify)",
+          "css": "padding: 16px 20px; border-top: 1px solid #EFE9E0; background: #FAF8F5; cta: height 56px border-radius 12px background #EFE9E0 color #6B6259 font-size 16px font-weight 700 letter-spacing -0.02em"
+        }
+      ]
+    },
+    "historial": {
+      "patron": "porMes",
+      "resumen": "Cabecera de cuenta oscura con avatar en acento; pedidos agrupados por mes con cabecera en versalitas sobre superficie («Noviembre», «Octubre»); cada fila con sede 16/500 y total mono 15, detalle «Sáb 16 · mesa 14 · 3 ítems» y chips de estado (Pagado verde, Factura enviada gris, −5% ámbar, Factura pendiente amarillo); barra «Facturas» / «Volver a pedir».",
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "contenedor",
+          "css": "background: #FFFFFF; border: 1px solid #DDD6C9; border-radius: 14px; color: #1A1815"
+        },
+        {
+          "bloque": "cabeceraCuenta",
+          "que": "avatar, nombre, resumen",
+          "css": "padding: 20px; background: #1A1815; color: #F5F1EA; display: flex; align-items: center; gap: 13px; avatar: width 44px height 44px border-radius 999px background #C1873A color #FFFFFF font-size 16px font-weight 700; nombre: font-size 17px font-weight 700 letter-spacing -0.02em; resumen: font-size 13px opacity 0.72"
+        },
+        {
+          "bloque": "mes",
+          "que": "cabecera del grupo (nombre del mes)",
+          "css": "padding: 10px 20px; background: #FAF8F5; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B6259; font-weight: 500"
+        },
+        {
+          "bloque": "pedido",
+          "que": "sede y total, detalle y chips",
+          "css": "padding: 13px 20px; border-bottom: 1px solid #EFE9E0; sede: font-size 16px font-weight 500; total: font-family 'IBM Plex Mono' font-size 15px; detalle: font-size 13px color #6B6259 margin-top 2px"
+        },
+        {
+          "bloque": "pedido.chips",
+          "que": "estado del pedido/factura/descuento",
+          "css": "display: flex; gap: 6px; margin-top: 8px; chip: height 26px padding 0 9px border-radius 6px font-size 12px font-weight 500; Pagado: background #E6F1EA color #216239; Factura enviada: background #FAF8F5 color #6B6259; −5%: background #FDF6EA color #6B4A05; Factura pendiente: background #FDF2DC color #8A5A05"
+        },
+        {
+          "bloque": "pie",
+          "que": "«Facturas» y «Volver a pedir»",
+          "css": "padding: 14px 20px; border-top: 1px solid #EFE9E0; background: #FAF8F5; display: flex; gap: 10px; secundario: flex 1 height 50px border-radius 11px border 1px solid #EFE9E0 font-size 15px font-weight 500 color #6B6259; primario: background #C1873A color #FFFFFF"
+        }
+      ]
+    }
+  },
+  "fuentesGoogle": []
+}

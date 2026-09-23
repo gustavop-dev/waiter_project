@@ -1,5 +1,12 @@
 # Plan D — Bloque 3 (backend del comensal) + registro central mínimo
 
+> Contexto posterior (Plan H, 2026-09-05): `experience/` guarda las 30 plantillas y los
+> ajustes por sede; `diner/` renderiza y el POS administra. Descuento real con reserva
+> atómica; pago simulado después de confirmar; cuenta demo ligada al desafío de la
+> misma cookie, sin recuperación de cuentas existentes y deshabilitada en producción.
+> El diseño y los planes anteriores conservan su alcance histórico; el estado ejecutado
+> y sus límites están en [la revisión de H](../revisiones/2026-09-05-cierre-H-pr14.md).
+
 > **Para agentes:** ejecutar tarea por tarea, en orden, con el ciclo de cada
 > tarea completo (test que falla → implementación mínima → test que pasa →
 > commit). Los pasos usan `- [x]`. Cada tarea deja software probado y
@@ -88,6 +95,8 @@ POST /api/v1/sesiones/<id>/lineas          {producto_id, cantidad, nota?}
 PATCH/DELETE /api/v1/sesiones/<id>/lineas/<lid>   solo el comensal dueño
 POST /api/v1/sesiones/<id>/confirmar       → Odoo (uuid idempotente) → cocina; 503 conserva el carrito
 GET  /api/v1/pedidos/<id>                  {estado: enviado|en_cocina|listo|servido|pagado|fallido, total}
+GET  /api/v1/<rest>/<sede>/fotos/<id>/?v=&tam=   foto del plato (Plan F)
+POST /api/v1/sesiones/<id>/llamar/ · /cuenta/    llamadas al salón (Plan F)
 POST /internal/v1/carta/<rest>/<sede>/invalidar   (clave interna) vacía la caché de esa sede
 ```
 

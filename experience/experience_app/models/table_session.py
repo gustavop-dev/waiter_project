@@ -17,6 +17,7 @@ class TableSession(models.Model):
     table_number = models.PositiveIntegerField(null=True, blank=True)
     odoo_table_id = models.PositiveIntegerField(null=True, blank=True)
     state = models.CharField(max_length=12, choices=STATES, default=COMPOSING)
+    confirming = models.BooleanField(default=False)
     opened_at = models.DateTimeField(auto_now_add=True)
     closed_at = models.DateTimeField(null=True, blank=True)
 

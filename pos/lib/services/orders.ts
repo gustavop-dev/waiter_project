@@ -2,17 +2,17 @@ import { toSyncPayload } from '@/lib/domain/order'
 import { kitchenPhase, type KitchenPhase } from '@/lib/domain/kitchen'
 import { uuid } from '@/lib/domain/uuid'
 import type { DraftOrder } from '@/lib/domain/order'
+import { lineGroup, type KitOrder } from '@/lib/domain/orderState'
 import { listCourseSummaries } from '@/lib/services/kitchen'
 import { callKw } from '@/lib/services/odoo'
+import { activeEmployeeId } from '@/lib/stores/authStore'
 
 export interface SavedOrder { id: number; reference: string; state: 'draft' | 'paid'; total: number; tax: number; paid: number }
-export interface OpenOrder { id: number; tableId: number; total: number; tax: number; state: 'draft' | 'paid'; lineCount: number; startedAt: string; waiter: string; kitchen: KitchenPhase }
-export interface OrderLineView { uuid: string; name: string; qty: number; unitPrice: number; note: string }
+export interface OpenOrder { unsent?: boolean; id: number; tableId: number; total: number; tax: number; state: 'draft' | 'paid'; lineCount: number; startedAt: string; waiter: string; kitchen: KitchenPhase; tracking: string | null }
 export interface ShiftSummary { sales: number; orders: number; waiters: number }
 
 interface RawOrder { id: number; pos_reference: string; state: SavedOrder['state']; amount_total: number; amount_tax: number; amount_paid: number }
-interface RawOpen { id: number; table_id: [number, string] | false; amount_total: number; amount_tax: number; state: SavedOrder['state']; lines: number[]; date_order: string; user_id: [number, string] | false }
-interface RawLine { uuid: string; full_product_name: string; qty: number; price_unit: number; customer_note: string | false }
+interface RawOpen { id: number; table_id: [number, string] | false; amount_total: number; amount_tax: number; state: SavedOrder['state']; lines: number[]; date_order: string; user_id: [number, string] | false; tracking_number: string | false }
 interface RawPaid { amount_total: number; user_id: [number, string] | false }
 
 const READ_FIELDS = ['pos_reference', 'state', 'amount_total', 'amount_tax', 'amount_paid']
@@ -23,7 +23,7 @@ async function readOrder(id: number): Promise<SavedOrder> {
 }
 
 export async function saveOrder(draft: DraftOrder): Promise<SavedOrder> {
-  const result = await callKw<{ 'pos.order': { id: number }[] }>('pos.order', 'sync_from_ui', [[toSyncPayload(draft)]])
+  const result = await callKw<{ 'pos.order': { id: number }[] }>('pos.order', 'sync_from_ui', [[toSyncPayload(draft, activeEmployeeId())]])
   const id = result['pos.order'][0].id
   // sync_from_ui deja amount_total en 0 por la API cruda: el recálculo es obligatorio.
   await callKw<void>('pos.order', 'recompute_prices', [[id]])
@@ -58,21 +58,27 @@ export async function closeOrder(orderId: number): Promise<SavedOrder> {
 export async function listOpenOrders(sessionId: number): Promise<OpenOrder[]> {
   const [rows, courses] = await Promise.all([
     callKw<RawOpen[]>('pos.order', 'search_read',
-      [[['session_id', '=', sessionId], ['state', '=', 'draft']], ['table_id', 'amount_total', 'amount_tax', 'state', 'lines', 'date_order', 'user_id']]),
+      [[['session_id', '=', sessionId], ['state', '=', 'draft']], ['table_id', 'amount_total', 'amount_tax', 'state', 'lines', 'date_order', 'user_id', 'tracking_number']]),
     listCourseSummaries(sessionId),
   ])
   return rows
     .filter((r) => r.table_id !== false)
     .map((r) => ({ id: r.id, tableId: (r.table_id as [number, string])[0], total: r.amount_total, tax: r.amount_tax, state: r.state, lineCount: r.lines.length,
-      startedAt: r.date_order, waiter: r.user_id ? r.user_id[1] : '', kitchen: kitchenPhase(courses.filter((c) => c.orderId === r.id)) }))
+      startedAt: r.date_order, waiter: r.user_id ? r.user_id[1] : '', kitchen: kitchenPhase(courses.filter((c) => c.orderId === r.id)), tracking: r.tracking_number || null }))
+}
+
+// La fila del salón a partir del pedido completo del kit, para no pedir los mismos pedidos dos veces. Equivale a
+// `listOpenOrders`: solo pedidos en mesa, y la fase de cocina sale de los cursos ya enviados (los que no se han
+// disparado no cuentan, como en `listCourseSummaries`).
+export function openOrderFromKit(o: KitOrder): OpenOrder | null {
+  if (o.tableId === null || o.state !== 'draft') return null
+  const fired = o.courses.filter((c) => c.fired).map((c) => ({ orderId: o.id, firedAt: '', readyAt: c.readyAt, servedAt: c.servedAt }))
+  return { id: o.id, tableId: o.tableId, total: o.total, tax: o.tax, state: 'draft', lineCount: o.lines.length, startedAt: o.startedAt,
+    waiter: o.waiter ?? '', kitchen: o.lines.some((line) => lineGroup(o, line) === 'ready') ? 'ready' : kitchenPhase(fired), tracking: o.tracking ?? null,
+    unsent: o.lines.some((line) => !o.courses.some((course) => course.id === line.courseId && course.fired)) }
 }
 
 // Líneas de un pedido que vive en Odoo pero no se compuso en este dispositivo (otra tablet, el comensal).
-export async function getOrderLines(orderId: number): Promise<OrderLineView[]> {
-  const rows = await callKw<RawLine[]>('pos.order.line', 'search_read',
-    [[['order_id', '=', orderId]], ['uuid', 'full_product_name', 'qty', 'price_unit', 'customer_note']])
-  return rows.map((r) => ({ uuid: r.uuid, name: r.full_product_name, qty: r.qty, unitPrice: r.price_unit, note: r.customer_note || '' }))
-}
 
 // Ventas del turno: lo pagado en la sesión, cuántos pedidos y cuántos meseros distintos.
 export async function getShiftSummary(sessionId: number): Promise<ShiftSummary> {

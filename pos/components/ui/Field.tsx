@@ -7,23 +7,29 @@ import { cn } from '@/lib/utils'
 
 const CONTROL = 'h-tap-min px-3.5 rounded-[10px] border border-border bg-surface text-base text-ink focus:outline-2 focus:outline-brand-500 disabled:opacity-50'
 
-export function Field({ label, hint, children }: { label: string; hint?: ReactNode; children: (id: string) => ReactNode }) {
+// Une ids para aria-describedby; undefined si no hay ninguno, para que React no pinte el atributo vacío.
+export const describedBy = (...ids: (string | null | undefined | false)[]): string | undefined => ids.filter(Boolean).join(' ') || undefined
+
+// La ayuda va fuera del <label>, como hermana con id, y el control la referencia con aria-describedby: así el nombre
+// accesible del campo es solo la etiqueta («Lema», no «Lema Aparece en… 0/60») y la ayuda se lee como descripción.
+export function Field({ label, hint, children }: { label: string; hint?: ReactNode; children: (id: string, hintId?: string) => ReactNode }) {
   const id = useId()
+  const hintId = hint ? `${id}-hint` : undefined
   return (
-    <label htmlFor={id} className="flex flex-col gap-1.5">
-      <span className="text-[15px] font-medium">{label}</span>
-      {children(id)}
-      {hint && <span className="text-[13px] text-soft">{hint}</span>}
-    </label>
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={id} className="text-[15px] font-medium">{label}</label>
+      {children(id, hintId)}
+      {hint && <span id={hintId} className="text-[13px] text-soft">{hint}</span>}
+    </div>
   )
 }
 
-export function TextInput({ label, hint, className, ...rest }: InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: ReactNode }) {
-  return <Field label={label} hint={hint}>{(id) => <input id={id} className={cn(CONTROL, className)} {...rest} />}</Field>
+export function TextInput({ label, hint, className, 'aria-describedby': extra, ...rest }: InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: ReactNode }) {
+  return <Field label={label} hint={hint}>{(id, hintId) => <input id={id} aria-describedby={describedBy(hintId, extra)} className={cn(CONTROL, className)} {...rest} />}</Field>
 }
 
-export function Select({ label, hint, className, children, ...rest }: SelectHTMLAttributes<HTMLSelectElement> & { label: string; hint?: ReactNode }) {
-  return <Field label={label} hint={hint}>{(id) => <select id={id} className={cn(CONTROL, className)} {...rest}>{children}</select>}</Field>
+export function Select({ label, hint, className, children, 'aria-describedby': extra, ...rest }: SelectHTMLAttributes<HTMLSelectElement> & { label: string; hint?: ReactNode }) {
+  return <Field label={label} hint={hint}>{(id, hintId) => <select id={id} aria-describedby={describedBy(hintId, extra)} className={cn(CONTROL, className)} {...rest}>{children}</select>}</Field>
 }
 
 // Interruptor táctil de 48 px: el estado se lee en texto, no solo en color.

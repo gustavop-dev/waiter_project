@@ -5,14 +5,24 @@ from django.core.cache import cache
 from rest_framework.test import APIClient
 
 from experience_app.adapters.odoo.client import OdooCredentials
-from experience_app.adapters.odoo.pos import Catalog, Category, Product
+from experience_app.adapters.odoo.pos import Catalog, Category, CompanyBrand, Product
 from experience_app.adapters.registry.client import Tenant
 
 ODOO = OdooCredentials(url='http://odoo', db='bh', login='svc', password='x', pos_config_id=1)
-TABLE = Tenant('burger-house', 'Burger House', 'poblado', 'Poblado', '8H2KQ7', 8, 9, ODOO)
+BRAND = {'color': '#7A2E2A', 'colorTexto': '#FFFFFF', 'colorSuave': '#F2EAEA', 'fuente': 'Fraunces', 'radio': 14, 'lema': 'Cocina de barrio', 'saludo': '', 'mesero': 'Alex', 'bienvenida': '¿Qué te provoca hoy?', 'logo': None}
+TABLE = Tenant('burger-house', 'Burger House', 'poblado', 'Poblado', '8H2KQ7', 8, 9, ODOO, BRAND)
 DELIVERY = Tenant('burger-house', 'Burger House', 'poblado', 'Poblado', None, None, None, ODOO)
-ANGUS = Product(id=3, name='Hamburguesa Angus', price=36900.0, category_ids=[2], tax_ids=[5])
-LIMONADA = Product(id=7, name='Limonada de Coco', price=9900.0, category_ids=[1], tax_ids=[5])
+# Odoo sin nada editado: todo vacío, así que la marca del comensal es la del registro (BRAND).
+UNTOUCHED_COMPANY = CompanyBrand(name='', color='', font='', radius=None, tagline='', greeting='', waiter_name='', welcome='',
+                                 has_logo=False, version='20260905010203')
+# template_id distinto del id: atrapa a quien pida la foto con el id del producto en vez del de la plantilla.
+# final_price distinto de price: atrapa a quien muestre o sume la base gravable en vez de lo que se paga.
+# image_origin='ai' en el plato con foto: atrapa una carta que no avise «Imágenes de referencia».
+ANGUS = Product(id=3, name='Hamburguesa Angus', price=36900.0, category_ids=[2], tax_ids=[5], template_id=21,
+                description='Carne angus 200 g, queso madurado', favorite=True, has_image=True, image_version='20260905010203',
+                image_origin='ai', final_price=43911.0)
+LIMONADA = Product(id=7, name='Limonada de Coco', price=9900.0, category_ids=[1], tax_ids=[5],
+                   template_id=22, description='', favorite=False, has_image=False)
 CATALOG = Catalog(company_name='Burger House', products=[ANGUS, LIMONADA], categories=[Category(1, 'Bebidas', 1), Category(2, 'Hamburguesas', 2)])
 
 
@@ -27,7 +37,14 @@ def api_client():
 
 
 @pytest.fixture
-def table_tenant():
+def company_brand_stub():
+    """Odoo responde la marca sin nada editado: la entrada no sale a la red por la marca y el registro manda."""
+    with patch('experience_app.services.brand.pos.read_company_brand', return_value=UNTOUCHED_COMPANY) as read, patch('experience_app.services.banners.for_menu', return_value=None):
+        yield read
+
+
+@pytest.fixture
+def table_tenant(company_brand_stub):
     with patch('experience_app.views.sessions.resolve', return_value=TABLE), patch('experience_app.views.context.resolve', return_value=TABLE):
         yield TABLE
 

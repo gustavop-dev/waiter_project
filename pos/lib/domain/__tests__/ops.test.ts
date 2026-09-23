@@ -29,3 +29,11 @@ it('filters the shift table by segment', () => {
   expect(filterOrders(orders, 'payments', NOW, 18).map((o) => o.id)).toEqual([2])
   expect(filterOrders(orders, 'all', NOW, 18)).toHaveLength(3)
 })
+
+
+// Falla si la llamada del comensal no aparece como alerta de mesa con su número y su tiempo.
+it('raises a table alert for a diner calling the waiter', () => {
+  const calls = [{ tableId: 11, kind: 'assist' as const, since: at(1) }]
+  const [alert] = deriveAlerts([], {}, {}, NOW, { late: 18, bill: 10 }, calls, () => 11)
+  expect(alert).toMatchObject({ id: 'assist-11', kind: 'table', tableNumber: 11, severity: 'busy', seconds: 60 })
+})

@@ -1,0 +1,69 @@
+'use client'
+/* eslint-disable @next/next/no-img-element -- Exporty illustrations and restaurant assets. */
+import Link from 'next/link'
+import {useEffect,useRef,useState} from 'react'
+import {useRouter} from 'next/navigation'
+import type {Entry} from '@/lib/types'
+import {SmartHeader} from './SmartHome'
+import {ShareLocation,PointsBalance} from './SmartBenefits'
+import type {VenueLocation} from '@/lib/types'
+import {getEntry,getVenueLocation} from '@/lib/services/api'
+import {pathFor} from '@/lib/domain/route'
+import {useDinerStore} from '@/lib/stores/dinerStore'
+import {FoodPhoto, Icon, Title, useSmartRoute} from './SmartMenu'
+const slides = [
+ ['onboarding-reviews.png','Descubre tu próximo favorito','Explora el menú, conoce los platos y elige a tu ritmo.'],
+ ['onboarding-menu.png','Una elección más fácil','El asistente te ayuda a encontrar opciones según tus preferencias.'],
+ ['onboarding-order.png','Disfruta mientras cocinamos','Envía tu pedido y sigue su preparación desde tu mesa.'],
+ ['onboarding-favorites.png','Recuerda lo que te encanta','Guarda favoritos y vuelve a pedir desde tu historial.'],
+]
+export function SmartWelcome({entry}: {entry:Entry}) {
+ const [step,setStep]=useState(-1)
+ const {href}=useSmartRoute()
+ const products=entry.carta.categorias.flatMap(c=>c.productos).filter(d=>d.foto)
+ return <section className="sm-journey sm-intro sm-welcome">{step===-1?<><div className="sm-splash-plates">{products.slice(0,2).map(d=><FoodPhoto dish={d} key={d.id}/>)}</div><div className="sm-splash-name">{entry.contexto.marca.logo&&<img src={entry.contexto.marca.logo} alt=""/>}<h1>{entry.contexto.marca.nombre}</h1><p>Una experiencia deliciosa empieza aquí</p></div><div className="sm-journey-footer"><button className="sm-primary" onClick={()=>setStep(0)}>Comenzar<Icon name="arrow"/></button><Link href={href('portada')}>Ya conozco el menú</Link></div></>:step<4?<><button className="sm-icon" aria-label="Paso anterior" onClick={()=>setStep(step-1)}><Icon name="back"/></button><div className="sm-orbit-hero"><img src={`/smart-menu/${slides[step][0]}`} alt=""/></div><nav className="sm-slide-dots" aria-label="Introducción">{slides.map((s,i)=><button key={s[0]} aria-label={`Página ${i+1}`} aria-current={i===step?'step':undefined} onClick={()=>setStep(i)}/>)}</nav><h1>{slides[step][1]}</h1><p>{slides[step][2]}</p><div className="sm-journey-footer"><button className="sm-primary" onClick={()=>setStep(step+1)}>Continuar<Icon name="arrow"/></button><button className="sm-text-button" onClick={()=>setStep(4)}>Omitir introducción</button></div></>:<><div className="sm-orbit-hero"><img src="/smart-menu/stars.png" alt=""/></div><h1>Hazlo más personal</h1><p>Tu nombre, tus favoritos y tus pedidos te acompañan durante la visita.</p><div className="sm-journey-footer"><Link className="sm-primary" href={href('cuenta/correo')}>Continuar con correo</Link><Link className="sm-secondary" href={href('cuenta/entrar')}>Ya tengo una cuenta</Link><Link href={href('portada')}>Continuar como invitado</Link></div></>}</section>
+}
+export function SmartLocation({entry, rescan=false}: {entry:Entry;rescan?:boolean}) {
+ const [step,setStep]=useState<'choose'|'scan'|'manual'|'list'|'detail'|'rescan'|'share'>(rescan?'rescan':'choose')
+ const [venueInfo,setVenueInfo]=useState<VenueLocation|null>(null)
+ const [distance,setDistance]=useState<number|null>(null)
+ useEffect(()=>{let active=true;getVenueLocation(entry.contexto.restaurante.slug,entry.contexto.sede.slug).then(v=>{if(active)setVenueInfo(v)}).catch(()=>{});return()=>{active=false}},[entry.contexto.restaurante.slug,entry.contexto.sede.slug])
+ const [code,setCode]=useState('')
+ const [query,setQuery]=useState('')
+ const [error,setError]=useState('')
+ const [busy,setBusy]=useState(false)
+ const scan=async(file:File|undefined)=>{
+  if(!file)return
+  if(file.size>12*1024*1024){setError('Elige una imagen de menos de 12 MB.');return}
+  setBusy(true);setError('')
+  const source=URL.createObjectURL(file)
+  try{const {BrowserQRCodeReader}=await import('@zxing/browser');const result=await new BrowserQRCodeReader().decodeFromImageUrl(source);setCode(result.getText());setStep('manual')}catch{setError('No pudimos leer ese QR. Intenta con una foto más nítida o introduce el código.')}finally{URL.revokeObjectURL(source);setBusy(false)}
+ }
+ const router=useRouter()
+ const {href}=useSmartRoute()
+ const venue=entry.contexto.sede
+ const join=async(event:React.FormEvent)=>{
+  event.preventDefault();if(busy)return
+  setBusy(true);setError('')
+  try {
+   let token=code.trim()
+   if(token.includes('/')) {
+    const url=new URL(token,location.origin)
+    const prefix=`/${entry.contexto.restaurante.slug}/${venue.slug}/t/`
+    if(url.origin!==location.origin || !url.pathname.startsWith(prefix))throw new Error('Este enlace no corresponde a este restaurante.')
+    token=url.pathname.slice(prefix.length).split('/')[0]
+   }
+   if(!/^[A-Za-z0-9_-]{1,128}$/.test(token))throw new Error('Revisa el código de tu mesa.')
+   await getEntry(entry.contexto.restaurante.slug,venue.slug,token)
+   router.push(pathFor(entry.contexto.restaurante.slug,venue.slug,token,'portada'))
+  }catch(e){setError(e instanceof Error?e.message:'No encontramos esta mesa')}finally{setBusy(false)}
+ }
+ return <section className="sm-journey">{step==='share'&&<div className="sm-location-nav"><SmartHeader entry={entry}/></div>}{step!=='share'&&<Title title="Tu restaurante"/>}{step!=='choose'&&step!=='share'&&<button className="sm-text-button" onClick={()=>{setStep('choose');setError('')}}><Icon name="back"/>Volver a las opciones</button>}{step==='share'?<ShareLocation venue={venueInfo} onManual={()=>setStep('list')} onLocated={d=>{setDistance(d);setStep('list')}}/>:step==='rescan'?<><div className="sm-orbit-hero"><img src="/smart-menu/qr.png" alt=""/></div><h1>Una nueva mesa, otra experiencia</h1><p>Escanea el código QR de tu mesa para abrir su menú y continuar tu visita.</p><div className="sm-journey-footer"><button className="sm-primary" onClick={()=>setStep('scan')}>Escanear código QR<Icon name="arrow"/></button><Link href={href('portada')}>Lo haré después</Link></div></>:step==='choose'?<><h1>¿Dónde vas a disfrutar?</h1><p>Abre el menú de tu mesa o explora el restaurante.</p><div className="sm-home-options"><button className="sm-home-card" onClick={()=>setStep('scan')}><img src="/smart-menu/qr.png" alt=""/><h2>Código de tu mesa</h2><p>Escanea el QR con la cámara de tu teléfono o introduce su código aquí.</p><span className="sm-home-arrow"><Icon name="arrow"/></span></button><button className="sm-home-card" onClick={()=>setStep('share')}><img src="/smart-menu/location.png" alt=""/><h2>Elegir restaurante</h2><p>Consulta el local donde estás haciendo tu pedido.</p><span className="sm-home-arrow"><Icon name="arrow"/></span></button></div></>:step==='scan'?<><h1>Escanea el QR de tu mesa</h1><p>Abre la cámara o elige una foto del código. La imagen se procesa en tu dispositivo.</p><div className="sm-qr-viewfinder"><img src="/smart-menu/qr.png" alt=""/><span/></div><label className="sm-primary sm-scan-upload">{busy?'Leyendo QR…':'Escanear o elegir una foto'}<input aria-label="Foto del código QR" type="file" accept="image/*" capture="environment" disabled={busy} onChange={e=>void scan(e.target.files?.[0])}/></label>{error&&<p className="sm-error" role="alert">{error}</p>}<button className="sm-secondary" onClick={()=>setStep('manual')}>Introducir código manualmente</button></>:step==='manual'?<><div className="sm-orbit-hero"><img src="/smart-menu/qr.png" alt=""/></div><h1>Introduce el código de tu mesa</h1><p>También puedes pegar el enlace que contiene el QR.</p><form onSubmit={e=>void join(e)}><label className="sm-field"><span>Código o enlace de la mesa</span><input required value={code} onChange={e=>setCode(e.target.value)} autoCapitalize="none" autoCorrect="off" maxLength={500}/></label>{error&&<p className="sm-error" role="alert">{error}</p>}<button className="sm-primary" disabled={busy}>{busy?'Buscando tu mesa…':'Abrir mi mesa'}<Icon name="arrow"/></button></form></>:step==='list'?<><h1>Elige tu restaurante</h1><label className="sm-field"><span>Buscar por nombre</span><input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Nombre del restaurante"/></label>{`${venue.nombre} ${entry.contexto.marca.nombre} ${venueInfo?.direccion||''}`.toLowerCase().includes(query.toLowerCase())?<button className="sm-venue-card" onClick={()=>setStep('detail')}><img src="/smart-menu/location.png" alt=""/><span><strong>{entry.contexto.marca.nombre}</strong><small>{venueInfo?.direccion||venue.nombre}{distance!==null&&` · A ${distance.toLocaleString('es-CO',{maximumFractionDigits:1})} km`}</small></span><Icon name="arrow"/></button>:<p>No encontramos un local con ese nombre.</p>}</>:<><div className="sm-orbit-hero"><img src={entry.contexto.marca.logo||'/smart-menu/location.png'} alt=""/></div><h1>{entry.contexto.marca.nombre}</h1><p>{venueInfo?.direccion||venue.nombre}</p>{venueInfo&&(venueInfo.direccion||venueInfo.latitud!==null)&&<a className="sm-text-button" target="_blank" rel="noopener noreferrer" href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(venueInfo.latitud!==null&&venueInfo.longitud!==null?`${venueInfo.latitud},${venueInfo.longitud}`:venueInfo.direccion)}`}>Cómo llegar</a>}{entry.contexto.marca.lema&&<p>{entry.contexto.marca.lema}</p>}<div className="sm-journey-footer"><Link className="sm-primary" href={href('carta')}>Ver el menú<Icon name="arrow"/></Link><button className="sm-secondary" onClick={()=>setStep('manual')}>Conectar con mi mesa</button></div></>}</section>
+}
+export function SmartRewards() {
+ const {account,template}=useDinerStore()
+ const {href}=useSmartRoute()
+ const dialog=useRef<HTMLDialogElement>(null)
+ const reward=template.descuento
+ return <><Title title="Mis recompensas"/><section className="sm-rewards"><PointsBalance/><h1>Disfruta tus beneficios</h1>{reward.activo?<article className="sm-reward-banner"><div><small>Primera compra</small><h2>{reward.porcentaje}% de descuento en tu pedido</h2><button onClick={()=>dialog.current?.showModal()}>Ver beneficio</button></div><img src="/smart-menu/reward.png" alt=""/></article>:<p>El restaurante no tiene recompensas activas en este momento.</p>}<h2>Tu próxima experiencia</h2><Link className="sm-profile-link" href={href(account?'pedido':'cuenta/registro')}><span><strong>{!account?'Crea tu cuenta':account.descuentoDisponible?'Tu beneficio está disponible':'Consulta tu pedido'}</strong><small>{!account?'Guarda tus platos y accede a tus beneficios.':account.descuentoDisponible?'Se aplica automáticamente en tu primera compra elegible.':'Revisa los descuentos aplicados a tu consumo.'}</small></span><Icon name="arrow"/></Link><Link className="sm-profile-link" href={href('favoritos')}><span><strong>Vuelve a tus favoritos</strong><small>Esos platos que vale la pena repetir.</small></span><Icon name="arrow"/></Link><Link className="sm-profile-link" href={href('historial')}><span><strong>Recuerda tus visitas</strong><small>Encuentra tus pedidos y valora tu experiencia.</small></span><Icon name="arrow"/></Link></section><dialog ref={dialog} className="sm-filter-dialog sm-reward-dialog"><button className="sm-icon" aria-label="Cerrar beneficio" onClick={()=>dialog.current?.close()}><Icon name="close"/></button><div className="sm-orbit-hero"><img src="/smart-menu/trophy.png" alt=""/></div><h1>{reward.porcentaje}% para tu primera visita</h1><p>Se aplica automáticamente sobre tu consumo elegible al confirmar el pedido. Puedes revisar el importe en el carrito.</p><Link className="sm-primary" href={href(account?'pedido':'cuenta/registro')}>{account?'Ver mi pedido':'Crear mi cuenta'}</Link></dialog></>
+}

@@ -1,0 +1,194 @@
+{
+  "title": "Inventario",
+  "tabs": {
+    "menu": "Menú",
+    "ingredients": "Ingredientes",
+    "requests": "Solicitudes"
+  },
+  "search": {
+    "dish": "Busca un plato por su nombre",
+    "ingredient": "Busca un ingrediente por su nombre",
+    "request": "Busca una solicitud por ingrediente",
+    "supplier": "Busca un proveedor por su nombre"
+  },
+  "actions": {
+    "addDish": "Agregar plato",
+    "addIngredient": "Agregar ingrediente",
+    "resetFilters": "Restablecer filtros",
+    "saveNext": "Guardar y continuar",
+    "saveSubmit": "Guardar y enviar",
+    "addIngredientRow": "Agregar ingrediente",
+    "more": "Más opciones de {name}",
+    "edit": "Editar ingrediente",
+    "request": "Solicitar ingrediente",
+    "delete": "Eliminar ingrediente",
+    "removeRow": "Quitar fila"
+  },
+  "filters": {
+    "title": "Filtros",
+    "dishStatus": "ESTADO DEL PLATO",
+    "stockLevel": "NIVEL DE STOCK",
+    "category": "CATEGORÍA",
+    "all": "Todos",
+    "available": "Disponible",
+    "unavailable": "No disponible"
+  },
+  "levels": {
+    "empty": "Vacío",
+    "low": "Bajo",
+    "medium": "Medio",
+    "high": "Alto",
+    "none": "—"
+  },
+  "menu": {
+    "listTitle": "Lista del menú",
+    "available": "Disponible",
+    "unavailable": "No disponible",
+    "canServe": "Se pueden servir:",
+    "noRecipe": "Sin receta",
+    "empty": "No hay platos con esos filtros",
+    "emptyBody": "Cambia los filtros o agrega un plato nuevo."
+  },
+  "detail": {
+    "title": "Detalle del plato",
+    "dish": "Plato",
+    "canServe": "Se pueden servir {n}",
+    "ingredients": "Ingredientes",
+    "noRecipe": "Este plato todavía no tiene receta.",
+    "open": "Ver detalle de {name}",
+    "loading": "Cargando la receta…"
+  },
+  "dishWizard": {
+    "title": "Agregar plato",
+    "steps": {
+      "info": "Datos del plato",
+      "ingredients": "Ingredientes"
+    },
+    "infoTitle": "Información del plato",
+    "name": "Nombre del plato",
+    "namePlaceholder": "Escribe el nombre del plato",
+    "category": "Categoría del plato",
+    "description": "Descripción del plato",
+    "descriptionPlaceholder": "Describe el plato",
+    "price": "Precio",
+    "ingredientsTitle": "Ingredientes",
+    "ingredientName": "Nombre del ingrediente",
+    "selectIngredient": "Selecciona un ingrediente",
+    "quantity": "Cantidad",
+    "unit": "Unidad",
+    "selectUnit": "Selecciona la unidad",
+    "row": "Ingrediente {n}",
+    "successTitle": "¡Plato agregado!",
+    "successBody": "Tu plato nuevo ya está en el menú. Los ingredientes y el control de stock quedaron enlazados.",
+    "errors": {
+      "name": "Escribe el nombre del plato.",
+      "category": "Elige una categoría.",
+      "price": "Escribe un precio mayor que cero.",
+      "lines": "Completa cada fila con ingrediente, cantidad y unidad."
+    }
+  },
+  "ingredients": {
+    "listTitle": "Lista de ingredientes",
+    "stock": "Stock:",
+    "supplier": "PROVEEDOR",
+    "status": "ESTADO",
+    "noSupplier": "Sin proveedor",
+    "noPhoto": "Sin foto",
+    "empty": "No hay ingredientes con esos filtros",
+    "emptyBody": "Cambia los filtros o agrega un ingrediente nuevo.",
+    "statusLabel": {
+      "request": "Solicitar",
+      "normal": "Normal",
+      "good": "Bien"
+    }
+  },
+  "categories": {
+    "produce": "Frutas y verduras",
+    "meat": "Carnes y aves",
+    "seafood": "Pescados y mariscos",
+    "dairy": "Lácteos y huevos",
+    "dry": "Secos y granos",
+    "other": "Otros"
+  },
+  "units": {
+    "bunch": "Manojo",
+    "clove": "Diente",
+    "gram": "Gramo (g)",
+    "kilogram": "Kilogramo (kg)",
+    "liter": "Litro (L)",
+    "milliliter": "Mililitro (ml)",
+    "pieces": "Unidades",
+    "slice": "Rebanada"
+  },
+  "ingredientWizard": {
+    "title": "Agregar ingrediente",
+    "editTitle": "Editar ingrediente",
+    "steps": {
+      "info": "Datos del ingrediente",
+      "supplier": "Proveedor"
+    },
+    "infoTitle": "Información del ingrediente",
+    "name": "Nombre del ingrediente",
+    "namePlaceholder": "Escribe el nombre del ingrediente",
+    "category": "Categoría del ingrediente",
+    "initialStock": "Stock inicial",
+    "initialStockPlaceholder": "Cantidad en stock",
+    "unit": "Unidad de medida",
+    "photo": "Foto del ingrediente",
+    "photoTap": "Toca aquí",
+    "photoTapBody": "para subir una foto",
+    "photoHint": "Formato .jpg, .jpeg o .png y tamaño mínimo de 320 × 320 px",
+    "photoChange": "Cambiar foto",
+    "supplierTitle": "Proveedor",
+    "noSuppliers": "No hay proveedores registrados en Odoo.",
+    "successTitle": "¡Ingrediente agregado!",
+    "successBody": "Tu ingrediente quedó registrado y listo para usarse.",
+    "editedTitle": "¡Ingrediente actualizado!",
+    "editedBody": "Los cambios ya están guardados.",
+    "errors": {
+      "name": "Escribe el nombre del ingrediente.",
+      "category": "Elige una categoría.",
+      "unit": "Elige una unidad de medida.",
+      "stock": "Escribe una cantidad válida.",
+      "supplier": "Elige un proveedor.",
+      "photo": "Sube una imagen .jpg o .png."
+    }
+  },
+  "request": {
+    "successTitle": "¡Solicitud enviada!",
+    "successBody": "La solicitud del ingrediente quedó registrada para el proveedor. Te avisaremos cuando responda.",
+    "noSupplier": "Este ingrediente no tiene proveedor. Edítalo y asígnale uno.",
+    "deleteTitle": "¿Eliminar ingrediente?",
+    "deleteBody": "{name} se archivará y dejará de aparecer en las recetas y en esta lista.",
+    "deleteNo": "No, volver",
+    "deleteYes": "Sí, eliminar",
+    "deletedTitle": "Ingrediente eliminado",
+    "deletedBody": "{name} quedó archivado en Odoo."
+  },
+  "requests": {
+    "listTitle": "Lista de solicitudes",
+    "ingredient": "Ingrediente",
+    "quantity": "Cantidad",
+    "supplier": "PROVEEDOR",
+    "date": "FECHA",
+    "status": "ESTADO",
+    "empty": "No hay solicitudes",
+    "emptyBody": "Cuando solicites un ingrediente a su proveedor, aparecerá aquí.",
+    "states": {
+      "draft": "Borrador",
+      "sent": "Enviada",
+      "to approve": "Por aprobar",
+      "purchase": "Confirmada",
+      "done": "Recibida",
+      "cancel": "Cancelada"
+    }
+  },
+  "error": "No se pudo completar. Intenta de nuevo.",
+  "menuAdmin": {
+    "title": "Carta", "loading": "Cargando la carta…", "loadFailed": "No se pudo cargar la carta. Cierra e inténtalo de nuevo.", "notFound": "Este plato ya no está en el catálogo.",
+    "edit": "Editar precio, foto y carta de {name}", "editShort": "Editar precio, foto y carta",
+    "categories": "Categorías", "offMenu": "Fuera de la carta",
+    "offMenuTitle": "Fuera de la carta", "offMenuIntro": "Productos que Inventario no lista porque están ocultos de la carta o no tienen categoría. Abre uno para volver a mostrarlo o darle categoría.",
+    "offMenuEmpty": "No hay nada fuera de la carta.", "hidden": "Oculto de la carta", "noCategory": "Sin categoría"
+  }
+}

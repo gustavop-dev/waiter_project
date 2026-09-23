@@ -1,0 +1,9 @@
+{
+  "title": "Historial",
+  "search": "Buscar por número o cliente",
+  "filters": { "all": "Todos", "dine_in": "En mesa", "takeout": "Para llevar", "delivery": "Domicilio" },
+  "row": { "orderNo": "Pedido#", "type": "Tipo de pedido", "table": "Número de mesa", "customer": "Nombre del cliente", "total": "Total" },
+  "bill": { "title": "Información de la cuenta", "details": "Detalle del pedido", "subtotal": "Subtotal", "tax": "Impuestos", "total": "Total a pagar", "print": "Imprimir" },
+  "empty": { "title": "Selecciona una cuenta", "body": "Toca un pedido de la lista para ver el detalle de la cuenta." },
+  "noOrders": "Aún no hay pedidos pagados."
+}

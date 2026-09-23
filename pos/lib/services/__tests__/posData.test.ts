@@ -1,3 +1,4 @@
+import { DEFAULT_ROLE_POLICY } from '@/lib/domain/permissions'
 import { callKw } from '@/lib/services/odoo'
 import { loadPosData } from '@/lib/services/posData'
 
@@ -18,15 +19,15 @@ const RAW = {
     { id: 9, name: 'Tips', list_price: 1, pos_categ_ids: [], taxes_id: [], available_in_pos: false, active: true, is_favorite: false, is_storable: false, image_128: false },
   ],
   'pos.category': [{ id: 1, name: 'Hamburguesas', sequence: 0 }],
-  'restaurant.floor': [{ id: 2, name: 'Terraza', table_ids: [6] }],
-  'restaurant.table': [{ id: 6, table_number: 5, floor_id: 2, seats: 4, active: true }],
+  'restaurant.floor': [{ id: 2, name: 'Terraza', table_ids: [6], floor_background_image: false }],
+  'restaurant.table': [{ id: 6, table_number: 5, floor_id: 2, seats: 4, active: true, position_h: 40, position_v: 190, width: 110, height: 110, shape: 'square', color: false }],
   'pos.payment.method': [{ id: 2, name: 'Tarjeta', type: 'bank' }, { id: 1, name: 'Efectivo', type: 'cash' }],
   'res.company': [{ id: 1, name: 'La Provincia' }], 'pos.config': [{ id: 1, name: 'Salón', alert_late_minutes: 18, alert_bill_minutes: 10, roi_hour_cost: 20000, roi_minutes_per_order: 11, roi_baseline_hours_per_100: 18.4, roi_monthly_cost: 2740000, roi_start_date: false, tip_product_id: 1 }],
 }
 
 beforeEach(() => {
   mockCallKw.mockReset()
-  mockCallKw.mockImplementation(async (_m: string, method: string) => (method === 'load_data' ? RAW : [{ id: 6, qty_available: 0 }]))
+  mockCallKw.mockImplementation(async (_m: string, method: string) => (method === 'waiter_role_policy' ? DEFAULT_ROLE_POLICY : method === 'load_data' ? RAW : [{ id: 6, qty_available: 0 }]))
 })
 
 // Falla si el producto deja de tomar impuestos, categorías o el favorito de su plantilla.
@@ -48,9 +49,29 @@ it('reads the company name for the sidebar', async () => {
   expect(c.company.name).toBe('La Provincia')
 })
 
-// Falla si floor_id se lee como par [id, nombre]: llega como entero y el filtro por piso quedaría vacío.
-it('reads the table floor as a bare id and keeps the cash method', async () => {
+// Falla si floor_id se lee como par [id, nombre] (llega como entero y el filtro por piso quedaría vacío) o si la
+// geometría del plano (posición, tamaño, forma) no llega a la mesa: el salón la pintaría en rejilla en vez de en su sitio.
+it('reads the table floor as a bare id with its plan geometry and keeps the cash method', async () => {
   const c = await loadPosData(1)
-  expect(c.tables[0]).toEqual({ id: 6, number: 5, floorId: 2, seats: 4 })
+  expect(c.tables[0]).toEqual({ id: 6, number: 5, floorId: 2, seats: 4, x: 40, y: 190, width: 110, height: 110, shape: 'square', color: null })
+  expect(c.floors[0]).toEqual({ id: 2, name: 'Terraza', tableIds: [6], hasBackground: false })
   expect(c.paymentMethods.find((m) => m.type === 'cash')?.name).toBe('Efectivo')
+})
+
+it('loads administration without reading or creating a cash session and normalizes relations', async () => {
+  mockCallKw.mockImplementation(async (model: keyof typeof RAW, method: string, args: unknown[]) => {
+    if (method === 'waiter_role_policy') return DEFAULT_ROLE_POLICY
+    expect(method).toBe('search_read')
+    const fields = args[1] as string[]
+    if (fields.includes('qty_available')) return [{ id: 6, qty_available: 2 }]
+    if (model === 'pos.config') return [{ ...RAW[model][0], company_id: [1, 'La Provincia'], payment_method_ids: [1, 2] }]
+    if (model === 'product.product') return RAW[model].map((p) => ({ ...p, product_tmpl_id: [p.product_tmpl_id, p.display_name] }))
+    if (model === 'restaurant.table') return RAW[model].map((t) => ({ ...t, floor_id: [t.floor_id, 'Terraza'] }))
+    return RAW[model]
+  })
+  const data = await loadPosData(null)
+  expect(data.tables[0].floorId).toBe(2)
+  expect(data.products[0].templateId).toBe(3)
+  expect(data.settings.configId).toBe(1)
+  expect(mockCallKw.mock.calls.some(([model]) => model === 'pos.session')).toBe(false)
 })

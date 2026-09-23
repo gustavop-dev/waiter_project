@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<meta name="design_doc_mode" content="canvas" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&family=Bebas+Neue&display=swap" rel="stylesheet" />
+<style>
+  body { margin: 0; background: #EDE9E1; font-family: "Ubuntu", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #A06E2C; text-decoration: none; }
+  a:hover { color: #7A5320; }
+  * { box-sizing: border-box; }
+</style>
+</head>
+<body style="padding: 24px; background: #EDE9E1;">
+<!-- D5 · Desayuno con horario · menu -->
+<div style="height: 520px; border-radius: 20px; background: #FFFFFF; border: 1px solid #DDD6C9; overflow: hidden; display: flex; flex-direction: column;">
+          <div style="padding: 16px 20px; border-bottom: 1px solid #EFE9E0; display: flex; gap: 6px;">
+            <span style="flex: 1; min-height: 0; overflow: hidden; height: 44px; border-radius: 999px; background: #C1873A; color: #FFFFFF; display: grid; place-items: center; font-size: 14px; font-weight: 500;">Desayuno</span>
+            <span style="flex: 1; min-height: 0; overflow: hidden; height: 44px; border-radius: 999px; border: 1px solid #E4DED4; display: grid; place-items: center; font-size: 14px; color: #6B6259;">Almuerzo</span>
+            <span style="flex: 1; min-height: 0; overflow: hidden; height: 44px; border-radius: 999px; border: 1px solid #EFE9E0; display: grid; place-items: center; font-size: 14px; color: #B0A392;">Tarde</span>
+          </div>
+          <div style="padding: 12px 20px; background: #FDF6EA; border-bottom: 1px solid #EFE4D2; display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 14px; color: #6B4A05;">Desayuno hasta las 11:00</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; color: #A06E2C;">faltan 42 min</span>
+          </div>
+          <div style="flex: 1; min-height: 0; overflow: hidden; overflow: hidden;">
+            <div style="padding: 14px 20px; display: flex; gap: 12px; align-items: center; border-bottom: 1px solid #F3EFE8;"><div style="width: 56px; height: 56px; border-radius: 12px; background: #E8E1D5; flex: none;"></div><div style="flex: 1; min-height: 0; overflow: hidden;"><div style="font-size: 16px; font-weight: 500;">Huevos al gusto</div><div style="font-size: 13px; color: #7A7166;">Con arepa y café</div></div><span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px;">18.900</span></div>
+            <div style="padding: 14px 20px; display: flex; gap: 12px; align-items: center; border-bottom: 1px solid #F3EFE8;"><div style="width: 56px; height: 56px; border-radius: 12px; background: #E8E1D5; flex: none;"></div><div style="flex: 1; min-height: 0; overflow: hidden;"><div style="font-size: 16px; font-weight: 500;">Calentado paisa</div><div style="font-size: 13px; color: #7A7166;">Frijol, arroz, chicharrón</div></div><span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px;">21.500</span></div>
+            <div style="padding: 14px 20px; display: flex; gap: 12px; align-items: center; border-bottom: 1px solid #F3EFE8;"><div style="width: 56px; height: 56px; border-radius: 12px; background: #E8E1D5; flex: none;"></div><div style="flex: 1; min-height: 0; overflow: hidden;"><div style="font-size: 16px; font-weight: 500;">Tostadas de aguacate</div><div style="font-size: 13px; color: #7A7166;">Pan de masa madre</div></div><span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px;">19.900</span></div>
+            <div style="padding: 14px 20px; display: flex; gap: 12px; align-items: center; opacity: 0.5;"><div style="width: 56px; height: 56px; border-radius: 12px; background: #E8E1D5; flex: none;"></div><div style="flex: 1; min-height: 0; overflow: hidden;"><div style="font-size: 16px; font-weight: 500;">Bowl de frutas</div><div style="font-size: 13px; color: #96241F;">Vuelve mañana</div></div><span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px;">16.000</span></div>
+          </div>
+          <div style="padding: 12px 20px; border-top: 1px solid #EFE9E0; background: #1A1815; display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 14px; color: #EDE7DD;">1 ítem · <span style="font-family: 'IBM Plex Mono', monospace;">18.900</span></span>
+            <span style="font-size: 14px; font-weight: 500; color: #C1873A;">Ver pedido →</span>
+          </div>
+        </div>
+<p style="max-width: 360px; font-size: 14px; line-height: 1.45; color: #6B6259;">El menú cambia solo con la hora y avisa cuánto falta para que cierre. La pestaña futura queda visible pero apagada.</p>
+</body></html>

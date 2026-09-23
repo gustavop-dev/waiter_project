@@ -2,86 +2,71 @@
 
 import { useTranslations } from 'next-intl'
 
+import { Card } from '@/components/kit/Card'
+import { Icon } from '@/components/kit/Icon'
+import { StatusPill } from '@/components/kit/StatusPill'
+import { KpiTile } from '@/components/ui/KpiTile'
 import { formatCop } from '@/lib/domain/money'
 import type { RoiMetrics } from '@/lib/domain/roi'
 import { cn } from '@/lib/utils'
 
 interface RoiBentoProps { current: RoiMetrics; history: { label: string; hoursPer100: number }[]; months: number; periodLabel: string; laborChange: number | null }
 
-const card = 'rounded-[18px] bg-surface border border-[#E9E2D7] p-[22px] flex flex-col justify-between'
-const eyebrow = 'text-[13px] tracking-[0.1em] uppercase text-ink-3 font-medium'
 const fmt1 = (n: number) => n.toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 
+// Bento del ROI con las tarjetas del kit (Dashboard / Filled.png): indicadores con icono, tarjeta con cabecera para
+// la métrica norte y las fuentes de valor, píldoras de estado para los cambios. Solo tokens del kit: claro y oscuro salen solos.
 export function RoiBento({ current, history, months, periodLabel, laborChange }: RoiBentoProps) {
-  const t = useTranslations('pos.roi')
+  const t = useTranslations('admin.roi')
   const maxHours = Math.max(...history.map((h) => h.hoursPer100), 1)
   const sources = [
-    { key: 'autonomous', amount: current.autonomousRevenue, color: 'bg-brand-500' },
-    { key: 'hours', amount: current.laborSaving, color: 'bg-brand-300' },
-    { key: 'upsell', amount: current.aiSales, color: 'bg-brand-100' },
-    { key: 'errors', amount: 0, color: 'bg-[#EFE9E0]' },
+    { key: 'autonomous', amount: current.autonomousRevenue, color: 'bg-primary' },
+    { key: 'hours', amount: current.laborSaving, color: 'bg-info' },
+    { key: 'upsell', amount: current.aiSales, color: 'bg-success' },
+    { key: 'errors', amount: 0, color: 'bg-border' },
   ]
   const maxSource = Math.max(...sources.map((s) => s.amount), 1)
   return (
-    <div className="flex-1 min-h-0 p-6 px-7 grid grid-cols-4 grid-rows-[auto_auto_auto] gap-[18px] overflow-y-auto">
-      <div className="col-span-2 rounded-[18px] bg-sidebar text-sidebar-ink p-[26px] flex flex-col justify-between gap-5">
-        <div className="flex items-center justify-between">
-          <span className="text-[13px] tracking-[0.12em] uppercase text-[#8F877D] font-medium">{t('hero')}</span>
-          <span className="h-[30px] px-[11px] rounded-lg bg-[#123522] text-[#A9E0C0] text-sm font-medium grid place-items-center">{t('months', { n: months })}</span>
-        </div>
+    <div className="flex-1 min-h-0 px-5 pb-5 grid grid-cols-4 auto-rows-min content-start gap-4 overflow-y-auto">
+      <section aria-label={t('hero')} className="col-span-2 rounded-lg border border-primary/30 bg-primary-soft p-6 flex flex-col gap-4">
+        <div className="flex items-center justify-between"><span className="text-[16px] text-soft">{t('hero')}</span><StatusPill tone="success" icon="clock">{t('months', { n: months })}</StatusPill></div>
         <div className="flex items-baseline gap-4">
-          <span className="font-mono tabular text-[92px] leading-[0.9] text-brand-500">{current.roi.toLocaleString('es-CO', { maximumFractionDigits: 1 })}×</span>
-          <div className="flex flex-col leading-snug"><span className="text-[17px] text-sidebar-soft">{t('perHundred')}</span><span className="font-mono tabular text-[22px]">{t('value', { amount: formatCop(current.roi * 100000) })}</span></div>
+          <span className="text-[72px] leading-none font-semibold tabular text-primary">{current.roi.toLocaleString('es-CO', { maximumFractionDigits: 1 })}×</span>
+          <div className="flex flex-col leading-snug"><span className="text-[15px] text-soft">{t('perHundred')}</span><span className="text-[20px] font-semibold text-ink tabular">{t('value', { amount: formatCop(current.roi * 100000) })}</span></div>
         </div>
-        <div className="flex gap-2.5" aria-hidden><span className="h-2 rounded-sm bg-brand-500" style={{ flex: Math.max(current.roi, 0.05) }} /><span className="h-2 rounded-sm bg-[#3A342E]" style={{ flex: 1 }} /></div>
-      </div>
-      <div className={card}>
-        <span className={eyebrow}>{t('labor')}</span>
-        <div className="flex flex-col gap-1.5"><span className="font-mono tabular text-[27px]">$ {formatCop(current.laborSaving)}</span><span className="text-[15px] text-soft leading-snug">{t('laborHint', { hours: Math.round(current.hoursSaved) })}</span></div>
-        {laborChange !== null && <span className={cn('inline-flex w-fit items-center h-7 px-2.5 rounded-[7px] text-sm font-medium', laborChange >= 0 ? 'bg-free-soft text-free-ink' : 'bg-busy-soft text-busy-ink')}>{laborChange >= 0 ? '↑' : '↓'} {Math.abs(laborChange)}%</span>}
-      </div>
-      <div className={card}>
-        <span className={eyebrow}>{t('aiSales')}</span>
-        <div className="flex flex-col gap-1.5"><span className="font-mono tabular text-[27px]">$ {formatCop(current.aiSales)}</span><span className="text-[15px] text-soft leading-snug">{t('aiSalesHint')}</span></div>
-        <span className="inline-flex w-fit items-center h-7 px-2.5 rounded-[7px] text-sm font-medium bg-muted text-soft">{t('unmeasured')}</span>
-      </div>
-      <div className={cn(card, 'col-span-2 gap-3.5')}>
-        <div className="flex items-baseline justify-between"><span className="text-[17px] font-bold">{t('north')}</span><span className="text-sm text-ink-3">{t('northTag')}</span></div>
-        <div className="flex-1 flex items-end gap-[18px] min-h-[120px]">
+        <div className="flex gap-2" aria-hidden><span className="h-2 rounded-full bg-primary" style={{ flex: Math.max(current.roi, 0.05) }} /><span className="h-2 rounded-full bg-border" style={{ flex: 1 }} /></div>
+      </section>
+      <KpiTile label={t('labor')} icon="users" value={`$ ${formatCop(current.laborSaving)}`}
+        hint={<span className="flex flex-col gap-2"><span>{t('laborHint', { hours: Math.round(current.hoursSaved) })}</span>{laborChange !== null && <StatusPill tone={laborChange >= 0 ? 'success' : 'danger'} icon={laborChange >= 0 ? 'arrowUp' : 'arrowDown'} className="w-fit h-7 text-[13px]">{Math.abs(laborChange)}%</StatusPill>}</span>} />
+      <KpiTile label={t('aiSales')} icon="chartLine" value={`$ ${formatCop(current.aiSales)}`}
+        hint={<span className="flex flex-col gap-2"><span>{t('aiSalesHint')}</span><StatusPill tone="neutral" className="w-fit h-7 text-[13px]">{t('unmeasured')}</StatusPill></span>} />
+      <Card title={t('north')} className="col-span-2" action={<span className="text-[13px] text-soft">{t('northTag')}</span>}>
+        <div className="p-5 flex items-end gap-4 min-h-[160px]">
           {history.map((h, i) => {
             const last = i === history.length - 1
             return (
               <div key={h.label} className="flex-1 flex flex-col items-center gap-2">
-                <span className={cn('font-mono tabular text-[22px]', last && 'text-brand-600 font-medium')}>{fmt1(h.hoursPer100)}</span>
-                <div className={cn('w-full rounded-t-[10px]', last ? 'bg-brand-500' : i === 0 ? 'bg-border' : 'bg-[#DDD6C9]')} style={{ height: `${Math.max(8, (h.hoursPer100 / maxHours) * 74)}px` }} />
-                <span className={cn('text-sm', last ? 'font-medium' : 'text-soft')}>{h.label}</span>
+                <span className={cn('text-[20px] tabular', last ? 'text-primary font-semibold' : 'text-soft')}>{fmt1(h.hoursPer100)}</span>
+                <div className={cn('w-full rounded-t-md', last ? 'bg-primary' : 'bg-border')} style={{ height: `${Math.max(8, (h.hoursPer100 / maxHours) * 80)}px` }} />
+                <span className={cn('text-[13px]', last ? 'font-semibold text-ink' : 'text-soft')}>{h.label}</span>
               </div>
             )
           })}
         </div>
-      </div>
-      <div className={card}>
-        <span className={eyebrow}>{t('cost')}</span>
-        <span className="font-mono tabular text-[26px]">$ {formatCop(current.cost)}</span>
-        <span className="text-sm text-soft leading-snug">{t('costHint')}</span>
-      </div>
-      <div className={cn(card, 'bg-brand-50 border-[#EFE4D2]')}>
-        <span className={cn(eyebrow, 'text-brand-600')}>{t('net')}</span>
-        <span className="font-mono tabular text-[26px]">{current.net >= 0 ? '+ ' : '− '}$ {formatCop(Math.abs(current.net))}</span>
-        <span className="text-sm text-[#6B4A05] leading-snug">{t('netHint')}</span>
-      </div>
-      <div className="col-span-4 rounded-[18px] bg-surface border border-[#E9E2D7] p-[22px] flex items-center gap-7">
-        <div className="flex flex-col gap-1 min-w-[220px]"><span className="text-[17px] font-bold">{t('sources')}</span><span className="text-sm text-soft">{t('sourcesHint', { period: periodLabel })}</span></div>
-        <div className="flex-1 flex flex-col gap-2.5">
+      </Card>
+      <KpiTile label={t('cost')} icon="wallet" value={`$ ${formatCop(current.cost)}`} hint={t('costHint')} />
+      <KpiTile label={t('net')} icon="sales" tone="primary" value={`${current.net >= 0 ? '+ ' : '− '}$ ${formatCop(Math.abs(current.net))}`} hint={t('netHint')} />
+      <Card title={t('sources')} className="col-span-4" action={<span className="text-[13px] text-soft">{t('sourcesHint', { period: periodLabel })}</span>}>
+        <div className="p-5 flex flex-col gap-3">
           {sources.map((s) => (
-            <div key={s.key} className="flex items-center gap-3.5">
-              <span className="w-[190px] text-[15px] text-[#3B352E]">{t(`source.${s.key}`)}</span>
-              <span className={cn('h-[26px] rounded-md', s.color)} style={{ width: `${Math.max(2, (s.amount / maxSource) * 60)}%` }} aria-hidden />
-              <span className="font-mono tabular text-[15px] text-soft">{s.amount > 0 ? formatCop(s.amount) : t('unmeasured')}</span>
+            <div key={s.key} className="flex items-center gap-4">
+              <span className="w-[220px] text-[15px] text-ink flex items-center gap-2"><Icon name={s.key === 'autonomous' ? 'tablet' : s.key === 'hours' ? 'users' : s.key === 'upsell' ? 'chartLine' : 'check'} size={18} className="text-soft" />{t(`source.${s.key}`)}</span>
+              <div className="flex-1 h-2.5 rounded-full bg-muted"><span className={cn('block h-2.5 rounded-full', s.color)} style={{ width: `${Math.max(2, (s.amount / maxSource) * 100)}%` }} aria-hidden /></div>
+              <span className="w-[140px] text-right text-[15px] text-soft tabular">{s.amount > 0 ? formatCop(s.amount) : t('unmeasured')}</span>
             </div>
           ))}
         </div>
-      </div>
+      </Card>
     </div>
   )
 }

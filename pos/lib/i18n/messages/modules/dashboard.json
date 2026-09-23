@@ -1,0 +1,50 @@
+{
+  "greeting": { "morning": "Buenos días, {name}", "afternoon": "Buenas tardes, {name}", "evening": "Buenas noches, {name}" },
+  "motto": "Da lo mejor de ti con los clientes, ¡feliz jornada! ☺️",
+  "createOrder": "Crear pedido",
+  "clock": "Hora actual",
+  "kpi": { "earning": "Total ventas del turno", "inProgress": "En progreso", "ready": "Listos para servir", "completed": "Completados", "open": "Pedidos abiertos", "reservationsToday": "Reservas de hoy" },
+  "seeOrders": "Ver pedidos", "seeSales": "Ver el detalle en Ventas",
+  "general": { "week": "Ventas de esta semana", "weekHint": "frente a la semana pasada a esta altura", "month": "Ventas de este mes", "monthHint": "frente al mes pasado a esta altura",
+    "monthOrders": "Pedidos de este mes", "ticket": "Ticket promedio", "ticketHint": "últimos 28 días", "noCompare": "sin periodo anterior para comparar",
+    "freeTables": "Mesas libres", "soldOut": "Agotados en la carta" },
+  "pattern": { "title": "Cuándo se vende", "loading": "Sumando ventas…", "empty": "Aún no hay ventas para ver un patrón.",
+    "weekdays": "Por día de la semana", "weekdaysHint": "Venta promedio de cada día.", "weekdaysLabel": "Venta promedio por día de la semana; el día más fuerte es {day}",
+    "hours": "Horas pico", "hoursHint": "Últimos 28 días, por hora del día.", "hoursLabel": "Ventas por hora del día; la hora más fuerte son las {hour}", "hourTip": "{hour}:00 · {percent} % de la venta",
+    "days": { "0": "lunes", "1": "martes", "2": "miércoles", "3": "jueves", "4": "viernes", "5": "sábado", "6": "domingo" },
+    "daysShort": { "0": "L", "1": "M", "2": "X", "3": "J", "4": "V", "5": "S", "6": "D" } },
+  "attention": {
+    "title": "Para atender ahora", "loading": "Revisando qué hay pendiente…",
+    "emptyTitle": "Todo en orden", "emptyBody": "No hay platos por entregar, reservas cerca ni nada agotándose en el inventario.",
+    "ready": { "title": "{count, plural, one {# plato listo sin entregar} other {# platos listos sin entregar}}", "body": "Se enfrían en el pase: llévalos a la mesa." },
+    "reservationSoon": { "title": "{late, plural, =1 {Ya debería haber llegado: {customer}} other {Reserva en {minutes} min: {customer}}}", "body": "{time} · {people} personas · {tables, plural, other {mesa {tables}}}" },
+    "depositPending": { "title": "Anticipo sin pagar: {customer}", "body": "Reserva {code}. Reenvíale el enlace de pago antes de que llegue." },
+    "stockEmpty": { "title": "Se acabó: {name}", "body": "Sin existencias. Los platos que lo usan no se pueden preparar." },
+    "stockLow": { "title": "Se está acabando: {name}", "body": "Quedan {stock} {uom}; el mínimo es {min}." },
+    "soldOut": { "title": "Agotado en la carta: {name}", "body": "Los comensales ya no lo pueden pedir." },
+    "stockEmptyMore": { "title": "{count, plural, one {Y # ingrediente más sin existencias} other {Y # ingredientes más sin existencias}}", "body": "Ver todos en Inventario." },
+    "stockLowMore": { "title": "{count, plural, one {Y # ingrediente más acabándose} other {Y # ingredientes más acabándose}}", "body": "Ver todos en Inventario, ordenados por nivel." },
+    "soldOutMore": { "title": "{count, plural, one {Y # producto más agotado en la carta} other {Y # productos más agotados en la carta}}", "body": "Ver todos en Inventario." }
+  },
+  "dishes": {
+    "title": "Lo que más y menos se pide", "window": "Últimos {days} días", "loading": "Sumando ventas…", "failed": "No se pudo leer el historial de ventas. Recarga la página.", "empty": "Aún no hay ventas en este periodo.",
+    "top": "Más pedidos", "bottom": "Menos pedidos", "bottomHint": "De la carta vigente. Míralos: precio, foto, nombre o sacarlos.",
+    "units": "{count, plural, one {# und} other {# und}}", "none": "Ninguno", "nextMonth": "≈ {count} el mes que viene, al ritmo actual",
+    "changeHint": "Frente a los 28 días anteriores"
+  },
+  "forecast": {
+    "title": "Venta esperada en {month}", "titlePlain": "Venta esperada el mes que viene", "loading": "Leyendo el historial…", "failed": "No se pudo leer el historial de ventas. Recarga la página.",
+    "notReadyTitle": "Todavía no hay historial suficiente", "notReadyBody": "Llevas {have} días con ventas registradas. Con {need} ya se puede estimar el mes siguiente sin inventar la cifra.",
+    "range": "Entre $ {low} y $ {high}", "orders": "{count, plural, one {Cerca de # pedido} other {Cerca de # pedidos}}",
+    "chartLabel": "Ventas de las últimas {weeks} semanas y la semana promedio esperada", "chartHint": "Cada barra es una semana; la rayada es la semana promedio que se espera en {month}.",
+    "trendUp": "Vienes {percent} % arriba de las cuatro semanas anteriores", "trendDown": "Vienes {percent} % abajo de las cuatro semanas anteriores", "trendFlat": "Vienes igual que las cuatro semanas anteriores",
+    "method": "Se calcula con el promedio de cada día de la semana en {days} días de ventas, ajustado por la tendencia reciente. Es una estimación, no una meta."
+  },
+  "columns": { "inProgress": "En progreso", "waiting": "Esperando pago" },
+  "seeAll": "Ver todos",
+  "emptyInProgress": { "title": "Sin pedidos", "body": "Cuando se cree un pedido, el más reciente aparecerá aquí." },
+  "emptyWaiting": { "title": "Sin pedidos", "body": "Los pedidos en estado Esperando pago aparecerán aquí." },
+  "ready": { "title": "Listos para servir", "empty": "Nada en el pase. Cocina te avisará aquí.", "deliver": "Entregar en la mesa", "deliverAll": "Entregar todo en sus mesas", "table": "Mesa {n}", "justNow": "ahora", "minutes": "hace {n} min", "delivered": "{name} entregado", "deliveredAll": "{n} platos entregados", "failed": "No se pudo marcar como entregado" },
+  "tables": { "title": "Mesas disponibles", "floor": "Piso", "number": "Número de mesa", "capacity": "Capacidad", "persons": "personas", "empty": "No hay mesas libres en este piso." },
+  "outOfStock": { "title": "Agotados", "available": "Disponible:", "noTime": "Sin hora", "emptyTitle": "Todo el menú está listo", "emptyBody": "Todos los platos siguen disponibles." }
+}

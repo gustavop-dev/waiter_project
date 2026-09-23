@@ -10,7 +10,7 @@ export function NoteDialog({ title, initial, onSave, onCancel }: { title: string
   const ui = useTranslations('pos.ui')
   const [value, setValue] = useState(initial)
   return (
-    <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-50 grid place-items-center bg-ink/40 p-6">
+    <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-50 grid place-items-center bg-overlay/60 p-6">
       <form onSubmit={(e) => { e.preventDefault(); onSave(value.trim()) }} className="w-[520px] rounded-[18px] bg-surface p-6 flex flex-col gap-4 shadow-xl">
         <span className="text-[19px] font-bold">{title}</span>
         <textarea aria-label={title} autoFocus value={value} onChange={(e) => setValue(e.target.value)} rows={3} maxLength={200}

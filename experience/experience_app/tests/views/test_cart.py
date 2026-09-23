@@ -9,7 +9,7 @@ def test_add_patch_and_delete_a_line_through_the_api(api_client, table_tenant, c
     """Atrapa un carrito que no refleja alta, cambio y baja de una línea del propio comensal."""
     sid = api_client.post(reverse('open-session'), PAYLOAD, format='json').json()['sesion']['id']
     added = api_client.post(reverse('add-line', args=[sid]), {'producto_id': 3, 'cantidad': 2, 'nota': 'término medio'}, format='json').json()
-    assert added['total'] == 73800.0
+    assert added['total'] == 87822.0  # 2 × 43.911: precio final con impuestos
     patched = api_client.patch(reverse('line', args=[sid, added['linea']]), {'cantidad': 1}, format='json').json()
     assert patched['lineas'][0]['cantidad'] == 1
     assert api_client.delete(reverse('line', args=[sid, added['linea']])).json()['lineas'] == []

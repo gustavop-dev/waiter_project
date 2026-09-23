@@ -1,0 +1,106 @@
+{
+  "codigo": "A2",
+  "nombre": "Menú degustación por pasos",
+  "familia": "A",
+  "familiaNombre": "Alta cocina",
+  "descripcion": "Un solo producto, no un catálogo. Precio arriba y una sola acción: aceptar el menú.",
+  "fotos": { "requiere": "ninguna", "recorte": "ninguno" },
+  "tokens": {
+    "modo": "oscuro",
+    "fondo": "#14120F",
+    "superficie": "#1C1916",
+    "tinta": "#EDE7DD",
+    "tintaSuave": "#8F877D",
+    "tintaTerciaria": "#A8A096",
+    "borde": "#2C2823",
+    "acento": "#C1873A",
+    "acentoTinta": "#1A1815",
+    "acentoSuave": "#302516",
+    "displayFont": "Instrument Serif",
+    "displayPeso": 400,
+    "displayTracking": "0",
+    "displayTransform": "none",
+    "cuerpoFont": "Ubuntu",
+    "monoFont": "IBM Plex Mono",
+    "radioTarjeta": 12,
+    "radioBoton": 12,
+    "radioChip": 999,
+    "densidad": "compacta"
+  },
+  "personalizable": { "colores": ["acento"], "tipografiaDisplay": true, "logo": true },
+  "pantallas": {
+    "menu": {
+      "layout": "A2",
+      "resumen": "Pantalla oscura de un solo producto: cabecera con antetítulo en versalitas ('Menú del chef'), nombre del menú en serif 30 y precio 'por persona' en mono dorado; lista numerada de pasos (número en mono dorado, nombre del paso en Ubuntu 500, línea 'Maridaje: …' opcional); un paso apagado (opacity 0.55) para lo no disponible; nota de alergias en caja oscura; una sola acción: botón dorado 'Reservar el menú'. Mapeo propuesto: la categoría elegida es el menú (antetítulo = categoria.nombre), el producto-menú da nombre y precio, y sus pasos son los demás productos de esa categoría en orden.",
+      "datosOpcionales": ["maridaje", "precioPorPersona"],
+      "estructura": [
+        { "bloque": "marco", "que": "contenedor", "css": "background: #14120F; border: 1px solid #2C2823; border-radius: 20px; color: #EDE7DD" },
+        { "bloque": "cabecera", "que": "antetítulo (categoria.nombre) / nombre del menú (producto.nombre) / producto.precio + 'por persona'", "css": "padding: 24px; border-bottom: 1px solid #2C2823 | antetitulo: font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #8F877D | titulo: font-family: 'Instrument Serif'; font-size: 30px; line-height: 1.1; margin-top: 6px | precio: font-family: 'IBM Plex Mono'; font-size: 15px; color: #C1873A; margin-top: 8px" },
+        { "bloque": "pasos", "que": "lista ordenada de productos de la categoría", "css": "padding: 18px 24px; display: flex; flex-direction: column; gap: 14px" },
+        { "bloque": "paso", "que": "número de orden (01, 02…) / producto.nombre / 'Maridaje: atributos.maridaje' si existe; producto.agotado se pinta con opacity 0.55", "css": "display: flex; gap: 14px; align-items: flex-start | numero: font-family: 'IBM Plex Mono'; font-size: 13px; color: #C1873A; width: 18px | nombre: font-size: 16px; font-weight: 500 | maridaje: font-size: 13px; color: #8F877D; margin-top: 2px | apagado: opacity: 0.55" },
+        { "bloque": "notaAlergias", "que": "'Cuéntanos alergias antes de empezar: la cocina ajusta los siete pasos.' (texto fijo de la plantilla)", "css": "padding: 12px 14px; border-radius: 12px; background: #1E1B17; font-size: 13px; line-height: 1.45; color: #A8A096" },
+        { "bloque": "cta", "que": "'Reservar el menú' = onAdd(producto-menú); no hay barra de pedido separada", "css": "padding: 16px 24px; border-top: 1px solid #2C2823 | boton: height: 52px; border-radius: 12px; background: #C1873A; color: #1A1815; font-size: 16px; font-weight: 700" }
+      ]
+    },
+    "carrito": {
+      "layout": "familia-A",
+      "resumen": "Mismo carrito base de la familia A en piel oscura: cabecera centrada, líneas en serif con guía de puntos, totales y CTA; añade un banner de descuento bajo la cabecera ('5%  Primera compra: descuento aplicado.' sobre dorado translúcido) y no muestra propina. CTA dorado en Ubuntu 700 (no serif).",
+      "descuento5": "banner",
+      "estructura": [
+        { "bloque": "marco", "que": "contenedor", "css": "background: #14120F; border: 1px solid #2C2823; border-radius: 20px; color: #EDE7DD" },
+        { "bloque": "cabecera", "que": "'Tu pedido' + 'N platos'", "css": "padding: 16px 18px; border-bottom: 1px solid #2C2823; display: flex; flex-direction: column; align-items: center; gap: 10px | titulo: font-family: 'Instrument Serif'; font-size: 22px; line-height: 1.1 | conteo: font-size: 14px; color: #8F877D" },
+        { "bloque": "banner5", "que": "descuento activo (discount): cifra '5%' + 'Primera compra: descuento aplicado.'", "css": "padding: 13px 18px; background: rgba(193,135,58,0.16); border-bottom: 1px solid #2C2823; display: flex; align-items: center; gap: 10px | cifra: font-size: 22px; font-weight: 700; color: #E4B879; letter-spacing: -0.02em | texto: font-size: 14px; line-height: 1.35; color: #E4B879" },
+        { "bloque": "linea", "que": "producto.nombre + guía de puntos + precio; nota debajo. Sin stepper ni 'Quitar' dibujados", "css": "padding: 15px 18px; border-bottom: 1px solid #2C2823 | nombre: font-family: 'Instrument Serif'; font-size: 20px; line-height: 1.1 | guia: flex: 1; border-bottom: 1px dotted #2C2823 | precio: font-family: 'IBM Plex Mono'; font-size: 15px | nota: font-size: 13px; color: #8F877D; margin-top: 4px" },
+        { "bloque": "totales", "que": "Subtotal / Descuento primera compra 5% / Total (sin propina)", "css": "padding: 16px 18px; border-top: 1px solid #2C2823; background: #1C1916 | fila: font-size: 15px; color: #8F877D; padding: 3px 0 | filaDescuento: color: #2F7A4F | total: padding-top: 10px; margin-top: 8px; border-top: 1px dotted #2C2823 | totalRotulo: font-family: 'Instrument Serif'; font-size: 21px | totalImporte: font-family: 'IBM Plex Mono'; font-size: 25px" },
+        { "bloque": "cta", "que": "'Ir a pagar'", "css": "padding: 14px 18px; border-top: 1px solid #2C2823; background: #1C1916 | boton: height: 56px; border-radius: 12px; background: #C1873A; color: #1A1815; font-size: 16px; font-weight: 700" }
+      ]
+    },
+    "pago": {
+      "layout": "familia-A",
+      "resumen": "Pago base de la familia A en piel oscura: 'TOTAL A PAGAR' + monto mono 38 centrados, campos de tarjeta sobre #1C1916, nota de tokenización, CTA dorado 'Pagar $ X' en Ubuntu 700 y radio 12.",
+      "estructura": [
+        { "bloque": "marco", "que": "contenedor", "css": "background: #14120F; border: 1px solid #2C2823; border-radius: 20px; color: #EDE7DD" },
+        { "bloque": "cabecera", "que": "'Total a pagar' + bill.total", "css": "padding: 26px 18px 20px; text-align: center; border-bottom: 1px solid #2C2823 | rotulo: font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #8F877D; font-weight: 500 | monto: font-family: 'IBM Plex Mono'; font-size: 38px; margin-top: 8px" },
+        { "bloque": "campos", "que": "Número de la tarjeta; Vence + CVV", "css": "padding: 16px 18px; gap: 12px | label: font-size: 14px; font-weight: 500; color: #8F877D | input: height: 52px; border: 1px solid #2C2823; border-radius: 10px; background: #1C1916; padding: 0 14px; font-family: 'IBM Plex Mono'; font-size: 16px; color: #EDE7DD" },
+        { "bloque": "notaSeguridad", "que": "'Tokenizado por la pasarela. Waiter no ve tu tarjeta.'", "css": "padding: 11px 13px; border-radius: 10px; background: #1C1916 | check: width: 22px; height: 22px; border-radius: 6px; background: #2F7A4F; color: #FFFFFF | texto: font-size: 13px; line-height: 1.4; color: #8F877D" },
+        { "bloque": "cta", "que": "'Pagar $ bill.total'", "css": "padding: 14px 18px; border-top: 1px solid #2C2823; background: #1C1916 | boton: height: 60px; border-radius: 12px; background: #C1873A; color: #1A1815; font-size: 16px; font-weight: 700" }
+      ]
+    },
+    "registro": {
+      "patron": "portada",
+      "resumen": "Portada centrada: '5%' en dorado claro, título serif 'Tu primera vez en {marca}' y frase 'Déjanos tu correo y aplicamos el descuento ya.'; solo Correo (con foco dorado) y Celular; una casilla de política de datos; caja 'Sin contraseña: te enviamos un código cada vez que entres.'; CTA dorado en serif y 'Ya tengo cuenta'.",
+      "estructura": [
+        { "bloque": "marco", "que": "contenedor", "css": "background: #14120F; border: 1px solid #2C2823; border-radius: 20px; color: #EDE7DD" },
+        { "bloque": "portada", "que": "porcentaje + 'Tu primera vez en {marca.nombre}' + frase", "css": "padding: 28px 20px 22px; text-align: center; border-bottom: 1px solid #2C2823 | cifra: font-size: 34px; font-weight: 700; color: #E4B879; letter-spacing: -0.03em | titulo: font-family: 'Instrument Serif'; font-size: 23px; line-height: 1.1; margin-top: 8px | frase: font-size: 15px; line-height: 1.45; color: #8F877D; margin-top: 8px" },
+        { "bloque": "campos", "que": "Correo (foco) / Celular; el nombre no se pide en este patrón", "css": "padding: 18px 20px; gap: 14px | label: font-size: 14px; font-weight: 500; color: #8F877D | input: height: 52px; border: 1px solid #2C2823; border-radius: 10px; background: #1C1916; padding: 0 14px; font-size: 16px | inputFoco: border: 2px solid #C1873A" },
+        { "bloque": "casilla", "que": "aceptaDatos marcada", "css": "width: 24px; height: 24px; border-radius: 7px; background: #C1873A; color: #1A1815; font-size: 13px; font-weight: 700 | texto: font-size: 14px; color: #8F877D" },
+        { "bloque": "notaSinContrasena", "que": "texto fijo", "css": "padding: 13px 15px; border-radius: 12px; background: #1C1916; border: 1px solid #2C2823; font-size: 14px; line-height: 1.45; color: #8F877D" },
+        { "bloque": "cta", "que": "'Crear cuenta y aplicar 5%' + 'Ya tengo cuenta'", "css": "padding: 16px 20px; border-top: 1px solid #2C2823; background: #1C1916 | boton: height: 56px; border-radius: 12px; background: #C1873A; color: #1A1815; font-family: 'Instrument Serif'; font-size: 19px | enlace: text-align: center; font-size: 14px; color: #8F877D; margin-top: 11px" }
+      ]
+    },
+    "codigo": {
+      "patron": "revisaCorreo",
+      "resumen": "Cabecera centrada con icono ✉ en círculo oscuro, título serif 'Revisa tu correo' y el correo debajo; seis casillas mono (activa con borde dorado); 'Reenviar en 0:38' centrado; caja con borde 'El código sirve una sola vez…'; CTA 'Confirmar código' deshabilitado en #2C2823.",
+      "estructura": [
+        { "bloque": "marco", "que": "contenedor", "css": "background: #14120F; border: 1px solid #2C2823; border-radius: 20px; color: #EDE7DD" },
+        { "bloque": "cabecera", "que": "icono + 'Revisa tu correo' + email", "css": "padding: 26px 20px 20px; text-align: center; border-bottom: 1px solid #2C2823 | icono: width: 56px; height: 56px; border-radius: 999px; background: #1C1916; font-size: 22px; margin: 0 auto 12px | titulo: font-family: 'Instrument Serif'; font-size: 22px; line-height: 1.1 | email: font-size: 15px; line-height: 1.45; color: #8F877D; margin-top: 6px" },
+        { "bloque": "casillas", "que": "6 dígitos", "css": "display: flex; gap: 7px | casilla: flex: 1; height: 60px; border-radius: 10px; border: 1px solid #2C2823; background: #1C1916; font-family: 'IBM Plex Mono'; font-size: 23px | activa: border: 2px solid #C1873A" },
+        { "bloque": "reenviar", "que": "'Reenviar en 0:38' (onResend); sin enlace de otro canal en este patrón", "css": "text-align: center; font-size: 15px; color: #8F877D; (cifra en 'IBM Plex Mono')" },
+        { "bloque": "ayuda", "que": "'El código sirve una sola vez y solo en este teléfono. Si es la tablet del local, la sesión se cierra al pagar.'", "css": "padding: 13px 15px; border-radius: 12px; border: 1px solid #2C2823; font-size: 14px; line-height: 1.45; color: #8F877D" },
+        { "bloque": "cta", "que": "'Confirmar código' deshabilitado hasta 6 dígitos", "css": "padding: 16px 20px; border-top: 1px solid #2C2823; background: #1C1916 | botonDeshabilitado: height: 56px; border-radius: 12px; background: #2C2823; color: #8F877D; font-family: 'Instrument Serif'; font-size: 19px" }
+      ]
+    },
+    "historial": {
+      "patron": "tablaCufe",
+      "resumen": "Cabecera de perfil sobre #1C1916 con avatar dorado; tabla de tres columnas (Fecha 74 px en mono / Pedido con segunda línea 'CUFE disponible' o 'Factura pendiente' / Total 92 px en mono alineado a la derecha) con cabecera en versalitas; pie con 'Facturas' y 'Volver a pedir' dorado.",
+      "estructura": [
+        { "bloque": "marco", "que": "contenedor", "css": "background: #14120F; border: 1px solid #2C2823; border-radius: 20px; color: #EDE7DD" },
+        { "bloque": "perfil", "que": "iniciales / account.nombre / '14 pedidos · 62.400 ahorrados'", "css": "padding: 20px; background: #1C1916; color: #EDE7DD; display: flex; align-items: center; gap: 13px | avatar: width: 44px; height: 44px; border-radius: 999px; background: #C1873A; color: #1A1815; font-size: 16px; font-weight: 700 | nombre: font-family: 'Instrument Serif'; font-size: 20px | meta: font-size: 13px; opacity: 0.72" },
+        { "bloque": "cabeceraTabla", "que": "Fecha / Pedido / Total", "css": "display: grid; grid-template-columns: 74px minmax(0, 1fr) 92px; gap: 10px; padding: 11px 20px; background: #1C1916; border-bottom: 1px solid #2C2823; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: #8F877D; font-weight: 500" },
+        { "bloque": "filaPedido", "que": "fecha corta / plato principal o 'N ítems · mesa X' + estado de factura (CUFE) / total", "css": "display: grid; grid-template-columns: 74px minmax(0, 1fr) 92px; gap: 10px; padding: 13px 20px; border-bottom: 1px solid #2C2823; font-size: 15px; align-items: center | fecha: font-family: 'IBM Plex Mono'; font-size: 13px; color: #8F877D | pedido: white-space: nowrap; overflow: hidden; text-overflow: ellipsis | estado: font-size: 12px; color: #8F877D | total: font-family: 'IBM Plex Mono'; font-size: 14px; text-align: right" },
+        { "bloque": "pieFijo", "que": "'Facturas' + 'Volver a pedir' (onReorder)", "css": "padding: 14px 20px; border-top: 1px solid #2C2823; background: #1C1916; display: flex; gap: 10px | secundario: height: 50px; border-radius: 11px; border: 1px solid #2C2823; font-size: 15px; font-weight: 500; color: #8F877D | primario: height: 50px; border-radius: 11px; background: #C1873A; color: #1A1815; font-size: 15px; font-weight: 500" }
+      ]
+    }
+  },
+  "fuentesGoogle": ["Instrument Serif"]
+}

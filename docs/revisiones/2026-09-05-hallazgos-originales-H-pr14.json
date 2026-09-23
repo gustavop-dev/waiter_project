@@ -1,0 +1,237 @@
+{
+  "workflow": "plan-h-revision-final",
+  "runId": "wf_415da54c-30a",
+  "fecha": "2026-09-05T18:37:22.554Z",
+  "hallazgos": [
+    {
+      "id": "H01",
+      "titulo": "Cualquier comensal se apropia de la cuenta ajena conociendo el correo: registro devuelve el id de la cuenta verificada y verificar acepta cualquier código sin límite de intentos",
+      "severidad": "alta",
+      "enfoque": "seguridad",
+      "archivo": "experience/experience_app/services/account.py",
+      "linea_original": 45,
+      "reproduccion_original": "Reproducido con pytest (APIClient) sobre la rama: (1) cookie A registra camila@correo.com, verifica y confirma un pedido; (2) cookie B nueva hace POST /api/v1/cuenta/registro/ con {nombre:'Mallory', correo:'camila@correo.com', aceptaDatos:true} → 201 con el MISMO id de la cuenta de A (services/account.py:45 devuelve la verificada existente); (3) B hace POST /api/v1/cuenta/verificar/ {id, codigo:'999999'} → 200 y la respuesta ya trae nombre 'Camila Rojas' y celular '+57 310 555 4821' (services/account.py:51-59 acepta cualquier seis dígitos y liga la cookie; views/account.py:45 carga cualquier cuenta por id); (4) GET /api/v1/cuenta/ desde B → perfil completo de A (correo, celular, novedades) y su historial con líneas y mesa. Además /api/v1/cuenta/verificar/ no cuenta intentos ni caduca (DinerAccount no tiene campos de código/intentos) y el 201 con id existente permite enumerar correos registrados. Está anotado como «demo» en el docstring, pero el endpoint es el mismo que verá producción y nada lo apaga.",
+      "correccion_propuesta_original": "Que el modo «cualquier código» dependa de un ajuste explícito (p. ej. ACCOUNT_DEMO_CODES=true solo si DJANGO_ENV != production, fallar cerrado como con SECRET_KEY) y guardar en DinerAccount un código hasheado con expiración e intentos (bloquear tras N fallos); en registro no revelar si el correo ya existe (responder siempre 201 con un id de solicitud propio, no el id de la cuenta ajena) y limitar registros por cookie/IP."
+    },
+    {
+      "id": "H02",
+      "titulo": "Descuento de primera compra aplicado dos veces por carrera: dos comensales con la misma cuenta confirman a la vez y ambos viajan a Odoo con discount",
+      "severidad": "media",
+      "enfoque": "seguridad",
+      "archivo": "experience/experience_app/services/orders.py",
+      "linea_original": 36,
+      "reproduccion_original": "Reproducido con pytest: la misma cuenta verificada ligada a dos cookies (A y B, mismo correo → mismo DinerAccount), cada una con una línea abierta. Con pos.create_order parcheado para que, mientras A espera la respuesta de Odoo, B haga POST /confirmar/: las líneas enviadas a Odoo fueron [[5.0, 0.0], [0.0, 5.0]] y en BD ambas CartLine quedaron con discount=5.00 con un solo discount_used_at. La decisión (orders.py:36 discount.applicable lee discount_used_at en memoria) ocurre antes de la llamada a Odoo (segundos) y la marca (orders.py:88) es un save() sin condición ni bloqueo; la ventana es toda la ida y vuelta a Odoo, así que dos teléfonos con la misma cuenta (o dos mesas/visitas) lo consiguen sin sincronía fina.",
+      "correccion_propuesta_original": "Reservar el descuento de forma atómica antes de ir a Odoo: DinerAccount.objects.filter(id=..., discount_used_at__isnull=True).update(discount_used_at=now()) y aplicar el descuento solo si update() devolvió 1 (revertir a NULL si Odoo rechaza el pedido), o select_for_update sobre la cuenta dentro de una transacción que cubra decisión y marca."
+    },
+    {
+      "id": "H03",
+      "titulo": "El 5 % se repite ilimitadamente con «salir» y un correo nuevo: la unicidad es por correo (sin verificar) y no por celular como fija el diseño",
+      "severidad": "media",
+      "enfoque": "seguridad",
+      "archivo": "experience/experience_app/services/account.py",
+      "linea_original": 45,
+      "reproduccion_original": "Reproducido con pytest: cookie con cuenta verificada confirma una línea (discount=5) → POST /api/v1/cuenta/salir/ → registro con correo camila2@correo.com y el MISMO celular → verificar con cualquier código → añadir línea y confirmar → CartLine.discount = [5.00, 5.00]. register() solo deduplica por email verificado (account.py:45); el celular es opcional y no se usa como llave, mientras docs/diseno/2026-09-05-flujos-base-pago-y-cuenta.md:71 dice «una sola vez por cliente identificado por celular». Mientras no haya proveedor de código, cualquier cadena con @ es un cliente nuevo con 5 % de descuento real en Odoo.",
+      "correccion_propuesta_original": "Deduplicar también por celular normalizado (E.164) cuando viene, y decidir explícitamente la llave de unicidad del descuento (celular según el diseño, o correo verificado por proveedor real); hasta que exista el proveedor, mantener el descuento apagado por defecto en producción o marcar el descuento por cookie/celular además de por cuenta."
+    },
+    {
+      "id": "H04",
+      "titulo": "X-Internal-Key con caracteres no ASCII provoca TypeError en compare_digest y un 500 en vez de 401",
+      "severidad": "baja",
+      "enfoque": "seguridad",
+      "archivo": "experience/experience_app/views/internal.py",
+      "linea_original": 16,
+      "reproduccion_original": "curl -H 'X-Internal-Key: clävé' (latin-1) http://192.168.56.10:8001/internal/v1/burger-house/poblado/menu/ → HTTP 500 con la página de depuración de Django (DEBUG=true en dev) mostrando el traceback de hmac.compare_digest; en producción sería un 500 opaco. La clave no aparece en el cuerpo (comprobado), pero cualquier cliente sin clave puede generar excepciones no controladas en las rutas internas.",
+      "correccion_propuesta_original": "Comparar bytes: hmac.compare_digest(key.encode('utf-8', 'surrogateescape'), settings.EXPERIENCE_INTERNAL_KEY.encode()) o rechazar con 401 si la cabecera no es ASCII."
+    },
+    {
+      "id": "H05",
+      "titulo": "El catálogo público de plantillas expone notas internas de implementación (motivo, reconstruido) que el docstring dice ocultar",
+      "severidad": "baja",
+      "enfoque": "seguridad",
+      "archivo": "experience/experience_app/plantillas/services.py",
+      "linea_original": 42,
+      "reproduccion_original": "GET http://192.168.56.10:8001/api/v1/plantillas/ (sin autenticación, Cache-Control public) → en pantallas de F2..F5 aparecen claves 'motivo' y 'reconstruido' con textos como «El catálogo llegó sin codigo.html para F2; patrón de la rotación de la familia…». PRIVATE_SCREEN_KEYS solo filtra 'resumen' y 'estructura', aunque el módulo declara que las notas para quien implementa no salen al comensal.",
+      "correccion_propuesta_original": "Añadir 'motivo' y 'reconstruido' (o mejor, publicar solo una lista blanca: layout, patron, datosOpcionales, descuento5) en public_spec()."
+    },
+    {
+      "id": "H06",
+      "titulo": "La pasarela solo captura ConnectionError/Timeout: una experience_url mal formada produce un traceback sin controlar hacia el navegador del POS",
+      "severidad": "baja",
+      "enfoque": "seguridad",
+      "archivo": "odoo/addons/projectapp_ops/controllers/admin.py",
+      "linea_original": 45,
+      "reproduccion_original": "Con projectapp.experience_url sin esquema (p. ej. '192.168.56.10:8001') o inválida, requests.request lanza MissingSchema/InvalidURL (subclases de RequestException, no de ConnectionError), la excepción escapa de _call y Odoo devuelve al POS un error JSON-RPC con traceback completo que incluye la URL interna construida. Solo lo ve un gerente del POS (has_group comprobado en vivo) y la clave no viaja en el traceback, pero es una ruta de error no prevista por la pasarela.",
+      "correccion_propuesta_original": "Capturar requests.RequestException en _call (línea 46) y validar en _params() que experience_url empiece por http:// o https:// antes de llamar."
+    },
+    {
+      "id": "H07",
+      "titulo": "Odoo guarda las líneas con descuento SIN descontar: price_subtotal/price_subtotal_incl ignoran `discount` y no cuadran con amount_total",
+      "severidad": "media",
+      "enfoque": "dinero",
+      "archivo": "experience/experience_app/adapters/odoo/pos.py",
+      "linea_original": 279,
+      "reproduccion_original": "Reproducido contra Odoo real (mesa 8, token 8CTASR, sesión a70e7c00…, pos.order 104): comensal con cuenta verificada confirma 1 Hamburguesa Angus (36.900 + 19 %). En Odoo la línea 207 queda discount=5.0 pero price_subtotal=36900.0 y price_subtotal_incl=43911.0 (sin descontar), mientras amount_total=77058.45 y amount_tax=12303.45 sí restan el 5 % (43911·0,95 + 35343). Causa: `recompute_prices` es el de pos_self_order (`_compute_line_subtotals` usa price_unit·qty sin `discount`; ver /usr/lib/python3/dist-packages/odoo/addons/pos_self_order/models/pos_order.py:274-289) y solo el total del pedido pasa por `_prepare_base_line_for_taxes_computation`. Consecuencias de dinero: los reportes por línea de Odoo (Detalle de ventas) y pos/lib/services/sales.ts:41 (`price_subtotal_incl:sum` de pedidos pagados) reportan 2.195,55 más de lo cobrado por cada primera compra; el pedido queda con líneas que no suman su total.",
+      "correccion_propuesta_original": "Tras `recompute_prices`, recalcular las líneas con descuento con el cómputo propio de point_of_sale (`pos.order.line._compute_amount_line_all`, que sí aplica `discount`) y escribir price_subtotal/price_subtotal_incl; o dejar de usar el recompute de pos_self_order para pedidos con descuento y calcular subtotales de línea + totales con `_compute_amount_line_all` + `_compute_prices`/`_onchange_amount_all`. Añadir un test de contrato (-m contract) que lea pos.order.line tras confirmar y exija price_subtotal_incl == subtotal·(1−discount/100) y suma de líneas == amount_total."
+    },
+    {
+      "id": "H08",
+      "titulo": "El comensal nunca ve el descuento proyectado y se invita a registrarse a quien YA tiene cuenta: `aplicable` se interpreta al revés en 6 de 7 carritos y en el pago",
+      "severidad": "media",
+      "enfoque": "dinero",
+      "archivo": "diner/components/templates/generic/GenericCart.tsx",
+      "linea_original": 121,
+      "reproduccion_original": "Contrato de experience (services/discount.py:31-43): `aplicable` = cuenta verificada con el descuento sin usar; `monto` = lo que descontará al confirmar. Verificado en vivo: comensal recién verificado, carrito con Angus → {aplicable:true, aplicado:false, monto:2195.55}. Con la plantilla activa B1, FamilyBCart.tsx:132 pinta «Regístrate y ahorra 5% →» (enlace a cuenta/registro) y NO la línea «Descuento primera compra 5% −2.196» (solo se pinta con `aplicado`, que en el carrito siempre es false porque las líneas abiertas no llevan descuento). Mismo error en GenericCart.tsx:121, FamilyACart.tsx:60, FamilyCCart.tsx:88/181, FamilyECart.tsx:143, FamilyFCart.tsx:114 y GenericPay.tsx:152 (`!account && aplicable` nunca es cierto: el gancho de registro del pago es código muerto). Un comensal SIN cuenta recibe aplicable:false y no ve invitación alguna. Solo la familia D (cartParts.tsx:23) y los banners B2/E3 lo leen bien. Cart.test.tsx:122 fija la semántica invertida.",
+      "correccion_propuesta_original": "Unificar con `discountView` de D/cartParts.tsx: `aplicado || aplicable` → línea de descuento con `monto` (proyectado o aplicado); `!aplicable && !aplicado && !account?.verificada` → invitación a registrarse; cuenta verificada sin descuento → «ya usado». Corregir Cart.test.tsx:122 y los tests de familia para el contrato real, o bien cambiar el contrato en experience añadiendo `registrado` explícito (y documentarlo en el Plan H)."
+    },
+    {
+      "id": "H09",
+      "titulo": "«Ahorrado» en Mi cuenta trata `descuento` (un monto) como porcentaje: muestra cifras negativas/absurdas",
+      "severidad": "media",
+      "enfoque": "dinero",
+      "archivo": "diner/components/templates/generic/AccountHome.tsx",
+      "linea_original": 13,
+      "reproduccion_original": "experience/services/account.py:100 envía `descuento: float(saved)` = monto (en vivo: 2195.55; el historial de la misma cuenta devolvió total 97050.45, descuento 2195.55). AccountHome calcula round(total·descuento/(100−descuento)) = round(97050.45·2195.55/−2095.55) ≈ −101.681 → la cabecera dice «$ −101.681 ahorrado». CardsHistory.tsx:45 y GenericHistory.tsx:44 sí lo usan como monto («Ahorraste $ 2.196»), y los fixtures de patterns/__tests__ usan `descuento: 5` (porcentaje): el contrato está mezclado en el propio diner.",
+      "correccion_propuesta_original": "`saved = orders.reduce((a, o) => a + o.descuento, 0)` (es un monto) y arreglar los fixtures de CardsHistory/TablaCufeHistory para que `descuento` sea un monto en pesos; añadir un test de AccountHome con `descuento: 2195.55` que exija «$ 2.196»."
+    },
+    {
+      "id": "H10",
+      "titulo": "El historial muestra el total de TODA la mesa como si fuera el pedido del comensal (con SUS ítems y SU descuento)",
+      "severidad": "media",
+      "enfoque": "dinero",
+      "archivo": "experience/experience_app/services/account.py",
+      "linea_original": 99,
+      "reproduccion_original": "En vivo (cuenta rev-fc4aa3@…): `GET /api/v1/cuenta/` → pedido con items:2, mio:51116.45, descuento:2195.55 pero total:97050.45 (incluye las 3 limonadas y las papas del otro comensal). El diner ignora `mio` (types.ts:63 no lo declara) y pinta `o.total` en GenericHistory.tsx:40, CardsHistory.tsx:41 y TablaCufeHistory.tsx:44: «Burger House · mesa 8 · 2 ítems · $ 97.050». Diseño 4b-5/6: cada pedido del historial es lo del comensal (líneas, descuento y total), y el reorden (Account.tsx reorder) vuelve a pedir solo `lineas` mías.",
+      "correccion_propuesta_original": "En el historial exponer y pintar lo del comensal: en diner añadir `mio` a AccountOrder y mostrar `mio` (o que experience devuelva `total` = mío y `totalMesa` aparte). Test en test_account.py que compare `total` mostrado con la suma de `lineas` menos `descuento`."
+    },
+    {
+      "id": "H11",
+      "titulo": "Pagar desde el carrito sin pedir la cuenta cobra (demo) el total bruto de toda la mesa, sin el descuento prometido y sin enviar nada a cocina; después nada indica que sigue pendiente",
+      "severidad": "media",
+      "enfoque": "dinero",
+      "archivo": "diner/components/screens/Pay.tsx",
+      "linea_original": 27,
+      "reproduccion_original": "«Ir a pagar» está siempre disponible en el carrito (GenericCart, familias). Pay.tsx:26-27 y dinerStore.ts:57 usan `bill?.total ?? order?.total ?? cart?.total`: sin cuenta pedida ni pedido, el monto es cart.total (líneas ABIERTAS, de toda la mesa, a precio de lista: en vivo 79.254 con descuento proyectado 2.195,55 no restado porque los layouts solo restan con `aplicado`). Se llama a POST …/pago/simulado/ con ese monto, la pantalla dice «Listo, quedó pagado» + insignia Demo, pero las líneas siguen `open` (nunca se confirmaron, no hay comanda), el descuento nunca se aplicó y al volver al carrito/estado no queda rastro (cart y status no cambian: verificado en vivo, estado sigue `en_cocina` para el pedido y el carrito sigue igual). Con `order` presente, `mio: order?.total` es el total de la mesa, no lo mío.",
+      "correccion_propuesta_original": "En Pay: exigir pedido confirmado y cuenta (`askBill`) antes de pintar el monto (o confirmar automáticamente al pagar, como el flujo 3a «Tu pedido → Ir a pagar» implica que el pedido ya viajó); el fallback sin bill debe usar `cart.mio` y restar `descuento.monto` si `aplicable`; guardar el resultado demo en el store/sesión para que carrito y estado muestren «Pago demo · pendiente de cobro en caja» hasta que el POS cobre. Test de Pay.tsx que falle si `state==='paid'` con líneas abiertas."
+    },
+    {
+      "id": "H12",
+      "titulo": "En el POS del cajero la cuenta con descuento no cuadra: Subtotal + IVA ≠ Total y no existe línea de descuento",
+      "severidad": "media",
+      "enfoque": "dinero",
+      "archivo": "pos/components/salon/BillPanel.tsx",
+      "linea_original": 20,
+      "reproduccion_original": "pos/lib/services/orders.ts:73 lee las líneas con ['uuid','full_product_name','qty','price_unit','customer_note'] (sin `discount`); BillPanel.tsx:20-22 calcula subtotal = Σ price_unit·qty (lista, sin descuento) y usa amount_total/amount_tax de Odoo (con descuento). Con el pedido 104 de la reproducción: Subtotal 83.400 + IVA 13.994,45 = 97.394,45 mientras Total dice 97.050,45; el cajero no ve por qué faltan 1.845 y no puede explicárselo al comensal. PayPanel y el recibo (ReceiptData.lines con unitPrice) arrastran lo mismo.",
+      "correccion_propuesta_original": "Leer `discount` (y price_subtotal/price_subtotal_incl una vez corregidos en Odoo) en getOrderLines; en BillPanel/PayPanel/recibo pintar el importe de línea con descuento y una fila «Descuento primera compra −1.845» para que subtotal − descuento + IVA = total. Test unitario de BillPanel con una línea discount:5."
+    },
+    {
+      "id": "H13",
+      "titulo": "«Una sola vez por cliente» se elude con otro correo: la cuenta se deduplica solo por email y el celular es opcional",
+      "severidad": "media",
+      "enfoque": "dinero",
+      "archivo": "experience/experience_app/services/account.py",
+      "linea_original": 45,
+      "reproduccion_original": "docs/diseno/2026-09-05-flujos-base-pago-y-cuenta.md (Reglas del 5 %): «una sola vez por cliente identificado por celular». `register` devuelve la cuenta existente solo si coincide el email verificado; `_clean` acepta celular vacío. Misma cookie: tras usar el descuento, POST cuenta/salir/, registro con correo2@… (mismo celular o sin celular), verificar (demo: cualquier código), añadir línea → `aplicable:true` y el siguiente confirm vuelve a mandar `discount=5` a Odoo. Cada visita con un correo nuevo es una «primera compra». Con proveedor real de códigos sigue siendo trivial (correos desechables).",
+      "correccion_propuesta_original": "Deduplicar también por celular normalizado (E.164) cuando viene, y hacerlo obligatorio para el descuento (no para pedir); marcar `discount_used_at` por persona (email O celular verificados) y, como dice el diseño, validarlo contra res.partner en el POS cuando exista. Test en test_discount.py: segundo registro con otro correo y el mismo celular no vuelve a descontar."
+    },
+    {
+      "id": "H14",
+      "titulo": "El estado del pedido no muestra el descuento aunque experience lo envía (contrato: «carrito, estado y cuenta»)",
+      "severidad": "baja",
+      "enfoque": "dinero",
+      "archivo": "diner/lib/types.ts",
+      "linea_original": 56,
+      "reproduccion_original": "orders.status_view devuelve `descuento: {porcentaje, monto, aplicado}` (en vivo: monto 2195.55, aplicado true). `OrderStatus` en types.ts:56 no lo declara y Status.tsx no lo pinta: el comensal ve el ahorro en el carrito (cuando se corrija el hallazgo 2) y en la cuenta, pero no en la confirmación del pedido, que es donde el total ya viene neto de Odoo (77.058,45) y sin la línea parece un total sin explicar.",
+      "correccion_propuesta_original": "Añadir `descuento?: Discount` a OrderStatus y una fila «Descuento primera compra 5 % −2.196» en Status.tsx cuando `aplicado`."
+    },
+    {
+      "id": "H15",
+      "titulo": "El descuento puede aplicarse dos veces con la misma cuenta desde dos dispositivos que confirman a la vez (sin bloqueo sobre DinerAccount)",
+      "severidad": "media",
+      "enfoque": "dinero",
+      "archivo": "experience/experience_app/services/orders.py",
+      "linea_original": 44,
+      "reproduccion_original": "`register` con un correo ya verificado devuelve la MISMA cuenta y `verify` la liga a la cookie nueva, así que dos teléfonos pueden compartir cuenta. `_first_purchase_discount` lee `discount_used_at is None` fuera de transacción y `discount_used_at` se escribe en :88 solo después de la ida a Odoo (correcto para el fallo de Odoo, verificado por test_when_odoo_is_down…). Dos confirms concurrentes de esa cuenta (dos mesas o mesa + domicilio) pasan ambos la comprobación y ambos mandan `discount=5` a Odoo.",
+      "correccion_propuesta_original": "Dentro de la transacción final, `DinerAccount.objects.select_for_update().filter(id=…, discount_used_at__isnull=True).update(discount_used_at=now)` y, si actualiza 0 filas, reenviar el pedido a Odoo sin descuento (mismo uuid, idempotente) antes de marcar las líneas; o reservar el descuento (select_for_update) antes de llamar a Odoo y liberarlo si falla."
+    },
+    {
+      "id": "H16",
+      "titulo": "El historial deja los pedidos en «enviado» para siempre si nadie vuelve a consultar el estado o a abrir la mesa tras el cobro",
+      "severidad": "baja",
+      "enfoque": "dinero",
+      "archivo": "experience/experience_app/services/account.py",
+      "linea_original": 101,
+      "reproduccion_original": "`estado: 'pagado' if order.session.state == PAID else 'enviado'`; la sesión solo pasa a PAID en status_view/_open_table_session/confirm (services/sessions.py:16-35), es decir cuando alguien consulta el pedido o toca el NFC de esa mesa después del cobro. Comensal que pide, el POS cobra y se va sin volver a abrir la app: su historial muestra «enviado» indefinidamente (y el chip «Pagado» / factura del diseño 4b-5 nunca aparece), pese a que Odoo tiene el pos.order en paid.",
+      "correccion_propuesta_original": "En `history`, para pedidos de sesiones aún abiertas, consultar en lote a Odoo `read(['state'])` de los odoo_order_id (una llamada) y cerrar las sesiones pagadas con close_paid; o un job/webhook del addon (pos.order paid → POST interno a experience) que cierre la sesión."
+    },
+    {
+      "id": "H17",
+      "titulo": "El POS y la vista previa parten de los tokens del catálogo, pero experience aplica primero la marca del Plan G: lo que el administrador ve no es lo que ve el comensal",
+      "severidad": "media",
+      "enfoque": "flujo",
+      "archivo": "pos/components/settings/MenuTemplateForm.tsx",
+      "linea_original": 103,
+      "reproduccion_original": "Comprobado en vivo: GET /internal/v1/burger-house/poblado/menu/ devuelve {plantilla:'B1', paleta:{}, tipografia:{}} y GET /api/v1/burger-house/poblado/ devuelve plantilla.tokens.acento=#7A2E2A, acentoTinta=#FFFFFF, displayFont=Fraunces (marca de res.company). En el POS, Configuración › Plantilla del menú muestra como color efectivo #C1873A (spec B1), el select dice «Ubuntu · la de la plantilla» y el iframe pinta la carta dorada con Ubuntu, porque `effective()`/`raw()` caen a spec.tokens y diner/lib/stores/dinerStore.ts:83-91 (`applyPreviewParam`) toma la base del catálogo, no de la sede. experience/experience_app/plantillas/services.py:107-112 (`final_tokens`) pisa acento/displayFont/radios con brand_inputs antes de la paleta. Además `toSettings` (MenuTemplateForm.tsx:28-35) descarta un color igual al del spec, así que el administrador no puede «fijar» el acento del diseño para evitar el de la marca.",
+      "correccion_propuesta_original": "Que la pasarela `get` (odoo/addons/projectapp_ops/controllers/admin.py:72-74) devuelva también los tokens resueltos de la sede (o `brand_inputs`) y que el formulario use esa base como valor efectivo y en la vista previa (enviar la paleta completa efectiva en `vista_previa`, o que `applyPreviewParam` parta de `entry.contexto.plantilla` cuando el código coincide con el guardado). Alternativa mínima: dejar de comparar contra spec.tokens en `toSettings` y mandar siempre lo que el administrador ve."
+    },
+    {
+      "id": "H18",
+      "titulo": "La vista previa no recalcula acentoTinta ni acentoSuave al cambiar el acento; experience sí lo hace",
+      "severidad": "media",
+      "enfoque": "flujo",
+      "archivo": "diner/lib/domain/template.ts",
+      "linea_original": 117,
+      "reproduccion_original": "En el POS elegir B1 (acentoTinta del diseño #1A1815) y poner acento #1F3A5F: el lector de contraste dice OK (inkFor → blanco), pero el iframe `?vista_previa={plantilla:'B1',paleta:{acento:'#1F3A5F'}}` pinta botones azul marino con texto #1A1815 (ilegible), y acentoSuave sigue siendo el crema dorado. Tras Guardar, experience (`final_tokens` services.py:121-123) entrega acentoTinta #FFFFFF y acentoSuave mezclado: el comensal ve otra cosa que la vista previa. `applyPreview` solo copia los hex de `paleta` (y el PUT rechaza `acentoTinta` porque no está en `personalizable`, así que el POS tampoco puede mandarlo).",
+      "correccion_propuesta_original": "En `applyPreview`, si `paleta.acento` difiere de `base.tokens.acento`, recalcular `acentoTinta` con la misma regla que `utils/brand.ink_for` (contraste ≥ 4.5 entre #FFFFFF y #1A1815) y `acentoSuave` como mezcla al 10 % sobre `fondo` (misma fórmula que `_mix_over`). Añadir el caso al test de `applyPreview`."
+    },
+    {
+      "id": "H19",
+      "titulo": "En las 10 plantillas oscuras, portada, plato, estado y la-cuenta quedan ilegibles: superficies blancas fijas con el texto claro heredado de --t-tinta",
+      "severidad": "media",
+      "enfoque": "flujo",
+      "archivo": "diner/components/screens/Home.tsx",
+      "linea_original": 313,
+      "reproduccion_original": "Elegir cualquier plantilla con tokens.modo='oscuro' (A2, B4, C1, C4, D1, E1, E2, E3, E5, F3; p. ej. E1: fondo #14120F, tinta #EDE7DD). `<main>` pone `bg-t-fondo text-t-tinta` (page.tsx:65) y las pantallas genéricas no re-declaran color: Home.tsx:313 «Ver la carta» es `bg-surface` (#FFFFFF) con texto heredado #EDE7DD (contraste ≈1.2:1); Dish.tsx:270 textarea `bg-surface` con texto claro; Dish.tsx:224/274 enlaces `bg-surface`; Status.tsx:37 botones «Llamar al mesero»/«Pedir la cuenta» `bg-surface border-border` con texto claro; Bill.tsx:169-171 tarjeta `bg-surface` con la cifra en texto claro; DishCard.tsx:60 (recomendados de la portada). Y `text-soft` (#6B6259) sobre #14120F queda en ≈3:1 en descripciones y pistas (Dish.tsx:255, Status.tsx:67).",
+      "correccion_propuesta_original": "Pasar esas pantallas y `DishCard` a los tokens de la plantilla (`bg-t-superficie border-t-borde text-t-tinta`, `text-t-tinta-suave`), o como mínimo fijar `text-ink` en cada elemento con `bg-surface`/`bg-muted` para que el par fondo/texto sea siempre el de Waiter. Añadir un test de tokens que renderice Home/Status con un template oscuro y compruebe la clase de color."
+    },
+    {
+      "id": "H20",
+      "titulo": "«Ir a pagar» con líneas sin enviar: el pago simulado cobra el carrito abierto, nada llega a cocina y «Pagado» dice «Tu pedido sigue en cocina»",
+      "severidad": "baja",
+      "enfoque": "flujo",
+      "archivo": "diner/components/screens/Pay.tsx",
+      "linea_original": 26,
+      "reproduccion_original": "Entrar por mesa, agregar un plato, ir a Tu pedido y tocar «Ir a pagar» (no «Enviar a cocina»): Pay usa `payableTotal` = cart.total y `simulatePay` (dinerStore.ts:189-203) solo llama a pago/simulado/, que no confirma. Aparece «Listo, quedó pagado» con la tarjeta «Recibido · en preparación» (FamilyBPay.tsx:65-80, GenericPay.tsx:227-231) aunque no existe pedido en Odoo; al tocar «Pedir algo más» la carta vuelve a mostrar la barra de pedido con las mismas líneas abiertas y el POS nunca ve ese pedido. El E2E (diner/e2e/comensal.spec.ts) solo cubre «Enviar a cocina», no este camino.",
+      "correccion_propuesta_original": "En `Pay`, si hay líneas abiertas, confirmar antes de pagar (llamar a `confirm()` y usar el `order.total` devuelto como monto; si falla, no pasar a «Autorizando»), o deshabilitar «Ir a pagar» mientras `cart.lineas.length > 0` y guiar a «Enviar a cocina». Tras `aprobado`, refrescar `order` y `cart` para que la barra de pedido y la tarjeta de estado digan la verdad."
+    },
+    {
+      "id": "H21",
+      "titulo": "El monto a pagar prefiere un pedido viejo sobre el carrito nuevo y «lo mío» muestra el total de la mesa",
+      "severidad": "media",
+      "enfoque": "flujo",
+      "archivo": "diner/lib/stores/dinerStore.ts",
+      "linea_original": 57,
+      "reproduccion_original": "Enviar a cocina (queda `order`), «Pedir algo más», agregar otro plato, ir a Tu pedido → «Ir a pagar»: `payableTotal` devuelve `order.total` (la ronda anterior) y el carrito nuevo no cuenta. Además Pay.tsx:27 construye `mio: order?.total ?? cart?.mio`, así que en B3/E1/E4/F5 «Pagar lo mío» muestra el total de toda la mesa y `porParte: total, partes: 1` deja «Dividir» sin sentido, salvo que antes se haya pedido la cuenta (bill).",
+      "correccion_propuesta_original": "Calcular el monto con una sola fuente coherente: si hay líneas abiertas, confirmar y usar el total confirmado; si no, pedir `bill_summary` (POST …/cuenta/ ya devuelve total/mio/porParte/descuento) al entrar a Pago en vez de derivarlo de `order`/`cart`. Quitar el fallback `mio: order?.total`."
+    },
+    {
+      "id": "H22",
+      "titulo": "Cualquier fallo del pago simulado (sesión ya cobrada 404, sin red) se muestra como «Tu banco no autorizó el pago»",
+      "severidad": "baja",
+      "enfoque": "flujo",
+      "archivo": "diner/lib/stores/dinerStore.ts",
+      "linea_original": 199,
+      "reproduccion_original": "Cobrar la mesa en el POS (sesión pasa a pagada) y en el celular tocar «Pagar $…»: pago/simulado/ responde 404 (payments.py:89 exige OPEN_STATES) y el catch pone `payState:'declined'`; el layout pinta «Tu banco no autorizó el pago · No se hizo ningún cobro» (es.json:121) con opciones de reintentar tarjeta/PSE. Lo mismo sin red. `confirm` sí distingue el 409 y reabre sesión (dinerStore.ts:132-135); `simulatePay` no.",
+      "correccion_propuesta_original": "Separar `declined` (estado 'rechazado' del servidor) de un error de transporte/sesión: en 404/409 reabrir sesión como hace `confirm` y mostrar «Esta visita ya se cobró en la mesa»; en otros errores volver a `idle` con el mensaje del store, sin la pantalla de banco."
+    },
+    {
+      "id": "H23",
+      "titulo": "Sin projectapp.diner_url la vista previa apunta a la propia app del POS",
+      "severidad": "baja",
+      "enfoque": "flujo",
+      "archivo": "odoo/addons/projectapp_ops/controllers/admin.py",
+      "linea_original": 31,
+      "reproduccion_original": "`REQUIRED` no incluye `diner_url`; con el parámetro vacío `get` devuelve `dinerUrl: ''` y `previewUrl('', 'burger-house', 'poblado', …)` (pos/lib/services/menuTemplates.ts:77) produce `/burger-house/poblado/carta/?vista_previa=…`, que el iframe carga desde el POS (:3000) y muestra su 404 dentro del panel «Vista previa» sin ningún aviso.",
+      "correccion_propuesta_original": "Añadir `diner_url` a `REQUIRED` (o devolver `dinerUrl: null`) y en MenuTemplateForm.tsx:203 no montar el iframe cuando falte, mostrando un texto «Configura projectapp.diner_url»."
+    }
+  ]
+}

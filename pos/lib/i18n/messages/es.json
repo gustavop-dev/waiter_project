@@ -1,6 +1,7 @@
 {
   "pos": {
-    "brand": "Waiter",
+    "brand": "Waiter.",
+    "brandBy": "By ProjectApp.",
     "nav": {
       "operation": "Operación",
       "sales": "Ventas",
@@ -31,18 +32,14 @@
         "admin": "Administrador"
       }
     },
-    "rail": {
-      "tables": "Mesas",
-      "orders": "Pedidos",
-      "kitchen": "Cocina",
-      "payments": "Pagos"
-    },
     "topbar": {
       "operational": "Restaurante operativo",
       "search": "Buscar mesa o pedido",
       "newTable": "Nueva mesa"
     },
     "login": {
+      "panelTitle": "Opera más mesas con menos carga.",
+      "panelText": "Salón, cocina y caja en un mismo lugar, para que el equipo se dedique a servir.",
       "eyebrow": "{date}",
       "greeting": {
         "morning": "Buenos días",
@@ -61,6 +58,7 @@
       "remember": "Mantener la sesión en esta terminal",
       "submit": "Abrir mi turno",
       "failed": "Correo o contraseña incorrectos",
+      "unreachable": "No se pudo conectar con Odoo. Revisa la conexión de este terminal.",
       "code": {
         "title": "Tengo un código",
         "intro": "Escribe tu correo. Si tienes cuenta, te llega un código de 6 dígitos desde team@projectapp.co.",
@@ -131,7 +129,8 @@
         "number": "Número",
         "seats": "Puestos",
         "create": "Crear mesa"
-      }
+      },
+      "discountIncluded": "Descuento incluido (antes de IVA)"
     },
     "order": {
       "back": "Salón",
@@ -253,13 +252,15 @@
       },
       "alertBody": {
         "kitchen": "{ref} de mesa {table} pasó los {late} minutos. La cocina tiene {queue} en cola.",
-        "payment": "Mesa {table} pidió la cuenta hace {minutes} min y nadie la ha cobrado."
+        "payment": "Mesa {table} pidió la cuenta hace {minutes} min y nadie la ha cobrado.",
+        "table": "Mesa {table} llamó al mesero desde su celular. Nadie ha ido."
       },
       "actions": {
         "seeKitchen": "Ver en cocina",
         "courtesy": "Ofrecer cortesía",
         "charge": "Ir a cobrar",
-        "done": "Atendida"
+        "done": "Atendida",
+        "onMyWay": "Voy yo"
       },
       "resolved": "Resueltas hoy",
       "resolvedNone": "Nada resuelto todavía",
@@ -267,7 +268,8 @@
       "courtesy": "Cortesía ofrecida en mesa {table}",
       "chargedLabel": "Cuenta de mesa {table} atendida",
       "thresholds": "Umbrales de alerta",
-      "configure": "Configurar"
+      "configure": "Configurar",
+      "attended": "Mesa {table} atendida"
     },
     "roi": {
       "title": "Retorno de inversión",
@@ -494,9 +496,22 @@
       }
     },
     "settings": {
+      "saving": "Guardando…",
+      "charge": {
+        "label": "Los meseros pueden cobrar",
+        "onHint": "El mesero cobra la mesa que atendió, desde su propia pantalla.",
+        "offHint": "Cobrar es solo de caja: el mesero deja la mesa servida y el cajero la elige en el plano y cobra."
+      },
+      "inventory": {
+        "label": "Los meseros pueden editar el inventario",
+        "onHint": "El mesero crea y edita platos e ingredientes desde su pantalla.",
+        "offHint": "El mesero ve el inventario y puede solicitar ingredientes al proveedor, pero no crear, editar ni borrar."
+      },
       "title": "Configuración",
       "sections": {
         "restaurant": "Restaurante",
+        "brand": "Marca",
+        "menuTemplate": "Diseño del menú",
         "floors": "Pisos y mesas",
         "payments": "Métodos de pago",
         "taxes": "Impuestos",
@@ -577,6 +592,104 @@
         "caja": "Caja (bajo)",
         "test": "Probar sonido",
         "localHint": "La densidad y el volumen se guardan en este dispositivo."
+      },
+      "brand": {
+        "help": "Lo que cambia aquí lo ve el comensal en su celular en menos de un minuto. La estructura, los tamaños y la barra de pedido son de Waiter y no cambian.",
+        "color": "Color de acción",
+        "hex": "Código hex",
+        "noColor": "Sin color propio: el comensal ve el del registro.",
+        "invalidHex": "Escribe un color como #7A2E2A.",
+        "contrast": "Contraste {ratio}:1 · {ink}",
+        "inkWhite": "texto blanco",
+        "inkDark": "texto oscuro",
+        "noContrast": "Este color no alcanza 4.5:1 con ningún texto; elige uno más oscuro o más claro",
+        "lowLinkContrast": "Como texto sobre el fondo claro este color contrasta {ratio}:1; se verá tenue en enlaces",
+        "accessDenied": "Solo un administrador puede cambiar la marca",
+        "font": "Tipografía de títulos",
+        "fontDefault": "La del registro",
+        "radius": "Redondeo",
+        "radiusHint": "Toca el elegido otra vez para volver al del registro.",
+        "straight": "Recto",
+        "soft": "Suave",
+        "round": "Muy redondeado",
+        "tagline": "Lema",
+        "greeting": "Saludo",
+        "greetingPlaceholder": "Según la hora: Buenos días / tardes / noches",
+        "waiterName": "Nombre del mesero",
+        "waiterHint": "Aparece en la línea «Soy Alex, tu mesero»",
+        "welcome": "Bienvenida",
+        "welcomeHint": "Va después de «Soy Alex, tu mesero.». Si la dejas vacía, no se muestra la línea del mesero.",
+        "logo": "Logo",
+        "logoFile": "Subir logo",
+        "logoAlt": "Logo actual",
+        "logoNone": "Sin logo: se muestra el nombre",
+        "logoHint": "PNG o JPEG de hasta 1 MB. Se ajusta a 1024 × 512 px antes de subirlo.",
+        "removeLogo": "Quitar logo",
+        "logoError": {
+          "type": "Solo PNG o JPEG.",
+          "size": "El archivo pesa más de 1 MB.",
+          "decode": "No se pudo leer la imagen."
+        },
+        "preview": "Vista previa",
+        "previewHint": "Así se ve la portada en el celular. Lo que dejes vacío se rellena con el ejemplo.",
+        "previewHintSample": "Así se ve la portada en el celular. Sin nombre de mesero ni bienvenida, la línea del mesero es la del ejemplo: «Soy Alex, tu mesero. ¿Qué te provoca hoy?».",
+        "sample": {
+          "restaurant": "La Provincia",
+          "tagline": "Cocina de barrio",
+          "table": "Mesa 14",
+          "waiter": "Alex",
+          "line": "Soy {name}, tu mesero. {welcome}",
+          "welcome": "¿Qué te provoca hoy?",
+          "cta": "Ver la carta",
+          "callWaiter": "Llamar al mesero",
+          "recommended": "Recomendado para ti",
+          "all": "Ver todos",
+          "dish": "Lomo a la parrilla",
+          "dishDesc": "Con vegetales asados",
+          "dish2": "Burrata italiana",
+          "dish2Desc": "Tomate, pesto, focaccia",
+          "photo": "Foto del plato",
+          "order": "Tu pedido",
+          "total": "$ 48.800",
+          "seeOrder": "Ver pedido →"
+        }
+      },
+      "menuTemplate": {
+        "help": "Elige la plantilla que mejor le queda a tu negocio. La carta que ya cargaste en el POS es la que ve el comensal; solo cambia cómo se ve.",
+        "families": "Familias de plantillas",
+        "gallery": "Plantillas de {family}",
+        "current": "Elegida",
+        "photos": "Fotos: {need}",
+        "photoNeed": {
+          "ninguna": "ninguna",
+          "algunas": "algunas",
+          "todas": "todas",
+          "hero": "hero"
+        },
+        "customize": "Personalizar",
+        "customizeHint": "Solo los colores que esta plantilla deja cambiar. Lo demás es del diseño.",
+        "colors": {
+          "acento": "Color de acción",
+          "fondo": "Fondo",
+          "superficie": "Superficie",
+          "tinta": "Texto",
+          "tintaSuave": "Texto suave",
+          "tintaTerciaria": "Texto terciario",
+          "borde": "Borde",
+          "acentoTinta": "Texto sobre la acción",
+          "acentoSuave": "Acción suave"
+        },
+        "hex": "Hex · {color}",
+        "reset": "Volver al de la plantilla",
+        "invalidHex": "Escribe un color como #7A2E2A.",
+        "contrastAction": "Acción y su texto: {ratio}:1",
+        "contrastText": "Texto sobre el fondo: {ratio}:1",
+        "noContrast": "No alcanza 4.5:1; ajusta el color para que cualquiera lo lea.",
+        "font": "Tipografía de títulos",
+        "fontOfTemplate": "{font} · la de la plantilla",
+        "preview": "Vista previa del menú",
+        "previewHint": "Es la app del comensal de verdad, con tu carta y estos ajustes. Se actualiza sola al cambiar algo; nada se guarda hasta que toques Guardar.",
+        "loadFailed": "No se pudo cargar el catálogo de plantillas: {reason}"
       }
     },
     "pay": {
@@ -613,16 +726,22 @@
         "declined": "Rechazado"
       },
       "receipt": {
-        "title": "Recibo",
+        "title": "Cuenta de cobro",
         "table": "Mesa {n}",
-        "subtotal": "Subtotal",
-        "tax": "IVA",
         "tip": "Propina",
         "total": "Total",
         "change": "Cambio",
         "thanks": "Gracias por su visita",
         "print": "Imprimir",
-        "close": "Cerrar"
+        "close": "Cerrar",
+        "discountIncluded": "Descuento incluido",
+        "number": "No.",
+        "vat": "NIT",
+        "columnItem": "Descripción",
+        "columnAmount": "Valor",
+        "taxIncluded": "IVA incluido",
+        "taxIncludedAt": "IVA incluido ({rate}%)",
+        "consumption": "Consumo"
       }
     },
     "cash": {
@@ -667,6 +786,89 @@
         "force": "Forzar cierre (administrador)",
         "forceHint": "Odoo detectó un descuadre contable. Forzar el cierre lo contabiliza como diferencia de caja.",
         "forced": "Cierre forzado. La diferencia quedó contabilizada."
+      }
+    },
+    "kit": {
+      "keypad": {
+        "backspace": "Borrar"
+      },
+      "nav": {
+        "main": "Navegación principal",
+        "adminRow": "Administración",
+        "dashboard": "Inicio",
+        "orders": "Pedidos",
+        "tables": "Mesas",
+        "reservations": "Reservas",
+        "history": "Historial",
+        "inventory": "Inventario",
+        "kitchen": "Cocina",
+        "admin": "Administración",
+        "bell": "Notificaciones, {count} sin leer",
+        "sub": {
+          "sales": "Ventas",
+          "catalog": "Catálogo",
+          "customers": "Clientes",
+          "billing": "Facturación",
+          "roi": "Retorno",
+          "settings": "Configuración"
+        }
+      },
+      "settings": {
+        "title": "Ajustes",
+        "session": "Sesión en este dispositivo",
+        "logout": "Cerrar sesión",
+        "logoutTitle": "¿Cerrar sesión?",
+        "logoutBody": "Saldrás de la aplicación en este dispositivo.",
+        "logoutNo": "No, volver",
+        "logoutYes": "Sí, salir",
+        "tabs": {
+          "profile": "Empleado",
+          "notifications": "Notificaciones",
+          "security": "Seguridad",
+          "display": "Pantalla"
+        },
+        "profile": {
+          "name": "Nombre",
+          "role": "Rol",
+          "restaurant": "Restaurante",
+          "soon": "Teléfono, correo, turno y fecha de ingreso llegan con el login por PIN."
+        },
+        "notify": {
+          "popup": "Aviso en pantalla",
+          "sound": "Sonido",
+          "kitchen": {
+            "title": "Cocina",
+            "body": "Avisos de cocina sobre los pedidos."
+          },
+          "inventory": {
+            "title": "Inventario",
+            "body": "Avisos sobre existencias e ingredientes."
+          },
+          "system": {
+            "title": "Sistema",
+            "body": "Avisos sobre actualizaciones del sistema."
+          }
+        },
+        "security": {
+          "changePin": "Cambiar PIN",
+          "pinSoon": "Disponible con el login por PIN."
+        },
+        "display": {
+          "language": "Idioma",
+          "languageBody": "Idioma de la aplicación.",
+          "colorMode": "Modo de color",
+          "colorModeBody": "Sistema, claro u oscuro.",
+          "system": "Sistema",
+          "light": "Claro",
+          "dark": "Oscuro"
+        }
+      },
+      "soon": {
+        "body": "Esta pantalla llega en su oleada del Plan I.",
+        "dashboard": "Inicio",
+        "orders": "Pedidos",
+        "reservations": "Reservas",
+        "history": "Historial"
       }
     }
   }

@@ -15,6 +15,7 @@ load_dotenv(BASE_DIR / '.env')
 
 DJANGO_ENV = os.getenv('DJANGO_ENV', 'development')
 IS_PRODUCTION = DJANGO_ENV == 'production'
+DINER_DEMO_ENABLED = not IS_PRODUCTION and os.getenv('DINER_DEMO_ENABLED', 'true').lower() in {'1', 'true', 'yes', 'on'}
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'change-me')
 DEBUG = os.getenv('DJANGO_DEBUG', 'false' if IS_PRODUCTION else 'true').lower() in {'1', 'true', 'yes', 'on'}
 # Falla cerrado: en producción no arranca con el secreto de ejemplo ni con DEBUG.
@@ -93,5 +94,36 @@ REGISTRY_URL = os.getenv('REGISTRY_URL', 'http://192.168.56.10:8002').rstrip('/'
 REGISTRY_INTERNAL_KEY = os.getenv('REGISTRY_INTERNAL_KEY', '')
 EXPERIENCE_INTERNAL_KEY = os.getenv('EXPERIENCE_INTERNAL_KEY', '')
 MENU_CACHE_SECONDS = int(os.getenv('MENU_CACHE_SECONDS', '60'))
+# Marca del restaurante (res.company en Odoo): un cambio llega al comensal en ≤ este tiempo.
+BRAND_CACHE_SECONDS = int(os.getenv('BRAND_CACHE_SECONDS', '60'))
+# Plantilla del menú resuelta por sede (Plan H): un cambio desde el POS la invalida; este es el tope si nadie avisa.
+TEMPLATE_CACHE_SECONDS = int(os.getenv('TEMPLATE_CACHE_SECONDS', '60'))
 TENANT_CACHE_SECONDS = int(os.getenv('TENANT_CACHE_SECONDS', '120'))
 ODOO_TIMEOUT_SECONDS = int(os.getenv('ODOO_TIMEOUT_SECONDS', '20'))
+
+# Recuperación de cuenta: se habilita únicamente con un proveedor de correo configurado.
+DINER_EMAIL_ENABLED = os.getenv('DINER_EMAIL_ENABLED', 'false').lower() in {'1', 'true', 'yes', 'on'}
+DINER_PUBLIC_URL = os.getenv('DINER_PUBLIC_URL', 'http://192.168.56.10:3001').rstrip('/')
+MAILERS = {'default': {
+    'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
+    'OPTIONS': {
+        'host': os.getenv('EMAIL_HOST', 'localhost'),
+        'port': int(os.getenv('EMAIL_PORT', '587')),
+        'username': os.getenv('EMAIL_HOST_USER', ''),
+        'password': os.getenv('EMAIL_HOST_PASSWORD', ''),
+        'use_tls': os.getenv('EMAIL_USE_TLS', 'true').lower() in {'1', 'true', 'yes', 'on'},
+        'timeout': 10,
+    },
+}}
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'no-reply@example.invalid')
+
+# Agente: solo backend. Sin modelo implícito ni clave en el repositorio.
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
+WA_AGENT_MODEL = os.getenv('WA_AGENT_MODEL', '')
+
+AGENT_DAILY_LIMIT = int(os.getenv('AGENT_DAILY_LIMIT', '200'))
+
+# Gateway secrets use a separate, backed-up Fernet key; never derive it from DEBUG/SECRET_KEY.
+PAYMENTS_FERNET_KEY = os.getenv('PAYMENTS_FERNET_KEY', '')
+PAYMENTS_LIVE_ENABLED = os.getenv('PAYMENTS_LIVE_ENABLED', 'false').lower() == 'true'
+PAYMENTS_PUBLIC_URL = os.getenv('PAYMENTS_PUBLIC_URL', '').rstrip('/')

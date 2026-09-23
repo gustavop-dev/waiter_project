@@ -31,6 +31,17 @@ export async function identificationTypes(): Promise<IdType[]> {
   return rows.map((r) => ({ id: r.id, name: r.name }))
 }
 
+// Tarjeta de fidelización del cliente (módulos loyalty + pos_loyalty): la de más puntos si tiene varias; null sin tarjeta.
+export interface LoyaltyCard { id: number; points: number; pointsDisplay: string; code: string; program: string; expires: string | null }
+interface RawCard { id: number; points: number; points_display: string | false; code: string | false; program_id: [number, string] | false; expiration_date: string | false }
+
+export async function loyaltyCard(partnerId: number): Promise<LoyaltyCard | null> {
+  const rows = await callKw<RawCard[]>('loyalty.card', 'search_read', [[['partner_id', '=', partnerId]], ['points', 'points_display', 'code', 'program_id', 'expiration_date']], { order: 'points desc', limit: 1 })
+  const r = rows[0]
+  if (!r) return null
+  return { id: r.id, points: r.points, pointsDisplay: r.points_display || String(r.points), code: r.code || '', program: r.program_id ? r.program_id[1] : '', expires: r.expiration_date || null }
+}
+
 export async function customerOrders(partnerId: number): Promise<CustomerOrder[]> {
   const rows = await callKw<{ id: number; pos_reference: string; date_order: string; amount_total: number; state: string }[]>('pos.order', 'search_read',
     [[['partner_id', '=', partnerId]], ['pos_reference', 'date_order', 'amount_total', 'state']], { order: 'id desc', limit: 20 })

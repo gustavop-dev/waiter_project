@@ -1,15 +1,52 @@
 from django.urls import path
 
-from experience_app.views import context, internal, orders, sessions
+from experience_app.plantillas import views as templates
+from experience_app.views import agent_chat, channel_orders, payment_gateways
+from experience_app.views import benefits, password_reset, account, context, internal, logo, orders, payments, photos, sessions
 
 urlpatterns = [
+    path('internal/v1/<slug:restaurant>/<slug:venue>/pasarelas/', payment_gateways.configuration),
+    path('api/v1/sesiones/<uuid:session_id>/pagos/', payment_gateways.payments),
+    path('api/v1/sesiones/<uuid:session_id>/pagos/<uuid:payment_id>/', payment_gateways.detail),
+    path('api/v1/<slug:restaurant>/<slug:venue>/reservas/<str:token>/pagos/', payment_gateways.reservation_payments_view),
+    path('api/v1/<slug:restaurant>/<slug:venue>/reservas/<str:token>/pagos/<uuid:payment_id>/', payment_gateways.reservation_payment_detail),
+    path('api/v1/pagos/webhooks/wompi/<slug:restaurant>/<slug:venue>/<str:environment>/', payment_gateways.webhook),
+    path('api/v1/sesiones/<uuid:session_id>/asistente/agregar/', agent_chat.add_to_cart, name='agent-chat-add'),
+    path('api/v1/sesiones/<uuid:session_id>/asistente/', agent_chat.messages, name='agent-chat'),
+    path('internal/v1/<slug:restaurant>/<slug:venue>/whatsapp/catalogo/', channel_orders.menu),
+    path('internal/v1/<slug:restaurant>/<slug:venue>/whatsapp/pedidos/', channel_orders.create),
+    path('internal/v1/<slug:restaurant>/<slug:venue>/whatsapp/pedidos/<uuid:order_id>/', channel_orders.detail),
+    path('internal/v1/<slug:restaurant>/<slug:venue>/whatsapp/pedidos/<uuid:order_id>/confirmar/', channel_orders.confirm),
+    path('api/v1/<slug:restaurant>/<slug:venue>/ubicacion/', benefits.location, name='venue-location'),
+    path('api/v1/<slug:restaurant>/<slug:venue>/recompensas/', benefits.rewards, name='diner-rewards'),
+    path('api/v1/sesiones/<uuid:session_id>/cupon/', benefits.coupon, name='diner-coupon'),
+    path('api/v1/sesiones/<uuid:session_id>/platos/', sessions.add_bundle, name='add-bundle'),
+    path('api/v1/cuenta/recuperar/', password_reset.request_reset, name='account-reset-request'),
+    path('api/v1/cuenta/restablecer/', password_reset.reset, name='account-reset'),
+    path('api/v1/cuenta/entrar/', account.password_login, name='account-login'),
+    path('api/v1/cuenta/clave/', account.change_password, name='account-password'),
+    path('api/v1/pedidos/<uuid:order_id>/opinion/', orders.feedback, name='order-feedback'),
+    path('api/v1/<slug:restaurant>/<slug:venue>/favoritos/', account.favorites, name='account-favorites'),
+    path('api/v1/<slug:restaurant>/<slug:venue>/favoritos/<int:product_id>/', account.favorites, name='account-favorite'),
     path('api/v1/sesiones/', sessions.open_session, name='open-session'),
     path('api/v1/sesiones/<uuid:session_id>/carrito/', sessions.cart, name='cart'),
     path('api/v1/sesiones/<uuid:session_id>/lineas/', sessions.add_line, name='add-line'),
     path('api/v1/sesiones/<uuid:session_id>/lineas/<int:line_id>/', sessions.line, name='line'),
     path('api/v1/sesiones/<uuid:session_id>/confirmar/', orders.confirm, name='confirm'),
+    path('api/v1/sesiones/<uuid:session_id>/llamar/', sessions.call_waiter, name='call-waiter'),
+    path('api/v1/sesiones/<uuid:session_id>/cuenta/', sessions.request_bill, name='request-bill'),
+    path('api/v1/sesiones/<uuid:session_id>/pago/simulado/', payments.simulated, name='simulated-payment'),
     path('api/v1/pedidos/<uuid:order_id>/', orders.detail, name='order-detail'),
+    path('api/v1/cuenta/registro/', account.register, name='account-register'),
+    path('api/v1/cuenta/verificar/', account.verify, name='account-verify'),
+    path('api/v1/cuenta/salir/', account.logout, name='account-logout'),
+    path('api/v1/cuenta/', account.profile, name='account-profile'),
+    path('api/v1/plantillas/', templates.catalog, name='template-catalog'),
+    path('api/v1/plantillas/<slug:code>/miniatura/', templates.thumbnail, name='template-thumbnail'),
+    path('api/v1/<slug:restaurant>/<slug:venue>/fotos/<int:product_id>/', photos.photo, name='product-photo'),
+    path('api/v1/<slug:restaurant>/<slug:venue>/logo/', logo.logo, name='company-logo'),
     path('api/v1/<slug:restaurant>/<slug:venue>/', context.entry, name='entry-delivery'),
     path('api/v1/<slug:restaurant>/<slug:venue>/t/<str:token>/', context.entry, name='entry-table'),
     path('internal/v1/carta/<slug:restaurant>/<slug:venue>/invalidar/', internal.invalidate_menu, name='invalidate-menu'),
+    path('internal/v1/<slug:restaurant>/<slug:venue>/menu/', templates.venue_settings, name='venue-menu-settings'),
 ]

@@ -3,7 +3,7 @@ import type { KitchenTicket } from '@/lib/services/kitchen'
 
 const NOW = Date.parse('2026-09-05T02:00:00Z')
 const at = (minutesAgo: number) => new Date(NOW - minutesAgo * 60_000).toISOString().slice(0, 19).replace('T', ' ')
-const line = (station: string | null, note = '') => ({ id: 1, name: 'Lomo', qty: 1, note, station })
+const line = (station: string | null, note = '') => ({ id: 1, name: 'Lomo', qty: 1, note, station, readyAt: null, servedAt: null })
 const ticket = (id: number, minutesAgo: number, lines = [line('Parrilla')]): KitchenTicket =>
   ({ id, orderId: id, tableId: id, tracking: String(id), waiter: 'Sofía', note: '', firedAt: at(minutesAgo), readyAt: null, lines })
 

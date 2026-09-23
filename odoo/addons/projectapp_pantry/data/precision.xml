@@ -1,0 +1,3 @@
+<odoo>
+    <function model="product.template" name="waiter_setup_precision"/>
+</odoo>

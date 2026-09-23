@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
   // next-intl y su cadena de runtime (use-intl → intl-messageformat → @formatjs/*) se publican como
   // ESM puro; next/jest lee esta lista para transformarlos en los tests (el patrón manual no puede).
   transpilePackages: ['next-intl', 'use-intl', 'intl-messageformat', '@formatjs/fast-memoize', '@formatjs/icu-messageformat-parser', '@formatjs/icu-skeleton-parser', '@formatjs/intl-localematcher', '@schummar/icu-type-parser'],
+  // El servidor de desarrollo se abre desde la IP de la red local (y el POS mete al comensal en un iframe):
+  // sin esto Next responde 403 a sus propios chunks cuando el origen no es localhost.
+  allowedDevOrigins: ['192.168.56.10'],
   devIndicators: false,
   images: { unoptimized: true },
   async rewrites() {

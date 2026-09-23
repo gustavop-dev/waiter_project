@@ -1,6 +1,7 @@
 'use client'
 
 import axios from 'axios'
+import { useAuthStore } from '@/lib/stores/authStore'
 
 import { OdooError } from '@/lib/services/errors'
 
@@ -30,5 +31,8 @@ export async function jsonRpc<T>(path: string, params: Record<string, unknown>):
 export function callKw<T>(
   model: string, method: string, args: unknown[], kwargs: Record<string, unknown> = {},
 ): Promise<T> {
-  return jsonRpc<T>('/web/dataset/call_kw', { model, method, args, kwargs })
+  const { employee, session } = useAuthStore.getState()
+  const context = { ...((kwargs.context as Record<string, unknown>) ?? {}) }
+  if (employee?.token) context.waiter_pos_identity = { id: employee.id, token: employee.token, config_id: session?.configId }
+  return jsonRpc<T>('/web/dataset/call_kw', { model, method, args, kwargs: employee?.token ? { ...kwargs, context } : kwargs })
 }

@@ -1,0 +1,824 @@
+{
+  "codigo": "B3",
+  "nombre": "Para compartir",
+  "familia": "B",
+  "familiaNombre": "Casual de barrio",
+  "descripcion": "Empieza por el tamaño del grupo y ofrece bandejas con precio por persona: sube el ticket sin regatear.",
+  "fotos": {
+    "requiere": "algunas",
+    "recorte": "3x2"
+  },
+  "tokens": {
+    "modo": "claro",
+    "fondo": "#FFFFFF",
+    "superficie": "#FAF8F5",
+    "tinta": "#1A1815",
+    "tintaSuave": "#6B6259",
+    "tintaTerciaria": "#9A8F7E",
+    "borde": "#EFE9E0",
+    "acento": "#2F7A4F",
+    "acentoTinta": "#FFFFFF",
+    "acentoSuave": "#E6F1EA",
+    "displayFont": "Ubuntu",
+    "displayPeso": 700,
+    "displayTracking": "-0.02em",
+    "displayTransform": "none",
+    "cuerpoFont": "Ubuntu",
+    "monoFont": "IBM Plex Mono",
+    "radioTarjeta": 16,
+    "radioBoton": 12,
+    "radioChip": 10,
+    "densidad": "amplia"
+  },
+  "personalizable": {
+    "colores": [
+      "acento",
+      "fondo",
+      "superficie",
+      "tinta"
+    ],
+    "tipografiaDisplay": true,
+    "logo": true
+  },
+  "pantallas": {
+    "menu": {
+      "layout": "B3",
+      "resumen": "Selector «¿Cuántos son?» (2 / 4 / 6 / 8+, activo en verde), tarjeta destacada con borde verde de 2 px, foto de bandeja de 96 px, nombre, precio, descripción y «42.000 por persona · ahorras 24.000» en mono verde; tarjeta secundaria sin foto («Para 3 a 4»); CTA dorado «Añadir bandeja · precio».",
+      "datosOpcionales": [
+        "personas",
+        "ahorro"
+      ],
+      "estructura": [
+        {
+          "bloque": "marco",
+          "que": "Pantalla completa sobre fondo blanco.",
+          "css": {
+            "background": "#FFFFFF",
+            "color": "#1A1815"
+          }
+        },
+        {
+          "bloque": "selectorGrupo",
+          "que": "Título «¿Cuántos son?» y cuatro botones 2 / 4 / 6 / 8+; el activo va en acento (estado local del layout; filtra las bandejas por atributos.personas).",
+          "css": {
+            "padding": "18px",
+            "border-bottom": "1px solid #EFE9E0",
+            "titulo": {
+              "font-family": "Ubuntu, system-ui, sans-serif",
+              "font-size": "20px",
+              "font-weight": 700
+            },
+            "opciones": {
+              "display": "flex; gap: 8px",
+              "margin-top": "12px"
+            },
+            "opcion": {
+              "flex": 1,
+              "height": "48px",
+              "border-radius": "10px",
+              "font-size": "16px",
+              "border": "1px solid #E4DED4"
+            },
+            "opcionActiva": {
+              "background": "#2F7A4F",
+              "color": "#FFFFFF",
+              "font-weight": 700,
+              "border": "none"
+            }
+          }
+        },
+        {
+          "bloque": "lista",
+          "que": "Columna de bandejas para el tamaño elegido.",
+          "css": {
+            "padding": "16px 18px",
+            "display": "flex; flex-direction: column; gap: 12px"
+          }
+        },
+        {
+          "bloque": "tarjetaDestacada",
+          "que": "Bandeja recomendada: foto (producto.foto en caja de 96 px; placeholder «Foto de la bandeja»), nombre (producto.nombre), precio (producto.precio, mono), descripción (producto.descripcion) y línea «{precio/personas} por persona · ahorras {ahorro}» (atributos.personas y atributos.ahorro; sin ellos se omite la línea).",
+          "css": {
+            "border": "2px solid #2F7A4F",
+            "border-radius": "16px",
+            "overflow": "hidden",
+            "foto": {
+              "height": "96px",
+              "background": "#E8E1D5",
+              "placeholder": {
+                "font-size": "10px",
+                "letter-spacing": "0.08em",
+                "text-transform": "uppercase",
+                "color": "#9A8F7E"
+              }
+            },
+            "cuerpo": {
+              "padding": "13px 15px"
+            },
+            "nombre": {
+              "font-family": "Ubuntu, system-ui, sans-serif",
+              "font-size": "17px",
+              "font-weight": 700
+            },
+            "precio": {
+              "font-family": "'IBM Plex Mono', monospace",
+              "font-size": "16px"
+            },
+            "descripcion": {
+              "font-size": "14px",
+              "line-height": 1.45,
+              "color": "#6B6259",
+              "margin-top": "4px"
+            },
+            "porPersona": {
+              "font-family": "'IBM Plex Mono', monospace",
+              "font-size": "13px",
+              "color": "#216239",
+              "margin-top": "6px"
+            }
+          }
+        },
+        {
+          "bloque": "tarjetaSecundaria",
+          "que": "Otras bandejas sin foto: nombre, «Para 3 a 4» (atributos.personas) y precio en mono.",
+          "css": {
+            "border": "1px solid #EFE9E0",
+            "border-radius": "16px",
+            "padding": "13px 15px",
+            "display": "flex; justify-content: space-between; align-items: center",
+            "nombre": {
+              "font-size": "16px",
+              "font-weight": 500
+            },
+            "subtitulo": {
+              "font-size": "13px",
+              "color": "#7A7166"
+            },
+            "precio": {
+              "font-family": "'IBM Plex Mono', monospace",
+              "font-size": "15px"
+            }
+          }
+        },
+        {
+          "bloque": "cta",
+          "que": "Botón «Añadir bandeja · 168.000» (onAdd de la bandeja destacada). Único elemento en dorado #C1873A de la plantilla: color fijo de la familia, no es el token acento.",
+          "css": {
+            "padding": "14px 18px",
+            "border-top": "1px solid #EFE9E0",
+            "boton": {
+              "height": "56px",
+              "border-radius": "12px",
+              "background": "#C1873A",
+              "color": "#FFFFFF",
+              "font-size": "16px",
+              "font-weight": 700
+            }
+          }
+        }
+      ]
+    },
+    "carrito": {
+      "layout": "B3",
+      "descuento5": "chip",
+      "resumen": "Difiere de la familia: cada línea lleva el avatar de iniciales del comensal que la pidió (CM dorado, JR violeta, AL verde), fila «Para la mesa» con icono ↔ para lo compartido, totales con línea de descuento y chip «−5% aplicado» junto al total, CTA verde «Pagar lo mío».",
+      "datosOpcionales": [
+        "comensalLinea",
+        "compartida"
+      ],
+      "estructura": [
+        {
+          "bloque": "cabecera",
+          "que": "Título «Tu pedido» y conteo de ítems del carrito (cart.items.length).",
+          "css": {
+            "padding": "16px 18px",
+            "border-bottom": "1px solid #EFE9E0",
+            "display": "flex; align-items: baseline; justify-content: space-between; gap: 10px",
+            "titulo": {
+              "font-family": "Ubuntu, system-ui, sans-serif",
+              "font-size": "19px",
+              "font-weight": 700,
+              "letter-spacing": "-0.02em",
+              "line-height": 1.15,
+              "color": "#1A1815"
+            },
+            "conteo": {
+              "font-size": "14px",
+              "color": "#6B6259"
+            }
+          }
+        },
+        {
+          "bloque": "lineaComensal",
+          "que": "Fila por línea: avatar de iniciales del comensal que pidió (dato no estándar comensalLinea; colores del marco #C1873A, #5B4BC4, #2F7A4F), nombre y importe en mono. Sin stepper ni «Quitar» en el marco.",
+          "css": {
+            "padding": "10px 18px",
+            "border-bottom": "1px solid #EFE9E0",
+            "display": "flex; gap: 11px; align-items: center",
+            "avatar": {
+              "width": "34px",
+              "height": "34px",
+              "border-radius": "999px",
+              "color": "#FFFFFF",
+              "font-size": "13px",
+              "font-weight": 700,
+              "colores": [
+                "#C1873A",
+                "#5B4BC4",
+                "#2F7A4F"
+              ]
+            },
+            "nombre": {
+              "font-size": "15px"
+            },
+            "importe": {
+              "font-family": "'IBM Plex Mono', monospace",
+              "font-size": "15px",
+              "white-space": "nowrap"
+            }
+          }
+        },
+        {
+          "bloque": "filaMesa",
+          "que": "Fila «Para la mesa» con icono ↔ y el importe compartido (líneas marcadas compartida).",
+          "css": {
+            "padding": "10px 18px",
+            "background": "#FAF8F5",
+            "display": "flex; gap: 11px; align-items: center",
+            "icono": {
+              "width": "34px",
+              "height": "34px",
+              "border-radius": "999px",
+              "background": "#EFE9E0",
+              "color": "#6B6259",
+              "font-size": "14px",
+              "texto": "↔"
+            },
+            "texto": {
+              "font-size": "15px"
+            },
+            "importe": {
+              "font-family": "'IBM Plex Mono', monospace",
+              "font-size": "15px"
+            }
+          }
+        },
+        {
+          "bloque": "totales",
+          "que": "Bloque de totales sobre superficie: Subtotal · Descuento primera compra 5% (color #2F7A4F, monto negativo −4.680) · Propina 10% · Total. Se liga a cart.subtotal, discount (5 % primera compra), propina y cart.total.",
+          "css": {
+            "padding": "16px 18px",
+            "border-top": "1px solid #EFE9E0",
+            "background": "#FAF8F5",
+            "linea": {
+              "display": "flex; justify-content: space-between",
+              "font-size": "15px",
+              "color": "#6B6259",
+              "padding": "3px 0",
+              "monto": {
+                "font-family": "'IBM Plex Mono', monospace",
+                "white-space": "nowrap"
+              }
+            },
+            "lineaDescuento": {
+              "color": "#2F7A4F"
+            },
+            "filaTotal": {
+              "padding-top": "10px",
+              "margin-top": "8px",
+              "border-top": "1px solid #EFE9E0",
+              "display": "flex; justify-content: space-between; align-items: baseline; gap: 10px",
+              "etiqueta": {
+                "font-size": "18px",
+                "font-weight": 700,
+                "letter-spacing": "-0.02em",
+                "line-height": 1.15
+              },
+              "monto": {
+                "font-family": "'IBM Plex Mono', monospace",
+                "font-size": "25px",
+                "white-space": "nowrap",
+                "texto": "$ 97.812"
+              },
+              "chipDescuento": {
+                "height": "26px",
+                "padding": "0 9px",
+                "border-radius": "7px",
+                "background": "#E6F1EA",
+                "color": "#216239",
+                "font-size": "13px",
+                "font-weight": 500,
+                "texto": "−5% aplicado",
+                "posicion": "a la izquierda del monto total, gap 8"
+              }
+            }
+          }
+        },
+        {
+          "bloque": "cta",
+          "que": "Botón principal «Pagar lo mío».",
+          "css": {
+            "padding": "14px 18px",
+            "border-top": "1px solid #EFE9E0",
+            "background": "#FAF8F5",
+            "boton": {
+              "height": "56px",
+              "border-radius": "12px",
+              "background": "#2F7A4F",
+              "color": "#FFFFFF",
+              "font-size": "16px",
+              "font-weight": 700,
+              "display": "grid; place-items: center",
+              "texto": "Pagar lo mío"
+            }
+          }
+        }
+      ]
+    },
+    "pago": {
+      "layout": "B3",
+      "resumen": "Difiere de la familia: cabecera «¿Cómo dividen?» + total en mono, tres opciones de división (Pagar lo mío 24.000 / Dividir en 4 41.016 / Pagar todo 97.812; activa con borde verde 2 px sobre crema), tarjeta guardada VISA con check verde y CTA verde «Pagar $ total».",
+      "estructura": [
+        {
+          "bloque": "cabecera",
+          "que": "«¿Cómo dividen?» y bill.total en mono.",
+          "css": {
+            "padding": "18px",
+            "border-bottom": "1px solid #EFE9E0",
+            "display": "flex; align-items: baseline; justify-content: space-between",
+            "titulo": {
+              "font-family": "Ubuntu, system-ui, sans-serif",
+              "font-size": "18px",
+              "font-weight": 700,
+              "letter-spacing": "-0.02em",
+              "line-height": 1.15
+            },
+            "monto": {
+              "font-family": "'IBM Plex Mono', monospace",
+              "font-size": "19px",
+              "white-space": "nowrap"
+            }
+          }
+        },
+        {
+          "bloque": "opcionesDivision",
+          "que": "Tres tarjetas de opción con etiqueta y monto en mono; la activa lleva borde 2 px en acento y fondo crema #FDF6EA. «Dividir en N» usa el tamaño del grupo elegido en el menú.",
+          "css": {
+            "padding": "16px 18px",
+            "display": "flex; flex-direction: column; gap: 10px",
+            "opcion": {
+              "padding": "15px",
+              "border-radius": "12px",
+              "border": "1px solid #EFE9E0",
+              "display": "flex; align-items: center; justify-content: space-between",
+              "etiqueta": {
+                "font-size": "15px"
+              },
+              "monto": {
+                "font-family": "'IBM Plex Mono', monospace",
+                "font-size": "15px"
+              }
+            },
+            "opcionActiva": {
+              "border": "2px solid #2F7A4F",
+              "background": "#FDF6EA",
+              "etiqueta": {
+                "font-weight": 500
+              }
+            }
+          }
+        },
+        {
+          "bloque": "tarjetaGuardada",
+          "que": "Tarjeta guardada seleccionada (VISA •••• 4242) con check verde (maqueta).",
+          "css": {
+            "padding": "14px",
+            "border-radius": "12px",
+            "border": "2px solid #2F7A4F",
+            "background": "#FDF6EA",
+            "display": "flex; align-items: center; gap: 11px",
+            "insignia": {
+              "height": "24px",
+              "padding": "0 7px",
+              "border-radius": "5px",
+              "background": "#1A1F71",
+              "color": "#FFFFFF",
+              "font-size": "10px",
+              "font-weight": 700
+            },
+            "numero": {
+              "font-family": "'IBM Plex Mono', monospace",
+              "font-size": "15px"
+            },
+            "check": {
+              "width": "22px",
+              "height": "22px",
+              "border-radius": "999px",
+              "background": "#2F7A4F",
+              "color": "#FFFFFF",
+              "font-size": "12px",
+              "font-weight": 700
+            }
+          }
+        },
+        {
+          "bloque": "cta",
+          "que": "Botón principal «Pagar $ 97.812».",
+          "css": {
+            "padding": "14px 18px",
+            "border-top": "1px solid #EFE9E0",
+            "background": "#FAF8F5",
+            "boton": {
+              "height": "60px",
+              "border-radius": "12px",
+              "background": "#2F7A4F",
+              "color": "#FFFFFF",
+              "font-size": "16px",
+              "font-weight": 700,
+              "display": "grid; place-items: center",
+              "texto": "Pagar $ 97.812"
+            }
+          }
+        }
+      ]
+    },
+    "registro": {
+      "patron": "beneficios",
+      "resumen": "Cabecera «Crear cuenta / Tres razones, ninguna de marketing», tres filas de beneficio (5% de descuento hoy sobre crema; tarjeta guardada; alergias a la comanda), solo el campo Correo (foco verde), casilla de datos verde, CTA verde «Crear cuenta y aplicar 5%» + «Ya tengo cuenta».",
+      "estructura": [
+        {
+          "bloque": "cabecera",
+          "que": "Título «Crear cuenta» y subtítulo «Tres razones, ninguna de marketing».",
+          "css": {
+            "padding": "18px 20px",
+            "border-bottom": "1px solid #EFE9E0",
+            "titulo": {
+              "font-family": "Ubuntu, system-ui, sans-serif",
+              "font-size": "19px",
+              "font-weight": 700,
+              "letter-spacing": "-0.02em",
+              "line-height": 1.15
+            },
+            "subtitulo": {
+              "font-size": "14px",
+              "color": "#6B6259",
+              "margin-top": "3px"
+            }
+          }
+        },
+        {
+          "bloque": "beneficios",
+          "que": "Tres filas: «5% de descuento hoy» (cifra en acento sobre crema), «Tu tarjeta guardada, sin volver a escribirla», «Tus alergias van solas a la comanda» (con check gris).",
+          "css": {
+            "display": "flex; flex-direction: column; gap: 10px",
+            "fila5": {
+              "padding": "13px 14px",
+              "border-radius": "12px",
+              "background": "#FDF6EA",
+              "cifra": {
+                "font-size": "24px",
+                "font-weight": 700,
+                "color": "#2F7A4F",
+                "letter-spacing": "-0.03em"
+              },
+              "texto": {
+                "font-size": "14px",
+                "line-height": 1.4,
+                "color": "#6B4A05"
+              }
+            },
+            "fila": {
+              "padding": "13px 14px",
+              "border-radius": "12px",
+              "background": "#FAF8F5",
+              "check": {
+                "width": "26px",
+                "height": "26px",
+                "border-radius": "999px",
+                "background": "#EFE9E0",
+                "font-size": "13px"
+              },
+              "texto": {
+                "font-size": "14px",
+                "color": "#6B6259"
+              }
+            }
+          }
+        },
+        {
+          "bloque": "campoCorreo",
+          "que": "Campo «Correo» (ejemplo: camila@correo.com).",
+          "css": {
+            "label": {
+              "font-size": "14px",
+              "font-weight": 500,
+              "color": "#6B6259",
+              "gap": "6px"
+            },
+            "input": {
+              "height": "52px",
+              "border": "1px solid #EFE9E0",
+              "border-radius": "10px",
+              "background": "#FFFFFF",
+              "padding": "0 14px",
+              "font-size": "16px",
+              "color": "#1A1815"
+            },
+            "inputFoco": {
+              "border": "2px solid #2F7A4F"
+            }
+          }
+        },
+        {
+          "bloque": "consentimientoDatos",
+          "que": "Casilla «Acepto la política de datos.» (marcada) → aceptaDatos.",
+          "css": {
+            "display": "flex; gap: 11px; align-items: center",
+            "casilla": {
+              "width": "24px",
+              "height": "24px",
+              "border-radius": "7px",
+              "font-size": "13px",
+              "font-weight": 700,
+              "background": "#2F7A4F",
+              "color": "#FFFFFF"
+            },
+            "texto": {
+              "font-size": "14px",
+              "color": "#6B6259"
+            }
+          }
+        },
+        {
+          "bloque": "pie",
+          "que": "CTA «Crear cuenta y aplicar 5%» y enlace «Ya tengo cuenta» (onSubmit / onSkip).",
+          "css": {
+            "padding": "16px 20px",
+            "border-top": "1px solid #EFE9E0",
+            "background": "#FAF8F5",
+            "boton": {
+              "height": "56px",
+              "border-radius": "12px",
+              "background": "#2F7A4F",
+              "color": "#FFFFFF",
+              "font-size": "16px",
+              "font-weight": 700,
+              "letter-spacing": "-0.02em",
+              "line-height": 1.15
+            },
+            "enlace": {
+              "text-align": "center",
+              "font-size": "14px",
+              "color": "#6B6259",
+              "margin-top": "11px"
+            }
+          }
+        }
+      ]
+    },
+    "codigo": {
+      "patron": "canal",
+      "resumen": "Cabecera «Entrar sin contraseña / Elige por dónde te llega el código», dos tarjetas de canal (Correo activa con check verde; SMS con →), seis casillas vacías, texto «Escribe el código cuando llegue…» y CTA deshabilitado «Confirmar código».",
+      "estructura": [
+        {
+          "bloque": "cabecera",
+          "que": "Título «Entrar sin contraseña» y subtítulo «Elige por dónde te llega el código».",
+          "css": {
+            "padding": "18px 20px",
+            "border-bottom": "1px solid #EFE9E0",
+            "titulo": {
+              "font-family": "Ubuntu, system-ui, sans-serif",
+              "font-size": "18px",
+              "font-weight": 700,
+              "letter-spacing": "-0.02em",
+              "line-height": 1.15
+            },
+            "subtitulo": {
+              "font-size": "14px",
+              "color": "#6B6259",
+              "margin-top": "3px"
+            }
+          }
+        },
+        {
+          "bloque": "canales",
+          "que": "Dos tarjetas: Correo (email, activa con check en acento) y SMS (celular, con flecha →, onOtherChannel).",
+          "css": {
+            "display": "flex; flex-direction: column; gap: 10px",
+            "canal": {
+              "padding": "15px",
+              "border-radius": "12px",
+              "border": "1px solid #EFE9E0",
+              "display": "flex; align-items: center; justify-content: space-between",
+              "titulo": {
+                "font-size": "15px"
+              },
+              "detalle": {
+                "font-size": "13px",
+                "color": "#6B6259"
+              },
+              "flecha": {
+                "color": "#6B6259"
+              }
+            },
+            "canalActivo": {
+              "border": "2px solid #2F7A4F",
+              "background": "#FDF6EA",
+              "titulo": {
+                "font-weight": 500
+              },
+              "check": {
+                "width": "22px",
+                "height": "22px",
+                "border-radius": "999px",
+                "background": "#2F7A4F",
+                "color": "#FFFFFF",
+                "font-size": "12px",
+                "font-weight": 700
+              }
+            }
+          }
+        },
+        {
+          "bloque": "casillas",
+          "que": "Seis casillas de un dígito (código de 6); la activa lleva borde de 2 px en acento (vacías hasta que llegue el código).",
+          "css": {
+            "display": "flex; gap: 7px",
+            "casilla": {
+              "flex": 1,
+              "height": "60px",
+              "border-radius": "10px",
+              "border": "1px solid #EFE9E0",
+              "background": "#FFFFFF",
+              "font-family": "'IBM Plex Mono', monospace",
+              "font-size": "23px",
+              "display": "grid; place-items: center"
+            },
+            "casillaActiva": {
+              "border": "2px solid #2F7A4F"
+            }
+          }
+        },
+        {
+          "bloque": "ayuda",
+          "que": "«Escribe el código cuando llegue. No cierres esta pantalla.»",
+          "css": {
+            "font-size": "14px",
+            "line-height": 1.45,
+            "color": "#6B6259"
+          }
+        },
+        {
+          "bloque": "pie",
+          "que": "CTA «Confirmar código» deshabilitado hasta completar seis dígitos (onVerify).",
+          "css": {
+            "padding": "16px 20px",
+            "border-top": "1px solid #EFE9E0",
+            "background": "#FAF8F5",
+            "boton": {
+              "height": "56px",
+              "border-radius": "12px",
+              "background": "#EFE9E0",
+              "color": "#6B6259",
+              "font-size": "16px",
+              "font-weight": 700,
+              "letter-spacing": "-0.02em",
+              "line-height": 1.15
+            }
+          }
+        }
+      ]
+    },
+    "historial": {
+      "patron": "porMes",
+      "resumen": "Cabecera oscura con avatar verde; pedidos agrupados por mes («Noviembre», «Octubre» como bandas en mayúsculas) con local, total, «Sáb 16 · mesa 14 · 3 ítems» y chips de estado (Pagado, Factura enviada, −5%, Factura pendiente); pie «Facturas» / «Volver a pedir» verde.",
+      "datosOpcionales": [
+        "ahorroAcumulado",
+        "estadoFactura",
+        "mesa"
+      ],
+      "estructura": [
+        {
+          "bloque": "cabeceraCuenta",
+          "que": "Cabecera oscura con avatar de iniciales, nombre (account.nombre) y resumen «14 pedidos · 62.400 ahorrados» (conteo de pedidos y ahorro acumulado).",
+          "css": {
+            "padding": "20px",
+            "background": "#1A1815",
+            "color": "#F5F1EA",
+            "display": "flex; align-items: center; gap: 13px",
+            "avatar": {
+              "width": "44px",
+              "height": "44px",
+              "border-radius": "999px",
+              "background": "#2F7A4F",
+              "color": "#FFFFFF",
+              "font-size": "16px",
+              "font-weight": 700
+            },
+            "nombre": {
+              "font-family": "Ubuntu, system-ui, sans-serif",
+              "font-size": "17px",
+              "font-weight": 700,
+              "letter-spacing": "-0.02em",
+              "line-height": 1.15
+            },
+            "resumen": {
+              "font-size": "13px",
+              "opacity": 0.72
+            }
+          }
+        },
+        {
+          "bloque": "bandaMes",
+          "que": "Banda de mes en mayúsculas («Noviembre»).",
+          "css": {
+            "padding": "10px 20px",
+            "background": "#FAF8F5",
+            "font-size": "12px",
+            "letter-spacing": "0.12em",
+            "text-transform": "uppercase",
+            "color": "#6B6259",
+            "font-weight": 500
+          }
+        },
+        {
+          "bloque": "filaPedido",
+          "que": "Pedido: local, total en mono, «Sáb 16 · mesa 14 · 3 ítems» y chips de estado.",
+          "css": {
+            "padding": "13px 20px",
+            "border-bottom": "1px solid #EFE9E0",
+            "local": {
+              "font-size": "16px",
+              "font-weight": 500
+            },
+            "total": {
+              "font-family": "'IBM Plex Mono', monospace",
+              "font-size": "15px"
+            },
+            "detalle": {
+              "font-size": "13px",
+              "color": "#6B6259",
+              "margin-top": "2px"
+            },
+            "chips": {
+              "display": "flex; gap: 6px",
+              "margin-top": "8px",
+              "chip": {
+                "height": "26px",
+                "padding": "0 9px",
+                "border-radius": "6px",
+                "font-size": "12px",
+                "font-weight": 500
+              },
+              "pagado": {
+                "background": "#E6F1EA",
+                "color": "#216239"
+              },
+              "facturaEnviada": {
+                "background": "#FAF8F5",
+                "color": "#6B6259"
+              },
+              "descuento": {
+                "background": "#FDF6EA",
+                "color": "#6B4A05"
+              },
+              "facturaPendiente": {
+                "background": "#FDF2DC",
+                "color": "#8A5A05"
+              }
+            }
+          }
+        },
+        {
+          "bloque": "pie",
+          "que": "Dos botones: «Facturas» (secundario) y «Volver a pedir» (primario, onReorder del último pedido).",
+          "css": {
+            "padding": "14px 20px",
+            "border-top": "1px solid #EFE9E0",
+            "background": "#FAF8F5",
+            "display": "flex; gap: 10px",
+            "secundario": {
+              "flex": 1,
+              "height": "50px",
+              "border-radius": "11px",
+              "border": "1px solid #EFE9E0",
+              "font-size": "15px",
+              "font-weight": 500,
+              "color": "#6B6259"
+            },
+            "primario": {
+              "flex": 1,
+              "height": "50px",
+              "border-radius": "11px",
+              "background": "#2F7A4F",
+              "color": "#FFFFFF",
+              "font-size": "15px",
+              "font-weight": 500
+            }
+          }
+        }
+      ]
+    }
+  },
+  "fuentesGoogle": []
+}

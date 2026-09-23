@@ -204,8 +204,13 @@ bloques se versionen juntos.
 |---|---|
 | Bloque 1 · Odoo headless + `pos/` (salón, pedido, cobro, KDS) | operativo |
 | Registro central · resolución interna, tokens, credenciales | mínimo operativo (`registry/`) |
-| Bloque 3 · carta, sesiones, carrito, confirmación, estado | backend operativo (`experience/`); sin pagos ni PWA |
+| Bloque 3 · carta, sesiones, carrito, confirmación, estado | backend `experience/` + PWA `diner/`; marca, 30 plantillas, cuenta y pago demo (Planes F/G/H) |
 | Bloque 2 · facturación DIAN | no iniciado |
+
+El flujo de pago anterior es el objetivo de la integración real. En H, `confirmar`
+envía a Odoo y cocina antes de simular pago; la demo no registra cobro ni factura.
+La identidad demo se liga a la cookie que pidió el desafío, y producción rechaza
+verificación y pago simulados. [Evidencia de H](../revisiones/2026-09-05-cierre-H-pr14.md).
 
 ## Decisiones pendientes
 

@@ -1,0 +1,68 @@
+{
+  "codigo": "S1",
+  "nombre": "Smart Menu",
+  "familia": "B",
+  "familiaNombre": "Smart Menu",
+  "descripcion": "El menú del restaurante: platos, favoritos, pedidos y perfil. Personaliza tu marca conservando el diseño.",
+  "fotos": {
+    "requiere": "todas",
+    "recorte": "1x1"
+  },
+  "tokens": {
+    "modo": "claro",
+    "fondo": "#F8F8FA",
+    "superficie": "#FFFFFF",
+    "tinta": "#32324D",
+    "tintaSuave": "#666687",
+    "tintaTerciaria": "#FFB01D",
+    "borde": "#EAEAEF",
+    "acento": "#6755A0",
+    "acentoTinta": "#FFFFFF",
+    "acentoSuave": "#EEEBF5",
+    "displayFont": "DM Sans",
+    "displayPeso": 500,
+    "displayTracking": "-0.025em",
+    "displayTransform": "none",
+    "cuerpoFont": "Mulish",
+    "monoFont": "Mulish",
+    "radioTarjeta": 16,
+    "radioBoton": 16,
+    "radioChip": 16,
+    "densidad": "amplia"
+  },
+  "personalizable": {
+    "colores": [
+      "acento",
+      "tintaTerciaria",
+      "fondo",
+      "superficie",
+      "tinta"
+    ],
+    "tipografiaDisplay": true,
+    "logo": true
+  },
+  "pantallas": {
+    "menu": {
+      "layout": "S1"
+    },
+    "carrito": {
+      "layout": "smart"
+    },
+    "pago": {
+      "layout": "smart"
+    },
+    "registro": {
+      "patron": "banner5"
+    },
+    "codigo": {
+      "patron": "casillas"
+    },
+    "historial": {
+      "patron": "tarjetas"
+    }
+  },
+  "fuentesGoogle": [
+    "DM Sans",
+    "Mulish"
+  ]
+}

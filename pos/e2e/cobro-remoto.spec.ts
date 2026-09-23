@@ -1,30 +1,28 @@
 import { expect, test } from '@playwright/test'
 
-import { loginAsAdmin } from './helpers/odoo'
+import { chargeTable, createOrder, kitchenReadyAndServe, loginAsAdmin } from './helpers/odoo'
 
 // @flow: order-charged-from-another-device  @outcome: success
-// Un dispositivo envía el pedido a cocina; otro (sin borrador local) lo cobra desde el salón.
+// El pedido vive en Odoo, no en la tablet que lo tomó: un dispositivo lo crea y lo entrega, se apaga, y otro
+// —sin borrador local ni memoria de nada— lo encuentra en el plano y lo cobra.
 test('an order sent from one device can be charged from another', async ({ browser }) => {
   const waiter = await browser.newContext()
   const a = await waiter.newPage()
   await loginAsAdmin(a)
-  await a.getByRole('button', { name: /^7\b.*Libre/ }).click()
-  await a.getByRole('button', { name: 'Abrir pedido' }).click()
-  await a.waitForURL('**/mesas/**')
-  await a.getByRole('region', { name: 'Carta' }).getByRole('button', { name: /Hamburguesa Angus/ }).click()
-  await a.getByRole('button', { name: 'Enviar a cocina' }).click()
-  await a.waitForURL('**/salon')
+  const customer = `Remoto ${Date.now().toString().slice(-6)}`
+  const mesa = await createOrder(a, { customer })
+  await kitchenReadyAndServe(a, mesa)
   await waiter.close()
 
   const cashier = await browser.newContext()
   const b = await cashier.newPage()
   await loginAsAdmin(b)
-  await b.getByRole('button', { name: /^7\b.*En cocina/ }).click()
-  await expect(b.getByText('Hamburguesa Angus')).toBeVisible()
-  await b.getByRole('button', { name: /^Cobrar \$ 43\.911$/ }).click()
-  await b.getByRole('button', { name: 'Agregar pago' }).click()
-  await b.getByRole('button', { name: 'Confirmar cobro' }).click()
+  await b.goto('/salon')
+  await expect(b.getByRole('button', { name: new RegExp(`^Mesa ${mesa}: Servido`) })).toBeVisible({ timeout: 30_000 })
+  await b.getByRole('button', { name: new RegExp(`^Mesa ${mesa}: `) }).click()
+  await b.getByRole('button', { name: 'Detalle de mesa' }).click()
+  await expect(b.getByRole('dialog', { name: 'Detalle de mesa' })).toContainText(customer)
   await b.getByRole('button', { name: 'Cerrar' }).click()
-  await expect(b.getByRole('button', { name: /^7\b.*Libre/ })).toBeVisible()
+  await chargeTable(b, mesa)
   await cashier.close()
 })

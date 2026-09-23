@@ -1,7 +1,14 @@
 # Bloque 3 — Experiencia del comensal
 
+> Contexto posterior (Plan H, 2026-09-05): `experience/` guarda las 30 plantillas y los
+> ajustes por sede; `diner/` renderiza y el POS administra. Descuento real con reserva
+> atómica; pago simulado después de confirmar; cuenta demo ligada al desafío de la
+> misma cookie, sin recuperación de cuentas existentes y deshabilitada en producción.
+> El diseño y los planes anteriores conservan su alcance histórico; el estado ejecutado
+> y sus límites están en [la revisión de H](../revisiones/2026-09-05-cierre-H-pr14.md).
+
 - **Fecha:** 2026-09-04
-- **Estado:** backend implementado el 2026-09-05 (`experience/`, Plan D); pagos, IA y PWA pendientes
+- **Estado:** backend implementado el 2026-09-05 (`experience/`, Plan D); plantillas, cuenta, descuento y pago simulado el 2026-09-05 (Plan H); pasarela real e IA pendientes
 - **Depende de:** [arquitectura modular](2026-09-04-arquitectura-modular.md),
   [una base por restaurante](../decisiones/2026-09-04-multi-tenant.md)
 
@@ -185,18 +192,119 @@ POST /api/v1/sesiones/<id>/lineas         agrega al carrito
 PATCH/DELETE  .../lineas/<id>             modifica o quita
 POST /api/v1/sesiones/<id>/confirmar      → Odoo → cocina (idempotente)
 GET  /api/v1/pedidos/<id>                 estado del pedido
+GET  /api/v1/<rest>/<sede>/fotos/<id>/?v=<versión>&tam=tarjeta|plato   foto del plato (bytes + content-type real; 404 sin foto, 400 tamaño inválido)
+GET  /api/v1/<rest>/<sede>/logo/?v=<versión>                            logo del restaurante (brand_logo de Odoo; solo ráster ≤ 2 MB, 404 si no hay, no es PNG/JPEG/GIF, pesa de más u Odoo no lo entrega)
+POST /api/v1/sesiones/<id>/llamar         el comensal llama al mesero (llega al salón por Odoo)
+POST /api/v1/sesiones/<id>/cuenta         pide la cuenta: todo / lo mío / dividir (+ descuento; totales netos)
+POST /api/v1/sesiones/<id>/pago/simulado/ {metodo, monto} → {estado: "aprobado", referencia, demo: true}; no toca Odoo
+GET  /api/v1/plantillas/                  catálogo público de plantillas (Plan H) con miniaturas; caché 1 h
+GET  /api/v1/plantillas/<codigo>/miniatura/   PNG del menú de la plantilla; caché inmutable
+POST /api/v1/cuenta/registro/             {nombre, correo, celular, aceptaDatos, novedades} → {id, codigoDemo: true}
+POST /api/v1/cuenta/verificar/            {id, codigo} → demo: cualquier código de 6 dígitos; liga la cuenta a la cookie
+GET  /api/v1/cuenta/                      perfil + historial (pedidos de las sesiones donde participó la cuenta)
+POST /api/v1/cuenta/salir/                desliga la cuenta de la cookie
+PUT/GET /internal/v1/<rest>/<sede>/menu/  (X-Internal-Key) ajustes de plantilla de la sede; el PUT devuelve la resuelta
+POST /internal/v1/carta/<rest>/<sede>/invalidar/   (X-Internal-Key) tira la carta, la marca y la plantilla de la caché
 ```
+
+`fotos/` y `logo/` comparten las mismas defensas: se sirve solo lo que los
+bytes dicen ser (PNG/JPEG/GIF por *sniff*; un SVG ⇒ 404 porque desde el
+origen de la API permitiría XSS), `X-Content-Type-Options: nosniff`, CSP
+`default-src 'none'; sandbox`, `Content-Disposition: inline`, y
+`Cache-Control` inmutable cuando `v` coincide con la versión actual y
+`no-store` cuando no. La versión del logo es el `write_date` de `res.company`
+compactado (`YYYYMMDDhhmmss`); la de las fotos, la del producto.
+
+## Marca: precedencia Odoo > registro
+
+`contexto.marca` se arma con dos fuentes (ADR
+[la marca se edita desde el POS](../decisiones/2026-09-05-marca-desde-el-pos.md)):
+
+1. **Odoo, `res.company`** (campos `brand_*` del addon `projectapp_ops`, sin
+   vistas): lo que el administrador del restaurante edita en Configuración ›
+   Marca del POS. El nombre es `res.company.name`.
+2. **El registro central** (`Restaurant.brand_*`, `tagline`, `greeting`,
+   `waiter_name`, `logo_url`): el valor **inicial** que ProjectApp deja en el
+   onboarding.
+
+La regla es **campo a campo**: un valor no vacío en Odoo gana; un campo vacío
+en Odoo cae al registro. Sobre el color final se deriva el tema
+(`colorTexto`, `colorSuave`, `contraste`) con las mismas reglas que
+`registry/registry_app/utils/brand.py` (tinta blanca o `#1A1815` según
+contraste ≥ 4.5, suave = mezcla al 10 % sobre blanco, seis fuentes curadas,
+radios 4 | 14 | 24); un test de paridad en `experience/` impide que las dos
+copias diverjan. `logo` es la URL relativa de `logo/` (con `v`) si hay
+`brand_logo` en Odoo; si no, `logo_url` del registro o `null`.
+
+La marca se cachea `settings.BRAND_CACHE_SECONDS` (env `BRAND_CACHE_SECONDS`,
+60 por defecto), aparte de la carta (`MENU_CACHE_SECONDS`) y del tenant
+(`TENANT_CACHE_SECONDS`). No hay invalidación explícita: un cambio desde el
+POS llega al comensal en ≤ 1 minuto, y el logo se vuelve a descargar porque
+cambia `v`.
+
+## Plantillas del menú (Plan H)
+
+ADR [las plantillas viven en el módulo 3](../decisiones/2026-09-05-plantillas-en-el-modulo-3.md).
+El catálogo es `experience_app/plantillas/catalogo/<codigo>.json` (Contrato 1, copiado del
+diseño con `tools/diseno/sincronizar_catalogo.py`, que también trae las miniaturas a
+`plantillas/miniaturas/`) y se siembra por upsert en `MenuTemplate` con `manage.py
+seed_templates` **y** al terminar cada `migrate` (señal `post_migrate` de la app; se eligió la
+señal y no una migración de datos para que un JSON corregido llegue a la base sin migración
+nueva; nunca borra). La elección de la sede es `VenueMenuSettings(restaurant_slug, venue_slug,
+template, palette, typography)`.
+
+`contexto.plantilla` (Contrato 3) se resuelve así: `spec.tokens` ← marca del Plan G (`acento` =
+color, `displayFont` = tipografía, radios escalados desde `brand_radius`; las píldoras de 999 no
+cambian) ← paleta y tipografía de la sede (solo los tokens de `personalizable`). Si el acento
+final no es el del diseño se recalculan `acentoTinta` (`utils/brand.ink_for`) y `acentoSuave`
+(10 % del acento sobre el fondo de la plantilla). `layouts` sale de `spec.pantallas` (`layout`
+para menú/carrito/pago, `patron` para registro/código/historial); `fuentesGoogle` sigue a la
+tipografía final. `descuento.porcentaje` es `pos.config.signup_discount_percent` (llega con
+`load_data`; 5 si el addon no lo entrega). Sin ajustes: `B1`; sin `B1`: la primera del
+catálogo; catálogo vacío: el spec embebido (`plantillas/defaults.py`), para que el comensal nunca
+se quede sin tokens. Caché `TEMPLATE_CACHE_SECONDS` (env, 60 s) por sede, invalidada por el
+`PUT` interno y por `invalidar/`.
+
+El `PUT` interno valida: código existente, colores `#RRGGBB` solo en `personalizable.colores`,
+tipografía en la lista curada de `utils/brand.FONTS` o la propia de la plantilla, contraste
+acento/`ink_for(acento)` ≥ 4.5 y tinta/fondo ≥ 4.5 si la paleta los toca. Lo llama el addon
+(`/waiter/admin/menu_settings`, solo gerentes del POS) con la clave interna que Odoo guarda en
+`ir.config_parameter` (`projectapp.experience_url`, `projectapp.experience_internal_key`,
+`projectapp.restaurant_slug`, `projectapp.venue_slug`, `projectapp.diner_url`; en dev,
+`odoo/provisioning/seed-menu-params.sh`).
+
+## Cuenta, descuento y pago simulado (Plan H)
+
+`DinerAccount` (nombre, correo, celular, política de datos, novedades, verificada, descuento
+usado) se liga al `Diner` de la cookie al verificar y **viaja con la cookie**: otra visita crea
+otro comensal, pero hereda la cuenta. Un correo ya verificado devuelve su cuenta al registrarse
+de nuevo («Ya tengo cuenta» es el mismo camino). La verificación es demo (cualquier código de
+seis dígitos): `services/account.py` marca dónde entra el proveedor real de códigos.
+
+El **descuento de primera compra** se aplica de verdad al confirmar (`services/orders.py`): si
+quien confirma tiene cuenta verificada con `discount_used_at` vacío, **sus** líneas nuevas van a
+Odoo con `pos.order.line.discount = porcentaje` (se guarda en `CartLine.discount` para que un
+reenvío del mismo uuid no lo pierda) y la cuenta queda marcada solo cuando Odoo aceptó el pedido.
+Carrito y cuenta exponen `descuento: {porcentaje, monto, aplicable, aplicado}` sobre las líneas
+del comensal (precio final con impuestos): en el carrito los totales siguen brutos y `monto` es
+lo que descontará; en la cuenta los totales son netos y `monto` lo ya aplicado.
+
+El **pago** es maquetado: `pago/simulado/` aprueba con referencia `DEMO-…`, deja rastro en el log
+y no toca Odoo ni la sesión; el POS sigue cobrando en la mesa. La pasarela real reemplaza este
+endpoint en `experience_app/payments/`.
 
 ## Estructura
 
 ```text
 experience/
 ├── catalogo/       carta normalizada + caché por sede
+├── plantillas/     catálogo de plantillas, ajustes por sede, plantilla resuelta (Plan H)
 ├── sesiones/       sesión de mesa, comensales, carrito
-├── pedidos/        confirmación y estado
+├── pedidos/        confirmación y estado (descuento de primera compra)
+├── cuenta/         registro, verificación (demo), historial
 ├── adaptadores/
 │   └── odoo/       cliente JSON-RPC
-├── pagos/          (etapa posterior)
+├── pagos/          pago simulado; la pasarela real va aquí
 └── ia/             (etapa posterior)
 ```
 

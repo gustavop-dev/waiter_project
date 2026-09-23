@@ -1,31 +1,32 @@
+import { parseDinerAttributes, serializeDinerAttributes, type DinerAttributes } from '@/lib/domain/dinerAttributes'
+import { useAuthStore } from '@/lib/stores/authStore'
 import { callKw } from '@/lib/services/odoo'
 
-export interface AdminProduct { id: number; name: string; price: number; categoryIds: number[]; taxIds: number[]; available: boolean; storable: boolean; favorite: boolean; description: string; hasImage: boolean }
+export interface AdminProduct { variantId?: number; id: number; name: string; price: number; categoryIds: number[]; taxIds: number[]; available: boolean; storable: boolean; favorite: boolean; description: string; hasImage: boolean; dinerAttributes: DinerAttributes }
 export interface AdminCategory { id: number; name: string; sequence: number; station: string | null }
 export interface Tax { id: number; name: string; amount: number }
 // image: base64 sin prefijo para subir una foto nueva; undefined deja la que hay.
 export type ProductInput = Omit<AdminProduct, 'id' | 'hasImage'> & { image?: string }
 
-interface RawTemplate { id: number; name: string; list_price: number; pos_categ_ids: number[]; taxes_id: number[]; available_in_pos: boolean; is_storable: boolean; is_favorite: boolean; description_sale: string | false; image_128: string | false }
+interface RawTemplate { product_variant_id?: [number,string] | false; id: number; name: string; list_price: number; pos_categ_ids: number[]; taxes_id: number[]; available_in_pos: boolean; is_storable: boolean; is_favorite: boolean; description_sale: string | false; image_128: string | false; diner_attributes: string | false }
 interface RawCategory { id: number; name: string; sequence: number; kitchen_station: string | false }
 
-const TEMPLATE_FIELDS = ['name', 'list_price', 'pos_categ_ids', 'taxes_id', 'available_in_pos', 'is_storable', 'is_favorite', 'description_sale', 'image_128']
+const TEMPLATE_FIELDS = ['name', 'list_price', 'pos_categ_ids', 'taxes_id', 'available_in_pos', 'is_storable', 'is_favorite', 'description_sale', 'image_128', 'diner_attributes', 'product_variant_id']
 
 export async function listProducts(): Promise<AdminProduct[]> {
   const rows = await callKw<RawTemplate[]>('product.template', 'search_read', [[['type', '=', 'consu'], ['sale_ok', '=', true]], TEMPLATE_FIELDS], { order: 'name asc' })
-  return rows.map((r) => ({ id: r.id, name: r.name, price: r.list_price, categoryIds: r.pos_categ_ids, taxIds: r.taxes_id, available: r.available_in_pos,
-    storable: r.is_storable, favorite: r.is_favorite, description: r.description_sale || '', hasImage: Boolean(r.image_128) }))
+  return rows.map((r) => ({ ...(r.product_variant_id?{variantId:r.product_variant_id[0]}:{}), id: r.id, name: r.name, price: r.list_price, categoryIds: r.pos_categ_ids, taxIds: r.taxes_id, available: r.available_in_pos,
+    storable: r.is_storable, favorite: r.is_favorite, description: r.description_sale || '', hasImage: Boolean(r.image_128), dinerAttributes: parseDinerAttributes(r.diner_attributes) }))
 }
 
 function toValues(p: ProductInput) {
   return { ...(p.image !== undefined ? { image_1920: p.image } : {}), name: p.name, list_price: p.price, pos_categ_ids: [[6, 0, p.categoryIds]], taxes_id: [[6, 0, p.taxIds]], available_in_pos: p.available,
-    is_storable: p.storable, is_favorite: p.favorite, description_sale: p.description || false, type: 'consu', sale_ok: true }
+    is_storable: p.storable, is_favorite: p.favorite, description_sale: p.description || false, diner_attributes: serializeDinerAttributes(p.dinerAttributes ?? {}), type: 'consu', sale_ok: true }
 }
 
 export async function saveProduct(id: number | null, p: ProductInput): Promise<number> {
-  if (id === null) return callKw<number>('product.template', 'create', [toValues(p)])
-  await callKw('product.template', 'write', [[id], toValues(p)])
-  return id
+  const employee=useAuthStore.getState().employee
+  return callKw<number>('product.template','waiter_save_catalog_product',[id,toValues(p),employee?.id,employee?.token])
 }
 
 export async function listCategories(): Promise<AdminCategory[]> {
