@@ -42,6 +42,29 @@ La descripción completa del producto está en
   [Estado y evidencia del cierre](docs/revisiones/2026-09-05-cierre-H-pr14.md).
 - [Índice y contexto de documentación](docs/README.md); planes en `docs/planes/`.
 
+## Estructura del repositorio
+
+| Carpeta | Qué contiene |
+|---|---|
+| `pos/` | App Next.js del operador (salón, pedidos, cocina, caja, backoffice). |
+| `diner/` | App Next.js del comensal (Smart Menu). |
+| `experience/` | Backend Django del comensal (API `/api/v1/`). |
+| `registry/` | Registro central Django (restaurantes, sedes, tokens, credenciales). |
+| `odoo/` | Addons propios, compose y aprovisionamiento de Odoo 19. |
+| `tools/` | Utilidades de diseño e imágenes (generador y cargador de fotos demo). |
+| `assets/demo/` | Fotos del menú demo. |
+| `scripts/` | `dev.sh` (levantar/revisar/detener todo), pruebas de Odoo y demo por curl. |
+| `docs/` | Visión, arquitectura, ADR (`decisiones/`), planes, diseño y revisiones. Índice en [`docs/README.md`](docs/README.md). |
+
+Las capturas y referencias visuales viven en `docs/diseno/`, no en `public/`, para
+no publicarlas con las apps.
+
+## Flujo de ramas
+
+`main` es la única rama de larga vida. Cada trabajo sale de `main` en
+`feat/DDMMYYYY-tema`, entra por PR y la rama se borra al fusionarse. No se
+encadenan ramas de funcionalidad unas sobre otras.
+
 ## Levantar el entorno de desarrollo
 
 Todo escucha en la interfaz host-only `192.168.56.10` (el navegador corre en

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hoja de contacto de las 30 plantillas: la carta real del comensal (diner/public/plantillas-capturas/<codigo>-carta.png)
+"""Hoja de contacto de las 30 plantillas: la carta real del comensal (docs/diseno/plantillas/capturas/<codigo>-carta.png)
 junto al marco del diseño (docs/diseno/plantillas/<codigo>/menu.png), seis filas por familia. Para revisar fidelidad de un
 vistazo. Uso: python3 tools/diseno/hoja_plantillas.py [salida.png] [pantalla=carta]"""
 import sys
@@ -8,7 +8,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 RAIZ = Path(__file__).resolve().parents[2]
-CAPTURAS = RAIZ / 'diner' / 'public' / 'plantillas-capturas'
+CAPTURAS = RAIZ / 'docs' / 'diseno' / 'plantillas' / 'capturas'
 DISENO = RAIZ / 'docs' / 'diseno' / 'plantillas'
 salida = Path(sys.argv[1]) if len(sys.argv) > 1 else RAIZ / 'docs' / 'diseno' / 'plantillas' / 'hoja-30.png'
 pantalla = sys.argv[2] if len(sys.argv) > 2 else 'carta'

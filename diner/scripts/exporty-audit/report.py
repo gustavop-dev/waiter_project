@@ -32,7 +32,7 @@ with zipfile.ZipFile(args.zip) as archive:
             shutil.copyfileobj(src, dst)
 source = args.output / 'source'
 mapping = json.loads((source / 'asset-map.json').read_text())
-notes = json.loads((ROOT / 'docs/design/exporty-review.json').read_text())
+notes = json.loads((ROOT / 'docs/diseno/exporty/exporty-review.json').read_text())
 assert len(notes) == 99 and all(n['visuallyReviewed'] for n in notes)
 screens = mapping['screens'][1:]
 assert len(screens) == 99
@@ -84,7 +84,7 @@ summary = {'screensReviewed': 99, 'partial': sum(n['status'] == 'parcial' for n 
 data = {'summary': summary, 'screens': screens, 'assets': list(assets.values()), 'evidence': evidence}
 (args.output / 'audit.json').write_text(json.dumps(data, ensure_ascii=False, indent=2))
 (args.output / 'data.js').write_text('window.EXPORTY_AUDIT=' + json.dumps(data, ensure_ascii=False).replace('</', '<\\/') + ';')
-(ROOT / 'docs/design/exporty-assets-verified.json').write_text(json.dumps(
+(ROOT / 'docs/diseno/exporty/exporty-assets-verified.json').write_text(json.dumps(
     [{**asset, 'exists': True, 'visuallyReviewed': True, 'installedOriginal': asset['installed']} for asset in assets.values()], ensure_ascii=False, indent=2) + '\n')
 lines = [
     '# Comparación del menú con las 99 pantallas Exporty', '',
@@ -109,7 +109,7 @@ for screen, note in zip(screens, notes):
     clean = lambda text: str(text).replace('|', '\\|').replace('\n', ' ')
     lines.append(f"| [{number}](http://192.168.56.10:3002/#screen-{number}) | "
                  f"{clean(screen['name'])} | {clean(case)} | {clean(note['difference'])} |")
-(ROOT / 'docs/design/auditoria-exporty.md').write_text('\n'.join(lines) + '\n')
+(ROOT / 'docs/diseno/exporty/auditoria-exporty.md').write_text('\n'.join(lines) + '\n')
 for filename in ['index.html', 'report.css', 'report.js']:
     shutil.copyfile(Path(__file__).with_name(filename), args.output / filename)
 print(json.dumps(summary, ensure_ascii=False, indent=2))

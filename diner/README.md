@@ -57,7 +57,7 @@ Las capturas usan los componentes reales con respuestas API interceptadas. No
 crean pedidos ni cuentas en el POS. `AUDIT_CASES` permite repetir casos concretos.
 El lector QR se prueba con un SVG generado por el propio script. El informe permite
 comparar las 99 referencias con las capturas actuales y revisar los 432 archivos.
-Consulta [matriz de comparación](../docs/design/auditoria-exporty.md) y
+Consulta [matriz de comparación](../docs/diseno/exporty/auditoria-exporty.md) y
 [decisiones y validación](../docs/decisiones/2026-09-12-smart-menu.md).
 
 Las pruebas `e2e/smart-menu.spec.ts` sí crean una cuenta y una comanda real;

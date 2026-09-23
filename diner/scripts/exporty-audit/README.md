@@ -1,6 +1,6 @@
 # Auditoría visual de Exporty
 
-La revisión humana de **las 99 capturas** está en `docs/design/exporty-review.json`: una observación y una diferencia por imagen, no un porcentaje automático de fidelidad. Los nombres ambiguos del ZIP no se usan para inferir el contenido (90 y 98 son ejemplos).
+La revisión humana de **las 99 capturas** está en `docs/diseno/exporty/exporty-review.json`: una observación y una diferencia por imagen, no un porcentaje automático de fidelidad. Los nombres ambiguos del ZIP no se usan para inferir el contenido (90 y 98 son ejemplos).
 
 `capture.cjs` abre los componentes reales de `diner` y captura los escenarios de la matriz a 375 × 812. Intercepta **todas** las peticiones `/api/v1/` con fixtures; una petición sin mapear falla la auditoría. No escribe en Experience/Odoo. Las imágenes de platos proceden del ZIP solo en estas capturas. Las fuentes se verifican y el resultado registra errores JS y desbordamientos.
 
