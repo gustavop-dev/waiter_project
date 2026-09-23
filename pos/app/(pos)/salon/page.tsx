@@ -20,7 +20,6 @@ import { FloorPane } from '@/components/tables/FloorPane'
 import { FloorSkeleton } from '@/components/tables/FloorSkeleton'
 import { FloorSettingsPopover } from '@/components/tables/FloorSettingsPopover'
 
-import { PayModal } from '@/components/tables/PayModal'
 import { PickTablePrompt } from '@/components/tables/PickTablePrompt'
 import { ReservationDetailModal } from '@/components/tables/ReservationDetailModal'
 import { ReservationListModal } from '@/components/tables/ReservationListModal'
@@ -30,7 +29,6 @@ import { can } from '@/lib/domain/roles'
 import { deriveTableViews } from '@/lib/domain/tableState'
 import { orderCode, orderPrefix } from '@/lib/domain/tablesKit'
 import { useIdentity } from '@/lib/hooks/useIdentity'
-import { getOrderLines, type OrderLineView } from '@/lib/services/orders'
 import { fireUnsentLines } from '@/lib/services/kitchen'
 import { serveLines } from '@/lib/services/ordersKit'
 import { listAllFloors, moveOrder, reservedAtByTable, setFloorActive, type FloorSetting, type OrderDetail, type OrderDetailLine, type TableReservation } from '@/lib/services/tables'
@@ -41,7 +39,7 @@ import { useOrderStore } from '@/lib/stores/orderStore'
 import { toast } from '@/lib/stores/toastStore'
 
 
-type Sheet = null | 'reservations' | 'detail' | 'pay' | 'wizard'
+type Sheet = null | 'reservations' | 'detail' | 'wizard'
 // Las demás pantallas mandan aquí con ?elegir=mesa cuando se pulsa "Crear pedido" sin mesa elegida.
 const PICK_TABLE = 'elegir'
 
@@ -67,7 +65,7 @@ export default function SalonPage() {
   const session = useAuthStore((s) => s.session)
   const { catalog, load } = useCatalogStore()
   const { activeFloorId, secondFloorId, split, selectedTableId, setFloor, setSecondFloor, setSplit, selectTable } = useFloorStore()
-  const { openOrders, calls, flags, attendCall, refreshShift, settle, receipt, closeReceipt, busy } = useOrderStore()
+  const { openOrders, calls, flags, attendCall, refreshShift, busy } = useOrderStore()
   const { orders, loaded: ordersLoaded, refresh: refreshOrders } = useKitOrders()
   const [zoneTables, setZoneTables] = useState<Record<number, number[] | null>>({})
   const onVisibleTables = useCallback((id: number, ids: number[] | null) => {
@@ -81,7 +79,6 @@ export default function SalonPage() {
   const [editing, setEditing] = useState<FloorDocument | null>(null)
   const [moving, setMoving] = useState<{ detail: OrderDetail; fromTableId: number } | null>(null)
   const [target, setTarget] = useState<number | null>(null)
-  const [payLines, setPayLines] = useState<OrderLineView[]>([])
   const [loadedReserved, setLoadedReserved] = useState<{ key: string; map: Record<number, TableReservation | null> } | null>(null)
   const [booking, setBooking] = useState<TableReservation | null>(null)
   const [movingBusy, setMovingBusy] = useState(false)
@@ -158,16 +155,6 @@ export default function SalonPage() {
       setTarget(null)
     } finally { setMovingBusy(false) }
   }
-  async function openPay(detail: OrderDetail) { setPayLines(await getOrderLines(detail.id)); setSheet('pay') }
-  async function onSettle(plan: Parameters<typeof settle>[0]) {
-    if (!selected || !catalog || selected.orderId === null) return
-    const ok = await settle(plan, {
-      existing: { orderId: selected.orderId, tableId: selected.table.id }, tipProductId: catalog.settings.tipProductId, tableNumber: selected.table.number, company: catalog.company.name,
-      lines: payLines.map((l) => ({ uuid: l.uuid, name: l.name, qty: l.qty, unitPrice: l.unitPrice })), methodName: (id) => catalog.paymentMethods.find((m) => m.id === id)?.name ?? '',
-    })
-    if (ok) await reload()
-  }
-  function onCloseReceipt() { closeReceipt(); setSheet(null); selectTable(null) }
   async function openEdit(f: FloorSetting) {
     if (session) { toast({ title: 'Cierra la caja para editar el plano. El reparto de meseros sí se puede cambiar ahora, desde «Meseros por zona».', tone: 'danger' }); return }
     try { const document = await readPlan(f.id); setSettings(false); setEditing(document) }
@@ -216,7 +203,6 @@ export default function SalonPage() {
     background={editing.id && catalog.floors.find(f => f.id === editing.id)?.hasBackground ? `/odoo/web/image/restaurant.floor/${editing.id}/floor_background_image?unique=${editing.revision}` : null}
     onCancel={() => setEditing(null)} onSaved={async (saved) => { await reload(); setFloor(saved.id!); setEditing(null); toast({ title: 'Plano guardado' }) }} />
   // Cobrar puede ser solo de caja: lo decide el restaurante en Configuración.
-  const mayCharge = can.charge(role, catalog.settings.waiterCanCharge, catalog.settings.rolePermissions)
   // Un pedido en mesa nace de una mesa elegida a propósito: sin selección se pide antes de abrir el asistente.
   const mayCreate = roleCan(role, 'create_orders', catalog.settings.rolePermissions)
   const mayServe = roleCan(role, 'serve_orders', catalog.settings.rolePermissions)
@@ -273,19 +259,15 @@ export default function SalonPage() {
       {booking && <ReservationDetailModal open onClose={() => setBooking(null)} reservationId={booking.id} />}
       {selected && (
         <TableDetailModal key={selected.table.id} open={sheet === 'detail'} onClose={() => setSheet(null)} tableName={String(selected.table.number)} orderId={selected.orderId} imageFor={imageFor}
-          onChangeTable={(detail) => { setSheet(null); setMoving({ detail, fromTableId: selected.table.id }) }} onNewOrder={() => newOrderHref && router.push(newOrderHref)} onPay={openPay}
+          onChangeTable={(detail) => { setSheet(null); setMoving({ detail, fromTableId: selected.table.id }) }} onNewOrder={() => newOrderHref && router.push(newOrderHref)}
           onSendPending={mayCreate ? async (orderId) => { await fireUnsentLines(orderId); await refreshOrders() } : undefined}
           call={calls.find((call) => call.tableId === selected.table.id)}
           onAttendCall={mayServe ? async () => { await attendCall(selected.table.id); await refreshOrders() } : undefined}
-          onServe={mayServe ? serveLine : undefined} busy={busy} mayCharge={mayCharge} mayCreate={mayCreate} />
+          onServe={mayServe ? serveLine : undefined} busy={busy} mayCreate={mayCreate} />
       )}
       {moving && target !== null && (
         <ChangeTableModal open onClose={() => setTarget(null)} detail={moving.detail} busy={movingBusy} onConfirm={confirmMove}
           current={String(catalog.tables.find((x) => x.id === moving.fromTableId)?.number ?? '')} target={String(catalog.tables.find((x) => x.id === target)?.number ?? '')} />
-      )}
-      {selected && (
-        <PayModal open={sheet === 'pay'} onClose={() => setSheet(null)} tableNumber={selected.table.number} total={selected.total} lines={payLines} methods={catalog.paymentMethods} busy={busy}
-          onSettle={onSettle} receipt={receipt} onCloseReceipt={onCloseReceipt} />
       )}
       <Suspense><AskedForTable onAsk={askForTable} /></Suspense>
       <PickTablePrompt open={pickTable} onClose={() => setPickTable(false)} />

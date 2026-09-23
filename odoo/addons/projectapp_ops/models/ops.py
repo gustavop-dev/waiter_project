@@ -86,6 +86,28 @@ class PosOrder(models.Model):
             order.waiter_number = order._waiter_next_number()
         return orders
 
+    def action_pos_order_paid(self):
+        """Al cobrar, la mesa deja de llamar."""
+        result = super().action_pos_order_paid()
+        self._waiter_release_table()
+        return result
+
+    def _waiter_release_table(self):
+        """Apaga el aviso de la mesa cobrada.
+
+        Lo hace el servidor dentro del cierre, no el navegador: quien cobra es el cajero, y atender mesas
+        (`serve_orders`) no es suyo, así que su petición se rechazaba y el aviso se quedaba encendido después
+        de pagar. Una mesa con otra cuenta abierta se respeta: esa llamada puede ser de la otra cuenta.
+        """
+        for order in self:
+            table = order.table_id
+            if not table or table.waiter_call == "none":
+                continue
+            others = self.sudo().search_count([
+                ("table_id", "=", table.id), ("id", "!=", order.id), ("state", "=", "draft")])
+            if not others:
+                table.sudo().set_waiter_call("none")
+
     # --- Acciones que el POS llama por RPC -------------------------------------------------------
 
     @api.model

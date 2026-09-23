@@ -79,5 +79,9 @@
   "payPart": "Cobrar {amount}",
   "nothingDue": "Los puntos del socio cubren el pedido: no queda nada por cobrar.",
   "changeToGive": "Devuelve al cliente",
-  "noChange": "Sin cambio: el pago fue exacto"
+  "noChange": "Sin cambio: el pago fue exacto",
+  "methodName": "Método de pago",
+  "amountToCharge": "Importe de este pago",
+  "wholeRemaining": "Cobrar todo lo que falta",
+  "remainingAfter": "Quedaría por cobrar {amount}"
 }

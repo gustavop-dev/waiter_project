@@ -69,3 +69,63 @@ it('sends the table label the customer sees, not just the internal id', async ()
   const settle = useOrderStore.getState().settle as jest.Mock
   expect(settle.mock.calls[0][1]).toMatchObject({ tableLabel: 'A8' })
 })
+
+// Falla si vuelve a ser imposible repartir un cobro en importes libres. El reparto en partes iguales no
+// sirve cuando el cliente dice "cárgame 40.000 a la tarjeta y el resto en efectivo"; era lo único que el
+// cobro viejo desde Mesas hacía y esta pantalla no.
+it('splits a payment into arbitrary amounts, not just equal parts', async () => {
+  show()
+  await userEvent.type(await screen.findByLabelText('Importe de este pago'), '40000')
+  await userEvent.click(screen.getByRole('tab', { name: /Tarjeta/ }))
+  await userEvent.click(screen.getByRole('button', { name: 'Confirmar pago' }))
+  await userEvent.click(await screen.findByRole('button', { name: 'Aprobado' }))
+
+  // Queda pendiente el resto: la pantalla no puede dar el cobro por terminado.
+  expect(useOrderStore.getState().settle).not.toHaveBeenCalled()
+  await userEvent.click(screen.getByRole('tab', { name: 'Efectivo' }))
+  await userEvent.click(await screen.findByRole('button', { name: '100.000' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Pagar ahora' }))
+
+  const settle = useOrderStore.getState().settle as jest.Mock
+  expect(settle.mock.calls[0][0].payments.map((p: { amount: number }) => p.amount)).toEqual([40000, 60000])
+})
+
+// Falla si con dos datáfonos la pantalla cobra siempre por el primero: el cajero no podría cuadrar cada
+// terminal al cierre.
+it('lets the cashier choose between two methods of the same kind', async () => {
+  useCatalogStore.setState({ catalog: { ...catalog, paymentMethods: [
+    { id: 1, name: 'Efectivo', type: 'cash' }, { id: 2, name: 'Datáfono Bancolombia', type: 'bank' }, { id: 3, name: 'Datáfono Davivienda', type: 'bank' },
+  ] } as unknown as Catalog, status: 'ready' })
+  show()
+  await userEvent.click(await screen.findByRole('tab', { name: /Tarjeta/ }))
+  await userEvent.selectOptions(screen.getByLabelText('Método de pago'), '3')
+  await userEvent.click(screen.getByRole('button', { name: 'Confirmar pago' }))
+  await userEvent.click(await screen.findByRole('button', { name: 'Aprobado' }))
+  const settle = useOrderStore.getState().settle as jest.Mock
+  expect(settle.mock.calls[0][0].payments[0].methodId).toBe(3)
+})
+
+// Cobertura trasladada del panel provisional de Mesas (components/pay/PayPanel), que se retira: la propina
+// sugerida sube el total y el datáfono conserva el voucher que tecleó el cajero.
+it('applies the suggested tip and keeps the terminal voucher', async () => {
+  show()
+  await userEvent.click(await screen.findByRole('button', { name: 'Más opciones' }))
+  await userEvent.click(screen.getByRole('button', { name: /10 %/ }))
+  await userEvent.click(screen.getByRole('tab', { name: /Tarjeta/ }))
+  await userEvent.click(screen.getByRole('button', { name: 'Confirmar pago' }))
+  await userEvent.type(await screen.findByLabelText(/Voucher/), 'A1B2')
+  await userEvent.click(screen.getByRole('button', { name: 'Aprobado' }))
+  const settle = useOrderStore.getState().settle as jest.Mock
+  expect(settle.mock.calls[0][0]).toEqual({ tip: 10000, payments: [{ methodId: 2, type: 'bank', amount: 110000, received: 110000, reference: 'A1B2' }] })
+})
+
+// Falla si "cuenta de cliente" (pay_later) vuelve a ofrecerse como forma de cobro: no cobra nada.
+it('never offers pay later as a way to charge', async () => {
+  useCatalogStore.setState({ catalog: { ...catalog, paymentMethods: [
+    { id: 1, name: 'Efectivo', type: 'cash' }, { id: 9, name: 'Cuenta de cliente', type: 'pay_later' },
+  ] } as unknown as Catalog, status: 'ready' })
+  show()
+  await userEvent.click(await screen.findByRole('tab', { name: /Tarjeta/ }))
+  expect(screen.queryByText('Cuenta de cliente')).not.toBeInTheDocument()
+  expect(await screen.findByRole('alert')).toHaveTextContent(/método/i)
+})

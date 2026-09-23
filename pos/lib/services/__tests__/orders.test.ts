@@ -1,6 +1,6 @@
 import { createDraft, addProduct } from '@/lib/domain/order'
 import { callKw } from '@/lib/services/odoo'
-import { getOrderLines, payOrder, saveOrder } from '@/lib/services/orders'
+import { payOrder, saveOrder } from '@/lib/services/orders'
 
 jest.mock('@/lib/services/odoo', () => ({ callKw: jest.fn() }))
 const mockCallKw = callKw as jest.Mock
@@ -37,10 +37,3 @@ it('registers the payment with the order id inside the payment dict', async () =
   expect(paid.paid).toBe(87822)
 })
 
-// Falla si las líneas de un pedido ajeno (otra tablet, el comensal) no se pueden leer para cobrarlo en caja.
-it('reads the lines of an order that was not composed on this device', async () => {
-  mockCallKw.mockResolvedValueOnce([{ uuid: 'l1', full_product_name: 'Hamburguesa Angus', qty: 2, price_unit: 36900, customer_note: false }])
-  const lines = await getOrderLines(13)
-  expect(mockCallKw.mock.calls[0][2][0]).toEqual([['order_id', '=', 13]])
-  expect(lines).toEqual([{ uuid: 'l1', name: 'Hamburguesa Angus', qty: 2, unitPrice: 36900, note: '', discount: 0, subtotal: undefined, total: undefined }])
-})

@@ -9,9 +9,9 @@ import type { OrderDetail, OrderDetailLine } from '@/lib/services/tables'
 const line = (id: number, status: OrderDetailLine['status']): OrderDetailLine => ({ id, uuid: `u${id}`, productId: 3, name: `Plato ${id}`, qty: 2, unitPrice: 36900, total: 87822, note: 'Sin cebolla', additions: ['Queso extra'], status })
 const detail = (lines: OrderDetailLine[]): OrderDetail => ({ id: 9, tracking: '104', reference: 'Order 9', serviceAt: null, customerName: 'Eva', dateOrder: '2026-09-06 17:24:00', total: 87822, sent: lines.length, served: lines.filter((l) => l.status === 'served').length, lines })
 const noop = () => undefined
-const wrap = (d: OrderDetail | null, onChangeTable = noop, onPay = noop) => render(
+const wrap = (d: OrderDetail | null, onChangeTable = noop) => render(
   <NextIntlClientProvider locale="es" messages={messages}>
-    <TableDetailModal open onClose={noop} tableName="11" orderId={d ? 9 : null} imageFor={() => null} onChangeTable={onChangeTable} onNewOrder={noop} onPay={onPay} load={async () => d!} />
+    <TableDetailModal open onClose={noop} tableName="11" orderId={d ? 9 : null} imageFor={() => null} onChangeTable={onChangeTable} onNewOrder={noop} load={async () => d!} />
   </NextIntlClientProvider>,
 )
 
@@ -21,20 +21,18 @@ it('with dishes in progress: shows the ring, offers change table and keeps payme
   wrap(detail([line(1, 'served'), line(2, 'progress')]), onChangeTable)
   expect(await screen.findByText('DI104')).toBeInTheDocument()
   expect(screen.getByRole('img', { name: '50%' })).toBeInTheDocument()
-  expect(screen.getByRole('button', { name: 'Ir a pagar' })).toBeDisabled()
-  expect(screen.getByRole('button', { name: 'Ir a pagar' })).toHaveAttribute('title', 'Podrás cobrar cuando todos los platos estén servidos.')
   await userEvent.click(screen.getByRole('button', { name: 'Cambiar mesa' }))
   expect(onChangeTable).toHaveBeenCalledWith(expect.objectContaining({ id: 9 }))
 })
 
-// Falla si con todo servido sigue sin poderse pagar o si "Cambiar mesa" aparece cuando ya no procede.
-it('with everything served: enables payment, hides change table and shows the served summary', async () => {
-  const onPay = jest.fn()
-  wrap(detail([line(1, 'served'), line(2, 'served')]), noop, onPay)
+// Falla si Mesas vuelve a ofrecer el cobro: cobrar es del cajero y se hace desde Pedidos. Aquí no debe
+// quedar ni un botón deshabilitado que invite a insistir, solo el aviso de dónde se cobra.
+it('with everything served: offers no way to charge and points to the till', async () => {
+  wrap(detail([line(1, 'served'), line(2, 'served')]))
   expect(await screen.findByText('2 platos')).toBeInTheDocument()
   expect(screen.queryByRole('button', { name: 'Cambiar mesa' })).toBeNull()
-  await userEvent.click(screen.getByRole('button', { name: 'Ir a pagar' }))
-  expect(onPay).toHaveBeenCalled()
+  expect(screen.queryByRole('button', { name: /pagar|cobrar/i })).toBeNull()
+  expect(screen.getByText(/caja|Pedidos/)).toBeInTheDocument()
 })
 
 // Falla si una línea pierde sus adiciones, su nota, su precio o su cantidad (lo que el mesero lee para servir).
@@ -64,13 +62,12 @@ it('shows an unsent order honestly and can retry its dispatch without leaving th
   function wrapUnsent() {
     render(<NextIntlClientProvider locale="es" messages={messages}>
       <TableDetailModal open onClose={noop} tableName="11" orderId={9} imageFor={() => null}
-        onChangeTable={noop} onNewOrder={noop} onPay={noop} load={load} onSendPending={send} />
+        onChangeTable={noop} onNewOrder={noop} load={load} onSendPending={send} />
     </NextIntlClientProvider>)
   }
   const button = await screen.findByRole('button', { name: 'Enviar pendientes a cocina' })
   expect(screen.getAllByText('Sin enviar a cocina')).toHaveLength(2)
   expect(screen.queryByText(/En progreso/)).not.toBeInTheDocument()
-  expect(screen.getByRole('button', { name: 'Ir a pagar' })).toBeDisabled()
   await userEvent.click(button)
   expect(await screen.findByRole('alert')).toHaveTextContent('Inicia sesión con tu PIN')
   expect(button).toBeEnabled()
@@ -86,19 +83,18 @@ it('delivers all ready dishes from the detail and immediately refreshes their st
   const serve = jest.fn().mockImplementation(async () => { load.mockResolvedValue(detail([line(1, 'served'), line(2, 'served')])) })
   render(<NextIntlClientProvider locale="es" messages={messages}>
     <TableDetailModal open onClose={noop} tableName="11" orderId={9} imageFor={() => null}
-      onChangeTable={noop} onNewOrder={noop} onPay={noop} load={load} onServe={serve} />
+      onChangeTable={noop} onNewOrder={noop} load={load} onServe={serve} />
   </NextIntlClientProvider>)
   await userEvent.click(await screen.findByRole('button', { name: 'Entregar todo' }))
   expect(serve).toHaveBeenCalledWith([expect.objectContaining({ id: 1 }), expect.objectContaining({ id: 2 })])
-  await waitFor(() => expect(screen.getByRole('button', { name: 'Ir a pagar' })).toBeEnabled())
-  expect(screen.queryByRole('button', { name: 'Entregar todo' })).not.toBeInTheDocument()
+  await waitFor(() => expect(screen.queryByRole('button', { name: 'Entregar todo' })).not.toBeInTheDocument())
 })
 
 it('shows and attends calls even when a table has no order', async () => {
   const attend = jest.fn().mockResolvedValue(undefined)
   render(<NextIntlClientProvider locale="es" messages={messages}>
     <TableDetailModal open onClose={noop} tableName="11" orderId={null} imageFor={() => null}
-      onChangeTable={noop} onNewOrder={noop} onPay={noop} call={{ tableId: 11, kind: 'assist', since: '' }} onAttendCall={attend} />
+      onChangeTable={noop} onNewOrder={noop} call={{ tableId: 11, kind: 'assist', since: '' }} onAttendCall={attend} />
   </NextIntlClientProvider>)
   expect(screen.getByText('Solicita un mesero')).toBeInTheDocument()
   await userEvent.click(screen.getByRole('button', { name: 'Marcar atendida' }))

@@ -69,7 +69,8 @@ test('a waiter moves an order in progress to a free table through the table deta
   await page.getByRole('button', { name: 'Detalle de mesa' }).click()
   const detail = page.getByRole('dialog', { name: 'Detalle de mesa' })
   await expect(detail.getByText('Hamburguesa Angus')).toBeVisible()
-  await expect(detail.getByRole('button', { name: 'Ir a pagar' })).toBeDisabled()
+  // Mesas no ofrece cobrar: eso es de la caja, en Pedidos.
+  await expect(detail.getByRole('button', { name: /pagar|cobrar/i })).toHaveCount(0)
   await detail.getByRole('button', { name: 'Cambiar mesa' }).click()
   // Al mover, solo aterriza en una mesa libre: una reservada del día no se puede elegir, así que se
   // toma la primera que el plano deje pulsar en vez de una fija.

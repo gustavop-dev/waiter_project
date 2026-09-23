@@ -51,6 +51,10 @@ export function PaymentModal({ orderId, onClose, onPaid }: { orderId: number; on
   const [options, setOptions] = useState(false)
   const [payments, setPayments] = useState<Payment[]>([])
   const [cashText, setCashText] = useState('')
+  // Importe imputado a este pago (null = lo que toque por el reparto) y método elegido cuando hay varios
+  // del mismo tipo. Ambos se sueltan al registrar un pago: el siguiente vuelve a partir de lo que falte.
+  const [partial, setPartial] = useState<number | null>(null)
+  const [methodId, setMethodId] = useState<number | null>(null)
   const [cardStage, setCardStage] = useState<'idle' | 'terminal'>('idle')
   const [checking, setChecking] = useState(false)
   const [done, setDone] = useState<PaidSummary | null>(null)
@@ -69,7 +73,10 @@ export function PaymentModal({ orderId, onClose, onPaid }: { orderId: number; on
   }, [orderId])
 
   const methods = useMemo(() => catalog?.paymentMethods ?? [], [catalog])
-  const method = methodFor(kind, methods)
+  // Qué métodos son de esta pestaña. Se pregunta con `methodFor` uno a uno para no repetir aquí su regla
+  // (efectivo por tipo; QR y datáfono son ambos 'bank' y se distinguen por el nombre).
+  const sameKind = useMemo(() => methods.filter((m) => methodFor(kind, [m])), [kind, methods])
+  const method = sameKind.find((m) => m.id === methodId) ?? methodFor(kind, methods)
   const base = order?.total ?? 0
   const tip = tipMode === 'none' ? 0 : tipMode === 'suggested' ? suggestedTip(base) : customTip
   const rate = useMemo(() => ({ copPerPoint: program?.copPerPoint ?? 0 }), [program])
@@ -77,7 +84,9 @@ export function PaymentModal({ orderId, onClose, onPaid }: { orderId: number; on
   const discount = pointsToRedeem(candidateDiscount, rate) >= (program?.minimumPoints??0) ? candidateDiscount : 0
   const grand = Math.max(0, base + tip - discount)
   const left = remaining(grand, payments)
-  const due = Math.min(left, splitEqual(grand, parts)[Math.min(payments.length, parts - 1)] ?? left)
+  const share = Math.min(left, splitEqual(grand, parts)[Math.min(payments.length, parts - 1)] ?? left)
+  // El importe escrito manda sobre el reparto, pero nunca por encima de lo que falta por cobrar.
+  const due = partial === null ? share : Math.min(partial, left)
 
   const finish = useCallback(async (all: Payment[]) => {
     if (!order || !catalog) return
@@ -102,6 +111,7 @@ export function PaymentModal({ orderId, onClose, onPaid }: { orderId: number; on
     const all = [...payments, p]
     setPayments(all)
     setCashText('')
+    setPartial(null)
     setCardStage('idle')
     if (remaining(grand, all) === 0) void finish(all)
   }, [payments, grand, finish])
@@ -223,12 +233,43 @@ export function PaymentModal({ orderId, onClose, onPaid }: { orderId: number; on
             <div className="flex-1 min-w-0 flex flex-col min-h-0">
               <div role="tablist" aria-label={t('method')} className="m-5 mb-0 p-1 rounded-lg bg-muted flex shrink-0">
                 {PAY_KINDS.map((k) => (
-                  <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => { setKind(k); setCardStage('idle') }}
+                  <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => { setKind(k); setMethodId(null); setCardStage('idle') }}
                     className={cn('flex-1 h-11 rounded-md flex items-center justify-center gap-2 text-[15px] font-semibold', kind === k ? 'bg-surface border border-border text-ink' : 'text-dim')}>
                     <Icon name={KIND_ICON[k]} size={18} />{t(`methods.${k}`)}
                   </button>
                 ))}
               </div>
+
+              {/* Con qué y cuánto se cobra ESTE pago. Antes el importe salía siempre del reparto en partes
+                  iguales y el método era el primero de su tipo, así que no se podía cobrar "50.000 con esta
+                  tarjeta y el resto en efectivo" ni elegir entre dos datáfonos. */}
+              {grand > 0 && (
+                <div className="mx-5 mt-3 flex flex-wrap items-end gap-3 shrink-0">
+                  {sameKind.length > 1 && (
+                    <label className="flex flex-col gap-1">
+                      <span className="text-[13px] text-soft">{t('methodName')}</span>
+                      <select aria-label={t('methodName')} value={method?.id ?? ''} onChange={(e) => setMethodId(Number(e.target.value))}
+                        className="h-11 px-3 rounded-md border border-border bg-surface text-[15px] text-ink">
+                        {sameKind.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+                      </select>
+                    </label>
+                  )}
+                  <label className="flex flex-col gap-1">
+                    <span className="text-[13px] text-soft">{t('amountToCharge')}</span>
+                    <input aria-label={t('amountToCharge')} inputMode="numeric" value={partial === null ? '' : partial}
+                      placeholder={String(Math.round(due))} disabled={busy}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, '')
+                        setPartial(digits === '' ? null : Math.min(Number(digits), Math.round(left)))
+                      }}
+                      className="h-11 w-36 px-3 rounded-md border border-border bg-surface text-[15px] text-ink tabular-nums" />
+                  </label>
+                  {partial !== null && (
+                    <button type="button" onClick={() => setPartial(null)} className="h-11 text-[14px] font-semibold text-primary">{t('wholeRemaining')}</button>
+                  )}
+                  <span className="text-[13px] text-soft pb-3">{t('remainingAfter', { amount: `$ ${formatCop(Math.max(0, left - due))}` })}</span>
+                </div>
+              )}
 
               <div className="flex-1 min-h-0 overflow-auto flex flex-col">
                 {/* Los puntos pueden cubrir el pedido entero: entonces no hay nada que cobrar, solo cerrarlo. */}

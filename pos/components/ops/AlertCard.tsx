@@ -37,7 +37,8 @@ export function AlertCard({ alert, late, queue, onResolve, onAttend }: AlertCard
           </>
         ) : (
           <>
-            <Link href="/salon" className="h-tap-min px-4 rounded-[10px] bg-brand-500 text-white grid place-items-center text-[15px] font-medium">{t('actions.charge')}</Link>
+            {/* El cobro vive en Pedidos, no en Mesas: la alerta lleva a la caja, que es quien cobra. */}
+            <Link href="/pedidos" className="h-tap-min px-4 rounded-[10px] bg-brand-500 text-white grid place-items-center text-[15px] font-medium">{t('actions.charge')}</Link>
             <Button size="compact" onClick={() => onResolve(alert, t('chargedLabel', { table }))}>{t('actions.done')}</Button>
           </>
         )}

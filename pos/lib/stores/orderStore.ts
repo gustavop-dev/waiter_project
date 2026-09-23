@@ -32,8 +32,6 @@ interface OrderState {
   save: () => Promise<void>
   sendToKitchen: () => Promise<void>
   requestBill: () => Promise<void>
-  charge: (paymentMethodId: number) => Promise<void>
-  chargeExisting: (orderId: number, tableId: number, total: number, paymentMethodId: number) => Promise<void>
   receipt: ReceiptData | null
   settle: (plan: SettlePlan, ctx: SettleContext) => Promise<boolean>
   closeReceipt: () => void
@@ -102,32 +100,6 @@ export const useOrderStore = create<OrderState>((set, get) => {
       const saved = await persist()
       if (saved) { flag(get().draft!.tableId, { billing: true }); useOpsStore.getState().markBilling(get().draft!.tableId, Date.now()) }
     },
-    charge: async (paymentMethodId) => {
-      const saved = await persist()
-      if (!saved) return
-      set({ busy: true })
-      try {
-        await payOrder(saved.id, paymentMethodId, saved.total)
-        await closeOrder(saved.id)
-        play('cobro')
-        const tableId = get().draft!.tableId
-        set((s) => ({ draft: null, saved: null, busy: false, flags: { ...s.flags, [tableId]: {} } }))
-      } catch (e) {
-        set({ busy: false, error: message(e) })
-      }
-    },
-    // Pedido creado en otro dispositivo (o por el comensal): se cobra por su id, sin borrador local.
-    chargeExisting: async (orderId, tableId, total, paymentMethodId) => {
-      set({ busy: true, error: null })
-      try {
-        await payOrder(orderId, paymentMethodId, total)
-        await closeOrder(orderId)
-        play('cobro')
-        set((s) => ({ busy: false, flags: { ...s.flags, [tableId]: {} } }))
-      } catch (e) {
-        set({ busy: false, error: message(e) })
-      }
-    },
     // Cobro completo: propina (línea en Odoo), un add_payment por pago, cambio en amount_return, cierre y recibo.
     settle: async (plan, ctx) => {
       let orderId = ctx.existing?.orderId ?? null
@@ -149,9 +121,10 @@ export const useOrderStore = create<OrderState>((set, get) => {
         const receipt: ReceiptData = { company: ctx.company, tableNumber: ctx.tableNumber, tableLabel: ctx.tableLabel, reference: closed.reference, at: Date.now(), lines: ctx.lines,
           subtotal: closed.total - closed.tax - plan.tip, tax: closed.tax, tip: plan.tip, total: closed.total,
           payments: plan.payments.map((p) => ({ method: ctx.methodName(p.methodId), amount: p.amount, reference: p.reference })), change: ch }
+        // La mesa deja de llamar al cobrar, pero lo hace Odoo dentro del cierre del pedido
+        // (`_waiter_release_table`): pedirlo desde aquí exigía al cajero permisos de servicio que no tiene,
+        // y el rechazo se perdía en el `catch`, dejando el aviso encendido después de pagar.
         set((s) => ({ draft: null, saved: null, busy: false, receipt, flags: { ...s.flags, [tableId!]: {} } }))
-        // La mesa deja de pedir / llamar: el comensal ya pagó.
-        void clearTableCall(tableId!).catch(() => undefined)
         return true
       } catch (e) {
         play('error')

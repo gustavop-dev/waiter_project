@@ -74,20 +74,21 @@ export async function createOrder(page: Page, options: NewOrderOptions): Promise
   return number
 }
 
-// Cobra la mesa desde el salón: se elige en el plano, se abre su detalle y se paga en efectivo.
-// "Ir a pagar" solo se habilita con todos los platos entregados, que es la regla del kit.
+// Cobra la mesa desde Pedidos, que es donde se cobra: Mesas ya no ofrece el cobro. Se localiza la comanda
+// de esa mesa, se paga en efectivo con un billete que sobra y se cierra el aviso de cobro exitoso.
 export async function chargeTable(page: Page, mesa: string) {
+  await page.goto('/pedidos')
+  const card = page.getByRole('article').filter({ hasText: new RegExp(`Mesa ${mesa}\\b`) }).first()
+  await expect(card).toBeVisible({ timeout: 30_000 })
+  await card.getByRole('link', { name: 'Cobrar' }).click()
+  await expect(page).toHaveURL(/\/pago\/\d+/)
+  const pay = page.getByRole('dialog', { name: 'Pago' })
+  await pay.getByRole('button', { name: '100.000' }).click()
+  await pay.getByRole('button', { name: 'Pagar ahora' }).click()
+  await page.getByRole('button', { name: 'Listo' }).click()
+  // La mesa queda libre en el plano. Se comprueba allí y no en Pedidos porque es lo que ve el mesero; se
+  // recarga para no esperar al sondeo de 30 s. No se mira "Disponible": una reserva del día la deja "Reservada".
   await page.goto('/salon')
-  await page.getByRole('button', { name: new RegExp(`^Mesa ${mesa}: `) }).click()
-  await page.getByRole('button', { name: 'Detalle de mesa' }).click()
-  const detail = page.getByRole('dialog', { name: 'Detalle de mesa' })
-  await detail.getByRole('button', { name: 'Ir a pagar' }).click()
-  await page.getByRole('button', { name: 'Agregar pago' }).click()
-  await page.getByRole('button', { name: 'Confirmar cobro' }).click()
-  await page.getByRole('button', { name: 'Cerrar' }).click()
-  // El plano se sondea cada 30 s; se recarga para no esperar al siguiente sondeo. La mesa queda sin pedido:
-  // se comprueba así y no con "Disponible", porque una reserva del día la deja en "Reservada".
-  await page.reload()
   await expect(page.getByRole('button', { name: new RegExp(`^Mesa ${mesa}: (En progreso|Listo|Servido|Esperando pago)`) })).toHaveCount(0, { timeout: 30_000 })
 }
 
