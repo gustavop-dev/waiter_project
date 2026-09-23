@@ -23,6 +23,8 @@ log = logging.getLogger(__name__)
 LOGO_CACHE_SECONDS = max(settings.BRAND_CACHE_SECONDS, 3600)
 # Textos de la marca: (clave en la vista del comensal, atributo en CompanyBrand). En el registro la clave es la misma.
 TEXT_FIELDS = [('lema', 'tagline'), ('saludo', 'greeting'), ('mesero', 'waiter_name'), ('bienvenida', 'welcome')]
+# Centinela de caché: None es un valor legítimo del logo ("no hay"), así que "no está en caché" necesita otro.
+_MISSING = object()
 
 
 def _key(restaurant: str, venue: str) -> str:
@@ -55,12 +57,24 @@ def invalidate(restaurant: str, venue: str) -> None:
 
 
 def get_logo(tenant: Tenant, company: pos.CompanyBrand) -> tuple[bytes, str] | None:
-    """(bytes, content-type) del logo, o None si Odoo no lo tiene o no es un ráster. Una lectura a Odoo por versión.
+    """(bytes, content-type) del logo, o None si Odoo no lo tiene, no es un ráster o no lo entregó. Una lectura a Odoo por versión.
 
-    El None también se cachea: una marca que aún dice "hay logo" no manda a Odoo a cada comensal.
+    El None de "no hay / no es ráster / pesa de más" también se cachea: una marca que aún dice "hay logo" no manda a Odoo a
+    cada comensal. El de "Odoo no respondió" NO se cachea: la marca puede estar en caché una hora diciendo "hay logo" y el
+    logo debe salir en cuanto Odoo vuelva, no una hora después.
     """
-    return cache.get_or_set(_logo_key(tenant, company.version),
-                            lambda: pos.fetch_company_logo(OdooClient(tenant.odoo)), LOGO_CACHE_SECONDS)
+    key = _logo_key(tenant, company.version)
+    cached = cache.get(key, _MISSING)
+    if cached is not _MISSING:
+        return cached
+    try:
+        found = pos.fetch_company_logo(OdooClient(tenant.odoo))
+    except OdooError as exc:
+        # Incluye OdooUnavailable. La vista responde 404 "sin logo": un <img> solo entiende "no hay imagen".
+        log.warning('logo de %s/%s: Odoo no lo entregó (%s); no se cachea', tenant.restaurant_slug, tenant.venue_slug, exc)
+        return None
+    cache.set(key, found, LOGO_CACHE_SECONDS)
+    return found
 
 
 def logo_url(restaurant: str, venue: str, version: str) -> str:

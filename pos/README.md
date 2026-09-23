@@ -27,6 +27,20 @@ Cada test: ≤50 líneas, ≤7 asserts, sin condicionales, y un comentario
 `// Falla si …` que nombre el bug que atrapa. Los E2E llevan `@flow:` y
 `@outcome:`.
 
+### E2E de marca (`e2e/marca.spec.ts`)
+
+El comensal ve la marca cuando caduca la caché de `experience/`
+(`BRAND_CACHE_SECONDS`, 60 s por defecto). En dev arranca `experience/` con
+`BRAND_CACHE_SECONDS=5` para que el sondeo del E2E no espere un minuto; si
+usas otro valor, pásalo también al test con `E2E_BRAND_CACHE_SECONDS`
+(default 5), que fija el timeout del sondeo (caché + 10 s). Con
+`EXPERIENCE_INTERNAL_KEY` (la misma clave del `.env` de `experience/`) el
+test invalida la caché al terminar por
+`POST http://192.168.56.10:8001/internal/v1/carta/burger-house/poblado/invalidar/`
+(cabecera `X-Internal-Key`); sin ella avisa por consola y la deja caducar.
+
+    E2E_BRAND_CACHE_SECONDS=5 EXPERIENCE_INTERNAL_KEY=… npx playwright test e2e/marca.spec.ts
+
 ## Sistema de diseño del kit CloudPos (Plan I.1)
 
 - Tokens en `lib/design/tokens.ts` y `app/globals.css` (`--kit-*`, temas claro y oscuro por

@@ -193,7 +193,7 @@ PATCH/DELETE  .../lineas/<id>             modifica o quita
 POST /api/v1/sesiones/<id>/confirmar      → Odoo → cocina (idempotente)
 GET  /api/v1/pedidos/<id>                 estado del pedido
 GET  /api/v1/<rest>/<sede>/fotos/<id>/?v=<versión>&tam=tarjeta|plato   foto del plato (bytes + content-type real; 404 sin foto, 400 tamaño inválido)
-GET  /api/v1/<rest>/<sede>/logo/?v=<versión>                            logo del restaurante (brand_logo de Odoo; solo ráster, 404 si no hay o no es PNG/JPEG/GIF)
+GET  /api/v1/<rest>/<sede>/logo/?v=<versión>                            logo del restaurante (brand_logo de Odoo; solo ráster ≤ 2 MB, 404 si no hay, no es PNG/JPEG/GIF, pesa de más u Odoo no lo entrega)
 POST /api/v1/sesiones/<id>/llamar         el comensal llama al mesero (llega al salón por Odoo)
 POST /api/v1/sesiones/<id>/cuenta         pide la cuenta: todo / lo mío / dividir (+ descuento; totales netos)
 POST /api/v1/sesiones/<id>/pago/simulado/ {metodo, monto} → {estado: "aprobado", referencia, demo: true}; no toca Odoo

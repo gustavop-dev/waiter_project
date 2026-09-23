@@ -1,4 +1,6 @@
 import base64
+import logging
+from unittest.mock import patch
 
 from experience_app.adapters.odoo import pos
 from experience_app.adapters.odoo.client import OdooClient, OdooCredentials
@@ -34,6 +36,13 @@ def test_read_company_brand_keeps_what_the_restaurant_edited():
     assert company.has_logo is True
 
 
+def test_read_company_brand_treats_whitespace_only_text_as_empty():
+    """Atrapa un lema de solo espacios guardado en Odoo que pise al del registro (el comensal vería un lema en blanco)."""
+    row = {**EDITED, 'brand_tagline': '  ', 'brand_greeting': '\t', 'brand_waiter_name': ' Alex ', 'name': ' Burger House '}
+    company = pos.read_company_brand(OdooClient(CREDS, FakeSession([AUTH, FakeResponse([row])])))
+    assert (company.tagline, company.greeting, company.waiter_name, company.name) == ('', '', 'Alex', 'Burger House')
+
+
 def test_read_company_brand_survives_a_database_without_company():
     """Atrapa un IndexError en una base recién creada: la marca debe caer al registro, no a un 500."""
     company = pos.read_company_brand(OdooClient(CREDS, FakeSession([AUTH, FakeResponse([])])))
@@ -53,6 +62,22 @@ def test_fetch_company_logo_refuses_anything_that_is_not_png_jpeg_or_gif():
     assert pos.fetch_company_logo(OdooClient(CREDS, FakeSession([AUTH, FakeResponse([{'id': 1, 'brand_logo': encoded}])]))) is None
     webp = base64.b64encode(b'RIFF\x00\x00\x00\x00WEBPVP8 ').decode()
     assert pos.fetch_company_logo(OdooClient(CREDS, FakeSession([AUTH, FakeResponse([{'id': 1, 'brand_logo': webp}])]))) is None
+
+
+def test_fetch_company_logo_refuses_more_than_2_mb_without_decoding_them(caplog):
+    """Atrapa un logo enorme (addon viejo sin tope) decodificado y cacheado en la experiencia por cada versión."""
+    # 2 000 001 bytes decodificados: justo por encima del tope. Base64 válido sin decodificarlo entero.
+    too_big = base64.b64encode(PNG + b'\0' * (2_000_001 - len(PNG))).decode()
+    assert len(too_big) * 3 / 4 > pos.MAX_LOGO_BYTES
+    http = FakeSession([AUTH, FakeResponse([{'id': 1, 'brand_logo': too_big}])])
+    with patch('experience_app.adapters.odoo.pos.base64.b64decode') as decode, caplog.at_level(logging.WARNING):
+        assert pos.fetch_company_logo(OdooClient(CREDS, http)) is None
+    assert decode.call_count == 0
+    assert 'logo' in caplog.text and '2 MB' in caplog.text
+    # Justo en el tope (2 000 000 bytes) sí pasa: el límite es inclusivo, como en el addon.
+    at_limit = base64.b64encode(PNG + b'\0' * (2_000_000 - len(PNG))).decode()
+    data, content_type = pos.fetch_company_logo(OdooClient(CREDS, FakeSession([AUTH, FakeResponse([{'id': 1, 'brand_logo': at_limit}])])))
+    assert (len(data), content_type) == (2_000_000, 'image/png')
 
 
 def test_fetch_company_logo_is_none_when_odoo_has_no_logo():

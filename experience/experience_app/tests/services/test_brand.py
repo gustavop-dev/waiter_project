@@ -1,12 +1,15 @@
+import logging
 from dataclasses import replace
 from unittest.mock import patch
 
+import pytest
 from django.conf import settings
 from django.urls import reverse
 
-from experience_app.adapters.odoo.client import OdooError, OdooUnavailable
+from experience_app.adapters.odoo.client import OdooClient, OdooError, OdooUnavailable
 from experience_app.services import brand
 from experience_app.tests.conftest import BRAND, DELIVERY, TABLE, UNTOUCHED_COMPANY
+from experience_app.tests.helpers import AUTH, FakeResponse, FakeSession
 
 READ = 'experience_app.services.brand.pos.read_company_brand'
 CLIENT = 'experience_app.services.brand.OdooClient'
@@ -113,3 +116,28 @@ def test_logo_hits_odoo_once_per_version(client, fetch):
     assert fetch.call_count == 1
     brand.get_logo(TABLE, replace(EDITED_COMPANY, version='20260907000000'))
     assert fetch.call_count == 2
+
+
+@pytest.mark.parametrize('failure', [OdooUnavailable('down'), OdooError('Invalid field brand_logo on res.company')])
+@patch('experience_app.services.brand.pos.fetch_company_logo')
+@patch(CLIENT)
+def test_logo_fetch_failure_is_none_and_not_cached(client, fetch, failure, caplog):
+    """Atrapa un 5xx en logo/ con la marca ya en caché diciendo "hay logo", o una caída recordada una hora bajo esa versión."""
+    fetch.side_effect = failure
+    with caplog.at_level(logging.WARNING):
+        assert brand.get_logo(TABLE, EDITED_COMPANY) is None
+    assert 'logo' in caplog.text
+    fetch.side_effect = None
+    fetch.return_value = (b'\x89PNG', 'image/png')
+    assert brand.get_logo(TABLE, EDITED_COMPANY) == (b'\x89PNG', 'image/png')
+    assert fetch.call_count == 2
+
+
+def test_whitespace_only_text_in_odoo_falls_back_to_the_registry():
+    """Atrapa un lema de espacios en Odoo que llegue al comensal como lema vacío en vez del de ProjectApp (de punta a punta)."""
+    row = {'id': 1, 'name': 'Burger House', 'brand_color': False, 'brand_font': False, 'brand_radius': False, 'brand_tagline': '   ',
+           'brand_greeting': False, 'brand_waiter_name': False, 'brand_welcome': False, 'brand_logo': False, 'write_date': '2026-09-05 01:02:03'}
+    http = FakeSession([AUTH, FakeResponse([row])])
+    with patch(CLIENT, return_value=OdooClient(TABLE.odoo, http)):
+        view = brand.brand_view(TABLE)
+    assert view['lema'] == 'Cocina de barrio'
