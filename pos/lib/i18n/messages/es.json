@@ -723,18 +723,22 @@
         "declined": "Rechazado"
       },
       "receipt": {
-        "title": "Comprobante de pago",
+        "title": "Cuenta de cobro",
         "table": "Mesa {n}",
         "subtotal": "Subtotal",
         "tax": "Impuestos",
         "tip": "Propina",
         "total": "Total",
         "change": "Cambio",
-        "fiscalHint": "Este comprobante no reemplaza la factura electrónica o el documento equivalente electrónico validado.",
         "thanks": "Gracias por su visita",
         "print": "Imprimir",
         "close": "Cerrar",
-        "discountIncluded": "Descuento incluido (antes de impuestos)"
+        "discountIncluded": "Descuento incluido (antes de impuestos)",
+        "number": "No.",
+        "vat": "NIT",
+        "columnItem": "Descripción",
+        "columnAmount": "Valor",
+        "notValidated": "Documento no validado por la DIAN"
       }
     },
     "cash": {

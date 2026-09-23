@@ -43,7 +43,7 @@
   "paymentMethod": "Método de pago",
   "customerPays": "Paga con",
   "change": "Cambio",
-  "printBill": "Imprimir comprobante",
+  "printBill": "Imprimir cuenta",
   "paymentDone": "Listo",
   "confirmPayment": "Confirmar pago",
   "options": "Más opciones",
@@ -77,5 +77,7 @@
   "searchPlaceholder": "Código de socio",
   "paying": "Registrando el pago…",
   "payPart": "Cobrar {amount}",
-  "nothingDue": "Los puntos del socio cubren el pedido: no queda nada por cobrar."
+  "nothingDue": "Los puntos del socio cubren el pedido: no queda nada por cobrar.",
+  "changeToGive": "Devuelve al cliente",
+  "noChange": "Sin cambio: el pago fue exacto"
 }

@@ -46,12 +46,14 @@ interface OrderState {
 }
 
 export interface ReceiptData {
-  company: string; tableNumber: number; reference: string; at: number; lines: { uuid: string; name: string; qty: number; unitPrice: number; discount?: number; total?: number }[]
+  // `tableLabel` es el nombre que ve el cliente ("A8", "Terraza 8"); `tableNumber` se conserva para quien
+  // solo tiene el número. El documento imprime la etiqueta cuando existe.
+  company: string; tableNumber: number; tableLabel?: string; reference: string; at: number; lines: { uuid: string; name: string; qty: number; unitPrice: number; discount?: number; total?: number }[]
   subtotal: number; tax: number; tip: number; total: number; payments: { method: string; amount: number; reference: string }[]; change: number
 }
 // Lo que el cobro necesita saber además del plan: dónde está el pedido y con qué pintar el recibo.
 export interface SettleContext {
-  existing: { orderId: number; tableId: number } | null; tipProductId: number | null; tableNumber: number; company: string
+  existing: { orderId: number; tableId: number } | null; tipProductId: number | null; tableNumber: number; tableLabel?: string; company: string
   lines: ReceiptData['lines']; methodName: (id: number) => string
 }
 
@@ -144,7 +146,7 @@ export const useOrderStore = create<OrderState>((set, get) => {
         if (ch > 0) await setChange(orderId, ch)
         const closed = await closeOrder(orderId)
         play('cobro')
-        const receipt: ReceiptData = { company: ctx.company, tableNumber: ctx.tableNumber, reference: closed.reference, at: Date.now(), lines: ctx.lines,
+        const receipt: ReceiptData = { company: ctx.company, tableNumber: ctx.tableNumber, tableLabel: ctx.tableLabel, reference: closed.reference, at: Date.now(), lines: ctx.lines,
           subtotal: closed.total - closed.tax - plan.tip, tax: closed.tax, tip: plan.tip, total: closed.total,
           payments: plan.payments.map((p) => ({ method: ctx.methodName(p.methodId), amount: p.amount, reference: p.reference })), change: ch }
         set((s) => ({ draft: null, saved: null, busy: false, receipt, flags: { ...s.flags, [tableId!]: {} } }))

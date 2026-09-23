@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl'
 
 import { Icon } from '@/components/kit/Icon'
 import { formatOrderDay, formatOrderTime } from '@/components/orders/format'
-import { Receipt } from '@/components/pay/Receipt'
+import { PrintableReceipt } from '@/components/pay/PrintableReceipt'
 import { formatCop } from '@/lib/domain/money'
 import { odooDate, type KitLine, type KitOrder } from '@/lib/domain/orderState'
 import type { ReceiptData } from '@/lib/stores/orderStore'
@@ -61,8 +61,7 @@ export function BillInfo({ order, lines, company }: Props) {
       <div className="px-4 pb-4 shrink-0">
         <button type="button" onClick={() => window.print()} className="w-full h-12 rounded-md bg-primary text-primary-ink text-[16px] font-bold inline-flex items-center justify-center gap-2"><Icon name="printer" size={20} />{t('bill.print')}</button>
       </div>
-      {/* Fuera de la vista, pero presente en el DOM: la hoja de estilos de impresión solo deja visible .receipt. */}
-      <div aria-hidden="true" className="fixed -left-[9999px] top-0 w-[400px]"><Receipt data={receipt} onClose={() => undefined} /></div>
+      <PrintableReceipt data={receipt} />
     </aside>
   )
 }

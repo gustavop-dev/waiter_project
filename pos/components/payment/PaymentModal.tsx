@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Icon } from '@/components/kit/Icon'
 import { Toggle } from '@/components/kit/Toggle'
+import { PrintableReceipt } from '@/components/pay/PrintableReceipt'
 import { CardPanel, CashPanel, QrPanel } from '@/components/payment/PaymentPanels'
 import { PaymentSuccess, type PaidSummary } from '@/components/payment/PaymentSuccess'
 import { Button } from '@/components/ui/Button'
@@ -33,7 +34,7 @@ type TipMode = 'none' | 'suggested' | 'custom'
 export function PaymentModal({ orderId, onClose, onPaid }: { orderId: number; onClose: () => void; onPaid: (s: PaidSummary) => void }) {
   const t = useTranslations('payment')
   const catalog = useCatalogStore((s) => s.catalog)
-  const { settle, busy, error } = useOrderStore()
+  const { settle, busy, error, receipt } = useOrderStore()
 
   const [order, setOrder] = useState<PayableOrder | null>(null)
   const [program, setProgram] = useState<LoyaltyProgram | null>(null)
@@ -86,7 +87,8 @@ export function PaymentModal({ orderId, onClose, onPaid }: { orderId: number; on
     }
     const ok = await settle({ tip, payments: all }, {
       existing: { orderId: order.id, tableId: order.tableId ?? 0 }, tipProductId: catalog.settings.tipProductId,
-      tableNumber: order.tableId ?? 0, company: catalog.company.name,
+      // El documento lleva la mesa que ve el cliente ("A8", "Terraza 8"), no el id interno.
+      tableNumber: order.tableId ?? 0, tableLabel: order.tableNumber || undefined, company: catalog.company.name,
       lines: order.lines.map((l) => ({ uuid: l.uuid, name: l.name, qty: l.qty, unitPrice: l.unitPrice, total: l.total })),
       methodName: (id) => methods.find((m) => m.id === id)?.name ?? '',
     })
@@ -128,7 +130,14 @@ export function PaymentModal({ orderId, onClose, onPaid }: { orderId: number; on
     setUsePoints(found !== null)
   }
 
-  if (done) return <PaymentSuccess summary={done} onPrint={() => window.print()} onDone={() => onPaid(done)} />
+  // El documento va montado junto al aviso: la hoja de impresión solo deja visible `.receipt`, así que sin
+  // esto "Imprimir" sacaba una hoja en blanco desde Pedidos.
+  if (done) return (
+    <>
+      <PaymentSuccess summary={done} onPrint={() => window.print()} onDone={() => onPaid(done)} />
+      {receipt && <PrintableReceipt data={receipt} />}
+    </>
+  )
 
   const badge = order?.tableId ? order.tableNumber.split(' ').pop() ?? '' : null
   const presetType = order?.presetId ? TYPE_BY_PRESET[order.presetId] : undefined

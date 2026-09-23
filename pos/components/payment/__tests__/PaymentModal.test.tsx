@@ -47,3 +47,25 @@ it('says there is no points programme when Odoo has none', async () => {
   expect(await screen.findByPlaceholderText('Sin programa de puntos')).toBeDisabled()
   expect(screen.getByRole('button', { name: 'Buscar' })).toBeDisabled()
 })
+
+// Falla si la pantalla de éxito vuelve a quedarse sin el documento en el DOM: la hoja de impresión solo deja
+// visible `.receipt`, así que sin él "Imprimir cuenta" sacaba una hoja en blanco desde Pedidos.
+it('mounts the printable cuenta de cobro after charging', async () => {
+  const receipt = { company: 'Aurora', tableNumber: 8, reference: 'TA423', at: Date.now(), lines: [],
+    subtotal: 84034, tax: 15966, tip: 0, total: 100000, payments: [{ method: 'Efectivo', amount: 100000, reference: '' }], change: 0 }
+  useOrderStore.setState({ settle: jest.fn().mockResolvedValue(true) as never, receipt: receipt as never })
+  show()
+  await userEvent.click(await screen.findByRole('button', { name: '100.000' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Pagar ahora' }))
+  expect(await screen.findByText('¡Pago exitoso!')).toBeInTheDocument()
+  expect(await screen.findByLabelText('Cuenta de cobro')).toBeInTheDocument()
+})
+
+// Falla si el documento vuelve a llevar solo el id interno de la mesa en vez del nombre que ve el cliente.
+it('sends the table label the customer sees, not just the internal id', async () => {
+  show()
+  await userEvent.click(await screen.findByRole('button', { name: '100.000' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Pagar ahora' }))
+  const settle = useOrderStore.getState().settle as jest.Mock
+  expect(settle.mock.calls[0][1]).toMatchObject({ tableLabel: 'A8' })
+})

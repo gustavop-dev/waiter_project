@@ -110,10 +110,19 @@ body { background: var(--color-canvas); color: var(--color-ink); font-family: va
 @media (prefers-reduced-motion: reduce) { .login-blob { animation: none; } }
 
 /* Recibo: al imprimir solo se ve .receipt (impresión desde el navegador; térmica llega después). */
+/* Cuenta de cobro en rodillo térmico de 80 mm (components/pay/Receipt.tsx).
+   `size: 80mm auto` es lo que hace que el papel continuo corte al acabar el documento en vez de expulsar una
+   hoja entera. El rodillo imprime unos 72 mm útiles: de ahí los 4 mm de margen.
+   La térmica no tiene grises ni color: se fuerza todo a negro sobre blanco para que ningún tono suave del
+   tema (ni el modo oscuro) salga lavado o invisible. */
+@page { size: 80mm auto; margin: 0; }
 @media print {
   body * { visibility: hidden; }
   .receipt, .receipt * { visibility: visible; }
-  .receipt { position: fixed; inset: 0; width: 80mm; padding: 6mm; background: #fff; color: #000; overflow: visible; }
+  .receipt { position: fixed; inset: 0; width: 80mm; padding: 4mm; background: #fff; overflow: visible;
+    font-size: 12px; line-height: 1.35; }
+  .receipt * { color: #000 !important; background: transparent !important; box-shadow: none !important; }
+  .receipt *, .receipt *::before, .receipt *::after { border-color: #000 !important; }
 }
 
 /* Globitos de la línea de tiempo de reservas: la flecha se mece hacia el lado donde hay reservas fuera de la vista. */

@@ -40,7 +40,9 @@ export function CashPanel({ due, text, onText, onPay, busy }: { due: number; tex
   const received = text === '' ? 0 : amountOf(text)
   const ok = canPayCash(received, due)
   return (
-    <div className="flex-1 min-h-0 flex flex-col items-center gap-4 px-6 py-5">
+    // El contenedor de arriba ya hace scroll: con `flex-1 min-h-0` este panel encogía por debajo de su
+    // contenido y el teclado se desbordaba bajo el bloque siguiente, que se comía los toques (teclas muertas).
+    <div className="flex flex-col items-center gap-4 px-6 py-5">
       <div className="text-center">
         <p className="text-[18px] font-semibold text-ink">{t('inputMoney')}</p>
         <p className="text-[14px] text-dim">{t('inputMoneyBody')}</p>
