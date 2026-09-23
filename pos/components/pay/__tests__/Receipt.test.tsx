@@ -23,24 +23,26 @@ beforeEach(() => {
 
 const show = () => render(<NextIntlClientProvider locale="es" messages={messages}><Receipt data={data} onClose={jest.fn()} /></NextIntlClientProvider>)
 
-// Falla si el papel vuelve a llamarse "comprobante" o recupera el párrafo fiscal largo: el dueño pidió una
-// cuenta de cobro con el aviso reducido a una línea (decisión del 2026-09-23).
-it('is titled as a cuenta de cobro and carries only the short DIAN note', async () => {
+// Falla si el papel vuelve a llamarse "comprobante" o recupera cualquier aviso fiscal: el dueño los quitó
+// los dos (decisión del 2026-09-23).
+it('is titled as a cuenta de cobro and carries no fiscal disclaimer', async () => {
   show()
   expect(await screen.findByLabelText('Cuenta de cobro')).toBeInTheDocument()
-  expect(screen.getByText('Documento no validado por la DIAN')).toBeInTheDocument()
+  expect(screen.queryByText(/DIAN/)).not.toBeInTheDocument()
   expect(screen.queryByText(/no reemplaza la factura electrónica/)).not.toBeInTheDocument()
 })
 
-// Falla si la columna del consumo deja de cuadrar con el subtotal: la línea imprimía el valor CON impuesto
-// (4.165) sobre un subtotal SIN impuesto (3.500), así que el papel no sumaba.
-it('prints each line without tax so the column adds up to the subtotal', async () => {
+// Falla si el papel vuelve al modelo gringo de sumar el impuesto al final. En Colombia el precio ya lo
+// lleva dentro: la línea se cobra por 4.165, la columna suma el total, y el IVA se declara sin sumarse.
+it('prints Colombian style: prices with VAT inside and the VAT only declared', async () => {
   show()
   const doc = await screen.findByLabelText('Cuenta de cobro')
   const shown = [...doc.querySelectorAll('li span')].map((s) => s.textContent)
-  expect(shown).toContain('3.500')
-  expect(shown).not.toContain('4.165')
-  expect(screen.getByText('Subtotal').parentElement).toHaveTextContent('3.500')
+  expect(shown).toContain('4.165')
+  expect(shown).not.toContain('3.500')
+  expect(screen.getByText('Total').parentElement).toHaveTextContent('4.165')
+  expect(screen.getByText('IVA incluido (19%)').parentElement).toHaveTextContent('665')
+  expect(screen.queryByText('Subtotal')).not.toBeInTheDocument()
 })
 
 // Falla si el emisor deja de imprimirse: sin NIT ni dirección el papel no sirve como cuenta de cobro.
@@ -65,4 +67,24 @@ it('closes with the Waiter wordmark', async () => {
   show()
   expect(await screen.findByText('Waiter.')).toBeInTheDocument()
   expect(screen.getByText('by ProjectApp')).toBeInTheDocument()
+})
+
+// Falla si la propina se mezcla con el consumo: al cliente hay que mostrarle por separado qué comió y qué
+// dejó de propina, y que el total es la suma de ambos.
+it('separates the tip from the consumption when there is one', async () => {
+  const conPropina: ReceiptData = { ...data, tip: 5000, total: 9165, payments: [{ method: 'Efectivo', amount: 9165, reference: '' }], change: 0 }
+  render(<NextIntlClientProvider locale="es" messages={messages}><Receipt data={conPropina} onClose={jest.fn()} /></NextIntlClientProvider>)
+  expect(await screen.findByText('Consumo')).toBeInTheDocument()
+  expect(screen.getByText('Consumo').parentElement).toHaveTextContent('4.165')
+  expect(screen.getByText('Propina').parentElement).toHaveTextContent('5.000')
+  expect(screen.getByText('Total').parentElement).toHaveTextContent('9.165')
+})
+
+// Falla si el papel inventa un porcentaje cuando la carta mezcla tarifas (IVA 19 % con INC 8 %, exentos):
+// entonces no hay una sola tarifa que declarar y debe decir "IVA incluido" a secas.
+it('does not invent a rate when the bill mixes tax rates', async () => {
+  const mezclado: ReceiptData = { ...data, tax: 500, subtotal: 3665 }
+  render(<NextIntlClientProvider locale="es" messages={messages}><Receipt data={mezclado} onClose={jest.fn()} /></NextIntlClientProvider>)
+  expect(await screen.findByText('IVA incluido')).toBeInTheDocument()
+  expect(screen.queryByText(/IVA incluido \(/)).not.toBeInTheDocument()
 })
