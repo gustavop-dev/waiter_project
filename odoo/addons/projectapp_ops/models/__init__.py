@@ -17,3 +17,4 @@ from . import insights
 from . import billing
 
 from . import role_permissions
+from . import tax_regime

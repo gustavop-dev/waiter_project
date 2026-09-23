@@ -7,6 +7,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { Icon, type KitIcon } from '@/components/kit/Icon'
 import { CompanyForm, DisplayForm, FloorsForm, PaymentMethodsList, TaxesList, UsersForm } from '@/components/settings/KitSettingsForms'
 import { RolePermissionsForm } from '@/components/settings/RolePermissionsForm'
+import { TaxRegimeForm } from '@/components/settings/TaxRegimeForm'
 import { KitchenPaymentPolicyForm } from '@/components/settings/KitchenPaymentPolicyForm'
 import { ReservationHoursForm } from '@/components/settings/ReservationHoursForm'
 import { PaymentGatewayForm } from '@/components/settings/PaymentGatewayForm'
@@ -64,7 +65,7 @@ function ConfiguracionInner() {
               {section === 'floors' && <FloorsForm floors={floors} configId={catalog.settings.configId} onChanged={reloadFloors} />}
               {section === 'reservationHours' && <ReservationHoursForm configId={catalog.settings.configId} />}
               {section === 'payments' && <><PaymentMethodsList methods={methods} /><PaymentGatewayForm methods={methods} /></>}
-              {section === 'taxes' && <TaxesList taxes={taxes} />}
+              {section === 'taxes' && <div className="space-y-8"><TaxRegimeForm configId={catalog.settings.configId} /><TaxesList taxes={taxes} /></div>}
               {section === 'users' && <UsersForm users={users} onChanged={reloadUsers} />}
               {section === 'permissions' && <div className="space-y-8"><RolePermissionsForm configId={catalog.settings.configId} initial={catalog.settings.rolePermissions} /><KitchenPaymentPolicyForm configId={catalog.settings.configId} /></div>}
               {section === 'alerts' && <ThresholdsForm key="alerts" initial={catalog.settings} section="alerts" onSave={onSaveSettings} />}

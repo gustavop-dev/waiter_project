@@ -12,3 +12,4 @@ from . import test_billing
 
 from . import test_role_permissions
 from . import test_terminal_login
+from . import test_tax_regime
