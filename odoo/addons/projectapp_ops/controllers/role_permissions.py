@@ -3,6 +3,7 @@ from odoo import http
 from odoo.http import request
 from odoo.exceptions import AccessError
 from odoo.addons.web.controllers.dataset import DataSet
+from odoo.addons.web.controllers.session import Session
 from ..models.role_permissions import employee_role
 
 
@@ -70,3 +71,18 @@ class WaiterDataSet(DataSet):
     @http.route()
     def call_button(self, model, method, args, kwargs, path=None):
         return super().call_button(model, method, args, self._waiter_guard(model, method, args, kwargs), path)
+
+
+class WaiterSession(Session):
+    @http.route()
+    def authenticate(self, db, login, password, base_location=None):
+        """Entrar con el correo del terminal empieza un dispositivo sin empleado validado.
+
+        `Session.authenticate` conserva las claves propias de la sesión, así que la identidad de un turno
+        anterior sobrevivía al nuevo acceso; con su token ya caducado el guardia rechazaba cada llamada
+        —incluida la lectura del rol que el POS hace al entrar— y el terminal se quedaba sin salida por
+        la interfaz, diciendo «correo o contraseña incorrectos» con la contraseña correcta.
+        """
+        result = super().authenticate(db, login, password, base_location)
+        request.session.pop('waiter_pos_identity', None)
+        return result

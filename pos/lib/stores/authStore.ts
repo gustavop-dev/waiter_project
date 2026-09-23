@@ -55,6 +55,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   employee: null,
   hydrated: false,
   login: async (l, p) => {
+    // El terminal entra sin empleado: se suelta también el guardado, que si no revive en la próxima recarga.
+    storeEmployee(null)
     set({ employee: null })
     const user = await loginRequest(l, p)
     const session = await getOpenSession()

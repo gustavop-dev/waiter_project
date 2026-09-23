@@ -58,6 +58,7 @@
       "remember": "Mantener la sesión en esta terminal",
       "submit": "Abrir mi turno",
       "failed": "Correo o contraseña incorrectos",
+      "unreachable": "No se pudo conectar con Odoo. Revisa la conexión de este terminal.",
       "code": {
         "title": "Tengo un código",
         "intro": "Escribe tu correo. Si tienes cuenta, te llega un código de 6 dígitos desde team@projectapp.co.",

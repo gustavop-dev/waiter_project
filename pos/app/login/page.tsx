@@ -15,12 +15,22 @@ import { homePath } from '@/lib/domain/navigation'
 import { effectiveRole } from '@/lib/domain/roles'
 import { activate, requestCode } from '@/lib/services/activation'
 import { checkPin, forgotPin, listPosEmployees, type PosEmployee } from '@/lib/services/employees'
+import { OdooError } from '@/lib/services/errors'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { useStored } from '@/lib/hooks/useStored'
 import { cn } from '@/lib/utils'
 
 const write = (key: string, value: string) => { try { if (value) localStorage.setItem(key, value); else localStorage.removeItem(key) } catch { /* sin almacenamiento */ } }
 type View = 'main' | 'code' | 'forgot'
+
+// Solo Odoo sabe si la credencial está mal (`AccessDenied`). Cualquier otro fallo —un turno caducado en la
+// sesión, un permiso, la red— se dice tal cual: darlo por «contraseña incorrecta» manda a buscar donde no es.
+function loginError(error: unknown, tl: (key: string) => string): string {
+  if (error instanceof OdooError) {
+    return error.odooType === 'odoo.exceptions.AccessDenied' || !error.message ? tl('failed') : error.message
+  }
+  return tl('unreachable')
+}
 
 // Dos fases con la composición del kit: (a) sin sesión de Odoo en el dispositivo, el terminal entra con
 // correo y contraseña; (b) con sesión abierta, "Inicio de empleado": cada mesero elige su cuenta y valida su PIN.
@@ -37,7 +47,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [show, setShow] = useState(false)
   const [remember, setRemember] = useState(true)
-  const [failed, setFailed] = useState(false)
+  const [failed, setFailed] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [code, setCode] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -54,8 +64,10 @@ export default function LoginPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setFailed(false); setBusy(true)
-    try { await login(email.trim(), password); write('waiter.email', remember ? email.trim() : ''); setView('main') } catch { setFailed(true) } finally { setBusy(false) }
+    setFailed(null); setBusy(true)
+    try { await login(email.trim(), password); write('waiter.email', remember ? email.trim() : ''); setView('main') }
+    catch (e) { setFailed(loginError(e, tl)) }
+    finally { setBusy(false) }
   }
   async function onSendCode() { setBusy(true); try { await requestCode(email); setCodeState('sent') } finally { setBusy(false) } }
   async function onActivate(e: React.FormEvent) {
@@ -127,7 +139,7 @@ export default function LoginPage() {
               <button type="button" onClick={() => setShow((v) => !v)} className="h-full px-4 text-[14px] font-semibold text-soft border-l border-border">{show ? tl('hide') : tl('show')}</button>
             </span></label>
           <div className="mt-4 w-full flex items-center gap-3 text-[15px] text-ink"><Toggle checked={remember} onChange={setRemember} label={tl('remember')} /><span>{tl('remember')}</span></div>
-          {failed && <p role="alert" className="mt-3 self-start text-danger-ink text-[14px]">{tl('failed')}</p>}
+          {failed && <p role="alert" className="mt-3 self-start text-danger-ink text-[14px]">{failed}</p>}
           <Button type="submit" variant="primary" className="mt-6 w-full h-12 text-[17px] font-semibold" disabled={busy || !email || !password}>{t('terminal.submit')}</Button>
           <button type="button" onClick={() => { setView('code'); setCodeState('idle') }} className="mt-6 text-[16px] font-semibold text-primary">{t('terminal.forgot')}</button>
         </form>

@@ -5,6 +5,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import LoginPage from '@/app/login/page'
 import { messages } from '@/lib/i18n/messages'
 import { checkPin, listPosEmployees } from '@/lib/services/employees'
+import { OdooError } from '@/lib/services/errors'
 import { useAuthStore } from '@/lib/stores/authStore'
 
 const push = jest.fn()
@@ -74,4 +75,22 @@ it('forgot PIN asks for the email and then shows the check-your-email screen', a
   expect(screen.getByRole('button', { name: 'Reenviar' })).toBeInTheDocument()
   await userEvent.click(screen.getByRole('button', { name: 'Volver a iniciar sesión' }))
   expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Inicio de empleado')
+})
+
+// Falla si el terminal vuelve a llamar «credenciales incorrectas» a lo que no lo es: con un turno caducado
+// en la sesión de Odoo el POS decía eso con la contraseña correcta, y se buscaba el problema donde no estaba.
+it('tells the real reason when the failure is not a wrong credential', async () => {
+  hydrateAs(false)
+  const login = jest.fn()
+    .mockRejectedValueOnce(new OdooError('Inicia sesión con el PIN de tu empleado para continuar.', 'odoo.exceptions.AccessError'))
+    .mockRejectedValueOnce(new OdooError('Wrong login/password', 'odoo.exceptions.AccessDenied'))
+  useAuthStore.setState({ login })
+  wrap()
+  await userEvent.type(screen.getByLabelText('Correo'), 'admin')
+  await userEvent.type(screen.getByLabelText('Contraseña'), 'admin')
+  await userEvent.click(screen.getByRole('button', { name: 'Entrar' }))
+  expect(await screen.findByRole('alert')).toHaveTextContent('Inicia sesión con el PIN de tu empleado para continuar.')
+
+  await userEvent.click(screen.getByRole('button', { name: 'Entrar' }))
+  await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Correo o contraseña incorrectos'))
 })
