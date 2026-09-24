@@ -126,6 +126,22 @@ Los errores de validación dicen qué valor falló y por qué, para que la IA co
 
 J1 es la base de todo y no cambia nada visible. Cada fase se fusiona por separado.
 
+## Estado
+
+**J1 hecho (2026-09-24).**
+- `diner/scripts/design-system/tokenizar.py` pasó a variables de `smart-tokens.css`:
+  - 775 espaciados (pasos de 2 px × `--ds-densidad`),
+  - 373 tamaños e interlineados de texto (× `--ds-texto` y, en títulos, × `--ds-titulo`),
+  - 163 radios (× `--ds-forma-<rol>`: tarjeta, botón, chip, campo, imagen u hoja).
+- La escala de 2 px reemplazó a la de 4 px del plan: la de 4 px movía 206 valores y agrandaba los más usados; con la de 2 px
+  solo se mueven los impares, 1 px cada uno.
+- Verificación con las capturas de 68 pantallas:
+  - 42 quedan idénticas al píxel.
+  - 18 tienen cambios deterministas, todos de un espaciado impar redondeado (p. ej. `padding: 5px` → `6px`); ningún tamaño de
+    texto cambió.
+  - 8 difieren igual entre dos capturas con el mismo CSS (animaciones): son ruido.
+- `components/smart/__tests__/designTokens.test.ts` falla si vuelve una medida fija.
+
 ## Fuera de alcance
 
 - HTML o CSS libres por restaurante: riesgo de suplantar el botón de pago, rastreo con imágenes externas y roturas con
